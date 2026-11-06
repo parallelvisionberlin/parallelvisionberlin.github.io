@@ -316,6 +316,25 @@ try{
       assert.equal(await page.locator('#owner-recent-title').innerText(),'Latest subscribers.','Filter title is accurate');
       await page.locator('[data-recent-filter="all"]').click();
       assert.equal(await page.locator('#owner-recent-signups .owner-recent-item').count(),3,'All signups can be restored');
+      // Unified Owner entry keeps every existing section and adds only read-only navigation.
+      for(const selector of ['.owner-side-nav a[href="#owner-acquisition-section"]','.owner-side-nav a[href="#owner-release-section"]'])
+        assert.equal(await page.locator(selector).count(),1,'One direct sidebar destination per new access path');
+      assert.equal(await page.locator('.owner-workspace-paths a').count(),3,'Three focused entry paths');
+      assert.equal(await page.locator('#owner-mobile-access').isVisible(),width<=920,'Mobile access replaces the crowded jumpbar only on small screens');
+      for(const href of await page.locator('.owner-workspace-paths a,.owner-jumpbar a[href^="#"]').evaluateAll(links=>links.map(a=>a.getAttribute('href'))))
+        assert.equal(await page.locator(href).count(),1,'Each internal shortcut resolves to an existing section');
+      assert.equal(await page.locator('#owner-release-section .owner-check-detail[open]').count(),0,'Technical detail stays collapsed by default');
+      if(width<=920){
+        await page.locator('#owner-mobile-access > summary').click();
+        assert.equal(await page.locator('.owner-jumpbar a[href="#owner-acquisition-section"]').isVisible(),true,'Revenue is reachable in the mobile menu');
+        await page.locator('.owner-jumpbar a[href="#owner-acquisition-section"]').click();
+        assert.equal(await page.locator('#owner-mobile-access').getAttribute('open'),null,'Menu closes after selecting a destination');
+        assert.equal(await page.locator('.owner-side-nav a[href="#owner-acquisition-section"]').getAttribute('aria-current'),'location','Mobile and sidebar location remain in sync');
+      }else{
+        await page.locator('.owner-workspace-paths a[href="#owner-acquisition-section"]').click();
+        assert.equal(await page.locator('.owner-side-nav a[href="#owner-acquisition-section"]').getAttribute('aria-current'),'location','Overview shortcuts update sidebar location');
+      }
+      await page.evaluate(()=>window.scrollTo(0,0));
       const dimensions=await page.evaluate(()=>{
         const main=document.querySelector('.owner-shell');
         const jumpbar=document.querySelector('.owner-jumpbar');
