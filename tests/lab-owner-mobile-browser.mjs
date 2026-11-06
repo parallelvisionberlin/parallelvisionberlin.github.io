@@ -553,7 +553,10 @@ try{
           'The complete purchase heading fits its line box: '+JSON.stringify(purchaseLayout));
       }
       if(width<=430)assert.ok(purchaseLayout.person.right<=purchaseLayout.date.left-4,'Purchase email and date keep separate phone columns');
-      if(width===390||width===1792)await page.screenshot({path:artifactDir+'/overview-top-'+width+'.png',fullPage:false});
+      if(width===390||width===1792){
+        await page.screenshot({path:artifactDir+'/overview-top-'+width+'.png',fullPage:false});
+        await page.locator('.owner-purchases-panel').screenshot({path:artifactDir+'/recent-purchases-'+width+'.png'});
+      }
       await page.evaluate(()=>window.scrollTo(999,1200));
       const position=await page.evaluate(()=>({x:scrollX,y:scrollY}));
       assert.ok(position.x<=1,'No horizontal document scrolling at '+width+'px');
@@ -613,6 +616,9 @@ try{
             };
             throw Error('Unexpected Customers refresh test route: '+path);
           };
+          // customerUI retains the original call function, which reads through
+          // the session-request mock. Route that boundary through the same fixture.
+          window.__ownerQaMedia=async(path,options)=>({ok:true,json:async()=>call(path,options)});
           profile={owner:true};autoClerkSyncAttempted=true;customerUI.clear();customerPage=2;
           document.querySelector('#owner-search').value='refresh';
           await refreshDashboard();
