@@ -176,3 +176,8 @@
  .beauty-left-settings{gap:9px;padding-top:10px}
 }
 @media(min-width:1601px){.beauty-editor-grid{height:clamp(560px,60vh,640px)}}
+
+/* Compact desktops retain clearance below the native aspect-ratio control. */
+@media(min-width:1001px) and (max-width:1300px){.beauty-left-settings{gap:6px}}
+/* Preserve breadcrumb hit targets above the decorative photograph. */
+.beauty-breadcrumb{position:relative;z-index:3}

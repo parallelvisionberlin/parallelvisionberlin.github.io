@@ -1,3 +1,22 @@
+## Stable Mood Atlas frame / 2026-11-06
+
+- Objective: preserve one responsive photobooth frame through upload, preparation, generation, result, Make another and source-photo removal.
+- User references: six screenshots image(20261106-210622/210701/210733/210844/210859/210912).png.
+- Baseline main: 519d9fad57af01fcf836203d24f54e150a3d9455.
+- Root cause: photobooth shell/artwork/headings excluded is-result-view; processing fell back to the older green result dialog. A display:none long-wait note also moved the loader copy.
+- Share the approved photographic shell, title, branding, close placement and artwork across editor/result. Form controls remain editor-only.
+- Desktop keeps the approved large frame. Phone retains its approved compact framing and measures editor height for the result workspace.
+- Reserve result actions/balance/repeat rows before completion. Reserve the delayed 45-second wait-note footprint; no new generation action or changed timer.
+- Make another retains the original source and requires explicit Generate. Source removal is visibly labelled Remove photo to distinguish it from the window close control.
+- Backend, provider, prices, credits, checkout, curated photos, prompts and existing insufficient-credit offer are untouched.
+- Files: explore-moods-photobooth.css, explore-moods-nav.css, explore-moods.js, moods.html; existing Explore browser/unit tests and CI.
+- Local: all 16 approved Image, Mood handoff and Mood reference checks pass, plus syntax/whitespace. Existing inline-return navigation/upload-size static assertions predate the approved UI.
+- First browser CI caught mobile-only CSS exclusions and the global hidden display rule; corrected shared phone framing, price-line reservation and explicit hidden-slot overrides. No failing assertion was weakened.
+- Independent browser fixture: desktop remains 1000 by 840.328px through generation/result/repeat/removal. Phone remains 350 by 593.641px at 390 by 844; source is retained for Make another. Full CI and small-screen screenshots pending.
+- Added browser checks: frame position/width/height across preparation, completion, Make another and removal at desktop/phone/small widths; virtual 45-second wait note without moving copy/frame; one explicit job only.
+- Publication and browser QA pending. No paid generation or real-account mutation.
+- Next: run focused CI, inspect resulting desktop/phone screenshots, merge reviewed source and verify exact Cloudflare/custom-domain assets.
+
 ## Approved option A: no header bar / 2026-11-04
 
 - Owner approved option A from Dreamcore modal: two clean header options.png (libfile_b7ed24d4a4548191aa6cd5363831c600).

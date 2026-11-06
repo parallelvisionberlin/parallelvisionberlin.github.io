@@ -1,60 +1,52 @@
 # Night Flash with Higgsfield Soul 2
 
-## Current state, 2026-11-06
+## Active state, 2026-11-06
 
-- PR #874 merged: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/874
-- Tested application source: `ce0264e839aaccc7a00c8e088e47fccb5d2f01d8`.
-- Current source: owner-card PR #877 merge `64c57859046816f6b01b7023965fd5319b42e884`; baseline `674b340bcb7217ed4b4ca42344a8fde8c55c0be8` includes #874 and #870.
-- Night Flash remains the existing Mood/card; users explicitly choose PV Soul. No automatic model switch or new native style UUID.
-- One Base or an authored text subject; optional completed, owned Soul 2 ID. Character photographs and Qwen LoRAs are not Soul IDs.
-- Recipe keeps direct frontal flash, deep readable blacks, organic 35mm grain, natural skin/fabric and restrained practical lights; no invented neon.
-- Base guidance preserves identity, proportions, outfit/coverage, pose, framing and geometry unless the authored direction or selected Soul ID changes them. This is guidance, not a likeness/pixel guarantee.
-- Intensity, original direction, Base and Soul identity stay bound to the quote and persist through History/Reuse. Existing credit ceiling, budget, confirmation and idempotency remain.
-- Customer gate: `LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED` must equal `true`. Absent/false stays blocked even when general Higgsfield access is enabled.
-- Frontend blocks automatic Night Flash price requests while closed. Worker blocks quote and unused-quote submission before vendor calls/reservation. Existing-job replay and ordinary Soul remain available.
+- Owner-flow PR #883: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/883
+- Reviewed candidate `04413ed5aa58f6db557bb6a5c21e4b4a7fabe0d0`; merge `9919574d5d40044c04c739b7e7ed206245e5e68f`, based on `519d9fad57af01fcf836203d24f54e150a3d9455`.
+- Owner Soul Generate checks the live bound quote and submits once without the second price modal. A deliberate Generate click is required. Backend `confirm:true`, budget, quote expiry, identity/Mood binding and idempotency remain.
+- Customer confirmation is unchanged. `LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED` remains absent/false in the last verified live configuration; this frontend change does not enable it. Private Won Kar Night remains owner-only at quote and submission.
+- Switching away from PV Soul with Won Kar Night opens an English compact dialog: Use PV Soul or Remove mood. Escape restores Soul. Neither choice generates; Base and authored direction remain intact.
+- Compatibility help no longer adds a deck row. Shared readable Mood colors, compact prompt geometry, approved placeholders and existing #870 replacement behavior are preserved.
+- Files changed: `lab/lab.js`, `lab/studio.html`, `lab/image-deck-surface.css`, `tests/lab-night-flash-soul-ui.mjs`; plus this handoff and the existing `night-flash-soul` index record. Worker and original CI gates unchanged.
 
-## Verified tests and scope
+## Verification and publication
 
-- 115 focused Node 22.16.0 CI tests pass: Soul API/pricing, Mood, approved Image contract, Precision Edit and replacement.
-- Full Studio/controller fixtures pass for owner/customer at 1440x900 and 390x844.
-- Verified model/Mood selection, intensity, text/Base, completed/pending identity, strength, seven-credit mock quote, cancel, explicit confirmation and Reuse.
-- Customer flag is closed by default; the enabled customer path is simulated only inside the isolated fixture.
-- #870 selection/brush/composition test and full replacement flow pass at 390px and 1440px. Its application files remain unchanged from main.
-- CI: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42290239663
-- Night Flash and owner-card screenshots: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42290239663/artifacts/13538434373
-- Initial Night Flash release: 139 local Worker/customer/pricing/prompt-safety/submission tests passed on Node 24.22.1.
-- Prior Night Flash broad baseline: 1096/1102 passed. All six failures reproduce on main in the four affected files (20 cases, 14 pass/6 fail): Meta cookie IDs; Dream Blur upload scheduling; Moods header; oversized upload; Soft Pastel focal point; photobooth stylesheet. Assertions unchanged.
-- Separate approved-image-ui workflow passes for the owner-card candidate; normal merge API used without bypass options.
-- Hosted Chrome 156 supplied the compatible browser. The old apt browser installation exhausted its timeout; local Chromium is blocked by socket permissions.
-- No real provider generation, training, payment or signed-in production journey was performed. Fixture photographs are existing previews, not new generated results.
+- 115 focused local/CI Node cases pass: Soul API/pricing, Mood, approved Image contract, Precision Edit and replacement.
+- Hosted Chrome 156 owner/customer fixtures pass at 390x844 and 1440x900: text/Base, completed/pending Soul ID, intensity/strength, bound quote, Reuse, owner one-click, rapid clicks and failed live estimate with no submission/retry.
+- Compatibility popup: both options and Escape pass; preserves Base/direction, no automatic generation, no extra deck row or overflow. Phone/desktop screenshots were inspected.
+- Both #870 replacement browser suites and prompt-paste layout pass. Providers, sessions and identity records are mocked. No paid generation, training, payment or real signed-in production journey was performed.
+- Extended diagnostic run: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42296062207
+- Legacy first-image test fails at line258: new/guest Base widths 120px vs 96px. Studio layout stops at line28, its Clerk source assertion. Both reproduce identically against unchanged main `519d9fad57af01fcf836203d24f54e150a3d9455` in that run; neither assertion was edited. The temporary comparison steps are absent from the final diff; original CI gates remain.
+- Current focused run: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42296435939 (115 Node cases and all scoped Soul/replacement browser checks passed on the final candidate).
+- #883 is merged, not yet verified live as of 2026-11-06T21:32:29Z. Production deployment `131dec02-1ad0-4e3b-a214-84b691c104e3` remains queued; check `128162944648` in_progress. An older preview `91b206df-d8c5-46de-b7f2-1f79614d72f2` remained in clone_repo since 21:21:33Z. No cancellation of unrelated builds, second deployment or Worker changes.
+- Expected production SHA256: lab.js `d617259251ee204439cefddb2b76bc36f989938ce26f07bae5eb0ae970e0d266`; image-deck-surface.css `1559aa13af7c2181c6637cadfe4d6bb9801d1ac89e920f5abfd74004ef9d28e2`. HTML must contain soul-mood-dialog and ownerSoulFlow=20261106v1.
+- Next: recheck that queued deployment, then run the scoped release verifier for both assets at merge 9919574d and inspect actual HTML. Do not repeat completed source/browser work.
 
-## Publication
+## Approved photographic behavior and assets
 
-- Initial Night Flash baseline Worker was rebuilt and verified byte-identical: SHA-256 `1b1497dc3c269e04251f26daceee0e5adda94ed16484c417f3e0f8758bea805d`.
-- Gated Worker published via Cloudflare content-only endpoint at 2026-11-06T20:40:40Z; deployment `546e7a0200594653940d85353c3d369d`.
-- Downloaded Worker exactly matches tested bundle SHA-256 `53244c59058136c5b3a60d96a8a8a26c893bfd18b962310671bc2f86720fc955`.
-- All live bindings and compatibility settings stayed unchanged. Customer Night Flash flag is absent, therefore false; source configuration also declares false.
-- Health OK; `imageReplacement: 20261106-replacement1` retained. No credential/configuration or migration changes.
-- Initial Night Flash frontend production: scoped verifier returned `LIVE_VERIFIED` for merge `454c5ab51f9a2417e0977e791705450699a9e3f4`; exact Cloudflare Pages check `128131672180` succeeded.
-- Initial Night Flash custom-domain `lab.js` matches source SHA-256 `299c5d0973c35f7fbbf58fd2cf297efbd9f0d1e27fd6348d81185331797cbe98`. Asset evidence does not establish a signed-in production journey.
+- Night Flash stays the existing public Mood; explicitly choose PV Soul. Direct frontal flash, deep readable blacks, organic 35mm grain, natural skin/fabric and restrained practical lights; no invented neon or native provider style UUID.
+- Soul accepts authored text or one Base and an optional completed same-account Soul2 ID. Character photographs and Qwen LoRAs are not Soul IDs.
+- Base identity, proportions, outfit/coverage, pose, framing and geometry stay authoritative unless authored direction or selected Soul ID changes them. Prompt guidance is not a likeness/pixel guarantee.
+- Intensity, original direction, Base and Soul identity bind to the quote and persist through History/Reuse.
+- Private English card name: Won Kar Night; caption PV Soul · Owner test. Selecting it chooses PV Soul but never generates. Public MOODS remains 17 entries.
+- Original cover `lab/mood-previews/won-kar-night.png` exactly copies `wonkarwai1.png`, Git blob `b41cc5211b567d74d68f74cff89baa60132b94e2`; no generated/edited image. Cover is presentation only and never a provider input.
+- Recipe: cinematic emerald night, warm skin, source-bound motion and organic 35mm grain; preserve Base/Soul ID and authored changes rather than copying cover people/pose/car/cigarette.
 
-## Provider contract and activation conditions
+## Provider contract and customer activation
 
 - Official image API: https://open.higgsfield.ai/models/higgsfield-ai/soul/v2/image-to-image/api-reference
 - Official text API: https://open.higgsfield.ai/models/higgsfield-ai/soul/v2/standard/api-reference
-- Rechecked routes, Base URL, prompt, 720p/1080p, supported ratios, batch size 1, seed bounds and optional same-account completed Soul ID/strength. No invented `style_id`.
-- Provider image-to-image prompt processing is always enabled. Its schema does not establish generated appearance or identity retention.
-- Before customer activation: record commercial/resale permission and a real account-specific live quote within existing ceilings; verify a completed same-account Soul ID when needed and provider-accessible Base URL.
-- An explicitly authorized real-image test must establish photographic quality, identity and Base handling before changing the customer flag. No paid generation/training is authorized by this checkpoint.
-- Next: leave the customer gate closed pending the provider/account/quality conditions above; obtain explicit authorization before any paid real-image test.
+- Documented image_url, prompt, 720p/1080p, supported ratios, batch 1, seed bounds and optional completed same-account Soul ID/strength checked during #874. I2I prompt processing is always enabled; schema alone does not establish output appearance/identity retention.
+- Before customer activation: record commercial/resale permission and a real account-specific live quote within existing ceilings, provider-accessible Base URL, completed same-account Soul ID when needed, and an explicitly authorized real-image quality/identity review.
+- The owner's screenshot shows a returned $0.006 quote; it is user-supplied evidence, not an independent provider/account or paid quality test by this session.
+- Do not run paid generation/training or enable customer Night Flash from this checkpoint. Next action is provider/account/quality validation only with the required authorization.
 
-## Won Kar Night: owner-only Soul test
+## Earlier releases and continuity
 
-- User-confirmed English name: **Won Kar Night**; caption: **PV Soul · Owner test**.
-- Card exists only for `ownerAccount` in Image Studio Moods. Selecting it explicitly chooses PV Soul without generating. Public `MOODS` stays at 17 entries.
-- Cover `lab/mood-previews/won-kar-night.png` exactly copies existing `wonkarwai1.png` (Git blob `b41cc5211b567d74d68f74cff89baa60132b94e2`); no generated or edited image.
-- Cover is presentation only, never a provider input. Cinematic emerald night, source-bound motion and 35mm grain; Base/Soul ID and authored changes stay authoritative.
-- Customers are rejected at both quote and unused-quote submission, even with all customer provider flags enabled. Budget, explicit price confirmation, History/Reuse and idempotency stay intact.
-- Three new Node cases and owner/customer 390px/1440px browser checks pass in the CI above; existing replacement suites also pass. No paid generation/training.
-- Files: `lab/won-kar-night.js`, `lab/moods.js`, `lab/night-flash-soul.js`, `lab/lab.js`, `lab-worker/higgsfield.mjs`, `tests/lab-won-kar-night.test.mjs`.
-- Owner-card frontend `64c57859046816f6b01b7023965fd5319b42e884`: `LIVE_VERIFIED`, successful Cloudflare check `128143935832`; lab.js SHA-256 `91f169e126d73f4abf74d705bd22c1a8b065b5639192efbc2028880b8bd351b6`. Moods, recipe, quote helper and original cover bytes also match production.
+- #874 Night Flash: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/874
+- #877 Won Kar Night: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/877
+- #879 Mood palette/input guidance: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/879
+- Last verified Worker publication: content-only deployment `546e7a0200594653940d85353c3d369d`, 2026-11-06T20:40:40Z, SHA256 `53244c59058136c5b3a60d96a8a8a26c893bfd18b962310671bc2f86720fc955`; bindings/compatibility unchanged; health retained imageReplacement20261106-replacement1.
+- Earlier exact frontend/Worker publication hashes, 139 local initial cases and six reproducible broad-suite baseline failures: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/519d9fad57af01fcf836203d24f54e150a3d9455/lab/NIGHT-FLASH-SOUL-WORK-STATE.md
+- Source publication evidence is separate from real signed-in behavior and paid photographic/identity validation.

@@ -16,7 +16,7 @@ customerGenerationReady=true;customerBillingReady=true;customerCreditBalance=100
 wallet.connect({customer:customerMode,balanceCredits:1000,billingReady:true,products:[]});
 applyConfig({enabled:true,configured:true,geminiEnabled:true,falEnabled:true,higgsfieldEnabled:true,concurrency:{image:4,video:1}});
 $('app').hidden=false;$('gate').hidden=true;setTool('image');await loadHistory();finishLabBoot();update();
-window.__nightFlashRead=()=>({settings:settings(),source:!!file,mood:moodUI.selected()});
+window.__nightFlashRead=()=>({settings:settings(),source:!!file,mood:moodUI.selected(),pending:imageSubmissionPending});
 window.__nightFlashGate=value=>applyConfig({soulNightFlashEnabled:value});
 window.__nightFlashReuse=job=>restore(job);
 window.__nightFlashReady=true;
@@ -32,7 +32,7 @@ const browser=await chromium.launch({headless:true,executablePath:process.env.PV
 try{
   for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const role of ['owner','customer']){
     const context=await browser.newContext({viewport,reducedMotion:'reduce'}),page=await context.newPage();
-    const errors=[],quotes=new Map(),jobs=new Map(),requests=[];let generated=0,seq=1;
+    const errors=[],quotes=new Map(),jobs=new Map(),requests=[];let generated=0,seq=1,failQuote=false;
     const id=()=> '30000000-0000-4000-8000-'+String(seq++).padStart(12,'0');
     const characterId=id(),pendingId=id(),portraitId=id();
     page.on('pageerror',e=>errors.push(e.message));
@@ -50,6 +50,8 @@ try{
       if(path.startsWith('/api/assets/'))return route.fulfill({contentType:'image/jpeg',body:readFileSync('lab/mood-previews/hd/night-flash-20261011.jpg')});
       if(path==='/api/uploads')return send({id:id()},201);
       if(path==='/api/higgsfield/quote'){
+        if(failQuote)return send({error:'Fixture provider estimate unavailable'},503);
+        if(role==='owner')await new Promise(done=>setTimeout(done,100));
         const p=soul2Parameters(data.settings,(status,message)=>{throw new Error(message);},{hasBase:!!data.sourceId});
         if(!data.sourceId){p.model=SOUL2_TEXT_MODEL;p.mode='image';}
         if(p.aspectRatio==='source')p.aspectRatio='3:4';
@@ -125,21 +127,31 @@ try{
       assert.equal(geometry.overflow,false);
       for(const box of geometry.boxes)assert.ok(box.width>0&&box.height>0&&box.x>=0&&box.right<=viewport.width+1&&box.bottom<=viewport.height+2,JSON.stringify({role,viewport,geometry}));
       await page.screenshot({path:'test-results/night-flash-soul-'+role+'-'+viewport.width+'.png'});
-      await page.locator('#image-composer-generate').click();
-      await page.locator('#quote-dialog').waitFor({state:'visible'});
-      assert.equal(generated,0,'The live-price dialog does not submit or charge');
+      if(role==='owner'){
+        // Two rapid clicks while the live quote is pending must submit only once.
+        const accepted=page.waitForResponse(r=>r.url().endsWith('/api/higgsfield/generate'));
+        await page.evaluate(()=>{const button=document.getElementById('image-composer-generate');button.click();button.click();});
+        await accepted;
+        await page.waitForFunction(()=>!window.__nightFlashRead().pending);
+        assert.equal(generated,1,'Owner Generate checks the price and submits exactly once');
+        assert.equal(await page.locator('#quote-dialog').isVisible(),false,'No second owner price confirmation');
+      }else{
+        await page.locator('#image-composer-generate').click();
+        await page.locator('#quote-dialog').waitFor({state:'visible'});
+        assert.equal(generated,0,'Customer live-price dialog does not submit or charge');
+        assert.match(await page.locator('#quote-price').innerText(),/7\s*credits/);
+        await page.locator('[data-close="quote-dialog"]').click();
+        assert.equal(generated,0,'Cancelling the customer quote never submits');
+        await page.locator('#image-composer-generate').click();
+        await page.locator('#quote-dialog').waitFor({state:'visible'});
+        await page.locator('#confirm-generation').click();
+        await page.waitForFunction(()=>!document.getElementById('quote-dialog').open);
+        assert.equal(generated,1,'Customer confirmation submits exactly once');
+      }
       const selectedQuote=[...quotes.values()].at(-1);
       assert.equal(selectedQuote.settings.moodId,'night-flash');assert.ok(selectedQuote.sourceId);
       assert.equal(selectedQuote.settings.moodOriginalPrompt,'Keep the expression.');
       assert.equal(selectedQuote.settings.characterId,characterId);assert.equal(selectedQuote.settings.identityStrength,.05);
-      assert.match(await page.locator('#quote-price').innerText(),role==='customer'?/7\s*credits/:/\$/);
-      await page.locator('[data-close="quote-dialog"]').click();
-      assert.equal(generated,0,'Cancelling the quote never submits');
-      await page.locator('#image-composer-generate').click();
-      await page.locator('#quote-dialog').waitFor({state:'visible'});
-      await page.locator('#confirm-generation').click();
-      await page.waitForFunction(()=>!document.getElementById('quote-dialog').open);
-      assert.equal(generated,1,'One explicit confirmation submits exactly once');
       assert.equal(requests.filter(r=>r.path==='/api/higgsfield/characters'&&r.method==='POST').length,0,'No training');
       const job=[...jobs.values()].at(-1);
       await page.evaluate(job=>window.__nightFlashReuse(job),job);
@@ -162,10 +174,47 @@ try{
         assert.equal(state.settings.moodIntensity,75);assert.match(state.settings.prompt,/emerald/i);
         assert.equal(generated,1,'Selecting the private card never generates');
         await page.screenshot({path:'test-results/night-flash-soul-won-kar-night-'+viewport.width+'.png'});
+        const switchModel=async()=>{
+          await page.locator('#image-composer-model').click();
+          await page.locator('.composer-model-option[data-value="gemini"]').click();
+          await page.locator('#soul-mood-dialog').waitFor({state:'visible'});
+          assert.equal(await page.locator('#composer-generation-block').isVisible(),false,'Compatibility help never adds a deck row');
+          assert.equal(await page.locator('#image-composer-generate').isEnabled(),false,'Incompatible Mood stays blocked');
+          assert.equal(generated,1,'Opening compatibility popup never submits');
+        };
+        await switchModel();
+        const popup=await page.locator('#soul-mood-dialog').boundingBox();
+        assert.ok(popup.x>=0&&popup.x+popup.width<=viewport.width&&popup.y>=0&&popup.y+popup.height<=viewport.height,'Popup fits the viewport');
+        await page.screenshot({path:'test-results/night-flash-soul-model-choice-'+viewport.width+'.png'});
+        await page.locator('#soul-mood-use').click();
+        state=await page.evaluate(()=>window.__nightFlashRead());
+        assert.equal(state.settings.provider,'higgsfield');assert.equal(state.mood,'won-kar-night');
+        assert.equal(state.source,true,'Use PV Soul preserves Base');
+        await switchModel();
+        await page.keyboard.press('Escape');
+        state=await page.evaluate(()=>window.__nightFlashRead());
+        assert.equal(state.settings.provider,'higgsfield');assert.equal(state.mood,'won-kar-night','Escape keeps the original compatible combination');
+        failQuote=true;
+        const failed=page.waitForResponse(r=>r.url().endsWith('/api/higgsfield/quote')&&r.status()===503);
+        await page.locator('#image-composer-generate').click();await failed;
+        await page.waitForFunction(()=>!window.__nightFlashRead().pending);
+        assert.equal(generated,1,'A failed live quote never generates or retries');
+        failQuote=false;
+        await switchModel();
+        const blockedDeck=await page.locator('#image-composer').boundingBox();
+        await page.locator('#soul-mood-remove').click();
+        state=await page.evaluate(()=>window.__nightFlashRead());
+        assert.equal(state.settings.engine,'gemini');assert.equal(state.mood,null);assert.equal(state.source,true);
+        assert.equal(state.settings.prompt,'Keep the expression.','Remove mood preserves authored direction');
+        assert.equal(await page.locator('#soul-mood-dialog').isVisible(),false);
+        const resolvedDeck=await page.locator('#image-composer').boundingBox();
+        assert.equal(Math.round(blockedDeck.height),Math.round(resolvedDeck.height),'Resolving compatibility does not add/remove a status row');
+        assert.equal(generated,1,'Both popup choices and Escape never generate');
+
       }
       assert.deepEqual(errors,[]);
       console.log('PASS Won Kar Night owner visibility, Soul selection and no automatic generation '+role+' '+viewport.width+'px');
-      console.log('PASS Soul Night Flash '+role+' '+viewport.width+'px: selection, text/base, unsupported Mood, geometry, bound quote and explicit submit');
+      console.log('PASS Soul Night Flash '+role+' '+viewport.width+'px: selection, text/base, unsupported Mood, geometry, bound quote, owner one-click/customer confirmation and compatibility popup');
     }finally{await context.close();}
   }
 }finally{await browser.close();await new Promise(done=>server.close(done));}

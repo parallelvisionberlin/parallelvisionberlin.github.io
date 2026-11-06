@@ -1,5 +1,14 @@
 # Beauty Studio and Studios navigation
 
+## 2026-11-06 | Final review and existing PV LAB favicon
+
+- Reused the exact homepage favicon `./branding/pv-mark.png`; no branding regenerated.
+- Fixed compact desktop clearance and breadcrumb hit targets; stylesheet `20261106-atelier2`.
+- The final navigation test failure was a public local-currency request incorrectly subjected to private authorization. Exact public currency/traffic fixtures now remain separate; private token and guest-isolation assertions are preserved.
+- Complete Beauty and Studios browser suites plus 12 scoped unit contracts and Worker quote/idempotency integration passed in https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42299866022.
+- This is intercepted test-account evidence, not real signed-in production behavior. No paid generation or payment was made.
+- Source is saved on the existing review branch; merge and production bytes remain to be verified.
+
 ## 2026-11-06 | Approved tabbed ALTER implementation
 
 - Objective: implement the owner-supplied dark ALTER reference, not another mock image.

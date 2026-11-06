@@ -26,8 +26,19 @@ async function scenario({role='customer',width=1448,height=1086,malformed=false,
  await page.route('https://**/*',async route=>{
   const request=route.request(),url=new URL(request.url());
   if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return route.abort();
+  // Public homepage currency/traffic calls are not private Studio requests.
+  // Only these exact endpoints/methods are mocked; every other Worker call
+  // still requires the synthetic token and is counted for guest isolation.
+  if(url.pathname==='/api/public/local-currency'&&request.method()==='GET'){
+   assert.equal(request.headers().authorization,undefined,'Public currency must not carry private credentials');
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({currency:'EUR',rate:1,approximate:true,locale:'de-DE'})});
+  }
+  if(url.pathname==='/api/public/traffic'&&request.method()==='POST'){
+   assert.equal(request.headers().authorization,undefined,'Public traffic must not carry private credentials');
+   return route.fulfill({status:204,body:''});
+  }
   calls.push({path:url.pathname,method:request.method()});
-  assert.equal(request.headers().authorization,'Bearer synthetic-token');
+  assert.equal(request.headers().authorization,'Bearer synthetic-token',request.method()+' '+url.pathname+' requires session authorization');
   let result={};
   if(url.pathname==='/api/session')result={owner:role==='owner',customer:role!=='owner',balanceCredits:500,generationReady:true,billingReady:true,config:{enabled:true}};
   else if(url.pathname==='/api/uploads'){uploads++;result={id:'photo-'+uploads};sources.set(result.id,{body:request.postDataBuffer(),contentType:request.headers()['content-type']});}
@@ -106,6 +117,8 @@ try{
    assert.equal(editorial.fullDeck,false,'Archive has true horizontal overflow instead of squeezing six cards');
    if(width>=1440)assert.ok(editorial.titleSize>=70,'Desktop ALTER title has the approved editorial scale');
   }
+  await page.locator('.beauty-breadcrumb button').click({trial:true});
+  assert.equal(await page.locator('link[rel="icon"]').getAttribute('href'),'./branding/pv-mark.png');
   await page.locator('#beauty-generate').click({trial:true});
   await page.screenshot({path:'test-results/beauty-fit-'+width+'x'+height+'.png',fullPage:true});
   await s.context.close();
@@ -159,12 +172,13 @@ try{
   assert.deepEqual(await defaults(),{makeup:'keep',hair:'keep',skin:'natural',light:'keep',color:'keep',strength:'50'});
   await page.locator('#beauty-photo').setInputFiles(input);
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
-  const quoted=s.quotes.length,buttonBefore=await page.locator('#beauty-generate').boundingBox();
+  const buttonGeometry=()=>page.locator('#beauty-generate').evaluate(button=>{const a=button.getBoundingClientRect(),b=button.closest('.beauty-edit-panel').getBoundingClientRect();return {x:a.left-b.left,y:a.top-b.top,width:a.width,height:a.height};});
+  const quoted=s.quotes.length,buttonBefore=await buttonGeometry();
   for(const tab of ['hair','skin','light','color','makeup'])await page.locator('#beauty-tab-'+tab).click();
   await page.waitForTimeout(500);
   assert.equal(s.quotes.length,quoted,'Tab browsing does not invalidate or reprice a quote');
   assert.equal(s.submits,0,'Tab browsing cannot generate');
-  assert.deepEqual(await page.locator('#beauty-generate').boundingBox(),buttonBefore,'Generate placement stays stable across tabs');
+  assert.deepEqual(await buttonGeometry(),buttonBefore,'Generate placement stays stable across tabs');
   for(const [tab,value] of [['makeup','metallic'],['hair','wet'],['skin','matte'],['light','flash'],['color','warm']]){
    await page.locator('#beauty-tab-'+tab).click();
    await page.locator(`[data-beauty-choice="beauty-${tab}"][data-value="${value}"]`).click();
