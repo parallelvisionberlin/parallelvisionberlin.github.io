@@ -536,3 +536,70 @@ body.editorial-web #panel-model #editorial-saved-rail .editorial-cast-arrow{z-in
 @media(max-width:600px){
  body.editorial-web #panel-model{padding-bottom:10px!important}
 }
+
+
+/* Composition is now a sibling of the step footer, NOT a child of #panel-model.
+   Restore the photographic option primitives that the old contextual CSS supplied. */
+body.editorial-web .flow-main > #editorial-casting-controls:not([hidden]){
+ box-sizing:border-box;width:100%!important;max-width:none!important;
+ grid-template-columns:clamp(270px,26vw,360px) minmax(0,1fr)!important;
+}
+body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-heading{min-width:0}
+body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-heading h4{
+ font-size:clamp(35px,3vw,51px)!important;
+}
+body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-option{
+ display:block!important;position:relative!important;min-width:0!important;
+ background:#161718!important;color:#f4f2ef!important;text-align:left!important;
+}
+body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-art{
+ display:flex!important;position:absolute!important;inset:0!important;overflow:hidden!important;
+ width:100%!important;height:100%!important;pointer-events:none;
+}
+body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-art img{
+ display:block!important;flex:1 1 0!important;width:100%!important;
+ min-width:0!important;height:100%!important;object-fit:cover!important;
+ object-position:center 28%!important;filter:brightness(.83) saturate(.82) contrast(1.02)!important;
+}
+body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-art img:not(:only-child){
+ flex:1 1 50%!important;width:50%!important;
+}
+body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-option::after{
+ content:''!important;position:absolute!important;inset:0!important;z-index:1!important;
+ background:linear-gradient(0deg,#080808ed 0%,#08080850 48%,transparent 85%)!important;
+ pointer-events:none;
+}
+body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-copy{
+ position:absolute!important;z-index:2!important;display:grid!important;align-content:end!important;
+ pointer-events:none;
+}
+body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-check{
+ position:absolute!important;z-index:3!important;top:9px!important;right:9px!important;
+ display:block!important;width:20px!important;height:20px!important;
+ border:1px solid #f1f0ec!important;border-radius:50%!important;
+ background:#08090a65!important;
+}
+body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-option.is-selected .editorial-composition-check{
+ border-color:#f4f1e9!important;background:#f4f1e9!important;
+}
+body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-option.is-selected .editorial-composition-check::after{
+ content:'✓'!important;position:absolute;inset:0;display:grid;place-items:center;
+ color:#111!important;font-size:12px!important;font-weight:700!important;
+}
+@media(min-width:801px){
+ body.editorial-web #panel-model .stage-copy h2{
+  transform:scaleX(.84);transform-origin:left center;
+ }
+ body.editorial-web #editorial-footer-cast .editorial-model-card.thumb .editorial-add-view{
+  opacity:0!important;
+ }
+ body.editorial-web #editorial-footer-cast .editorial-model-card.thumb:hover .editorial-add-view,
+ body.editorial-web #editorial-footer-cast .editorial-model-card.thumb:focus-within .editorial-add-view{
+  opacity:1!important;
+ }
+}
+@media(max-width:800px){
+ body.editorial-web .flow-main > #editorial-casting-controls:not([hidden]){
+  grid-template-columns:1fr!important;
+ }
+}
