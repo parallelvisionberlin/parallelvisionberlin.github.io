@@ -131,6 +131,7 @@ try{
       assert.equal(await page.locator('#composer-library-cards').getByRole('button',{name:/Still training/}).isEnabled(),false);
       await page.locator('#composer-library-cards').getByRole('button',{name:/Fixture identity/}).click();
       await page.locator('#composer-library-close').click();
+      if(viewport.width<=899&&!await page.locator('#image-composer-more').isVisible())await page.locator('#image-composer-mobile-more').click();
       await page.locator('#image-composer-more').click();
       await page.locator('#hf-strength').press('Home');
       await page.locator('#hf-strength').press('ArrowRight');

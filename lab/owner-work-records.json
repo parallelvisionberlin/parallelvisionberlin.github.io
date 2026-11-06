@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T22:37:47Z",
+  "updatedAt": "2026-11-06T22:44:59Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1029,9 +1029,9 @@
       "component": "Image composer",
       "status": "needs_verification",
       "summary": "Locked the normal web Image deck as the shared design. Soul identity uses the normal toolbar and source photos use the existing +/reference strip. Legacy Soul and character grids are native-only. Missing Pro setup uses existing accessible button help rather than a third row.",
-      "nextAction": "Run the existing CI Image paste, first-image, studio-layout, Soul parity and Soul integration checks. Publish the reviewed commit, then verify actual production asset bytes.",
+      "nextAction": "Await the final Soul phone integration check after the More-disclosure test update. Merge the fixed candidate, then verify production bytes for lab.js, image-editorial-deck.js and image-deck-surface.css at version 20261106-shared-soul-deck1. Keep legacy first-image/auth test failures documented separately.",
       "baselineSha": "429ea39bc6d4884cb09407d8765043b0b6f04758",
-      "reviewedSha": null,
+      "reviewedSha": "8ca2fe655746ca98b2e1d8c802addb7fca4bca69",
       "branch": "fix/soul-deck-unification-20261106",
       "files": [
         "lab/AGENTS.md",
@@ -1043,7 +1043,12 @@
         "tests/lab-night-flash-soul-ui.mjs",
         ".github/workflows/pv-lab-night-flash-soul.yml"
       ],
-      "links": [],
+      "links": [
+        {
+          "label": "PR #885",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/885"
+        }
+      ],
       "tests": [
         {
           "label": "Approved Image, Soul integration, Higgsfield and private portraits",
@@ -1064,6 +1069,16 @@
           "label": "Initial CI diagnosis",
           "result": "documented",
           "scope": "Approved Image and prompt-paste passed. Fixed a strict source-contract mismatch while retaining the existing Controlled Pose expression. The parity fixture now checks the normal CSS minimum when a source photo remains attached, rather than imposing the retired Soul empty height. Added independent CI execution of all four required Image browser suites so unrelated earlier steps cannot prevent them."
+        },
+        {
+          "label": "Shared Image browser CI on 8ca2fe6",
+          "result": "passed",
+          "scope": "Soul parity passes all 20 photo/long/empty cases at 1920/1440/1100/390/320. Prompt paste and measured clearance pass at desktop/mobile widths. Approved Image contract passes. Actual Soul owner/customer desktop flows pass, including quotes, input, identity and generation boundaries. Phone test is updated to open the normal More disclosure before identity strength."
+        },
+        {
+          "label": "Required legacy suites were executed independently",
+          "result": "failed",
+          "scope": "First-image fails unchanged owner Base width120 vs guest96 declarations; these rules are unchanged by this task. Studio-layout stops on an unchanged native-account.js timeout-source assertion before launching the browser. No auth source or legacy test was changed to hide it. Full Node CI passes1106 with the same five previously observed unrelated failures; no new unit failure remains."
         }
       ],
       "deployment": {
@@ -1091,7 +1106,7 @@
         "Never reintroduce separate web is-pv-soul/has-character-picker grids or right-side IMAGE/Soul ID tiles.",
         "Keep native layout and existing identity, pricing, model restrictions and provider handlers."
       ],
-      "updatedAt": "2026-11-06T22:37:47Z"
+      "updatedAt": "2026-11-06T22:44:59Z"
     }
   ]
 }
