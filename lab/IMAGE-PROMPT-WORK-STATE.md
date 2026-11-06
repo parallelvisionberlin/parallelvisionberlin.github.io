@@ -11,7 +11,9 @@
 - Compact regression initially timed out downloading apt fonts before tests. Reused the hosted Chrome setup already working in Night Flash CI. Final job 128144313547 runs, then stops on an existing >=17px Generate-label assertion; unchanged production CSS explicitly uses 15px. Keep the approved button and this failing assertion. New prompt-height thresholds were changed only for the explicitly requested 136px cap.
 - Required Studio-layout attempt stops on unchanged Clerk setup assertion. Broad private suite has the same five existing checkout-cookie/Moods/Soft Pastel/photobooth failures documented by current main. These are separate from the passing prompt regression.
 - Syntax, whitespace and structured work-index validation pass. No paid generation, training, payment or account mutation used. Cloudflare branch preview succeeded and its real public Mood prompt showed 13px type and visible Generate.
-- Production: resolved merge prepared; Cloudflare result, exact custom-domain bytes and rendered production result still require verification. Record publication separately from actual signed-in observation.
+- Published: PR #876 merged as `d442a70730dedec9ff76bf13258d2400e4f5e995`. Cloudflare Pages app check 128147866508 succeeded. Scoped read-only verifier returned `LIVE_VERIFIED` for image-editorial-deck.js, image-editorial-deck.css, image-deck-surface.css and lab.js; exact SHA-256 values are retained in the shared owner work record.
+- Actual public production at 1363×936 after reload and Chrome Couture selection: prompt 13px / 133px high; deck 211px high; whole-card gap 16.296875px; Generate bottom 891px. Sign in and original controls visible. No Generate action was taken. Signed-in Inspiration/History remain fixture validation, separate from this real public observation.
+- No further prompt-layout work is pending. Keep the measured clearance and compact sizing in subsequent Studio work. Existing unrelated regression failures are recorded above; do not change the approved controls or weaken assertions to hide them.
 
 ## 2026-11-04 | Urgent correction: preserve locked iPhone Image viewport
 
