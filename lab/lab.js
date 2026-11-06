@@ -4615,8 +4615,8 @@ async function openVideo(job,{scroll=true,detail=false,justFinished=false}={}){
 }
 function saveDownload(url,id,ext){const a=document.createElement('a');a.href=url;a.download='parallel-vision-'+id+'.'+ext;document.body.append(a);a.click();a.remove();}
 function downloadResult(){if(!owner||!resultUrl||!resultId)return;saveDownload(resultUrl,resultId,resultExt);}
-async function downloadJob(job){
-  if(replacementPending(job))job=await imageReplacement.finalize(job);
+async function downloadJob(job,{rawReplacement=false}={}){
+  if(replacementPending(job)&&!rawReplacement)job=await imageReplacement.finalize(job);
   if(!hasResult(job))throw new Error('No output file exists for this job. The reference is not a generated result.');
   if(resultUrl&&resultId===job.outputId){downloadResult();return;}
   const blob=await assetBlob(job.outputId);if(!owner)return;
@@ -5085,7 +5085,7 @@ function renderCards(jobs,{upsert=false}={}){
       }else{
         const title=document.createElement('strong'),detail=document.createElement('span');
         title.textContent=finishingReplacement?'Finish replacement':j.settings.mode==='soul-id-training'&&j.status==='completed'?'Soul ID ready':j.status==='draft'?'Saved draft':j.status==='failed'?imageFailureHeading(j.error):j.status==='uncertain'?'Status unknown':activeStates.has(j.status)?({submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving'}[j.status]||'Result pending'):ready?'Video saved':j.status==='completed'?'Output unavailable':'No result';
-        detail.textContent=finishingReplacement?'Your generated edit is saved. Finish preserving the original photo to view and download it.':j.settings.mode==='soul-id-training'&&j.status==='completed'?'Choose this identity from the Soul ID photo tile to generate.':j.status==='draft'?'No generation submitted.':j.status==='failed'?(j.error||'The provider ended this request without a generated file.'):j.status==='uncertain'?'PV Lab could not confirm the provider state. Check the provider before retrying; nothing will be resubmitted automatically.':activeStates.has(j.status)?'The finished output will appear here.':ready?'Select this record to load and play the saved video.':'No generated file is available to view or download.';
+        detail.textContent=finishingReplacement?'Your generated edit is saved. Finish preserving the original photo, or download the raw image if finishing cannot complete.':j.settings.mode==='soul-id-training'&&j.status==='completed'?'Choose this identity from the Soul ID photo tile to generate.':j.status==='draft'?'No generation submitted.':j.status==='failed'?(j.error||'The provider ended this request without a generated file.'):j.status==='uncertain'?'PV Lab could not confirm the provider state. Check the provider before retrying; nothing will be resubmitted automatically.':activeStates.has(j.status)?'The finished output will appear here.':ready?'Select this record to load and play the saved video.':'No generated file is available to view or download.';
         if(jobCreditNotice(j)){const creditNotice=document.createElement('small');creditNotice.className='content-restriction-credits';creditNotice.textContent=jobCreditNotice(j);empty.append(creditNotice);}
         empty.append(title,detail);
       }
@@ -5111,6 +5111,7 @@ function renderCards(jobs,{upsert=false}={}){
     const actions=document.createElement('div');actions.className='cardactions';
     if(finishingReplacement){
       actions.append(button('Finish replacement',async()=>{const finished=await imageReplacement.finalize(j);surfaceHistoryJob(finished);await openImageRecord(finished);},viewMedia));
+      actions.append(button('Download raw image',()=>downloadJob(j,{rawReplacement:true}),viewMedia));
     }else if(ready){
       const download=button(image?'Download image':'Download video',()=>downloadJob(j));download.classList.add('result-download');actions.append(download);
       actions.append(button(image?'View image':'View video',()=>image?openImageRecord(j):tool==='upscale'&&j.settings.engine==='video-upscale'?videoUpscaler.openJob(j):openVideo(j),viewMedia));
