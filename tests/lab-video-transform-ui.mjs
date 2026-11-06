@@ -91,7 +91,12 @@ try{
       'Output settings must fit above Generate without scrolling: '+JSON.stringify(layout));
     assert.ok(layout.scrollHeight<=layout.clientHeight+3,
       'Empty Transform must not require a nested editor scroll: '+JSON.stringify(layout));
-    assert.ok(layout.promptHeight<=104,'Transform does not inherit the oversized Create prompt');
+    assert.ok(layout.promptHeight>=78,'Transform prompt remains editable and at least 78px tall');
+// The prompt is now the flexible track: it should use available height,
+// not leave a large blank strip below native Output settings.
+const unused=layout.footerTop-layout.outputBottom;
+assert.ok(unused>=3 && unused<=24,
+  'Output settings should sit close to the reserved Generate footer: '+JSON.stringify({layout,unused}));
     // Match the owner's captured 1919px desktop. Browser chrome occupies
     // part of the display, so test both realistic available viewport heights.
     for(const height of [820,760]){
