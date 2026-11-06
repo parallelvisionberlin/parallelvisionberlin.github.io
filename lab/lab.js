@@ -3440,7 +3440,7 @@ function configureVideoControls(){
   $('mode-transform').title=$('mode-transform').disabled?'Transform is in early access. No paid customer generations are available yet.':'Replace a character in an original video.';
   $('mode-extend').setAttribute('aria-selected',String(mode==='extend'));
   $('video-modes').hidden=!isVideo||['extend','transform'].includes(mode);
-  $('transform-help').hidden=!isVideo||mode!=='transform';
+  $('pv-transform-source-settings').hidden=!isVideo||mode!=='transform';
   $('pv-transform-reference-strip').hidden=!(isVideo&&mode==='transform'&&references.length);
   $('video-reference-heading').textContent=mode==='transform'?'Replacement character':'Reference images';
   $('pv-mode-reference-label').textContent=isVideo?'Reference set':'References';

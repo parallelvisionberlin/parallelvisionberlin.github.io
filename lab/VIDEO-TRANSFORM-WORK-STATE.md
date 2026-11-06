@@ -43,3 +43,9 @@ Updated: 2026-11-06 (Berlin)
 - Read-only inspect the `pvlab.studio` served HTML/CSS and signed-in owner desktop/iPhone once possible.
 - Before retail rollout, verify a controlled owner-approved real Higgsfield estimate/edit, source and result quality, credit debit/reconciliation and provider refusal path.
 - Do not enable the retail Transform flag merely because the design is published.
+
+## 2026-11-06 — Corrective change requested by owner
+- Removed the promotional Transform introduction and explanatory inspector paragraph from the actual editor.
+- The functional flow remains original video, replacement identity, prompt, output settings and explicit Generate price review.
+- Output panel now displays actual source duration when attached, source-derived ratio and the existing selectable 480p/720p/1080p resolution; no fictitious preset is introduced.
+- Removed the forced 100px Transform prompt shrinking. The current Video deck, central player, Create/Extend, image and video History, and payment safeguards remain unchanged.
