@@ -103,7 +103,7 @@ export function createOwnerCustomersUI({call,ownerReady,revision,openActivity,op
     if(!directory.customers.length){const tr=el('tr'),td=el('td',directory.search?'No matching accounts. Try a different email or account ID.':'No customer accounts have joined yet.');td.colSpan=7;tr.append(td);body.append(tr);return;}
     for(const c of directory.customers){
       const tr=el('tr'),identity=el('td'),name=el('strong',c.accountClosed?'Closed account':c.email||'Verified email pending');identity.append(name);
-      const activity=el('button','Activity','owner-customer-open');activity.type='button';activity.setAttribute('aria-label','View generation and credit activity for '+(c.email||c.id));
+      const activity=el('button','View activity','owner-customer-open');activity.type='button';activity.setAttribute('aria-label','View activity and generated content for '+(c.email||c.id));
       activity.addEventListener('click',()=>{if(ownerReady())openActivity(c);});identity.append(activity);tr.append(identity);
       const append=value=>{const td=el('td',value);tr.append(td);return td;};
       append(formatDate(c.joinedAt));append(numeric(c.balanceCredits));const payments=append(numeric(c.verifiedPayments));
@@ -130,6 +130,7 @@ export function createOwnerCustomersUI({call,ownerReady,revision,openActivity,op
     }catch{/* Main directory remains usable. Missing lifetime fields are not invented. */}
   }
   function seed(report){if(!ownerReady())return;try{remember(report);updateRows();}catch{/* Keep directory and explicit retry usable. */}}
+  function invalidate(){epoch++;directorySerial++;reports.clear();usage.clear();pending.clear();for(const row of rows){row.state='not_loaded';row.usage=null;}updateRows();}
   function clear(){epoch++;directorySerial++;reports.clear();usage.clear();pending.clear();rows=[];notes={};directory={customers:[],pagination:{page:1},search:''};body.replaceChildren();}
-  return {setDirectory,show,seed,clear};
+  return {setDirectory,show,seed,invalidate,clear};
 }

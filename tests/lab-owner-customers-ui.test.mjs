@@ -52,7 +52,10 @@ test('one Details expansion preserves all prior fields and only an actual promo 
     'Net credits used','Provider exposure','$0.35','Archived finance records','Checkout starts','Recorded gross receipts','€3.00','Review flag','Promotional hold'])
     assert.ok(expanded.textContent.includes(field),field);
   assert.equal(f.main()[0].textContent.includes('user_ONE'),true,'Email remains on row; raw ID is only in details');
-  const activity=all(f.main()[0]).find(node=>node.tagName==='BUTTON');activity.click();assert.equal(f.opened[0].id,'user_ONE');
+  const activity=all(f.main()[0]).find(node=>node.tagName==='BUTTON');
+  assert.equal(activity.textContent,'View activity');
+  assert.match(activity.attributes['aria-label'],/View activity and generated content for user_ONE@example\.test/);
+  activity.click();assert.equal(f.opened[0].id,'user_ONE');
   const review=all(expanded).find(node=>node.tagName==='BUTTON');review.click();assert.equal(f.reviewed[0].id,'user_ONE');
   f.ui.seed(report([lifetime('user_ONE',{promoHeld:false})]));assert.equal(all(expanded).some(node=>node.tagName==='BUTTON'),false);
 });
@@ -94,4 +97,32 @@ test('all customer content is literal text and read actions never call a mutatio
   assert.equal(all(f.body).some(node=>node.tagName==='SCRIPT'),false);assert.match(f.body.textContent,/<script>bad/);
   assert.ok(f.calls.every(path=>/^\/api\/admin\/acquisition\?days=7&page=\d+$/.test(path)));
   f.setReady(false);f.ui.clear();await f.ui.show();assert.equal(f.calls.length,1);
+});
+
+test('explicit refresh invalidates cached and pending lifetime reports while preserving the same directory page and identities',async t=>{
+  const old=deferred();let request=0;
+  const f=fixture(t,{call:async path=>{
+    request++;
+    if(request===1)return old.promise;
+    if(path.endsWith('page=2'))return report([lifetime('user_TWO',{completedJobs:28}),lifetime('user_ONE',{completedJobs:13})],2,60);
+    return report([lifetime('user_ONE',{completedJobs:21})],1,60);
+  }});
+  f.ui.setDirectory({customers:[account('user_ONE'),account('user_TWO')],pagination:{page:2,pageSize:20,total:60},search:''});
+  f.ui.seed(report([lifetime('user_ONE',{completedJobs:3}),lifetime('user_TWO',{completedJobs:8})],2,60));
+  const originalRows=[...f.main()];await f.ui.show();assert.equal(f.calls.length,0,'Fresh cached page is reused until explicit refresh');
+  f.ui.invalidate();assert.deepEqual(f.main(),originalRows,'Refresh preserves the current account rows and their order');
+  assert.deepEqual(f.main().map(row=>row.children[4].textContent),['Not loaded','Not loaded'],'Old lifetime counts are removed immediately');
+  const stale=f.ui.show();assert.deepEqual(f.calls,['/api/admin/acquisition?days=7&page=2'],'Unfiltered refresh retains directory page 2');
+  f.ui.invalidate();await f.ui.show();
+  assert.deepEqual(f.calls,['/api/admin/acquisition?days=7&page=2','/api/admin/acquisition?days=7&page=2'],'A pending old read cannot suppress the new refresh');
+  assert.deepEqual(f.main().map(row=>row.children[4].textContent),['13','28'],'Fresh usage is joined by exact ID, independent of report order');
+  old.resolve(report([lifetime('user_ONE',{completedJobs:999}),lifetime('user_TWO',{completedJobs:999})],2,60));await stale;
+  assert.deepEqual(f.main().map(row=>row.children[4].textContent),['13','28'],'Late pre-refresh data cannot repaint the fresh values');
+
+  f.ui.setDirectory({customers:[account('user_ONE')],pagination:{page:2,pageSize:20,total:60},search:'ONE'});
+  f.ui.invalidate();await f.ui.show();assert.equal(f.calls.length,2,'Search remains lazy after refresh');
+  assert.match(f.main()[0].children[0].textContent,/user_ONE@example\.test/,'The searched identity remains visible');
+  f.details()[0].expand();await settle();
+  assert.equal(f.calls.at(-1),'/api/admin/acquisition?days=7&page=1','Expanded search results read fresh bounded reports');
+  assert.equal(f.main()[0].children[4].textContent,'21');
 });

@@ -1225,3 +1225,28 @@ body{font-size:16px;line-height:1.5}
 .owner-work-tools button,.owner-notification-actions button{font:inherit;font-size:14px;line-height:1.5;min-height:40px;padding:8px 0;color:#e7e7e3;background:transparent;border:0;border-bottom:1px solid #555;cursor:pointer}
 .owner-work-tools button:hover,.owner-notification-actions button:hover{border-bottom-color:#eee}
 @media(max-width:600px){.owner-work-tools button,.owner-notification-actions button{min-height:44px}}
+
+/* Overview activity: complete headings and an intrinsic-height sales column. */
+.owner-activity{align-items:start}
+.owner-activity-side{align-self:start;min-width:0;width:100%}
+.owner-activity .owner-activity-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:12px 18px}
+.owner-activity .owner-activity-head>div{min-width:0;padding-top:2px}
+.owner-activity .owner-activity-head h2{margin:0;padding:1px 0 2px;line-height:1.25;overflow:visible}
+.owner-activity .owner-activity-head>a{align-self:start;margin-top:4px;padding-bottom:4px;line-height:1.5}
+.owner-activity .owner-activity-subtitle{margin-top:7px;line-height:1.5}
+.owner-activity .owner-purchases-panel{height:auto;min-height:0;max-height:none;flex:none;overflow:visible}
+.owner-purchases-panel .owner-payment-list{margin-top:20px;min-height:0}
+.owner-purchases-panel .owner-payment-list>.owner-recent-item{grid-template-columns:20px minmax(0,1fr) 106px;align-items:start;gap:12px;padding:15px 0}
+.owner-purchases-panel .owner-recent-person{align-items:start;min-width:0}
+.owner-purchases-panel .owner-recent-person strong{font-size:14px;line-height:1.5;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.owner-purchases-panel .owner-recent-person small{font-size:12px;line-height:1.5;white-space:normal;overflow:visible;overflow-wrap:anywhere}
+.owner-purchases-panel .owner-recent-date{font-size:12px;line-height:1.5;text-align:right;white-space:normal}
+.owner-purchases-panel .owner-recent-date small{font-size:12px;line-height:1.5}
+.owner-purchases-panel .owner-payment-list>.owner-recent-empty{min-height:0;padding:18px 0;border:0;background:transparent;text-align:left;place-items:start}
+.owner-activity-side .owner-home-shortcuts{margin-top:4px;padding-top:12px;border-top:0}
+@media(max-width:600px){
+  .owner-activity .owner-activity-head{grid-template-columns:minmax(0,1fr);gap:8px}
+  .owner-activity .owner-activity-head>a{justify-self:start;margin-top:0;min-height:44px}
+  .owner-purchases-panel .owner-payment-list{margin-top:8px}
+  .owner-purchases-panel .owner-payment-list>.owner-recent-item{grid-template-columns:16px minmax(0,1fr) 88px;gap:8px}
+}
