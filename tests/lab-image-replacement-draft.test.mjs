@@ -118,15 +118,15 @@ test('a paid unfinished replacement keeps a direct raw download even when finali
     release: () => {}, setTimeout: () => {},
     downloadResult: () => {throw Error('Must not reuse another preview');}
   };
-  new Script(app.slice(start, end) + '\nthis.downloadJob = downloadJob;').runInNewContext(env);
+  new Script(app.slice(start, end) + '\nthis.downloadJob = downloadJob; this.downloadRawReplacement = downloadRawReplacement;').runInNewContext(env);
   const job = {id: 'paid-one', status: 'completed', outputId: 'raw-paid-image',
     settings: {replacement: {version: 1}, replacementFinalized: false}};
-  await env.downloadJob(job, {rawReplacement: true});
+  await env.downloadRawReplacement(job);
   assert.deepEqual(calls, ['read:raw-paid-image', 'download:raw-paid-image.png'],
     'Raw download never attempts finishing, another generation or a credit request');
   await assert.rejects(env.downloadJob(job), /PNG exceeds 20 MB/,
     'The normal final result path still refuses to disguise a failed composite');
   assert.ok(calls.includes('finalize'));
-  assert.match(app, /actions\.append\(button\('Download raw image',\(\)=>downloadJob\(j,\{rawReplacement:true\}\),viewMedia\)\)/,
+  assert.match(app, /actions\.append\(button\('Download raw image',\(\)=>downloadRawReplacement\(j\),viewMedia\)\)/,
     'History must expose the raw rescue action while finishing is pending');
 });
