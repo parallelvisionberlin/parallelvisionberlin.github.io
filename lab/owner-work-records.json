@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T16:39:47Z",
+  "updatedAt": "2026-11-06T16:42:24Z",
   "handoffs": [
     {
       "id": "owner",
@@ -420,7 +420,7 @@
       "summary": "Prepared on an isolated branch: Night Flash photographic instructions reach Soul 2 with one base image or authored text, optional trained Soul ID, server compilation and bound quote metadata. Production unchanged.",
       "nextAction": "Review draft PR/CI, finish 390px and 1440px mocked browser verification, then evaluate a controlled provider result before customer activation.",
       "baselineSha": "15c3fd0e736ac4544d6ae534622f6039e091e923",
-      "reviewedSha": null,
+      "reviewedSha": "5dbc07e2cb075520772775133386ebab10e33fc1",
       "branch": "feat/night-flash-soul-20261106",
       "files": [
         "lab/night-flash-soul.js",
@@ -433,6 +433,10 @@
         "lab/README.md"
       ],
       "links": [
+        {
+          "label": "Draft PR #874",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/874"
+        },
         {
           "label": "Scoped handoff",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/feat/night-flash-soul-20261106/lab/NIGHT-FLASH-SOUL-WORK-STATE.md"
@@ -448,6 +452,11 @@
           "label": "Browser verification",
           "result": "not_run",
           "scope": "Prompt-paste and first-image launch blocked by environment socket denial. Studio-layout stops on unchanged baseline Clerk assertion before rendering."
+        },
+        {
+          "label": "GitHub CI",
+          "result": "not_run",
+          "scope": "Started on prepared source 5dbc07e2; private-lab queued and gallery-browser running at last read. No CI pass claimed."
         }
       ],
       "deployment": {
@@ -480,7 +489,7 @@
         "Do not overwrite overlapping Image replacement work in PR #870.",
         "Reuse existing Soul account, pricing and job safeguards."
       ],
-      "updatedAt": "2026-11-06T16:39:47Z"
+      "updatedAt": "2026-11-06T16:42:24Z"
     }
   ]
 }

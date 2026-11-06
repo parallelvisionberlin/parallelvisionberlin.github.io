@@ -4,6 +4,9 @@
 
 - Request: develop and prepare Night Flash on Higgsfield Soul. No production activation requested.
 - Baseline: `15c3fd0e736ac4544d6ae534622f6039e091e923`.
+- Reviewed source: `5dbc07e2cb075520772775133386ebab10e33fc1`; remote tree exactly matches the locally tested tree.
+- Draft PR: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/874
+- GitHub CI started; final results remain pending.
 - Isolated branch: `feat/night-flash-soul-20261106`.
 - Existing PR #870 changes Image replacement behavior in overlapping files; do not replace its work or merge this preparation into production automatically.
 - Night Flash remains the existing photographic Mood with its existing card and imagery.
