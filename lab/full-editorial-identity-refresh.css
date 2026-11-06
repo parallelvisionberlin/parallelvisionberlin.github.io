@@ -527,3 +527,12 @@ body.editorial-web #panel-model #editorial-saved-rail .editorial-cast-arrow{z-in
 @media(prefers-reduced-motion:reduce){
  body.editorial-web #panel-model #editorial-saved-rail #saved-character-gallery{scroll-behavior:auto!important}
 }
+
+
+/* Keep the reference rail scrollable even on very wide displays; no clone cards. */
+@media(min-width:801px){
+ body.editorial-web #panel-model .editorial-cast-rail{max-width:min(100%,1180px)}
+}
+@media(max-width:600px){
+ body.editorial-web #panel-model{padding-bottom:10px!important}
+}
