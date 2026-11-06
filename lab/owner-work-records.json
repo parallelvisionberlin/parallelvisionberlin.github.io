@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T18:32:18Z",
+  "updatedAt": "2026-11-06T20:20:54Z",
   "handoffs": [
     {
       "id": "owner",
@@ -417,10 +417,10 @@
       "title": "Night Flash with Higgsfield Soul",
       "component": "Image Moods / Soul 2",
       "status": "needs_verification",
-      "summary": "Live publication authorized. The prepared integration passes 64 focused Node tests and full mocked owner/customer Studio flows at 1440px and 390px. Production release is blocked by missing Cloudflare authentication.",
-      "nextAction": "Complete Cloudflare authentication, compare deployed Worker source/settings, publish backend preserving bindings, then merge the reviewed frontend and verify production. Live publication is already authorized.",
-      "baselineSha": "15c3fd0e736ac4544d6ae534622f6039e091e923",
-      "reviewedSha": "b6e5ee4c52c2992243e99cf2fa1dd45c052394d7",
+      "summary": "PR #874 merged and gated code deployed. Production frontend and Worker bytes verified; mocked owner/customer and replacement flows pass at 390px/1440px. Customer Night Flash remains disabled pending provider/account and real-image validation.",
+      "nextAction": "Retain LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED closed until commercial permission, the real API account quote and an explicitly authorized real-image quality/identity review are recorded. No paid test is authorized.",
+      "baselineSha": "24d2b96d4c1b171edfd431f840aa73bcc1f366eb",
+      "reviewedSha": "c1119d687d487e8a324189cdf0037194f1ae1d86",
       "branch": "feat/night-flash-soul-20261106",
       "files": [
         "lab/night-flash-soul.js",
@@ -432,11 +432,13 @@
         "lab/NIGHT-FLASH-SOUL-WORK-STATE.md",
         "lab/README.md",
         "tests/lab-night-flash-soul-ui.mjs",
-        ".github/workflows/pv-lab-night-flash-soul.yml"
+        ".github/workflows/pv-lab-night-flash-soul.yml",
+        "lab-worker/worker.mjs",
+        "lab-worker/wrangler.toml"
       ],
       "links": [
         {
-          "label": "Draft PR #874",
+          "label": "Merged PR #874",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/874"
         },
         {
@@ -446,64 +448,90 @@
       ],
       "tests": [
         {
-          "label": "Focused Node verification",
+          "label": "Focused CI contracts and replacement compatibility",
           "result": "passed",
-          "scope": "64 tests on Node 22.16.0 in CI, including the approved Image contract and 5 new Night Flash cases.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42259976134/job/128037028189"
+          "scope": "112 tests on Node 22.16.0, including the approved Image contract. Hosted Chrome replaces the timed-out apt browser dependency installation.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42286485840"
         },
         {
-          "label": "Owner/customer browser integration",
+          "label": "Owner/customer browser integration and #870",
           "result": "passed",
-          "scope": "Actual Studio/controller at 1440x900 and 390x844 with synthetic sessions and mocked providers. Selection, text/base, unsupported Mood blocking, geometry, quote and explicit submission. Four screenshots retained.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42259976134/job/128037028189"
+          "scope": "Actual Studio with synthetic sessions at 1440x900 and 390x844. Model, Mood, intensity, Base, ready/pending Soul IDs, identity strength, credit quote, cancel, explicit confirmation, Reuse, default closed customer gate and replacement selection/full flow. All external provider boundaries mocked.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42286485840"
         },
         {
-          "label": "General unit baseline comparison",
+          "label": "Worker, customer lifecycle, pricing, prompt safety and submission",
+          "result": "passed",
+          "scope": "139 local tests on Node 24.22.1. No paid provider calls.",
+          "source": "tests/lab-worker.test.mjs"
+        },
+        {
+          "label": "General Node suite and main baseline",
           "result": "failed",
-          "scope": "Candidate 1043/1048 and base 1038/1043; identical five existing failures. No assertion was weakened.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42259976116/job/128037028334"
+          "scope": "1096/1102 pass locally. The same six failures reproduce on main 24d2b96 in the four affected files (20 cases: 14 pass, 6 fail); existing assertions untouched. Node 24 also exposes the existing Dream Blur scheduling failure.",
+          "source": "lab/NIGHT-FLASH-SOUL-WORK-STATE.md"
         }
       ],
       "deployment": {
-        "state": "blocked",
-        "sourceSha": null,
-        "environment": "Prepared branch only; production frontend and Worker unchanged",
+        "state": "verified",
+        "sourceSha": "454c5ab51f9a2417e0977e791705450699a9e3f4",
+        "environment": "Cloudflare Pages pvlab.studio frontend and Cloudflare Worker; customer Night Flash activation disabled",
         "limitations": [
-          "Cloudflare dashboard is signed out and secure authentication did not complete.",
-          "Branch preview success does not establish production publication.",
-          "No real signed-in production or paid image quality check."
-        ]
+          "Customer Night Flash flag is absent and therefore false by default.",
+          "No real signed-in production journey, live provider estimate or generated image was verified."
+        ],
+        "evidenceUrl": "https://pvlab.studio/studio",
+        "observedAt": "2026-11-06T20:20:54Z"
       },
       "evidence": [
         {
-          "kind": "automated_test",
-          "summary": "Actual Studio settings compiler and simulated quote/submission preserve Night Flash metadata; quote checks do not submit, and an explicit quote replay submits once.",
-          "scope": "Local Node with mocked provider and in-memory SQLite.",
-          "source": "tests/lab-night-flash-soul.test.mjs",
+          "kind": "fixture",
+          "summary": "Owner/customer and existing replacement browser flows pass at phone/desktop widths; four screenshots retained. A future enabled customer state exists only inside the fixture.",
+          "scope": "Real Studio/controller; synthetic sessions and mocked provider boundaries.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42286485840/artifacts/13538485226",
           "limitations": [
-            "Does not establish generated appearance or production behavior."
+            "Does not establish photographic quality or identity preservation."
           ]
         },
         {
-          "kind": "fixture",
-          "summary": "Full mocked owner/customer flow passed at desktop and phone widths in GitHub Chromium.",
-          "scope": "Actual Studio/controller, simulated account and provider boundaries.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42259976134/job/128037028189",
+          "kind": "deployment",
+          "summary": "Cloudflare content-only Worker deployment 0397edf10b1542beb37b61679cd83ca3, 2026-11-06T20:12:14Z. Downloaded code SHA-256 exactly matches tested bundle 43a390e06f862bc9ecfae56a4dd9bc3114a31cf5d005a43428f7f00a82fede97; bindings and compatibility date unchanged.",
+          "scope": "Verified current main baseline bundle first; no settings/secret/binding update. Customer launch gate remains false.",
+          "source": "https://parallel-vision-lab.parallelvision.workers.dev/health",
           "limitations": [
-            "Not a real signed-in production or paid provider quality test."
+            "Source/health verification is separate from a real signed-in customer journey."
+          ]
+        },
+        {
+          "kind": "production_health",
+          "summary": "Health is OK and retains imageReplacement 20261106-replacement1.",
+          "scope": "Public read-only health endpoint after Worker publication.",
+          "source": "https://parallel-vision-lab.parallelvision.workers.dev/health",
+          "limitations": [
+            "Not a provider quote or generation test."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Scoped release verifier returned LIVE_VERIFIED for merge 454c5ab51f9a2417e0977e791705450699a9e3f4; Cloudflare Pages app check 128131672180 successful. Production lab.js SHA-256 299c5d0973c35f7fbbf58fd2cf297efbd9f0d1e27fd6348d81185331797cbe98 matches reviewed source.",
+          "scope": "Custom-domain HTML version and exact JavaScript bytes.",
+          "source": "https://pvlab.studio/studio",
+          "limitations": [
+            "Not a real signed-in production journey or paid image quality result."
           ]
         }
       ],
       "blockers": [
-        "Cloudflare deployment authentication is required; no backend, main merge or production frontend release performed."
+        "Customer activation requires verified commercial/resale permission, the real API account quote within existing ceilings, a completed same-account Soul ID when identity is needed, a provider-accessible Base URL and an explicitly authorized real-image quality/identity review."
       ],
       "doNotRepeat": [
-        "Do not infer activation from a prepared branch.",
-        "Do not convert Qwen LoRAs or Character photos into Soul IDs.",
-        "Do not overwrite overlapping Image replacement work in PR #870.",
-        "Reuse existing Soul account, pricing and job safeguards."
+        "Do not enable LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED before the provider/account and quality conditions are recorded.",
+        "Do not run paid generation or training without explicit authorization.",
+        "Do not equate fixture screenshots with real generated results or signed-in production.",
+        "Do not fabricate a native style UUID or convert Qwen LoRAs/Character photos to Soul IDs.",
+        "Preserve the merged #870 replacement flow and existing quote, credit, idempotency and budget safeguards."
       ],
-      "updatedAt": "2026-11-06T18:32:18Z"
+      "updatedAt": "2026-11-06T20:20:54Z"
     }
   ]
 }
