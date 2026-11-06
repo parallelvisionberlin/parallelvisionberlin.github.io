@@ -707,14 +707,15 @@ for(const button of document.querySelectorAll('[data-recent-filter]'))button.add
   paintRecentActivity();
 });
 // Providers is now a dedicated sidebar destination, not an overview widget.
-function syncOwnerNavigation(){
-  const target=location.hash||'#owner-overview';
+function syncOwnerNavigation(target=location.hash||'#owner-overview'){
   for(const link of document.querySelectorAll('[data-owner-nav],.owner-jumpbar a[href^="#"]')){
     if(link.getAttribute('href')===target)link.setAttribute('aria-current','location');
     else link.removeAttribute('aria-current');
   }
 }
 syncOwnerNavigation();
+for(const link of document.querySelectorAll('[data-owner-nav],.owner-jumpbar a[href^="#"],.owner-workspace-paths a'))
+  link.addEventListener('click',()=>syncOwnerNavigation(link.getAttribute('href')));
 window.addEventListener('hashchange',()=>{
   syncOwnerNavigation();
   if(profile?.owner&&location.hash==='#owner-providers-section')void providerUI.refresh();
