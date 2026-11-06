@@ -58,19 +58,33 @@ try{
   await page.locator('#editorial-start').click();
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),0,'Fresh casting opens without a selected model');
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'No inactive composition cards for an empty cast');
-   assert.equal(await page.locator('#editorial-cast-selection').isVisible(),width>600,'Only desktop reserves an empty selected-cast strip');
-   assert.equal(await page.locator('#editorial-cast-empty').isVisible(),width>600,'Phone avoids the oversized empty-state box');
+   assert.equal(await page.locator('#editorial-cast-selection').isVisible(),true,'The one selected-cast dock is available at every width');
+   assert.equal(await page.locator('#editorial-cast-empty').isVisible(),true,'The footer explains empty selection once');
    assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true);
    assert.equal(await page.locator('[data-cast-composition="together"]').isDisabled(),true);
    assert.equal(await page.locator('#step-next').isDisabled(),true);
   for(const label of ['Bronze portrait','Copper portrait'])assert.equal(await page.locator('[data-sample-label="'+label+'"]').getAttribute('aria-pressed'),'false');
+  const castTrack=page.locator('#editorial-cast-track');
+  assert.equal(await page.locator('.editorial-cast-pinned').count(),1,'One pinned Create Character and upload card');
+  assert.match(await page.locator('.editorial-create-character').getAttribute('href'),/createCharacter=1/);
+  const carouselState=await castTrack.evaluate(el=>({width:el.clientWidth,full:el.scrollWidth,count:el.querySelectorAll('.atelier-reference').length}));
+  assert.equal(carouselState.count,5,'All five photographic casting references remain');
+  assert.ok(carouselState.full>carouselState.width+30,'The casting gallery scrolls horizontally');
+  assert.equal(await page.locator('#editorial-cast-prev').isDisabled(),true);
+  await page.locator('#editorial-cast-next').click();
+  await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft>12);
+  assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,'Arrow navigation does not select a model');
+  await castTrack.focus();
+  await page.keyboard.press('ArrowLeft');
+  await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<9);
+  assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,'Keyboard browsing does not change selection');
+
   let baselineCastSizes=null;
   if(width>800){
    baselineCastSizes=await page.evaluate(()=>{
     const r=selector=>document.querySelector(selector).getBoundingClientRect();
     return {hero:r('#panel-model .stage-visual').height,
-     galleryCard:r('#casting-reference-gallery .atelier-reference').height,
-     strip:r('#editorial-cast-selection').height};
+     galleryCard:r('#casting-reference-gallery .atelier-reference').height};
    });
    const layout=await page.evaluate(()=>{
     const rect=selector=>document.querySelector(selector).getBoundingClientRect();
@@ -99,8 +113,8 @@ try{
    });
    assert.ok(textClearance.kickerTop>=textClearance.backBottom+4,'Stage kicker must clear Back: '+JSON.stringify(textClearance));
    assert.ok(textClearance.subtitleBottom<=textClearance.railTop-8,'Subtitle must clear the progress rail: '+JSON.stringify(textClearance));
-   assert.equal(textClearance.buttonRadius,'2px','Continue has clean angular corners');
-   assert.equal(textClearance.disabledBackground,'rgb(17, 18, 18)','Disabled Continue uses dark surface');
+   assert.equal(textClearance.buttonRadius,'3px','Continue has minimal editorial corners');
+   assert.equal(textClearance.disabledBackground,'rgb(20, 21, 21)','Disabled Continue uses dark surface');
    assert.match(emptyBounds.buttonBackground,/rgba?\(\s*(?:0|1\d|2\d|3\d)/,'Disabled Continue uses dark editorial styling');
    await page.locator('#editorial-top-back').click();
    assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
@@ -110,7 +124,7 @@ try{
    assert.equal(await page.locator('#step-back').isVisible(),false,'Phone Identity footer contains only selection and Continue');
    assert.equal(await page.locator('.editorial-flow-rail').isVisible(),true,'Compact phone progress remains visible');
    assert.equal(await page.locator('#panel-model .stage-copy').isVisible(),false,'No duplicate portrait hero on phone');
-   assert.equal(await page.locator('#model-drop').isVisible(),false,'Upload does not occupy a portrait slot');
+   assert.equal(await page.locator('#model-drop').isVisible(),true,'Pinned first card includes the photo uploader');
    for(const phoneWidth of [320,390,600]){
     await page.setViewportSize({width:phoneWidth,height:844});
     const geometry=await page.evaluate(()=>{
@@ -127,8 +141,8 @@ try{
     assert.ok(geometry.headerHeight<=61,'Phone header is compact');
     assert.ok(Math.abs(geometry.captionLeft)<=2&&Math.abs(geometry.captionRight)<=2,'Caption shading reaches both card edges without an inset rectangle');
     assert.equal(geometry.imageBorder,'0px','No second border inside the portrait');
-    assert.equal(geometry.columns,2);assert.ok(geometry.secondLeft>geometry.firstLeft);
-    assert.ok(geometry.thirdTop>=geometry.firstBottom,'Portraits wrap into rows');
+    assert.equal(geometry.columns,2,'Pinned tile and gallery make two tracks');assert.ok(geometry.secondLeft>geometry.firstLeft);
+    assert.ok(Math.abs(geometry.thirdTop-geometry.top)<3,'Casting portraits remain in one horizontal row');
     assert.ok(geometry.top<320,'Real casting appears near the top: '+JSON.stringify(geometry));
     assert.ok(Math.abs(geometry.footerBottom-844)<2,'Continue stays at viewport bottom');
     assert.ok(geometry.continue>=44);assert.equal(geometry.arrow,'none');assert.equal(geometry.overflow,false);
@@ -141,12 +155,16 @@ try{
    assert.equal(await page.locator('#editorial-menu-account').isVisible(),true);
    assert.match(await page.locator('#editorial-menu-credits').getAttribute('href'),/account\.html#balance$/);
    await page.locator('#editorial-mobile-menu').click();
+   assert.equal(await page.locator('#editorial-mobile-search').isVisible(),false,'Casting has no redundant search field');
+   await page.locator('#saved-character').click();
    await page.locator('#editorial-mobile-search').click();
-   await page.locator('#editorial-cast-search').fill('Silver');
-   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference:visible').count(),1);
+   await page.locator('#editorial-cast-search').fill('Test Actor');
+   await page.locator('#saved-character-gallery .editorial-saved-cast').first().waitFor();
+   assert.equal(await page.locator('#saved-character-gallery .editorial-saved-cast:visible').count(),1,'Private saved characters still support search');
    await page.locator('#editorial-mobile-search').click();
+   await page.locator('[data-source-view="casting"]').click();
    assert.equal(await page.locator('#casting-reference-gallery .atelier-reference:visible').count(),5);
-   const uploadsBeforePicker=uploadCount;const picker=page.waitForEvent('filechooser');await page.locator('#editorial-mobile-upload').click();await picker;
+   const uploadsBeforePicker=uploadCount;const picker=page.waitForEvent('filechooser');await page.locator('#model-drop').click();await picker;
    assert.equal(uploadCount,uploadsBeforePicker,'Opening the file chooser sends no upload or paid request');
    await page.screenshot({path:'test-results/editorial/390-mobile-casting.png'});
   }
@@ -160,10 +178,9 @@ try{
    const sizes=await page.evaluate(()=>{
     const r=selector=>document.querySelector(selector).getBoundingClientRect();
     return {hero:r('#panel-model .stage-visual').height,
-     galleryCard:r('#casting-reference-gallery .atelier-reference').height,
-     strip:r('#editorial-cast-selection').height};
+     galleryCard:r('#casting-reference-gallery .atelier-reference').height};
    });
-   assert.ok(Object.keys(sizes).every(k=>Math.abs(sizes[k]-baselineCastSizes[k])<.5),'Selecting a model cannot resize the hero, portraits or strip');
+   assert.ok(Object.keys(sizes).every(k=>Math.abs(sizes[k]-baselineCastSizes[k])<.5),'Selecting a model cannot resize the hero or casting portraits');
   }
   assert.equal(await page.locator('#editorial-status').textContent(),'','Model click does not add redundant below-footer copy');
    assert.equal(await page.locator('#editorial-cast-empty').isVisible(),false);
@@ -171,14 +188,14 @@ try{
    assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true,'One model is not multi-cast');
    assert.equal(await page.locator('#step-next').isDisabled(),false,'One model can continue');
    if(width>800){
-    await page.waitForFunction(()=>getComputedStyle(document.querySelector('#step-next')).backgroundColor==='rgb(19, 20, 20)');
+    await page.waitForFunction(()=>getComputedStyle(document.querySelector('#step-next')).backgroundColor==='rgb(244, 241, 234)');
     const surface=await page.locator('#step-next').evaluate(el=>({
      background:getComputedStyle(el).backgroundColor,
      border:getComputedStyle(el).borderColor,
      arrow:getComputedStyle(el,'::after').content
     }));
-    assert.equal(surface.background,'rgb(19, 20, 20)','Continue stays dark after model selection');
-    assert.match(surface.arrow,/↗/,'Continue uses the editorial arrow');
+    assert.equal(surface.background,'rgb(244, 241, 234)','Continue becomes white after model selection');
+    assert.match(surface.arrow,/→/,'Continue uses the editorial forward arrow');
    }
   await page.locator('.stage-visual--identity img').evaluate(img=>img.decode().catch(()=>{}));
   await page.screenshot({path:'test-results/editorial/'+width+'-identity.png',fullPage:width===390});
@@ -198,8 +215,7 @@ try{
    const sizes=await page.evaluate(()=>{
     const r=selector=>document.querySelector(selector).getBoundingClientRect();
     return {hero:r('#panel-model .stage-visual').height,
-     galleryCard:r('#casting-reference-gallery .atelier-reference').height,
-     strip:r('#editorial-cast-selection').height};
+     galleryCard:r('#casting-reference-gallery .atelier-reference').height};
    });
    assert.ok(Object.keys(sizes).every(k=>Math.abs(sizes[k]-baselineCastSizes[k])<.5),'Two models retain the same Identity hero and portrait dimensions');
   }
@@ -216,12 +232,17 @@ try{
   if(width>800)assert.ok(compositionLayout.tops.every(t=>Math.abs(t-compositionLayout.tops[0])<1),'Desktop choices share one row');
   assert.match(compositionLayout.filter,/brightness\(0\.83\)/,'Composition photos are brighter');
   assert.equal(await page.locator('[data-cast-composition="mixed"]').isEnabled(),true,'Second model enables composition');
+  if(width>800){
+   const addSize=await page.locator('#editorial-footer-cast .editorial-footer-add').evaluate(el=>el.getBoundingClientRect().width);
+   assert.ok(addSize>=42&&addSize<=46,'Footer add control stays compact, never inherits the full CTA width: '+addSize);
+  }
+  await page.screenshot({path:'test-results/editorial/'+width+'-two-model-composition.png',fullPage:width===390});
   assert.equal(await page.locator('#model-selection-count').textContent(),'2 models selected');
   assert.equal(await page.locator('#editorial-footer-cast img').count(),2,'Footer shows the selected models');
-  assert.equal(await page.locator('.editorial-footer-add').isVisible(),width>600,'Phone keeps the footer compact and uses Upload yours above');
+  assert.equal(await page.locator('.editorial-footer-add').isVisible(),width>600,'Mobile upload stays in pinned tile');
   if(width<=600){
    const selectedPicker=page.waitForEvent('filechooser');
-   await page.locator('#editorial-mobile-upload').click();await selectedPicker;
+   await page.locator('#model-drop').click();await selectedPicker;
    assert.equal(await page.locator('#model-selection-count').textContent(),'2 models selected','Opening another upload retains the cast');
   }
   assert.equal(await page.locator('[data-cast-composition="mixed"]').getAttribute('aria-pressed'),'true','Mixed editorial is the default');
