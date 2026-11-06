@@ -628,10 +628,10 @@ body.editorial-web .flow-main > #editorial-casting-controls .editorial-compositi
  body.editorial-web #panel-model .editorial-cast-pinned,
  body.editorial-web #panel-model .editorial-cast-rail{height:clamp(258px,31svh,294px)!important}
  body.editorial-web .flow-main:has(#panel-model:not([hidden])) #step-footer{
-  min-height:64px!important;margin:12px 0 0!important;padding:7px 0 9px!important
+  min-height:62px!important;margin:8px 0 0!important;padding:7px 0 9px!important
  }
  body.editorial-web .flow-main > #editorial-casting-controls:not([hidden]){
-  min-height:0!important;margin:12px 0 0!important;padding:15px 0 6px!important;gap:20px!important
+  min-height:0!important;margin:8px 0 0!important;padding:11px 0 6px!important;gap:20px!important
  }
 }
 @media(min-width:801px) and (max-height:760px){
