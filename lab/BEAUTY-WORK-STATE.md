@@ -1,5 +1,25 @@
 # Beauty Studio and Studios navigation
 
+## Three-row refinement CI passed
+
+- Complete original Beauty/Studios role, quote, history and responsive checks passed, including the new 45-choice grid, wheel reversal, drag and real emulated touch swipe.
+- Evidence: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42309882483. All APIs intercepted; no provider job or payment. Merge and custom-domain publication remain separate.
+
+## 2026-11-06 | Approved three-row editor and arrow-free scroll refinement
+
+- Owner approved the latest mixed-case ALTER layout, larger Edit Look, three columns/three rows and a taller photographic archive. Do not replace the published background again.
+- Baseline source: c714d7ec533da9807bb3f0f03e5c571463d2a4e4. Branch: fix/alter-three-row-scroll-20261106. Version: 20261106-flow1.
+- The published hero.webp and the entire beauty-editorial-final.css composition stylesheet remain byte-identical. Regression checks lock both SHA-256 hashes; the original H1 and PV LAB favicon are retained.
+- New scoped beauty-flow-refinement.css adjusts only panel/overlay/archive geometry, control typography and card height. It does not restyle the hero or the left title.
+- Every tab has nine independently selectable, validated options. The three new makeup thumbnails are crops from the approved proposal, not new generations. Other additional presets reuse illustrative existing photography.
+- Defaults remain Makeup Original / Hair Original / Skin Natural / strength 50. Light and Color start Original. Existing source/model/resolution/ratio/Generate/quote/history/comparison/zoom behavior remains intact.
+- Removed the two archive arrow buttons. Wheel over the section heading OR photographs moves the strip in both directions; horizontal trackpad input, mouse dragging/momentum, native touch swipes and keyboard navigation are supported. Browser zoom gestures and page scrolling at strip boundaries are not trapped.
+- Browsing never applies a preset, reprices, or submits a generation. Reduced-motion preference disables scripted animation.
+- Local: 13 focused Image/Beauty/ALTER unit contracts and the Worker quote/idempotency integration passed. Isolated rendered layout and wheel/independent tab checks passed at 320/390/768/1024/1280/1366/1440/1920 px.
+- Full local browser navigation is environment-blocked. Full intercepted-account browser regression runs in GitHub CI; isolated HTML evidence is not signed-in production verification.
+- Pending for this new refinement: full CI, reviewed merge, exact Cloudflare deployment and custom-domain byte/guest-interaction verification. The previous #880 release below remains the historical production baseline.
+- No paid generation, customer payment, provider integration or backend change.
+
 ## 2026-11-06 | LIVE publication verified
 
 - PR #880 merged as ed1752ce3c8f06691fcb711d279fafec75a7fee4; reviewed application source 70b58d7c621c6976b4929aba73bb4f76e157f172.

@@ -1,0 +1,44 @@
+/* ALTER refinement: retain the published hero, crops and mixed-case title verbatim.
+   Only the editor, upload overlay and archive spacing/interaction are changed. */
+.beauty-edit-panel{position:relative;top:-12px;height:calc(100% + 32px);min-height:564px;padding:16px 18px;gap:10px;grid-template-rows:28px 36px minmax(248px,1fr) 28px 66px 50px}
+.beauty-edit-heading strong{font-size:26px;line-height:1.1;letter-spacing:-.035em}
+.beauty-tabs button{font-size:14px;line-height:1.2}
+.beauty-preset-group .beauty-choice-list{grid-template-rows:repeat(3,minmax(0,1fr));gap:10px;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:thin}
+.beauty-choice-list button{border-radius:8px}
+.beauty-choice-name{font-size:12px;letter-spacing:0;line-height:1.25}
+.beauty-edit-panel .beauty-strength{min-height:28px;font-size:14px}
+.beauty-edit-panel .beauty-direction{gap:6px;font-size:14px;line-height:17px}
+.beauty-edit-panel .beauty-direction textarea{min-height:43px;height:43px;padding:10px 12px;font-size:14px;line-height:1.4}
+.beauty-edit-panel #beauty-generate{font-size:16px;letter-spacing:0}
+/* Move only the empty upload overlay, never the photograph or an uploaded result. */
+.beauty-photo:not(:has(#beauty-photo-preview:not([hidden]))):not(:has(#beauty-result:not([hidden]))) .beauty-photo-tile{top:calc(50% - 12px)}
+.beauty-photo:not(:has(#beauty-photo-preview:not([hidden]))):not(:has(#beauty-result:not([hidden]))) .beauty-photo-caption{top:calc(50% - 12px)}
+.beauty-looks{padding-top:20px}
+.beauty-looks-heading{min-height:26px;gap:24px;margin-bottom:10px}
+.beauty-looks-heading strong{font-size:22px;line-height:1.2;letter-spacing:-.025em}
+.beauty-looks-heading-meta{margin-left:auto}
+.beauty-looks-list{scroll-snap-type:none;scroll-behavior:auto;touch-action:pan-x pan-y;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.beauty-looks-list>button{height:clamp(204px,23vh,238px);border-radius:10px;scroll-snap-align:none}
+.beauty-look-copy{left:16px;bottom:16px}
+.beauty-look-copy strong{font-size:22px;letter-spacing:-.025em;line-height:1.15}
+.beauty-looks-list:focus-visible{outline:1px solid #eee;outline-offset:3px}
+@media(min-width:701px) and (max-width:1000px){
+ .beauty-edit-panel{top:0;height:auto;min-height:600px;grid-template-rows:28px 36px minmax(270px,1fr) 28px 76px 50px}
+ .beauty-edit-panel .beauty-direction textarea{font-size:16px}
+ .beauty-looks{padding-top:16px}
+}
+@media(max-width:700px){
+ .beauty-edit-panel{top:0;height:600px;min-height:600px;padding:16px 14px;gap:10px;grid-template-rows:28px 38px minmax(250px,1fr) 28px 76px 50px}
+ .beauty-edit-heading strong{font-size:25px}
+ .beauty-tabs button{font-size:12px}
+ .beauty-preset-group .beauty-choice-list{gap:8px}
+ .beauty-edit-panel .beauty-strength{font-size:13px}
+ .beauty-edit-panel .beauty-direction{font-size:13px}
+ .beauty-edit-panel .beauty-direction textarea{font-size:16px;min-height:51px}
+ .beauty-looks{padding-top:16px}
+ .beauty-looks-heading{margin-bottom:12px;gap:10px}
+ .beauty-looks-heading strong{font-size:20px}
+ .beauty-looks-list>button{flex-basis:224px;width:224px;height:218px}
+ .beauty-look-copy strong{font-size:22px}
+}
+@media(prefers-reduced-motion:reduce){.beauty-looks-list{scroll-behavior:auto}}
