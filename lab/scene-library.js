@@ -605,7 +605,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
       return;
     }
     const context=getContext();
-    if(context.tool==='video'&&!['reference','extend'].includes(context.mode)){setStatus('Open Saved References from Video Reference set or Extend.',true);return;}
+    if(context.tool==='video'&&!['reference','extend','transform'].includes(context.mode)){setStatus('Open Saved References from Video Reference set, Extend or Transform.',true);return;}
     if(context.tool==='image'&&!context.supportsReferences){setStatus('Choose an Image model that supports image references.',true);return;}
     const currentRefs=getReferences();
     if(currentRefs.some(ref=>ref.elementId===item.id)||item.refs.every(ref=>currentRefs.some(active=>active.id===ref.id))){

@@ -3353,6 +3353,33 @@ function renderReferences(){
     controls.append(up,remove);item.append(img,fields,controls);fragment.append(item);
   });
   syncDefaultRatio();box.replaceChildren(fragment);box.scrollTop=scroll;$('ref-count').textContent=`${references.length} / ${referenceLimit()}`;
+  const transformPhotos=$('pv-transform-reference-strip');
+  if(transformPhotos){
+    const active=tool==='video'&&mode==='transform'&&references.length>0;
+    transformPhotos.hidden=!active;
+    transformPhotos.replaceChildren();
+    if(active){
+      const chosen=references.slice(0,4);
+      for(let i=0;i<chosen.length;i++){
+        const img=document.createElement('img');
+        img.src=chosen[i].thumbUrl||chosen[i].url;
+        img.alt='Character reference '+(i+1);
+        img.loading='lazy';img.decoding='async';img.width=64;img.height=76;
+        transformPhotos.append(img);
+      }
+      if(references.length>chosen.length){
+        const more=document.createElement('span');more.textContent='+'+(references.length-chosen.length);
+        more.className='pv-transform-extra-photos';transformPhotos.append(more);
+      }
+      if(references.length<referenceLimit()){
+        const add=document.createElement('button');add.type='button';add.textContent='+';
+        add.setAttribute('aria-label','Add another character reference photograph');
+        add.title='Add character reference';
+        add.onclick=()=>{if(!busy&&owner)$('reference-images').click();};
+        transformPhotos.append(add);
+      }
+    }
+  }
   sceneLibrary?.renderSelected();
 }
 async function addReferences(list,ids=[],labels=[]){
@@ -3412,6 +3439,7 @@ function configureVideoControls(){
   $('mode-extend').setAttribute('aria-selected',String(mode==='extend'));
   $('video-modes').hidden=!isVideo||['extend','transform'].includes(mode);
   $('transform-help').hidden=!isVideo||mode!=='transform';
+  $('pv-transform-reference-strip').hidden=!(isVideo&&mode==='transform'&&references.length);
   $('video-reference-heading').textContent=mode==='transform'?'Replacement character':'Reference images';
   $('pv-mode-reference-label').textContent=isVideo?'Reference set':'References';
   $('extend-help').hidden=!isVideo||mode!=='extend';
@@ -3452,6 +3480,10 @@ function configureVideoControls(){
   }
   $('reference-drop').querySelector('small').textContent=tool==='image'&&imageEngine==='zspicy'?'Text-only model · no reference photos':'JPG / PNG / WebP · up to '+referenceLimit()+' photos';
   $('reference-drop').querySelector('span').textContent=isVideo&&mode==='transform'?'Add character photographs':isVideo?'Upload images':'Add identity, wardrobe or set references';
+  const savedRefLabel=$('scene-video-open').querySelector('span');
+  const savedRefHelp=$('scene-video-open').querySelector('small');
+  if(savedRefLabel)savedRefLabel.textContent=isVideo&&mode==='transform'?'Saved Character':'Saved References';
+  if(savedRefHelp)savedRefHelp.textContent=isVideo&&mode==='transform'?'Select from your Character library':'Characters, outfits & more';
   $('reference-drop').setAttribute('aria-label',isVideo?'Drop JPG, PNG or WebP images here, or click to browse':'Add reference images, drop or browse');
   $('ref-count').textContent=references.length+' / '+referenceLimit();
   videoModelPicker.sync();

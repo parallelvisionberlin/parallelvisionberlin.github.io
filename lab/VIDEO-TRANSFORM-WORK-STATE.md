@@ -50,3 +50,10 @@ Status: implementation committed to **draft PR only**, not merged or deployed.
 1. Read relevant GitHub Actions results for PR #853, fix Transform-only regressions.
 2. Run one authorized owner account quote and one controlled paid transformation to verify native Video Edit acceptance and quality.
 3. Authorize production release only after tests and costs are acceptable; follow `lab/RELEASE-PROTOCOL.md`.
+
+## Approved visual application — 2026-11-06
+- Owner approved generated Transform mockup with Create / Extend / Transform, compact source video, character image strip, saved Character chooser, Original/Result compare and editorial Scene details.
+- Owner explicitly locked the current Video Studio deck geometry, original central photograph and existing Video History layout and behavior.
+- Visual implementation limited to Transform-specific left controls and an inspector draft section; no second workflow strip below preview (would displace History); no invented generation or fake result.
+- Corrected saved Character library allowlist to include Transform, fixing the blocked attachment reported by the synthetic browser test.
+- No modifications to video-history-cards.css, center stage dimensions, source image, History renderer, Create or Extend mode layouts.

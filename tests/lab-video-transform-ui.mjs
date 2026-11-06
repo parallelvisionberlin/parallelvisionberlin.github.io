@@ -79,6 +79,12 @@ try{
   await page.locator('#scene-grid .scene-card-select').first().click();
   await page.locator('.scene-feature-attach').click();
   await page.waitForFunction(()=>document.querySelector('#reference-list .reference-element-item')?.textContent.includes('Alma'));
+  await page.waitForFunction(()=>document.querySelectorAll('#pv-transform-reference-strip img').length===4);
+  assert.match(await page.locator('#pv-transform-inspector-original').innerText(),/original\.mp4/);
+  assert.equal(await page.locator('#pv-transform-inspector-count').innerText(),'8 photographs');
+  assert.equal(await page.locator('#pv-transform-inspector-character').innerText(),'Alma');
+  assert.equal(await page.locator('#scene-video-open span').innerText(),'Saved Character');
+  assert.equal(await page.locator('#history').evaluate(el=>!!el.closest('.video-feed-center')),true,'existing History remains in the same central deck');
   assert.equal(await page.locator('#mode-transform').getAttribute('aria-selected'),'true');
   await page.fill('#prompt','');
   await ready(page);

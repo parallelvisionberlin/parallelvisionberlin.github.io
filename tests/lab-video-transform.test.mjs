@@ -145,6 +145,10 @@ test('Video Transform has its own entry and keeps the existing source-only film 
   assert.match(app,/transformVideoSwitch\(false\)/);
   assert.match(scene,/video-transform-active/);
   assert.match(css,/#app\.video-studio-active\.video-transform-active/);
+  assert.match(read('scene-library.js'),/\['reference','extend','transform'\]/);
+  assert.match(html,/id="pv-transform-reference-strip"/);
+  assert.match(html,/id="pv-transform-inspector"/);
+  assert.doesNotMatch(css,/#history\s*\{|#video-feed-center\s*\{|grid-template-columns:\s*clamp\(310px/,'Transform must not override the existing video deck or History geometry');
   assert.doesNotMatch(css,/\bfetch\s*\(|\/api\/jobs|\/api\/quotes|providerKey/);
   assert.match(read('video-compact-studio.css'),/visuals\/video-android-trio-original\.png/);
   assert.doesNotThrow(()=>new Function(scene),'scene presentation code remains valid JavaScript');

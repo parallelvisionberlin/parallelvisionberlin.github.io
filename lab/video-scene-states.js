@@ -78,6 +78,24 @@ function mountVideoSceneStates(){
     const ratio=byId('ratio'),ratioHidden=ratio?.closest('label')?.hidden;
     byId('pv-video-current-ratio').textContent=ratioHidden?'Source':quoteOption('ratio');
     byId('pv-video-current-audio').textContent=byId('audio')?.disabled?'Unavailable':byId('audio')?.checked?'On':'Off';
+    const transform=mode==='transform';
+    const transformInfo=byId('pv-transform-inspector');
+    if(transformInfo)transformInfo.hidden=!transform;
+    const kicker=inspector.querySelector('.pv-video-sidebar-kicker');
+    if(kicker)kicker.textContent=transform?'VIDEO EDIT / CURRENT SCENE':'CURRENT SCENE';
+    const attachedHeading=byId('pv-video-current-references')?.closest('section');
+    if(attachedHeading)attachedHeading.hidden=transform;
+    if(transform){
+      const item=byId('video-reference-list')?.querySelector('.reference-media-item strong');
+      const source=item?.textContent?.split(' / ').slice(1,-1).join(' / ').trim()||'No source video';
+      const count=Number(byId('ref-count')?.textContent?.split('/')?.[0]?.trim()||0);
+      const element=referenceList.querySelector('.reference-element-item[data-element-category="characters"]');
+      const character=element?.dataset.elementName||'Uploaded photographs';
+      byId('pv-transform-inspector-original').textContent=source;
+      byId('pv-transform-inspector-count').textContent=count?count+' photograph'+(count===1?'':'s'):'No photographs';
+      byId('pv-transform-inspector-character').textContent=element?character:(count?'Individual references':'Not selected');
+      byId('pv-video-current-duration').textContent=item?(item.textContent.split(' / ').at(-1)||'Source duration'):'Source duration';
+    }
     renderLiveReferences(mode);
     // The editor owns readiness, including Gallery-to-Start-Frame handoffs.
     // Do not overwrite its synchronous status with a thumbnail decode race.
