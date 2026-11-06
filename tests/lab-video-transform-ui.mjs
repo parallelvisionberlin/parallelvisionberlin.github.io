@@ -76,7 +76,16 @@ try{
   assert.deepEqual(await page.locator('#resolution option').evaluateAll(nodes=>nodes.map(n=>n.value)),['480p','720p','1080p']);
   assert.equal(await page.locator('#reference-media').isVisible(),true,'one source-video picker visible');
   assert.equal(await page.locator('#reference-drop').isVisible(),true,'replacement identity uploader visible');
-  assert.equal(await page.locator('#scene-video-open').isVisible(),true,'saved Characters available');
+  assert.equal(await page.locator('#scene-video-open').isVisible(),true,'existing saved Elements library is available');
+  assert.equal((await page.locator('#scene-video-open span').innerText()).trim(),'Add Element');
+  assert.match(await page.locator('#scene-video-open small').innerText(),/Characters, objects & looks/);
+  const dropSizes=await page.evaluate(()=>Object.fromEntries(['video-media-drop','reference-drop','scene-video-open'].map(id=>{
+    const box=document.getElementById(id).getBoundingClientRect();return [id,{height:box.height,width:box.width}];
+  })));
+  assert.ok(dropSizes['video-media-drop'].height>=88,'source video has a visible, usable drop target');
+  assert.ok(dropSizes['reference-drop'].height>=70,'upload images tile is large enough for dragging files');
+  assert.ok(dropSizes['scene-video-open'].height>=70,'library tile aligns with upload images');
+  assert.equal(await page.locator('#history').evaluate(el=>!!el.closest('.video-feed-center')),true,'the existing History remains in its center feed');
   await page.locator('#video-references').setInputFiles({name:'original.mp4',mimeType:'video/mp4',buffer:motion});
   await page.waitForFunction(()=>document.querySelector('#video-reference-list').children.length===1);
   await page.click('#scene-video-open');
@@ -88,7 +97,7 @@ try{
   assert.match(await page.locator('#pv-transform-inspector-original').innerText(),/original\.mp4/);
   assert.equal(await page.locator('#pv-transform-inspector-count').innerText(),'8 photographs');
   assert.equal(await page.locator('#pv-transform-inspector-character').innerText(),'Alma');
-  assert.equal(await page.locator('#scene-video-open span').innerText(),'Saved Character');
+  assert.equal(await page.locator('#scene-video-open span').innerText(),'Add Element');
   assert.equal(await page.locator('#history').evaluate(el=>!!el.closest('.video-feed-center')),true,'existing History remains in the same central deck');
   assert.equal(await page.locator('#mode-transform').getAttribute('aria-selected'),'true');
   await page.fill('#prompt','');

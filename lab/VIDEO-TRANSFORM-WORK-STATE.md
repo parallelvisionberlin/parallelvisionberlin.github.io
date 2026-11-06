@@ -49,3 +49,10 @@ Updated: 2026-11-06 (Berlin)
 - The functional flow remains original video, replacement identity, prompt, output settings and explicit Generate price review.
 - Output panel now displays actual source duration when attached, source-derived ratio and the existing selectable 480p/720p/1080p resolution; no fictitious preset is introduced.
 - Removed the forced 100px Transform prompt shrinking. The current Video deck, central player, Create/Extend, image and video History, and payment safeguards remain unchanged.
+
+## 2026-11-06 — Dropzone refinement from owner screenshots
+- Only Transform: original-source-video target enlarged to 92px desktop / 88px narrow screens, visible dashed drop border, centered native icon, real click-to-browse and existing drag handling. After source attachment, the existing private source-video card remains unchanged.
+- Replacement photo upload tile and saved Elements tile enlarged to 74px without changing the side-by-side flow, asset limits, reference order, quotes or generation.
+- Saved Character button renamed **Add Element**, with “Characters, objects & looks” helper text. Opens the same existing Scene Library (Characters / Outfits / Props / Locations); object replacement is not claimed as a separate supported paid Transform mode.
+- Locked Video deck, Generate button, 480p/720p/1080p options, Create/Extend, preview image, Video History and backend unchanged.
+- Validate the changed UI at 390px and 1440px; distinguish CI from production evidence.

@@ -3446,7 +3446,7 @@ function configureVideoControls(){
   $('pv-mode-reference-label').textContent=isVideo?'Reference set':'References';
   $('extend-help').hidden=!isVideo||mode!=='extend';
   $('video-media-label').textContent=mode==='transform'?'Original video':mode==='extend'?'Video to extend':'Video references';
-  $('video-media-title').textContent=mode==='transform'?'Upload source video':mode==='extend'?'Add a video':'Add motion or camera references';
+  $('video-media-title').textContent=mode==='transform'?'Drop video or browse':mode==='extend'?'Add a video':'Add motion or camera references';
   $('video-references').multiple=!['extend','transform'].includes(mode);
   $('video-media-drop').querySelector('small').textContent=mode==='transform'?'MP4 / MOV · 4–30 sec · up to 20 MiB':'MP4 / MOV · 2–30 sec · up to 20 MiB';
   $('video-model-control').hidden=!isVideo;$('video-engine').value=engine;
@@ -3484,8 +3484,8 @@ function configureVideoControls(){
   $('reference-drop').querySelector('span').textContent=isVideo&&mode==='transform'?'Add character photographs':isVideo?'Upload images':'Add identity, wardrobe or set references';
   const savedRefLabel=$('scene-video-open').querySelector('span');
   const savedRefHelp=$('scene-video-open').querySelector('small');
-  if(savedRefLabel)savedRefLabel.textContent=isVideo&&mode==='transform'?'Saved Character':'Saved References';
-  if(savedRefHelp)savedRefHelp.textContent=isVideo&&mode==='transform'?'Select from your Character library':'Characters, outfits & more';
+  if(savedRefLabel)savedRefLabel.textContent=isVideo&&mode==='transform'?'Add Element':'Saved References';
+  if(savedRefHelp)savedRefHelp.textContent=isVideo&&mode==='transform'?'Characters, objects & looks':'Characters, outfits & more';
   $('reference-drop').setAttribute('aria-label',isVideo?'Drop JPG, PNG or WebP images here, or click to browse':'Add reference images, drop or browse');
   $('ref-count').textContent=references.length+' / '+referenceLimit();
   videoModelPicker.sync();
