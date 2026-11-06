@@ -1,5 +1,16 @@
 # Beauty Studio and Studios navigation
 
+## 2026-11-07 | Category instruction and Original preview follow-up
+
+- Preserves the published PR #887 three-row layout, original hero/title/favicon, all 45 option IDs, approved photographic crops and arrow-free wheel/touch/keyboard/drag behavior. No second geometry redesign.
+- One catalogue binds the existing visible labels to their exact instructions. Labels stay visible; Original uses the local uploaded photo rather than an unrelated example and clears on sign-out.
+- Mood recipes set the actual category fields. Manual choices clear only unchanged automatically inserted mood text, never the user's written direction.
+- Light/Color intensity follows the same strength control; strength zero excludes optional edits; monochrome uses relative skin luminance rather than a contradictory chromatic lock.
+- Default prompt remains byte-identical. Source upload, model/resolution/ratio, price/quote validation, explicit generation, backend, private history, comparison and zoom remain untouched.
+- Publication and current-main regression results must be recorded after verification. No paid generation or real payment performed.
+
+
+
 ## 2026-11-06T23:28:36.397Z | Three-row refinement LIVE verified
 
 - PR #889, reviewed 7f7e5e6bfbd0dcedfc23fc524619463c9d0e0ff9, merged as a2d45d0793343a9575f4d83cbae0f912e37d2387.

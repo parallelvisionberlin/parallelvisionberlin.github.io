@@ -1,3 +1,4 @@
+import {beautyLookPresets} from './beauty-look-catalog.js?v=20261107-controls2';
 /* Beauty Studio visual controls and actual source/result comparison.
    Native select and textarea values remain the only generation settings. */
 (() => {
@@ -40,25 +41,38 @@
   select.value=value;
   select.dispatchEvent(new Event('change',{bubbles:true}));
  };
- const presets={
-  editorial:{makeup:'editorial',text:'Refined editorial portrait lighting, realistic skin detail and controlled contrast. Preserve identity and natural anatomy.'},
-  natural:{makeup:'natural',text:'Gentle natural light, subtle refinement, authentic skin texture. Keep the original person and background.'},
-  night:{makeup:'keep',text:'Atmospheric low-key evening portrait, controlled highlights and natural skin tones. Keep original identity.'},
-  avant:{makeup:'editorial',text:'Experimental sculptural fashion portrait styling with realistic materials. Preserve the person and their identity.'},
-  fashion:{makeup:'editorial',text:'High-fashion editorial portrait, refined composition and believable photographic texture. Preserve identity.'},
-  film:{makeup:'keep',text:'Subtle analog grain, realistic film tonality and natural texture, understated contrast.'}
- };
+ const presets=beautyLookPresets;
  const cards=Array.from(document.querySelectorAll('[data-look]'));
+ let applyingPreset=false;
+ // Manual choices remove only the automatically inserted preset text, never user writing.
+ const clearPresetDirection=()=>{
+  if(applyingPreset)return;
+  if(direction.dataset.presetDirection&&direction.value===direction.dataset.presetDirection)updateDirection('');
+  delete direction.dataset.presetDirection;
+  for(const card of cards)card.setAttribute('aria-pressed','false');
+ };
+ for(const id of groups)$(id)?.addEventListener('change',clearPresetDirection);
+ direction.addEventListener('input',()=>{if(!applyingPreset&&direction.value!==direction.dataset.presetDirection)delete direction.dataset.presetDirection;});
+ // Original means this user's source, not a metallic-makeup example. No new blobs or requests.
+ const syncOriginalPreviews=()=>{
+  const url=!source.hidden?source.getAttribute('src'):'';
+  for(const tile of document.querySelectorAll('[data-beauty-original]')){
+   const valid=!!url&&url.startsWith('blob:');
+   tile.style.backgroundImage=valid?'url('+JSON.stringify(url)+')':'none';
+   tile.classList.toggle('has-source',valid);
+  }
+ };
+ new MutationObserver(syncOriginalPreviews).observe(source,{attributes:true,attributeFilter:['src','hidden']});
+ syncOriginalPreviews();
  for(const card of cards){
   card.addEventListener('click',()=>{
    const preset=presets[card.dataset.look];
    if(!preset||direction.disabled)return;
-   choose('beauty-makeup',preset.makeup);
-   choose('beauty-hair','keep');
-   choose('beauty-skin','natural');
-   choose('beauty-light','keep');
-   choose('beauty-color','keep');
-   updateDirection(preset.text);
+   applyingPreset=true;
+   try{for(const id of groups)choose(id,preset[id.replace('beauty-','')]);
+    const previous=direction.dataset.presetDirection;
+    if(!direction.value||direction.value===previous){updateDirection(preset.text);direction.dataset.presetDirection=preset.text;}
+   }finally{applyingPreset=false;}
    syncChoices();
    for(const c of cards)c.setAttribute('aria-pressed',String(c===card));
   });

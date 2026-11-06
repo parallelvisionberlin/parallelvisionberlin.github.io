@@ -213,6 +213,45 @@ try{
   await s.context.close();
  }
 
+ // Verify visible choices, quotes and preset/manual precedence use the same reviewed contract.
+ for(const width of [1440,390]){
+  const s=await scenario({role:'customer',width,height:900}),{page}=s;
+  await page.locator('#beauty-photo').setInputFiles(input);
+  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
+  const catalog=(await import('../lab/beauty-look-catalog.js')).beautyLookCatalog;
+  for(const [category,options] of Object.entries(catalog)){
+   await page.locator('#beauty-tab-'+category).click();
+   for(const option of options){
+    const control=page.locator('[data-beauty-choice="beauty-'+category+'"][data-value="'+option.id+'"]');
+    assert.equal(await control.locator('.beauty-choice-name').innerText(),option.label);
+    assert.equal(await control.locator('.beauty-choice-name').evaluate(el=>getComputedStyle(el).opacity),'1','Labels stay readable without hover');
+    const before=await page.evaluate(()=>Object.fromEntries(['makeup','hair','skin','light','color'].map(k=>[k,document.getElementById('beauty-'+k).value])));
+    await control.click();
+    const after=await page.evaluate(()=>Object.fromEntries(['makeup','hair','skin','light','color'].map(k=>[k,document.getElementById('beauty-'+k).value])));
+    assert.equal(after[category],option.id);
+    for(const other of Object.keys(before))if(other!==category)assert.equal(after[other],before[other],'A category never changes another category');
+   }
+  }
+  assert.equal(s.submits,0,'Every option selection remains non-generating');
+  await page.locator('[data-look="night"]').click();
+  assert.equal(await page.locator('#beauty-light').inputValue(),'low-key','Night recipe is reflected in the actual Light field');
+  await page.locator('#beauty-tab-light').click();
+  await page.locator('[data-beauty-choice="beauty-light"][data-value="keep"]').click();
+  assert.equal(await page.locator('#beauty-direction').inputValue(),'','Old automatic low-key instruction cannot override Original');
+  await page.locator('#beauty-direction').fill('Keep my jacket exactly as uploaded.');
+  await page.locator('[data-beauty-choice="beauty-light"][data-value="flash"]').click();
+  assert.equal(await page.locator('#beauty-direction').inputValue(),'Keep my jacket exactly as uploaded.','Manual writing is never erased');
+  assert.equal(await page.locator('[data-beauty-original].has-source').count(),5,'Original thumbnails use the current uploaded photo');
+  await page.locator('#beauty-reset-look').click();
+  for(const tab of ['makeup','hair','skin','light','color']){
+   await page.locator('#beauty-tab-'+tab).click();
+   await page.screenshot({path:'test-results/beauty-category-'+tab+'-'+width+'.png',fullPage:true});
+  }
+  await page.evaluate(()=>window.__beautyAccount.signOut());
+  await page.waitForFunction(()=>document.querySelector('#beauty-photo-preview').hidden);
+  assert.equal(await page.locator('[data-beauty-original].has-source').count(),0,'Sign-out removes every private source preview');
+  assert.deepEqual(s.errors,[]);await s.context.close();
+ }
  // Tab state, native generation settings, reset and busy controls remain connected.
  for(const width of [1440,390]){
   const s=await scenario({role:'customer',width,height:900}),{page}=s;
@@ -336,8 +375,12 @@ try{
   await page.locator('#beauty-generate').click();assert.equal(s.submits,0,'Invalid credit quote cannot generate');await s.context.close();
  }
  {
-  const s=await scenario({delayed:true}),{page}=s;await page.locator('#beauty-photo').setInputFiles(input);
-  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('Checking'));
+  const s=await scenario({delayed:true}),{page}=s;
+  // Checking begins during upload too. Exercise a genuinely in-flight stale quote.
+  const pendingQuote=page.waitForRequest(request=>new URL(request.url()).pathname==='/api/quotes'&&request.method()==='POST');
+  await page.locator('#beauty-photo').setInputFiles(input);
+  await pendingQuote;
+  assert.equal(s.submits,0,'Pending quote cannot submit automatically');
   await page.locator('#beauty-direction').fill('A different look');
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'));
   await page.locator('#beauty-generate').click();await page.locator('#beauty-result').waitFor({state:'visible'});
