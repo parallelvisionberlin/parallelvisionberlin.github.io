@@ -42,6 +42,13 @@ jobs:
           mkdir -p /tmp/alter-semantic
           unzip -q /tmp/alter-semantic.zip -d /tmp/alter-semantic
           node /tmp/alter-semantic/apply-alter-semantic.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tests/lab-beauty-ui.mjs');s=p.read_text()
+          old="const s=await scenario({delayed:true}),{page}=s;await page.locator('#beauty-photo').setInputFiles(input);\n  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('Checking'));"
+          new="const s=await scenario({delayed:true}),{page}=s;\n  // Checking begins during upload too. Exercise a genuinely in-flight stale quote.\n  const pendingQuote=page.waitForRequest(request=>new URL(request.url()).pathname==='/api/quotes'&&request.method()==='POST');\n  await page.locator('#beauty-photo').setInputFiles(input);\n  await pendingQuote;\n  assert.equal(s.submits,0,'Pending quote cannot submit automatically');"
+          assert s.count(old)==1,'Expected exact delayed-quote fixture';p.write_text(s.replace(old,new))
+          PY
           sha256sum --check /tmp/locked-alter-layout.sha256
           node --check lab/beauty-approved-20261029.js
           node --check lab/beauty-settings.js
@@ -49,6 +56,7 @@ jobs:
           git diff --check
       - name: All category instructions, original contracts and Worker binding
         run: |
+          set -o pipefail
           mkdir -p test-results
           node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-beauty.test.mjs tests/lab-beauty-atelier.test.mjs tests/lab-beauty-category-contract.test.mjs | tee test-results/alter-unit.log
           node --test --test-name-pattern='Beauty Studio binds' tests/lab-worker.test.mjs
