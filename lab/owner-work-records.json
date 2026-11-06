@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T14:32:30.924Z",
+  "updatedAt": "2026-11-06T14:43:33.901Z",
   "handoffs": [
     {
       "id": "owner",
@@ -214,11 +214,11 @@
       "id": "owner-operational-workspace",
       "title": "Owner dashboard",
       "component": "Owner workspace",
-      "status": "needs_verification",
-      "summary": "Restore the clear View activity entry to retained image/video review, restore manual customer refresh and improve Recent purchases spacing without changing the approved dashboard.",
-      "nextAction": "Pass focused Owner browser checks, inspect desktop/phone images, publish the reviewed source and verify exact production assets.",
+      "status": "deployed",
+      "summary": "Published: clear View activity access to existing generated-content review, restored manual Customers Refresh and improved Recent purchases spacing. Approved simplified navigation and existing functions retained.",
+      "nextAction": "Use Customers \u2192 View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
       "baselineSha": "e2cd02bce742b157d12308b76908cbacea34b604",
-      "reviewedSha": null,
+      "reviewedSha": "01362b3073f7d997d98d7ebd2830ad586d244d77",
       "branch": "fix/owner-activity-access-20261106",
       "files": [
         "lab/owner.html",
@@ -226,7 +226,8 @@
         "lab/owner.js",
         "lab/owner-customers-ui.js",
         "tests/lab-owner-mobile-browser.mjs",
-        "tests/lab-owner-customers-ui.test.mjs"
+        "tests/lab-owner-customers-ui.test.mjs",
+        "tests/lab-promotions.test.mjs"
       ],
       "links": [
         {
@@ -240,19 +241,28 @@
       ],
       "tests": [
         {
-          "label": "Affected Owner and approved Image checks",
+          "label": "Owner browser and private review CI",
           "result": "passed",
-          "scope": "50 local checks passed: seven customer merge/refresh/stale-response checks plus existing auth, private QA, routes, providers, operations, memory and approved Image contract checks. Seven-width browser CI pending.",
-          "observedAt": "2026-11-06T14:32:30.924Z"
+          "scope": "45 scoped Node checks plus all seven browser widths320/375/390/430/768/1280/1792. Actual View activity click opens original gallery; private image/video/filter/role controls retained. Actual Refresh preserves search/page, invalidates usage and reads fresh exact-ID Details. Recent purchases geometry passes.",
+          "observedAt": "2026-11-06T14:43:33.901Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42235770446"
+        },
+        {
+          "label": "Local affected and promotion checks",
+          "result": "passed",
+          "scope": "78 local checks: affected Owner, private QA/auth/providers/operations/memory/Image contract and all28 promotions checks. Updated obsolete duplicate-table pagination assertion to current bounded one-list contract; no security test removed.",
+          "observedAt": "2026-11-06T14:43:33.901Z"
         }
       ],
       "deployment": {
-        "state": "pending",
-        "sourceSha": null,
+        "state": "verified",
+        "sourceSha": "5612ae77f49370890d330fc266d2b335788fb11a",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-06T14:43:33.901Z",
+        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/95372e5f-6897-4adc-b43d-d76f5270a40f",
         "limitations": [
-          "New activity-label, refresh and sales-layout revision not yet published.",
-          "Real signed-in production interactions remain separate from fixture and asset evidence."
+          "Production asset publication and mocked browser interactions are verified separately; no real signed-in production interaction was independently observed.",
+          "Frontend-only. Worker, authorization, billing, models, campaigns and customer media remain unchanged."
         ]
       },
       "evidence": [
@@ -262,6 +272,32 @@
           "scope": "Source audit; generated images/videos, prompts, model/Mood/settings/costs, filters and private media remain in the original dialog.",
           "observedAt": "2026-11-06T14:32:30.924Z",
           "source": "lab/owner-customers-ui.js",
+          "limitations": []
+        },
+        {
+          "kind": "deployment",
+          "summary": "PR #871 reviewed01362b3073f7d997d98d7ebd2830ad586d244d77 merged to5612ae77f49370890d330fc266d2b335788fb11a with the exact reviewed tree. Cloudflare app check127954586824 and production deployment95372e5f-6897-4adc-b43d-d76f5270a40f succeeded.",
+          "scope": "Exact source and production frontend publication.",
+          "observedAt": "2026-11-06T14:43:33.901Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/871",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Custom-domain /owner references activity3. JS SHA256fa5cad86a19aa0d3a6a7cbb17b42108e941c2d1dc55390a4642aab1b60093a5a; CSS042585ddccfca8e26964b7617ecda110d6cc664e9f5746083c1b6339d46532a3; customer UI daa4f80e9353705f7ab7b495df95f590167748314d6afd80033a5ff70f2cd3d1. All four imported UI modules also matched reviewed bytes.",
+          "scope": "Independent read-only production byte verification. GitHub Pages is a separate destination.",
+          "observedAt": "2026-11-06T14:43:33.901Z",
+          "source": "https://pvlab.studio/owner",
+          "limitations": [
+            "No real payment, paid generation or campaign action performed."
+          ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "Final CI passed all seven widths; actual desktop and phone screenshots of Recent purchases were inspected. Full titles, natural panel height, separate buyer/date columns and original private review remain.",
+          "scope": "Real renderer with synthetic account/media data, not a signed-in production observation.",
+          "observedAt": "2026-11-06T14:43:33.901Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42235770446",
           "limitations": []
         },
         {
@@ -284,7 +320,7 @@
         "Use direct destinations and one customer list. Keep detailed finance and IDs expandable, notifications in the header, and body text at least14px.",
         "No Worker or billing change is needed for this presentation revision."
       ],
-      "updatedAt": "2026-11-06T14:32:30.924Z"
+      "updatedAt": "2026-11-06T14:43:33.901Z"
     },
     {
       "id": "worker-release-policy",

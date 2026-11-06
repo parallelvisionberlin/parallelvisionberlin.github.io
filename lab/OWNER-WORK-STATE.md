@@ -6,8 +6,12 @@
 - Recent purchases: reset legacy height:100%; align title/action at top; improve title breathing room, wrap buyer email separately from date, remove doubled Shortcuts separator. No vertical clipping rule was found, so this is not claimed as a proven clipping root cause.
 - Retained controls audited: email sync/setup, search/pages, payments/receipts, referrals, vouchers, provider refresh, partners, agency, account and Studio. No generated-content implementation was replaced or restricted to promo customers.
 - Frontend-only. No Worker/auth/billing/models/schema/campaign change and no paid generation or payment. Worker Actions stays manual-only; direct Cloudflare remains its release path.
-- 50 local affected/auth/private-QA/customer refresh/operations/memory/approved Image checks passed. Seven-width browser CI pending.
-- Publication pending. Next: inspect final browser evidence, merge fixed candidate, verify exact Cloudflare project/commit and live activity3 asset bytes. Real signed-in production behavior is distinct from fixture evidence.
+- 78 local checks passed, including28 promotions checks. Updated the obsolete duplicate-lifetime-table assertion to the current one-list pagination contract. Original browser refresh fixture missed the captured session-request boundary; fixture corrected, app code unchanged.
+- Final Owner CI run42235770446/job127952838406:45 scoped Node tests and seven widths320/375/390/430/768/1280/1792 pass. Actual activity click, original private image/video/filter/role tests, Refresh search/page/cache checks and sales geometry passed. Desktop/phone sales screenshots inspected.
+- Broader unchanged Studio failures remain (Meta import, Moods header/upload, Soft Pastel, Photobooth and gallery Video badge); no full-suite-green claim and no unrelated changes.
+- Published PR #871; reviewed01362b3073f7d997d98d7ebd2830ad586d244d77, merge5612ae77f49370890d330fc266d2b335788fb11a, exact tree3d7520f1efc00e69aaa52a7f3db7ca31d7c0a3ac. Cloudflare check127954586824/deployment95372e5f-6897-4adc-b43d-d76f5270a40f succeeded.
+- Read-only custom-domain verifier returned LIVE_VERIFIED for activity3 JS/CSS. JSfa5cad86a19aa0d3a6a7cbb17b42108e941c2d1dc55390a4642aab1b60093a5a; CSS042585ddccfca8e26964b7617ecda110d6cc664e9f5746083c1b6339d46532a3. All4 imported UI modules and published JSON matched source bytes.
+- No actual authenticated production session was available; fixture/private-role evidence and production publication are explicitly separate. Next: use Customers → View activity. Reuse this completed source/test/publication audit; only investigate a concrete new defect.
 - Earlier presentation and publication receipts follow below; do not repeat completed investigations.
 
 ## Owner clarity revision, 2026-11-06
