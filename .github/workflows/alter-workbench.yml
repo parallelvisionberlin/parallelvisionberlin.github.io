@@ -1,0 +1,32 @@
+name: ALTER isolated workbench
+on:
+  push:
+    branches: [implement/alter-approved-20261106]
+    paths: [.github/workflows/alter-workbench.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Export scoped review source
+        run: |
+          python3 - <<'PY'
+          import subprocess, zipfile
+          paths=subprocess.check_output(['git','ls-files'],text=True).splitlines()
+          with zipfile.ZipFile('/tmp/alter-source.zip','w',zipfile.ZIP_DEFLATED) as z:
+            for p in paths:
+              if not (p.startswith(('lab/','tests/','.github/','scripts/')) or p in ('package.json','package-lock.json','AGENTS.md')): continue
+              ext=p.rsplit('.',1)[-1].lower()
+              if ext in ('mp4','mov','wav','mp3','glb','psd','pdf'): continue
+              if ext in ('jpg','jpeg','webp','png','gif','avif') and not p.startswith(('lab/visuals/beauty/','lab/branding/')): continue
+              z.write(p)
+            z.writestr('SOURCE_SHA.txt',subprocess.check_output(['git','rev-parse','HEAD'],text=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alter-review-source
+          path: /tmp/alter-source.zip
+          retention-days: 2
