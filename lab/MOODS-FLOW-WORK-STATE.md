@@ -1,21 +1,36 @@
 ## Stable Mood Atlas frame / 2026-11-06
 
-- Objective: preserve one responsive photobooth frame through upload, preparation, generation, result, Make another and source-photo removal.
-- User references: six screenshots image(20261106-210622/210701/210733/210844/210859/210912).png.
-- Baseline main: 519d9fad57af01fcf836203d24f54e150a3d9455.
-- Root cause: photobooth shell/artwork/headings excluded is-result-view; processing fell back to the older green result dialog. A display:none long-wait note also moved the loader copy.
-- Share the approved photographic shell, title, branding, close placement and artwork across editor/result. Form controls remain editor-only.
-- Desktop keeps the approved large frame. Phone retains its approved compact framing and measures editor height for the result workspace.
-- Reserve result actions/balance/repeat rows before completion. Reserve the delayed 45-second wait-note footprint; no new generation action or changed timer.
-- Make another retains the original source and requires explicit Generate. Source removal is visibly labelled Remove photo to distinguish it from the window close control.
-- Backend, provider, prices, credits, checkout, curated photos, prompts and existing insufficient-credit offer are untouched.
+- Objective: one responsive photographic frame through upload, preparation, generation, result, Make another and source removal.
+- References: six owner screenshots image(20261106-210622/210701/210733/210844/210859/210912).png.
+- Baseline: 519d9fad57af01fcf836203d24f54e150a3d9455. PR #882 is merged.
+- Reviewed Mood/browser source: 6e6d4061ccfeb8c02a9ae750cf29e9744e9e1a70.
+- Final integration: 246e3caf87bf4b69924d8cee274322131a056563; production merge 9401a465bc1061f94ea4e7fa59893dedb892f4bd.
+- Merge tree 98abdb0165c1018e44a7b1d66b8e81d5cdfc8cf2 exactly matches the prepared integration.
+- Separate Soul and Video releases are retained. Only the shared status JSON conflicted; all tested Mood application assets remain byte-identical to 6e6d406.
+- Root cause: the newer photobooth excluded is-result-view, sending processing/results back to the older green dialog. Global hidden styling also removed the wait-note footprint.
+- Desktop retains the approved large shell, artwork, overlay title, branding and close position throughout.
+- Phone retains the approved compact artwork/framing and measures the editor height for the result workspace.
+- Reserve result control rows, asynchronous price line and the delayed 45-second note from the start.
+- Make another retains the original source and requires explicit Generate. Remove photo is visibly labelled, separate from the window close control.
+- Models, provider/Worker, prompts, image assets, prices, credits, checkout and existing credit offers are untouched.
 - Files: explore-moods-photobooth.css, explore-moods-nav.css, explore-moods.js, moods.html; existing Explore browser/unit tests and CI.
-- Local: all 16 approved Image, Mood handoff and Mood reference checks pass, plus syntax/whitespace. Existing inline-return navigation/upload-size static assertions predate the approved UI.
-- First browser CI caught mobile-only CSS exclusions and the global hidden display rule; corrected shared phone framing, price-line reservation and explicit hidden-slot overrides. No failing assertion was weakened.
-- Independent browser fixture: desktop remains 1000 by 840.328px through generation/result/repeat/removal. Phone remains 350 by 593.641px at 390 by 844; source is retained for Make another. Full CI and small-screen screenshots pending.
-- Added browser checks: frame position/width/height across preparation, completion, Make another and removal at desktop/phone/small widths; virtual 45-second wait note without moving copy/frame; one explicit job only.
-- Publication and browser QA pending. No paid generation or real-account mutation.
-- Next: run focused CI, inspect resulting desktop/phone screenshots, merge reviewed source and verify exact Cloudflare/custom-domain assets.
+- Node: 16 approved Image, Mood handoff/reference tests PASS after both integrations; syntax, whitespace and work-record validation PASS.
+- Exact 6e6d406 Explore CI PASS: all 22 scenarios including 17-Mood phone/desktop catalogue, 320px, waiting/preparation/failure/saving/result, repeat/removal, fixed bounds and virtual 45-second no-shift feedback.
+- Native mobile and app-discovery browser checks PASS at 320/390/768px in that same workflow.
+- Receipt: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42298450805 (job 128169691714).
+- Exact 6e6d406 approved Image UI CI PASS: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42298450871 (job 128169692032).
+- Earlier exact 8142100 Explore/browser/static build passed; screenshots inspected and source unchanged in the scoped Mood assets.
+- Independent renderer: desktop 1000x840.328px through generation/result/repeat/removal. Phone 350x593.641px at 390x844 before/during generation and after source removal.
+- Existing unrelated trial fixture still rejects /api/customer/mood-offer-event; this predates the task. No assertion or gate was weakened.
+- Production is NOT yet verified: exact Cloudflare app check 128173023297 for merge 9401a46 is in_progress, started 2026-11-06T21:46:11Z.
+- Project/deployment: pvlab-studio / 07bab2ba-ab7b-492e-b464-d45d0218306e.
+- One actual public pvlab.studio/moods read while building still served the old photobooth v=20261104-overlay-a3 and old nav CSS; stableFlow is absent.
+- Expected new public CSS versions: explore-moods-photobooth.css and explore-moods-nav.css v=20261106-stable-flow1. Explore JS adds stableFlow=20261106-1.
+- Direct executor HTML/CSS reads return HTTP403; browser raw CSS navigation is client-blocked. Use the documented Cloudflare plus browser DOM/CSSOM fallback, and keep byte comparison distinct from rendered evidence.
+- Cloudflare dashboard is signed out; no login or second deployment was started while the normal build is pending.
+- No paid generation, real payment or customer mutation. Browser/API jobs and test photos are synthetic/public fixtures; no real signed-in generation journey is claimed.
+- NEXT: poll the same exact Cloudflare app check at 45-60s intervals; after success refresh Mood Atlas once and inspect new versions, shared frame and hidden-note reserved styling.
+- Do not rebuild this flow or repeat passing browser/provider checks. Only production publication/render verification remains.
 
 ## Approved option A: no header bar / 2026-11-04
 
