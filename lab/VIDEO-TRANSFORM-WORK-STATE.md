@@ -62,3 +62,8 @@ Updated: 2026-11-06 (Berlin)
 - Duration is read-only from the attached source video, displayed inside the native Duration field (not a fabricated independent duration selection). Native resolution select remains 480p / 720p / 1080p.
 - Transform no longer hijacks the actual Generate button into “Add source video” / “Add character photos”. Generate stays disabled until a clip plus identity references are attached; the existing dropzones own file selection.
 - Source and Character dropzones, locked Create / Extend, central preview, History, pricing, and provider routes are unchanged.
+
+## 2026-11-06 — Empty Transform editor scroll correction
+- Root cause: desktop `video-composer-single-scroll.css` forces the common Video prompt to 118–185px and keeps a reserved, independent Generate footer. With Transform's approved 92px source dropzone and 74px reference buttons, this pushed Output settings below the default visible controls area.
+- Scoped fix in `video-transform.css` only: empty Transform prompt uses compact 78–98px height and its wrapper stops claiming extra flex height, with normal Generate footer unmodified. Longer content remains scrollable; populated 8-photo Characters and short viewports may still require legitimate scrolling.
+- Desktop browser regression now checks 1440 × 850: full native Output settings visible above Generate and no default nested scroll. Mobile, Create, Extend, History, model/resolution options and billing remain unchanged.

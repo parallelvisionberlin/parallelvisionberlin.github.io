@@ -68,6 +68,32 @@ try{
  for(const width of [390,1440]){
   const x=await workspace({width});const {page}=x;
   await choose(x,'transform');
+  if(width===1440){
+    // The approved center player and History retain their dimensions. The
+    // default Transform editor must show Output settings above Generate.
+    await page.setViewportSize({width:1440,height:850});
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    const layout=await page.evaluate(()=>{
+      const controls=document.querySelector('.workspace.video-layout .controls-body');
+      const output=controls.querySelector('.parameter-grid');
+      const footer=document.querySelector('.workspace.video-layout>.controls>.generate-zone');
+      const prompt=document.querySelector('#pv-video-prompt-box textarea#prompt');
+      const {top:footerTop}=footer.getBoundingClientRect();
+      return {
+        footerTop,outputBottom:output.getBoundingClientRect().bottom,
+        promptHeight:prompt.getBoundingClientRect().height,
+        scrollHeight:controls.scrollHeight,clientHeight:controls.clientHeight,
+        outputVisible:getComputedStyle(output).display!=='none'
+      };
+    });
+    assert.equal(layout.outputVisible,true,'native output resolution is expanded');
+    assert.ok(layout.outputBottom<=layout.footerTop-3,
+      'Output settings must fit above Generate without scrolling: '+JSON.stringify(layout));
+    assert.ok(layout.scrollHeight<=layout.clientHeight+3,
+      'Empty Transform must not require a nested editor scroll: '+JSON.stringify(layout));
+    assert.ok(layout.promptHeight<=104,'Transform does not inherit the oversized Create prompt');
+    await page.setViewportSize({width:1440,height:1000});
+  }
   assert.equal(await page.locator('#mode-transform').getAttribute('aria-selected'),'true');
   assert.equal(await page.locator('#app').evaluate(el=>el.classList.contains('video-transform-active')),true);
   assert.equal(await page.locator('#transform-help').count(),0);
