@@ -101,7 +101,7 @@ try{
    });
    assert.equal(layout.heroBelowHeader,true,'Sticky header does not cover hero controls');
    assert.ok(layout.topGap<=13,'Hero begins immediately below the header');
-   assert.ok(layout.heroHeight>=205&&layout.heroHeight<=235,'Short desktop displays hero and full Composition');
+   assert.ok(layout.heroHeight>=248&&layout.heroHeight<=286,'Identity uses approved large photographic hero');
    for(const key of ['railHidden','backInside','cardsVisible'])assert.equal(layout[key],true,key);
    const emptyBounds=await page.evaluate(()=>{
     const r=selector=>document.querySelector(selector).getBoundingClientRect();
@@ -110,7 +110,7 @@ try{
      buttonBackground:getComputedStyle(document.getElementById('step-next')).backgroundColor};
    });
    assert.ok(emptyBounds.footerBottom<=emptyBounds.viewportHeight-8,'Empty Identity action and cast all fit on the initial desktop screen: '+JSON.stringify(emptyBounds));
-   assert.ok(emptyBounds.cardHeight>=245&&emptyBounds.cardHeight<=272,'Casting images retain editorial proportions');
+   assert.ok(emptyBounds.cardHeight>=258&&emptyBounds.cardHeight<=295,'Casting references use the approved full-height portraits');
    const textClearance=await page.evaluate(()=>{
     const box=selector=>document.querySelector(selector).getBoundingClientRect();
     const button=document.getElementById('step-next');
@@ -465,6 +465,33 @@ try{
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2);
   assert.equal(overflow,false,'Full Editorial has no horizontal overflow at '+width);
   assert.deepEqual(errors,[],'No browser errors at '+width);
+  await page.close();
+ }
+ // Full-width desktop reference: five original portraits are completely visible,
+ // without sacrificing genuine arrow/keyboard scrolling on narrower screens.
+ {
+  const page=await browser.newPage({viewport:{width:1680,height:900}});
+  await page.goto('http://127.0.0.1:4179/lab/full-editorial.html?start=1',{waitUntil:'domcontentloaded'});
+  await page.locator('#casting-reference-gallery .atelier-reference img').first().evaluate(img=>img.decode());
+  const geometry=await page.evaluate(()=>{
+   const get=s=>document.querySelector(s).getBoundingClientRect();
+   const panel=get('.flow-main'),track=get('#editorial-cast-track'),
+    cards=Array.from(document.querySelectorAll('#editorial-cast-track .atelier-reference')).map(el=>el.getBoundingClientRect());
+   return {width:innerWidth,mainWidth:panel.width,heroHeight:get('#panel-model .stage-visual').height,
+    trackWidth:track.width,firstLeft:cards[0].left,lastRight:cards.at(-1).right,trackRight:track.right,
+    fullWidth:document.getElementById('editorial-cast-track').scrollWidth,
+    compositionBottom:get('#editorial-composition-choices').bottom};
+  });
+  assert.ok(geometry.mainWidth>1500,'Desktop casting frame extends to reference margins: '+JSON.stringify(geometry));
+  assert.equal(geometry.width,1680);
+  assert.ok(geometry.heroHeight>=248,'Wide desktop keeps portrait film hero');
+  assert.ok(geometry.lastRight<=geometry.trackRight+2,'All five casting photos visible without clipping: '+JSON.stringify(geometry));
+  assert.ok(geometry.firstLeft<geometry.lastRight,'Original portraits in natural order');
+  await page.locator('#casting-reference-gallery .atelier-reference').first().click();
+  await page.locator('#casting-reference-gallery .atelier-reference').nth(2).click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
+  assert.equal(await page.locator('#editorial-casting-controls').getAttribute('data-cast-state'),'group');
+  await page.screenshot({path:'test-results/editorial/1680-reference-two-models.png'});
   await page.close();
  }
  // Guest mobile header keeps Sign in visible and billing/account reachable in the menu.

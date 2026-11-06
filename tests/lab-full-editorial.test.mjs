@@ -110,7 +110,7 @@ test('Identity casting uses the approved photographic layout rather than standal
  const identityCss=read('lab/full-editorial-identity-refresh.css');
  assert.match(identityCss,/scroll-snap-type:x mandatory/,'Casting supports a horizontal snap carousel');
  assert.match(identityCss,/position:sticky!important/,'Selection dock follows the active viewport');
- assert.match(html,/full-editorial-identity-refresh\.css\?v=20261106-qa-fold3/);
+ assert.match(html,/full-editorial-identity-refresh\.css\?v=20261106-identity-reference4/);
 
  const atelierCss=read('lab/full-editorial-atelier.css');
  assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
@@ -119,7 +119,7 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.match(html,/full-editorial\.js\?v=20261106-qa-fold3/);
+ assert.match(html,/full-editorial\.js\?v=20261106-identity-reference4/);
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);setIdentitySource\('casting'\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=step!==1/,'Composition remains visible throughout Identity');
@@ -238,4 +238,15 @@ test('Identity restores Composition illustrations and aligns the active mobile c
  assert.match(js,/count===0\?img\.dataset\.originalSrc/);
  assert.match(js,/region\.dataset\.scrollKey/);
  assert.match(js,/track\.scrollTo\(\{left:Math\.max\(0,left\),behavior:'instant'\}\)/);
+});
+
+test('Identity matches wide editorial reference without losing narrow desktop scrolling',()=>{
+ const s=read('lab/full-editorial-identity-refresh.css');
+ assert.doesNotMatch(s,/max-width:min\(100%,1180px\)/);
+ assert.match(s,/min-width:1551px/);
+ assert.match(s,/max-width:1550px/);
+ assert.match(s,/max-width:1760px!important/);
+ assert.match(s,/object-position:54% 24%/);
+ assert.match(s,/height:clamp\(248px,31svh,285px\)/);
+ assert.match(s,/height:clamp\(258px,31svh,294px\)/);
 });
