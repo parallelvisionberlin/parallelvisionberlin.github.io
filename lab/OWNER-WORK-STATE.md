@@ -1,3 +1,19 @@
+## Operational Owner workspace, 2026-11-06
+- Objective: apply approved four-view Owner flow and shared operational memory; preserve all existing functions, ledgers, customer/private review permissions and partner destinations.
+- Baseline main: 0cb72cbce8a5da018537bbb4cad818cbe0ecf020. Branch feat/owner-operational-workspace-20261106. Source audit at d91e6f6 remains applicable: only unrelated Transform files changed before this baseline.
+- Canonical active task index: `lab/owner-work-records.json`; read/update through `node scripts/owner-work-state.mjs read|validate|upsert`. Both Owner and future assistants use this same index; detailed history below is preserved.
+- Home summarizes business and attention; Business contains independent Traffic/Conversion periods, Payments, Costs and Promotions; Customers contains directory/lifetime usage opening the same existing profile; System contains attention, work records and collapsed documentation.
+- Existing section hashes and Back work through presentation routing; forms, filters, pagination, partner access, Agency, account and Studio links remain. Dialogs use a shared host so cross-view customer review remains available.
+- Existing active-account and acquisition labels corrected to open accounts, completed generations and checkout started/no recorded payment. No inferred purchase/cancellation or current generating state.
+- Reports load on demand, reused for five minutes; system snapshot is single-flight/reused for one minute. No polling, paid requests or automatic retries.
+- GET /api/admin/operations uses existing owner authorization and retained data only, no provider calls or DB writes. Failed jobs use seven-day window, uncertain/stale work covers retained unresolved jobs, lists bounded to20, unavailable source remains unknown.
+- Public /health adds operations capability marker only. It does not prove bindings, migrations, cron execution or signed-in behavior.
+- Worker Actions reconciled to workflow_dispatch only while CLOUDFLARE_API_TOKEN is unavailable; direct Cloudflare is required. All deployments/verification remain pending until recorded in canonical task index.
+- Local checks: 139 Worker/promotions/finance tests;22 existing Owner privacy/providers/auth/traffic tests;11 new operations backend/UI tests;15 routing/memory/approved Image contract tests. Candidate manual-only policy check added. Seven-width browser execution remains for CI.
+- Local browser preview was blocked by the browser URL policy; no workaround attempted. Automated CI browser coverage remains the rendering gate.
+- No paid generation, purchase, campaign change or customer data mutation performed.
+- Next: final CI browser checks, staged direct Worker release preserving33 bindings/runtime settings, merge, Cloudflare Pages app check and exact live bytes. Signed-in production verification remains independent.
+
 ## Collapsed Partners navigation, 2026-11-06
 - Status: PUBLISHED; exact production CSS bytes verified at https://pvlab.studio/owner.
 - PR #861, reviewed head 9fc17771dd75bd3eeb4cd5bbdc77812945f98e1c; merge 2434dd2c766b89189dc11fbdbb61fd11aa236d10. Exact source tree 767e41dc052e3f3311a079d3716ba4961f5c3636.

@@ -25,6 +25,7 @@ import {partnerWorkspace,partnerDashboardRoute,ownerPartnerDashboardRoute,public
 import {partnerVoucherRoute} from './partner-vouchers.mjs';
 import {partnerPayoutRoute} from './partner-payouts.mjs';
 import {labAdminRoute,voucherCustomerRoute,syncCustomerEmail,scheduledClerkBackfill} from './promotions.mjs';
+import {ownerOperationsRoute,OWNER_OPERATIONS_VERSION} from './owner-operations.mjs';
 import {recordLabTraffic,pruneLabTraffic} from './traffic.mjs';
 import {pruneGenerationReviewAudit} from './generation-review.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
@@ -1360,7 +1361,7 @@ async function route(request,env,ctx) {
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range,X-PV-Lab-Client','Access-Control-Max-Age':'600'}});
   if(url.pathname==='/api/public/local-currency'&&request.method==='GET')return localCurrency(request);
-  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION});
+  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION});
   if(url.pathname.startsWith('/api/music/public/'))return musicPublicRoute(request,env);
   // PV LAB anonymous traffic uses its own origin-checked, bounded payload.
   if(url.pathname==='/api/public/traffic'&&request.method==='POST')return recordLabTraffic(request,env);
@@ -1395,6 +1396,7 @@ async function route(request,env,ctx) {
   if(/^\/api\/admin\/partners\/(vitolas-studio|bellini-studio|robin-studio)\//.test(path))return partnerVoucherRoute(request,env,owner,{ownerView:true});
   if(/^\/api\/admin\/partners\/(vitolas-studio|bellini-studio|robin-studio)$/.test(path))return ownerPartnerDashboardRoute(request,env,owner);
   if(path.startsWith('/api/admin/agency/'))return agencyAdminRoute(request,env,owner);
+  if(path==='/api/admin/operations')return ownerOperationsRoute(request,env,owner);
   if(path.startsWith('/api/admin/'))return labAdminRoute(request,env,owner,{decryptKey});
   const customer=await isLabCustomer(env,owner);
   if(customer&&path==='/api/session'&&ctx?.waitUntil&&

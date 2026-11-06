@@ -32,6 +32,7 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
       ' net credits used. '+formatNumber(s.archivedJobs||0)+
       ' finance records retained after creative deletion ('+
       money(s.archivedExposureUsd,dollar)+' in retained exposure). Customer rows show lifetime usage.';
+    $('owner-acquisition-customers').closest('.owner-table-wrap').hidden=false;
     const body=$('owner-acquisition-customers');
     body.replaceChildren();
     const customers=Array.isArray(data.customers)?data.customers:[];
@@ -73,8 +74,8 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
         :customer.reviewFlag==='disposable-email'?'Review temporary email'
         :customer.reviewFlag==='unverified'?'Email not verified'
         :Number(customer.revenueCents)>0?'Purchased'
-        :Number(customer.checkoutStarts)>0?'Checkout unfinished'
-        :Number(customer.completedJobs)>0?'Generating'
+        :Number(customer.checkoutStarts)>0?'Checkout started · no payment recorded'
+        :Number(customer.completedJobs)>0?'Completed generations'
         :Number(customer.creditsSpent)>0?'Credits consumed'
         :'No completed jobs';
       const review=cell(row,status,'owner-acquisition-review');
@@ -89,6 +90,7 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
       (data.notes?.cost||'')+' Returning visitors are not tracked by the anonymous meter.';
     $('owner-acquisition-content').hidden=false;
     $('owner-acquisition-status').textContent='';
+    $('owner-customer-usage-status').textContent='Lifetime usage · refreshed '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     mobileLabels();
   }
   async function refresh({scroll=false}={}){
@@ -98,6 +100,7 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
     const version=revision(),id=++serial,button=$('owner-acquisition-refresh');
     button.disabled=true;
     $('owner-acquisition-status').textContent='Refreshing private business activity…';
+    $('owner-customer-usage-status').textContent='Refreshing lifetime activity…';
     try{
       let report=await request('/api/admin/acquisition?days='+selectedDays+'&page='+page);
       if(version!==revision()||id!==serial)return;
@@ -108,15 +111,18 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
         if(version!==revision()||id!==serial)return;
       }
       paint(report);
-      if(scroll)$('owner-acquisition-section').scrollIntoView({block:'start'});
+      if(scroll)$('owner-customer-usage').scrollIntoView({block:'start'});
     }catch(error){
       if(version!==revision()||id!==serial)return;
       $('owner-acquisition-content').hidden=true;
       $('owner-acquisition-status').textContent='Unable to read business metrics: '+(error.message||'Retry.');
+      $('owner-customer-usage-status').textContent=$('owner-acquisition-status').textContent;
+      $('owner-acquisition-customers').closest('.owner-table-wrap').hidden=true;$('owner-acquisition-pagination').replaceChildren();
     }finally{
       if(version===revision()&&id===serial)button.disabled=false;
     }
   }
   $('owner-acquisition-refresh').addEventListener('click',()=>void refresh());
-  return {refresh};
+  function clear(){$('owner-acquisition-refresh').disabled=false;serial++;page=1;lastDays=null;$('owner-acquisition-content').hidden=true;$('owner-acquisition-customers').replaceChildren();$('owner-acquisition-pagination').replaceChildren();$('owner-customer-usage-status').textContent='Available after owner verification.';}
+  return {refresh,clear};
 }

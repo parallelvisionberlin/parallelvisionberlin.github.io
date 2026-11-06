@@ -91,7 +91,7 @@ Do not repeatedly ask for confirmation for normal implementation decisions.
 
 ## Active feature handoffs
 - PV LAB publishing: follow `lab/RELEASE-PROTOCOL.md`. Production is Cloudflare Pages `pvlab-studio` at `pvlab.studio`; GitHub Pages success is not production evidence. Use the scoped, read-only release verifier before claiming an asset is live.
-- PV LAB Control Room: `lab/OWNER-WORK-STATE.md`.
+- PV LAB Control Room: shared structured index `lab/owner-work-records.json`; detailed history `lab/OWNER-WORK-STATE.md`. Read with `node scripts/owner-work-state.mjs read` or `read RECORD_ID`. The index also points to existing scoped backend, Soul, purchase and account handoffs.
 - PV LAB partner dashboards / Vitolas Studio: `lab/PARTNER-DASHBOARD-WORK-STATE.md`.
 - PV LAB staged prompt safety: `lab-worker/SAFETY-WORK-STATE.md`.
 - Parallel Vision homepage hero: `WORK-STATE.md`.
@@ -101,7 +101,7 @@ Do not repeatedly ask for confirmation for normal implementation decisions.
 Standing instruction from Alejandro: preserve quality, speed and autonomy while eliminating repeated work. Apply without reminders or repeated confirmations.
 
 ### Start
-1. Read applicable AGENTS.md instructions and the existing scoped handoff/current-state summary before exploring source files.
+1. Read applicable AGENTS.md instructions and the existing scoped handoff/current-state summary before exploring source files. For PV LAB, read the relevant record/handoff in `lab/owner-work-records.json` first, compare its recorded SHA with current main, then inspect only the changed or relevant source. This is the same work memory shown in Owner; do not create a second task ledger.
 2. For PV LAB, use the relevant sections of `lab/README.md`; for a specific feature, find its heading first instead of reading the full historical log. For Nina, locate the existing Nina/Worker README or handoff by filename and reuse it.
 3. Check the summary's recorded commit and date against current Git state. Read only the changed or task-relevant files. Current code and verified results override stale notes.
 4. Reuse approved designs, asset paths, previous findings and existing authorization. Do not reconstruct completed work or repeat searches for known assets.
@@ -113,7 +113,7 @@ Standing instruction from Alejandro: preserve quality, speed and autonomy while 
 - Keep implementation, commit and confirmed deployment status distinct. Do not infer that a commit is live.
 
 ### Finish automatically
-- Update the existing scoped handoff/current-state summary after each meaningful work unit, before the final reply. No user reminder is required.
+- Update the existing scoped handoff/current-state summary after each meaningful work unit, before the final reply. No user reminder is required. For PV LAB, update that task in `lab/owner-work-records.json` using `node scripts/owner-work-state.mjs upsert RECORD.json` (or JSON on stdin), then `node scripts/owner-work-state.mjs validate`. Preserve other records and link detailed history rather than copying it. Record tests, publication evidence, real signed-in observations, limitations and the next action separately; a deployed asset is not a fully verified customer journey. Never put credentials, customer data or private media in this public repository index.
 - Keep the active summary about 30 to 60 lines: objective, date and verified source commit, relevant file paths, approved decisions/assets, completed work, checks already run, actual deployment status, blockers and exact next action.
 - Link to detailed history instead of copying it. Preserve other active tasks and collaborators' entries. Never include credentials or private transcripts.
 - If no scoped handoff exists, create `WORK-STATE.md` beside the relevant component and add a short pointer in its README or AGENTS.md. Initialize it from verified work only, not historical assumptions.
