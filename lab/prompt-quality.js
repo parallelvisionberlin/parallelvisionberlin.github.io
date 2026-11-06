@@ -37,7 +37,7 @@ export function imageQualityGuidance(direction='',labels=[],settings={},currentL
  if(identity||body)parts.push('IDENTITY FIRST: '+[
    identity?'Assigned Identity photos control recognizable facial structure, natural eye shape and color, hairline and hairstyle.':'',
    body?'Assigned Body photos control the existing build and proportions.':'',
-   'General and Style references must not override identity or physique. No beautification, face swapping or body reshaping.'
+   'Apply assigned properties to the subject specified by the user. Preserve other people in the Base unless the user requests an edit to them. Avoid automatic beautification.'
  ].filter(Boolean).join(' '));
  if(isProduct&&short)parts.push('PRODUCT DIRECTION: Preserve actual object geometry, construction, markings and materials. Use physically consistent perspective, highlights and shadows; do not invent labels or accessories.');
  else if(isArt&&short)parts.push('ART DIRECTION: Maintain the requested medium and style. Use intentional composition, form and color. Do not turn illustration or artwork into photography.');
@@ -49,7 +49,7 @@ export function imageQualityGuidance(direction='',labels=[],settings={},currentL
    // Use brief fidelity guidance for them; do not override an authored artistic direction.
    if(['qwen3','gemini','gemini21','krea3'].includes(settings.engine)){
      if(short)parts.push('NATURAL HUMAN REALISM: Preserve recognizable facial structure, believable body weight, garment fit, anatomy and skin texture. Honor the supplied pose, clothing and lighting without automatic beautification.');
-   }else parts.push('NATURAL HUMAN REALISM: Keep the reference face and anatomy intact. Where eyes are visible, render subtly irregular iris texture, plausible pupil size, realistic eyelids and catchlights consistent with scene lighting; avoid enlarged or glassy eyes. Preserve skin pores, natural tone variation, believable body weight and contact with support surfaces, coherent joints, fabric tension and natural asymmetry. No plastic skin, airbrushing or imposed beauty symmetry. Do not change expression, pose, age, outfit or person.');
+   }else parts.push('NATURAL HUMAN REALISM: Follow the requested edit and the assigned reference roles. Where eyes are visible, render subtly irregular iris texture, plausible pupil size, realistic eyelids and catchlights consistent with scene lighting; avoid enlarged or glassy eyes. Preserve skin pores, natural tone variation, believable body weight and contact with support surfaces, coherent joints, fabric tension and natural asymmetry. No plastic skin, airbrushing or imposed beauty symmetry. Preserve expressions, poses, ages, outfits and identities except where the requested edit or assigned reference role changes them.');
  }
  if(!parts.length)return '';
  // Optional enhancements must never push a valid user prompt over the cap.
