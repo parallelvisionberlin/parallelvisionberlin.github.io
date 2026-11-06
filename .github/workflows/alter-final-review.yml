@@ -15,21 +15,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 50
+          fetch-depth: 80
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-      - name: Reconcile current main without losing other work records
+      - name: Reconcile current main and preserve concurrent records
         run: |
           python3 - <<'PY'
           import json,pathlib
           state=json.loads(pathlib.Path('lab/owner-work-records.json').read_text())
-          record=next(r for r in state['records'] if r['id']=='alter-tabbed-editor')
-          pathlib.Path('/tmp/alter-record.json').write_text(json.dumps(record))
+          pathlib.Path('/tmp/alter-record.json').write_text(json.dumps(next(r for r in state['records'] if r['id']=='alter-tabbed-editor')))
           PY
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git fetch origin main --depth=50
+          git fetch origin main --depth=80
           git merge --no-ff --no-commit origin/main || {
             test "$(git diff --name-only --diff-filter=U)" = lab/owner-work-records.json
           }
@@ -37,12 +36,20 @@ jobs:
           node scripts/owner-work-state.mjs upsert /tmp/alter-record.json
           node scripts/owner-work-state.mjs validate
           git add lab/owner-work-records.json
-      - name: Apply compact spacing and preserve breadcrumb hit targets
+      - name: Apply narrow corrections and preserve private request assertions
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p=Path('lab/beauty-editorial-final.css')
-          with p.open('a') as f:f.write('\n/* Compact desktops retain clearance below the native aspect-ratio control. */\n@media(min-width:1001px) and (max-width:1300px){.beauty-left-settings{gap:6px}}\n/* Keep breadcrumb navigation above the expanded decorative photograph. */\n.beauty-breadcrumb{position:relative;z-index:3}\n')
+          with p.open('a') as f:f.write('\n/* Compact desktops retain clearance below the native aspect-ratio control. */\n@media(min-width:1001px) and (max-width:1300px){.beauty-left-settings{gap:6px}}\n/* Preserve breadcrumb hit targets above the decorative photograph. */\n.beauty-breadcrumb{position:relative;z-index:3}\n')
+          p=Path('lab/beauty.html');s=p.read_text()
+          assert '<link rel="icon"' not in s
+          icon='<link rel="icon" href="./branding/pv-mark.png" type="image/png">'
+          assert icon in Path('lab/index.html').read_text(), 'Reuse the exact current homepage favicon'
+          assert Path('lab/branding/pv-mark.png').is_file()
+          s=s.replace('<title>ALTER Studio · PV LAB</title>','<title>ALTER Studio · PV LAB</title>\n'+icon)
+          s=s.replace('beauty-editorial-final.css?v=20261106-atelier1','beauty-editorial-final.css?v=20261106-atelier2')
+          p.write_text(s)
           p=Path('tests/lab-beauty-ui.mjs');s=p.read_text()
           old="const quoted=s.quotes.length,buttonBefore=await page.locator('#beauty-generate').boundingBox();"
           new="const buttonGeometry=()=>page.locator('#beauty-generate').evaluate(button=>{const a=button.getBoundingClientRect(),b=button.closest('.beauty-edit-panel').getBoundingClientRect();return {x:a.left-b.left,y:a.top-b.top,width:a.width,height:a.height};});\n  const quoted=s.quotes.length,buttonBefore=await buttonGeometry();"
@@ -51,35 +58,72 @@ jobs:
           new="assert.deepEqual(await buttonGeometry(),buttonBefore,'Generate placement stays stable across tabs');"
           assert s.count(old)==1;s=s.replace(old,new)
           old="await page.locator('#beauty-generate').click({trial:true});\n  await page.screenshot({path:'test-results/beauty-fit-'"
-          new="await page.locator('.beauty-breadcrumb button').click({trial:true});\n  await page.locator('#beauty-generate').click({trial:true});\n  await page.screenshot({path:'test-results/beauty-fit-'"
-          assert s.count(old)==1;p.write_text(s.replace(old,new))
+          new="await page.locator('.beauty-breadcrumb button').click({trial:true});\n  assert.equal(await page.locator('link[rel=\"icon\"]').getAttribute('href'),'./branding/pv-mark.png');\n  await page.locator('#beauty-generate').click({trial:true});\n  await page.screenshot({path:'test-results/beauty-fit-'"
+          assert s.count(old)==1;s=s.replace(old,new)
+          old="  calls.push({path:url.pathname,method:request.method()});\n  assert.equal(request.headers().authorization,'Bearer synthetic-token');"
+          new="""  // Public homepage currency/traffic calls are not private Studio requests.
+            // Only these exact endpoints/methods are mocked; every other Worker call
+            // still requires the synthetic token and is counted for guest isolation.
+            if(url.pathname==='/api/public/local-currency'&&request.method()==='GET'){
+             assert.equal(request.headers().authorization,undefined,'Public currency must not carry private credentials');
+             return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({currency:'EUR',rate:1,approximate:true,locale:'de-DE'})});
+            }
+            if(url.pathname==='/api/public/traffic'&&request.method()==='POST'){
+             assert.equal(request.headers().authorization,undefined,'Public traffic must not carry private credentials');
+             return route.fulfill({status:204,body:''});
+            }
+            calls.push({path:url.pathname,method:request.method()});
+            assert.equal(request.headers().authorization,'Bearer synthetic-token',request.method()+' '+url.pathname+' requires session authorization');"""
+          assert s.count(old)==1;s=s.replace(old,new)
+          p.write_text(s)
           PY
           node --check tests/lab-beauty-ui.mjs
+          node --check lab/beauty.js
+          node --check lab/beauty-approved-20261029.js
           node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-beauty.test.mjs tests/lab-beauty-atelier.test.mjs
           node --test --test-name-pattern='Beauty Studio binds' tests/lab-worker.test.mjs
-      - name: Install pinned Chromium using existing Ubuntu browser libraries
+      - name: Install pinned Chromium
         timeout-minutes: 3
         run: |
           npm install --prefix /tmp/pv-beauty --no-audit --no-fund playwright@1.57.0
           node /tmp/pv-beauty/node_modules/playwright/cli.js install chromium
-      - name: Complete existing Beauty regression
+      - name: Full original Beauty regression and Studio navigation
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-beauty/node_modules/playwright/index.mjs
         run: |
           node tests/lab-studios-menu-ui.mjs
           node tests/lab-beauty-ui.mjs
-      - name: Save tested corrections and remove temporary reviewer
+      - name: Record actual successful tests and save review source
         run: |
           test "$GITHUB_REF" = refs/heads/implement/alter-approved-20261106
-          git add tests/lab-beauty-ui.mjs lab/beauty-editorial-final.css
+          python3 - <<'PY'
+          import json,os,pathlib,datetime
+          run='https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/actions/runs/'+os.environ['GITHUB_RUN_ID']
+          now=datetime.datetime.now(datetime.timezone.utc).isoformat()
+          p=pathlib.Path('lab/BEAUTY-WORK-STATE.md');s=p.read_text()
+          note='## 2026-11-06 | Final review and existing PV LAB favicon\n\n- Reused the exact homepage favicon `./branding/pv-mark.png`; no branding regenerated.\n- Fixed compact desktop clearance and breadcrumb hit targets; stylesheet `20261106-atelier2`.\n- The final navigation test failure was a public local-currency request incorrectly subjected to private authorization. Exact public currency/traffic fixtures now remain separate; private token and guest-isolation assertions are preserved.\n- Complete Beauty and Studios browser suites plus 12 scoped unit contracts and Worker quote/idempotency integration passed in '+run+'.\n- This is intercepted test-account evidence, not real signed-in production behavior. No paid generation or payment was made.\n- Source is saved on the existing review branch; merge and production bytes remain to be verified.\n\n'
+          p.write_text(s.replace('# Beauty Studio and Studios navigation\n\n','# Beauty Studio and Studios navigation\n\n'+note,1))
+          state=json.loads(pathlib.Path('lab/owner-work-records.json').read_text());r=next(x for x in state['records'] if x['id']=='alter-tabbed-editor')
+          r['summary']='Approved ALTER tabbed interface and horizontal archive implemented; original PV LAB favicon restored. Complete scoped browser and quote/security tests passed; production verification pending.'
+          r['nextAction']='Review final rendered screenshots, merge PR #880, verify exact Cloudflare production deployment and custom-domain bytes.'
+          r['tests']=[{'label':'ALTER and original Beauty/Studios regression','result':'passed','scope':'12 unit contracts, Worker quote/idempotency integration and full original intercepted browser scenarios including public navigation, roles, guest isolation, comparisons, zoom, history races and favicon.','observedAt':now,'source':run}]
+          r['updatedAt']=now
+          pathlib.Path('/tmp/alter-record.json').write_text(json.dumps(r))
+          pathlib.Path('test-results/alter-review-evidence.json').write_text(json.dumps({'run':run,'state':'tests_passed','realSignedIn':False,'paidGenerations':0,'favicon':'./branding/pv-mark.png'}))
+          PY
+          node scripts/owner-work-state.mjs upsert /tmp/alter-record.json
+          node scripts/owner-work-state.mjs validate
+          git add tests/lab-beauty-ui.mjs lab/beauty-editorial-final.css lab/beauty.html lab/BEAUTY-WORK-STATE.md lab/owner-work-records.json
           git rm .github/workflows/alter-final-review.yml
           git diff --cached --check
-          git commit -m 'Verify ALTER desktop clearance, breadcrumb access and stable mobile controls'
+          git commit -m 'Finish ALTER browser validation and restore original PV LAB favicon'
           git rev-parse HEAD
           git push origin HEAD:refs/heads/implement/alter-approved-20261106
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: alter-final-review-evidence
-          path: test-results/beauty-*.png
+          path: |
+            test-results/beauty-*.png
+            test-results/alter-review-evidence.json
           retention-days: 3
