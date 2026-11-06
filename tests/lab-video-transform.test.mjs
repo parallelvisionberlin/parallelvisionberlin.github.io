@@ -146,17 +146,20 @@ test('a mismatched Transform job quote is rejected without provider submission',
 test('Video Transform has its own entry and keeps the existing source-only film artwork',()=>{
   const read=path=>readFileSync(new URL('../lab/'+path,import.meta.url),'utf8');
   const html=read('studio.html'),app=read('lab.js'),css=read('video-transform.css'),scene=read('video-scene-states.js');
-  for(const id of ['mode-transform','pv-transform-source-settings','video-reference-heading','video-transform-compare',
+  for(const id of ['mode-transform','pv-transform-source-duration','video-reference-heading','video-transform-compare',
     'video-transform-original','video-transform-result']){
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id+' exists only once');
   }
-  assert.match(html,/video-transform\.css\?v=20261106-drop-target2/);
+  assert.match(html,/video-transform\.css\?v=20261106-native-controls3/);
+  assert.doesNotMatch(html,/id="pv-transform-source-settings"/);
+  assert.match(app,/\$\('duration'\)\.hidden=mode==='transform'/);
+  assert.match(read('video-input-action.js'),/if\(mode==='transform'\)return null/);
   assert.match(app,/\$\('video-media-title'\)\.textContent=mode==='transform'\?'Drop video or browse'/);
   assert.match(app,/\$\('scene-video-open'\)\.querySelector\('span'\)/);
   assert.match(css,/video-transform-active[^\n]*#video-media-drop/);
   assert.match(css,/video-transform-active[^\n]*#reference-drop/);
   assert.doesNotMatch(html,/VIDEO TRANSFORM \/ 01|Bring a video and your character references|id="transform-help"/);
-  assert.match(app,/\$\('pv-transform-source-settings'\)\.hidden=!isVideo\|\|mode!=='transform'/);
+  assert.match(app,/\$\('pv-transform-source-duration'\)\.hidden=!isVideo\|\|mode!=='transform'/);
   assert.match(app,/mode==='transform'/);
   assert.match(app,/quote\.settings\.mode==='transform'|q\.settings\.mode==='transform'/);
   assert.match(app,/showTransformComparison\(job\)/);

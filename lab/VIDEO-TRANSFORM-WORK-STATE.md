@@ -56,3 +56,9 @@ Updated: 2026-11-06 (Berlin)
 - Saved Character button renamed **Add Element**, with “Characters, objects & looks” helper text. Opens the same existing Scene Library (Characters / Outfits / Props / Locations); object replacement is not claimed as a separate supported paid Transform mode.
 - Locked Video deck, Generate button, 480p/720p/1080p options, Create/Extend, preview image, Video History and backend unchanged.
 - Validate the changed UI at 390px and 1440px; distinguish CI from production evidence.
+
+## 2026-11-06 — Correcting real Generate / Output settings regression
+- Reverted the Transform-only three custom Duration / Aspect ratio / Resolution tiles. The unchanged native Video Output settings row now contains its own Duration and Resolution fields, like Extend.
+- Duration is read-only from the attached source video, displayed inside the native Duration field (not a fabricated independent duration selection). Native resolution select remains 480p / 720p / 1080p.
+- Transform no longer hijacks the actual Generate button into “Add source video” / “Add character photos”. Generate stays disabled until a clip plus identity references are attached; the existing dropzones own file selection.
+- Source and Character dropzones, locked Create / Extend, central preview, History, pricing, and provider routes are unchanged.
