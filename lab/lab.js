@@ -900,7 +900,7 @@ function currentImageSubmissionKey(selected=null,count=null){
   return JSON.stringify([frozen,imageSources,count??(Number($('image-count').value)||1)]);
 }
 function imageCreditQuoteSnapshot(){
-  if(!customerMode||!owner||!customerGenerationReady||customerCreditBalance<=0||tool!=='image'||fashionActive||busy||imageSubmissionPending||!hasInput())return null;
+  if(!customerMode||!owner||!customerGenerationReady||customerCreditBalance<=0||tool!=='image'||fashionActive||busy||imageSubmissionPending||!hasInput()||soulNightFlashUnavailable())return null;
   const selected=structuredClone(settings());
   const count=Math.max(1,Math.min(imageEngine==='gemini'&&imageProcessing==='batch'?20:4,Number($('image-count').value)||1));
   const sourceMode=imageEngine==='soulpro'||isReinterpret();
