@@ -1,65 +1,45 @@
-# Video Studio — Seedance Transform / Replace Character
+# PV LAB Video — Transform / Replace Character
+Updated: 2026-11-06 (Berlin)
 
-Updated: 2026-11-05 (Berlin)
-Repository: parallelvisionberlin/parallelvisionberlin.github.io
-Branch: `feat/pvlab-seedance-transform-character-20261105`
-Review PR: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/853
-Status: implementation committed to **draft PR only**, not merged or deployed.
+## Release status
+- Approved dark editorial visual applied under **Video → Seedance 2.5 → Transform**.
+- PR: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/853
+- Feature source head: `b4c19b10b06c3c9a090a26f56b242eef141c7b5a`.
+- Feature merged to `main` as `4e01012d75fc7f403b6272a31b3e238f2353ac62`.
+- Exact merge SHA Cloudflare Pages app check: **completed / success**, project `pvlab-studio`, 2026-11-06.
+- Direct custom-domain asset hash and an authenticated production session remain **unverified**; do not infer them from GitHub or Cloudflare alone.
+- Customer paid edits remain **disabled by default** until both `LAB_CUSTOMER_HIGGSFIELD_ENABLED=true` and `LAB_CUSTOMER_VIDEO_TRANSFORM_ENABLED=true` are deliberately set.
 
-## Goal / approved scope
-- Add a distinct third Video task, **Transform**, beside Create and Extend.
-- First complete workflow: **Replace Character** in an existing clip using saved PV LAB Character or new identity photos.
-- Preserve source motion, camera movement, chronology, set, wardrobe, lighting and background as prompt guidance.
-- Optional prompt; before/after Original vs Result playback; private History/Reuse.
-- Follow approved dark editorial UI and keep the actual video subway artwork unchanged.
-- Do not create fake outputs, publish mockups or advertise unverified extra Transform modes.
+## Approved visual, locked features
+- Source: owner-approved 2026-11-06 Transform mockup.
+- Replace Character is the first Transform operation. The Create/Extend/Transform task row, compact source clip, real Character photographs, Saved Character chooser, prompt, output controls, draft inspector and Original/Result toggle are implemented.
+- The original subway background image, **Video player deck geometry**, left/right column tracks and **History cards, spacing, scroll, controls and ordering** remain unchanged.
+- A proposed large storyboard strip below the video was deliberately not added: it would displace the already-approved History.
+- No fake result image, decorative changed photo, automatic paid generation, new campaign or change to existing Create/Extend capabilities.
 
-## Implementation paths
-- `lab/studio.html`: Transform task tab, editor identity description, character label and source/result switch.
-- `lab/video-transform.css`: feature-scoped dark editorial treatment; original visual assets untouched.
-- `lab/lab.js`: mode state, video + Character inputs, source preview, quotes, saved job restore, compare playback.
-- `lab/video-models.js`: Seedance Video Edit mode model route.
-- `lab/media-references.js`: per-mode 1 original video, source duration validation.
-- `lab/video-input-action.js`: guide video or photo selection without fake Generate.
-- `lab/video-scene-states.js`, `lab/video-editorial-deck.js`: presentation-only Transform state.
-- `lab-worker/seedance.mjs`, `lab-worker/worker.mjs`: actual Transform parameters and private routing.
-- `lab-worker/higgsfield-video-transform.mjs`: dedicated bound estimate and job submission, existing wallet/queue protections.
-- `tests/lab-video-transform.test.mjs`: unit and source-level coverage.
-- `tests/lab-video-transform-ui.mjs`: synthetic desktop/mobile browser coverage.
-- `.github/workflows/lab-seedance-tests.yml`: independent Transform browser regression job.
+## Implementation
+- Frontend: `lab/studio.html`, `lab/video-transform.css`, `lab/video-scene-states.js`, `lab/video-editorial-deck.js`, `lab/lab.js`, `lab/media-references.js`, `lab/video-input-action.js`, `lab/scene-library.js`, `lab/video-models.js`.
+- Backend: `lab-worker/higgsfield-video-transform.mjs`, `lab-worker/seedance.mjs`, `lab-worker/worker.mjs`.
+- Tests: `tests/lab-video-transform.test.mjs`, `tests/lab-video-transform-ui.mjs`, `.github/workflows/lab-seedance-tests.yml`; related Elements/Character contract tests updated.
+- Character library accepts Transform and attaches all saved photographs (up to eight), not just the preview thumbnail.
+- Original/Result retrieves the actual saved source and output assets; only completed Transform jobs get this comparison.
 
-## Provider and money/data protection
-- Real Higgsfield route: `bytedance/seedance-2.5/video-edit`.
-- One MP4/MOV source video, 4–30 seconds, max 20 MiB; 1–8 JPG/PNG/WebP character photos.
-- Source and reference asset IDs remain account-owned; provider receives time-limited signed URLs.
-- Server estimate via Higgsfield `/estimate/<model>` before any job; no automatic generation on upload.
-- Max $20 provider estimate for the v1 feature; daily spend/concurrency/uncertain-job guards reused.
-- Explicit priced confirmation, customer Higgsfield gate, original R2 source and result retained in History.
-- Identity/motion preservation is generative guidance, not a guarantee; source/output may both be billed.
+## Provider and financial control
+- Official Higgsfield `bytedance/seedance-2.5/video-edit`: source `video_url`, optional `image_urls`, prompt, 480p–1080p, MP4 output and audio choice.
+- One original 4–30-second MP4/MOV, up to 20 MiB, plus 1–8 JPG/PNG/WebP identity photos.
+- Live provider estimate bound to exact private assets and settings; quote is reviewed and explicitly confirmed before any job is submitted. $20 estimate guard plus existing daily cap, quote uniqueness, concurrent-job and uncertain-state safeguards.
+- Video cost can count both input and generated footage; identity and source-motion preservation are not frame-perfect guarantees.
+- Multi-subject target follows the owner's explicit prompt rather than an unconditional main-person assumption.
+- No real paid provider submission occurred in this work.
 
-## Verification / current limitations
-- Prior initial Video integration suite: 1008 passing, 6 failing; five unrelated existing Mood/Meta assertions and one stale media-reference limit assertion. The relevant assertion has been strengthened for Transform.
-- A dedicated independent browser workflow has been added; check its actual result before any release.
-- No real paid generation, authenticated owner checkout, vendor acceptance or provider output has been verified.
-- No `main` merge, Cloudflare Pages deployment or production `pvlab.studio` verification.
-- PR remains draft until scoped browser, quote, source preservation and provider behavior are reviewed.
-- GitHub Actions dedicated browser verification and exact-branch Lab checks were queued in the latest observed run; do not claim passed until their logs confirm it.
-- After code review, race-safe duplicate confirmation now resolves to the same stored quote job instead of attempting a second paid provider request.
+## Verification evidence
+- Main merge `4e01012`: **transform-browser SUCCESS** at 390px and 1440px (mock clips, all 8 Character photos, quotes, no automatic submission, History/Reuse and Original/Result).
+- Main merge: static-site validation **SUCCESS**; PV LAB approved Image UI contract **SUCCESS**.
+- Full Node suite: 1010 pass, 5 fail in already existing Moods/Meta tests, unrelated to Transform. Legacy Video credit preview also has an unrelated typography assertion.
+- The source blob SHA of `video-history-cards.css`, `video-film-dossier.css`, `video-composer-single-scroll.css`, `video-compact-studio.css` and `video-restored-editorial.css` is unchanged from pre-Transform `main`.
+- Cloudflare Pages deployment success does **not** independently prove custom-domain byte equality, actual owner permissions or paid-provider acceptance.
 
-## Exact next action
-1. Read relevant GitHub Actions results for PR #853, fix Transform-only regressions.
-2. Run one authorized owner account quote and one controlled paid transformation to verify native Video Edit acceptance and quality.
-3. Authorize production release only after tests and costs are acceptable; follow `lab/RELEASE-PROTOCOL.md`.
-
-## Approved visual application — 2026-11-06
-- Owner approved generated Transform mockup with Create / Extend / Transform, compact source video, character image strip, saved Character chooser, Original/Result compare and editorial Scene details.
-- Owner explicitly locked the current Video Studio deck geometry, original central photograph and existing Video History layout and behavior.
-- Visual implementation limited to Transform-specific left controls and an inspector draft section; no second workflow strip below preview (would displace History); no invented generation or fake result.
-- Corrected saved Character library allowlist to include Transform, fixing the blocked attachment reported by the synthetic browser test.
-- No modifications to video-history-cards.css, center stage dimensions, source image, History renderer, Create or Extend mode layouts.
-
-- Test hardening: wait until all eight saved Character photographs finish preparation before asserting the inspector count; preserve existing Character remove test with a focused DOM fixture; update the verified Character allowlist contract to include Transform.
-
-- Verified public Higgsfield API reference for `bytedance/seedance-2.5/video-edit`: required prompt/video_url, optional image_urls/resolution/output_format/generate_audio; source/output time is billable.
-- Separate retail release flag `LAB_CUSTOMER_VIDEO_TRANSFORM_ENABLED=true` now required on both quote and submit, alongside existing Higgsfield customer approval. Default is disabled; owner testing remains possible without allowing customer charges.
-- Target subject in a multi-person source video is now governed by the explicit user prompt, rather than an unconditional main-person substitution.
+## Remaining verification
+- Read-only inspect the `pvlab.studio` served HTML/CSS and signed-in owner desktop/iPhone once possible.
+- Before retail rollout, verify a controlled owner-approved real Higgsfield estimate/edit, source and result quality, credit debit/reconciliation and provider refusal path.
+- Do not enable the retail Transform flag merely because the design is published.
