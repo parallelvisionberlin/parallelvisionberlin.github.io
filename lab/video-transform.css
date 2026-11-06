@@ -354,8 +354,8 @@ html body #app.video-studio-active.video-transform-active #duration-control #pv-
   }
   html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.video-transform-active
   .workspace.video-layout>.controls>.controls-body{
-    gap:7px!important;
-    padding-bottom:10px!important;
+    gap:5px!important;
+    padding-bottom:6px!important;
   }
 }
 @media(min-width:821px) and (max-height:820px){

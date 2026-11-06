@@ -150,7 +150,7 @@ test('Video Transform has its own entry and keeps the existing source-only film 
     'video-transform-original','video-transform-result']){
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id+' exists only once');
   }
-  assert.match(html,/video-transform\.css\?v=20261106-compact-fit1/);
+  assert.match(html,/video-transform\.css\?v=20261106-viewport-fit2/);
   assert.match(css,/video-transform-active[\s\S]*?#pv-video-prompt-box textarea#prompt/);
   assert.match(css,/flex:0 0 auto!important/);
   assert.match(css,/min-height:78px!important/);

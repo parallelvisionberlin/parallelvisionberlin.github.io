@@ -67,3 +67,8 @@ Updated: 2026-11-06 (Berlin)
 - Root cause: desktop `video-composer-single-scroll.css` forces the common Video prompt to 118–185px and keeps a reserved, independent Generate footer. With Transform's approved 92px source dropzone and 74px reference buttons, this pushed Output settings below the default visible controls area.
 - Scoped fix in `video-transform.css` only: empty Transform prompt uses compact 78–98px height and its wrapper stops claiming extra flex height, with normal Generate footer unmodified. Longer content remains scrollable; populated 8-photo Characters and short viewports may still require legitimate scrolling.
 - Desktop browser regression now checks 1440 × 850: full native Output settings visible above Generate and no default nested scroll. Mobile, Create, Extend, History, model/resolution options and billing remain unchanged.
+
+## 2026-11-06 — 1919px desktop measured regression
+- A diagnostic browser test at 1919×820 showed the empty Transform editor 9px taller than its desktop scrollport (679px content vs 670px visible). The earlier 1440px check measured the wrong hidden parameter-grid instance.
+- Transform-only fix reduces control gap from 7px to 5px and bottom padding from 10px to 6px while preserving the approved dropzone dimensions, native Video controls and Generate footer. The regression now tests the real Output settings/resolution field at 1919×820, while allowing scroll in genuinely short 760px viewports.
+- Rebased on the latest main to avoid overwriting concurrent Image/Studio updates. No provider, History, Generate, Create/Extend or pricing modifications.
