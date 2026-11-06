@@ -10,7 +10,9 @@
 - Make another retains the original source and requires explicit Generate. Source removal is visibly labelled Remove photo to distinguish it from the window close control.
 - Backend, provider, prices, credits, checkout, curated photos, prompts and existing insufficient-credit offer are untouched.
 - Files: explore-moods-photobooth.css, explore-moods-nav.css, explore-moods.js, moods.html; existing Explore browser/unit tests and CI.
-- Local: JavaScript syntax, whitespace, approved Image contract and Mood handoff checks pass. Sparse checkout omits Dream Blur assets; existing inline-return static assertions also predate approved navigation/upload sizes.
+- Local: all 16 approved Image, Mood handoff and Mood reference checks pass, plus syntax/whitespace. Existing inline-return navigation/upload-size static assertions predate the approved UI.
+- First browser CI caught mobile-only CSS exclusions and the global hidden display rule; corrected shared phone framing, price-line reservation and explicit hidden-slot overrides. No failing assertion was weakened.
+- Independent browser fixture: desktop remains 1000 by 840.328px through generation/result/repeat/removal. Phone remains 350 by 593.641px at 390 by 844; source is retained for Make another. Full CI and small-screen screenshots pending.
 - Added browser checks: frame position/width/height across preparation, completion, Make another and removal at desktop/phone/small widths; virtual 45-second wait note without moving copy/frame; one explicit job only.
 - Publication and browser QA pending. No paid generation or real-account mutation.
 - Next: run focused CI, inspect resulting desktop/phone screenshots, merge reviewed source and verify exact Cloudflare/custom-domain assets.
