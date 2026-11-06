@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T21:39:00Z",
+  "updatedAt": "2026-11-06T21:45:21Z",
   "handoffs": [
     {
       "id": "owner",
@@ -69,7 +69,7 @@
       "title": "Group partner dashboards",
       "component": "Owner navigation",
       "status": "deployed",
-      "summary": "Robin / K\u00f6nig Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
+      "summary": "Robin / König Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
       "nextAction": "No additional menu work is pending. Recheck only if navigation code, routes or role behavior change.",
       "baselineSha": "e400ff36ca7e6d541dfeb8d8748fc0357a0b6730",
       "reviewedSha": "9fc17771dd75bd3eeb4cd5bbdc77812945f98e1c",
@@ -216,7 +216,7 @@
       "component": "Owner workspace",
       "status": "deployed",
       "summary": "Published: clear View activity access to existing generated-content review, restored manual Customers Refresh and improved Recent purchases spacing. Approved simplified navigation and existing functions retained.",
-      "nextAction": "Use Customers \u2192 View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
+      "nextAction": "Use Customers → View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
       "baselineSha": "e2cd02bce742b157d12308b76908cbacea34b604",
       "reviewedSha": "01362b3073f7d997d98d7ebd2830ad586d244d77",
       "branch": "fix/owner-activity-access-20261106",
@@ -707,7 +707,7 @@
         },
         {
           "kind": "production_asset",
-          "summary": "Actual public Chrome Couture selection at 1363\u00d7936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
+          "summary": "Actual public Chrome Couture selection at 1363×936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
           "scope": "Rendered public production layout after reload; no Generate click.",
           "source": "https://pvlab.studio/studio?tool=image",
           "observedAt": "2026-11-06T20:55:35.186Z",
@@ -783,6 +783,77 @@
         "Do not spend credits to test this presentation change."
       ],
       "updatedAt": "2026-11-06T21:39:00Z"
+    },
+    {
+      "id": "mood-atlas-stable-flow",
+      "title": "Stable Mood Atlas window",
+      "component": "Mood Atlas photobooth",
+      "status": "needs_verification",
+      "summary": "One photographic frame across source upload, generation, result, Make another and Remove photo. Delayed wait guidance reserves its space. Browser/release checks pending.",
+      "nextAction": "Complete required Image check, merge and verify Cloudflare/custom-domain publication. Main integration preserves its independent Soul changes.",
+      "baselineSha": "519d9fad57af01fcf836203d24f54e150a3d9455",
+      "reviewedSha": "6e6d4061ccfeb8c02a9ae750cf29e9744e9e1a70",
+      "branch": "fix/mood-atlas-stable-flow-20261106",
+      "files": [
+        "lab/explore-moods-photobooth.css",
+        "lab/explore-moods-nav.css",
+        "lab/explore-moods.js",
+        "lab/moods.html",
+        "tests/lab-explore-generation.mjs",
+        "lab/MOODS-FLOW-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Scoped checkpoint",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/MOODS-FLOW-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI and handoff",
+          "result": "passed",
+          "scope": "16 approved Image, Mood handoff and Mood reference tests pass; syntax, whitespace and work-record checks pass."
+        },
+        {
+          "label": "Stable frame, native mobile and discovery browser CI",
+          "result": "passed",
+          "scope": "22 Explore scenarios plus native/discovery at 320/390/768px PASS on 6e6d406. All Mood application/test files remain byte-identical after preserving the separate Video release; no repeated provider call.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42298450805"
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "sourceSha": null,
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "No paid generation or real signed-in session was performed."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Upload used photobooth shell while result fell back to older geometry; hidden wait note changed loader copy height.",
+          "scope": "Source audit and owner supplied screenshots.",
+          "source": "lab/MOODS-FLOW-WORK-STATE.md",
+          "limitations": []
+        },
+        {
+          "kind": "fixture",
+          "summary": "Desktop measured 1000x840.328px throughout generation/result/repeat/removal. Phone measured 350x593.641px before/during generation at 390x844.",
+          "scope": "Independent browser using synthetic account/local APIs and existing public test photographs.",
+          "source": "lab/MOODS-FLOW-WORK-STATE.md",
+          "limitations": [
+            "Not real signed-in production or generated quality.",
+            "Full browser CI and small-screen checks pending."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "No paid generation is required for this layout fix.",
+        "Preserve existing pricing, providers, photo assets, quote/submit and approved credit offers."
+      ],
+      "updatedAt": "2026-11-06T21:45:21Z"
     }
   ]
 }
