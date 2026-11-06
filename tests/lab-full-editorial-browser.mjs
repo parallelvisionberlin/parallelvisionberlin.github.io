@@ -101,7 +101,7 @@ try{
    });
    assert.equal(layout.heroBelowHeader,true,'Sticky header does not cover hero controls');
    assert.ok(layout.topGap<=13,'Hero begins immediately below the header');
-   assert.ok(layout.heroHeight>=205&&layout.heroHeight<=235,'Short desktop displays hero and full Composition');
+   assert.ok(layout.heroHeight>=248&&layout.heroHeight<=286,'Identity uses approved large photographic hero');
    for(const key of ['railHidden','backInside','cardsVisible'])assert.equal(layout[key],true,key);
    const emptyBounds=await page.evaluate(()=>{
     const r=selector=>document.querySelector(selector).getBoundingClientRect();
@@ -110,16 +110,21 @@ try{
      buttonBackground:getComputedStyle(document.getElementById('step-next')).backgroundColor};
    });
    assert.ok(emptyBounds.footerBottom<=emptyBounds.viewportHeight-8,'Empty Identity action and cast all fit on the initial desktop screen: '+JSON.stringify(emptyBounds));
-   assert.ok(emptyBounds.cardHeight>=245&&emptyBounds.cardHeight<=272,'Casting images retain editorial proportions');
+   assert.ok(emptyBounds.cardHeight>=258&&emptyBounds.cardHeight<=295,'Casting references use the approved full-height portraits');
    const textClearance=await page.evaluate(()=>{
     const box=selector=>document.querySelector(selector).getBoundingClientRect();
     const button=document.getElementById('step-next');
-    return {backBottom:box('#editorial-top-back').bottom,kickerTop:box('#panel-model .stage-index').top,
+    return {backBottom:box('#editorial-top-back').bottom,backLeft:box('#editorial-top-back').left,
+     kickerTop:box('#panel-model .stage-index').top,heroTop:box('#panel-model .stage-visual').top,
+     copyLeft:box('#panel-model .stage-copy').left,copyRight:box('#panel-model .stage-copy').right,
      subtitleBottom:box('#panel-model .stage-copy p').bottom,heroBottom:box('#panel-model .stage-visual').bottom,
      buttonRadius:getComputedStyle(button).borderRadius,
      disabledBackground:getComputedStyle(button).backgroundColor};
    });
-   assert.ok(textClearance.kickerTop>=textClearance.backBottom+4,'Stage kicker must clear Back: '+JSON.stringify(textClearance));
+   assert.ok(textClearance.kickerTop>=textClearance.backBottom+4||
+    textClearance.copyRight<textClearance.backLeft-16,
+    'Stage text must not collide with Back: '+JSON.stringify(textClearance));
+   assert.ok(textClearance.kickerTop>=textClearance.heroTop-2,'Stage kicker remains inside photographic hero');
    assert.ok(textClearance.subtitleBottom<=textClearance.heroBottom-15,'Subtitle clears the hero edge: '+JSON.stringify(textClearance));
    assert.equal(textClearance.buttonRadius,'0px','Continue has square corners');
    assert.notEqual(textClearance.disabledBackground,'rgb(244, 241, 234)','Disabled Continue is dark');
@@ -465,6 +470,46 @@ try{
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2);
   assert.equal(overflow,false,'Full Editorial has no horizontal overflow at '+width);
   assert.deepEqual(errors,[],'No browser errors at '+width);
+  await page.close();
+ }
+ // Full-width desktop reference: five original portraits are completely visible,
+ // without sacrificing genuine arrow/keyboard scrolling on narrower screens.
+ {
+  const page=await browser.newPage({viewport:{width:1680,height:900}});
+  await page.goto('http://127.0.0.1:4179/lab/full-editorial.html?start=1',{waitUntil:'domcontentloaded'});
+  await page.locator('#casting-reference-gallery .atelier-reference img').first().evaluate(img=>img.decode());
+  const geometry=await page.evaluate(()=>{
+   const get=s=>document.querySelector(s).getBoundingClientRect();
+   const panel=get('.flow-main'),track=get('#editorial-cast-track'),
+    cards=Array.from(document.querySelectorAll('#editorial-cast-track .atelier-reference')).map(el=>el.getBoundingClientRect());
+   return {width:innerWidth,mainWidth:panel.width,heroHeight:get('#panel-model .stage-visual').height,
+    trackWidth:track.width,firstLeft:cards[0].left,lastRight:cards.at(-1).right,trackRight:track.right,
+    fullWidth:document.getElementById('editorial-cast-track').scrollWidth,
+    compositionBottom:get('#editorial-composition-choices').bottom};
+  });
+  assert.ok(geometry.mainWidth>1500,'Desktop casting frame extends to reference margins: '+JSON.stringify(geometry));
+  assert.equal(geometry.width,1680);
+  assert.ok(geometry.heroHeight>=248,'Wide desktop keeps portrait film hero');
+  const heroCopy=await page.evaluate(()=>{
+   const hero=document.querySelector('#panel-model .stage-visual').getBoundingClientRect();
+   const text=document.querySelector('#panel-model .stage-copy').getBoundingClientRect();
+   const back=document.querySelector('#editorial-top-back').getBoundingClientRect();
+   return {left:Math.round(text.left-hero.left),top:Math.round(text.top-hero.top),separated:text.right+16<back.left};
+  });
+  assert.ok(Math.abs(heroCopy.left)<=3,'Identity title is left-aligned with the hero: '+JSON.stringify(heroCopy));
+  assert.ok(heroCopy.top>=0&&heroCopy.top<=45,'Hero intro begins high like the approved reference: '+JSON.stringify(heroCopy));
+  assert.equal(heroCopy.separated,true,'Back control stays clear of the hero title');
+  assert.ok(geometry.lastRight<=geometry.trackRight+2,'All five casting photos visible without clipping: '+JSON.stringify(geometry));
+  assert.ok(geometry.firstLeft<geometry.lastRight,'Original portraits in natural order');
+  await page.locator('#casting-reference-gallery .atelier-reference').first().click();
+  await page.locator('#casting-reference-gallery .atelier-reference').nth(2).click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
+  await page.waitForFunction(()=>{
+   const button=document.getElementById('step-next');
+   return !button.disabled&&getComputedStyle(button).backgroundColor==='rgb(244, 241, 234)'&&Number(getComputedStyle(button).opacity)>=.98;
+  },null,{timeout:5000});
+  assert.equal(await page.locator('#editorial-casting-controls').getAttribute('data-cast-state'),'group');
+  await page.screenshot({path:'test-results/editorial/1680-reference-two-models.png'});
   await page.close();
  }
  // Guest mobile header keeps Sign in visible and billing/account reachable in the menu.
