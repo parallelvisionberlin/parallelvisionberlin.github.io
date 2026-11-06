@@ -1,10 +1,16 @@
 ## Collapsed Partners navigation, 2026-11-06
-- User approved one Partners disclosure for Robin / König Media, Vitolas Studio and Bellini Studios, closed by default. Agency remains separate; Settings and Back to site stay at the foot.
-- Baseline main e400ff36ca7e6d541dfeb8d8748fc0357a0b6730. This change is limited to desktop sidebar grouping and scoped styles; existing mobile section links stay available.
-- Native details/summary supplies pointer and keyboard expansion without new JavaScript or dependencies. Original hrefs and data-owner-* markers preserved; existing authorization still reveals/hides each link. Empty group hidden automatically.
-- Changes: owner.html, owner.css, existing seven-width Owner browser test and this checkpoint. Only CSS cache marker changes to 20261106-owner-partners1; Owner JS unchanged.
-- Agency, business sections, metrics, customer review, providers, billing, credits, account data, models and generation functions unchanged.
-- Validation/publication pending. Run approved Image contract and scoped Owner CI, inspect collapsed/expanded fixture, verify Cloudflare Pages and exact custom-domain CSS before reporting live.
+- Implemented and merged in PR #861. Reviewed head 9fc17771dd75bd3eeb4cd5bbdc77812945f98e1c; merge 2434dd2c766b89189dc11fbdbb61fd11aa236d10. Exact source tree 767e41dc052e3f3311a079d3716ba4961f5c3636.
+- Robin / König Media, Vitolas Studio and Bellini Studios now belong to one native Partners disclosure, closed by default, in the desktop utility navigation. Agency stays separate; Settings and Back to site stay at the foot.
+- All original hrefs and data-owner-* authorization markers preserved. Existing JS reveals/hides links; CSS automatically hides an empty group. No new JavaScript, dependency or API request. Existing mobile navigation is unchanged.
+- Changed: owner.html, owner.css, the existing Owner browser regression and this checkpoint. CSS marker 20261106-owner-partners1; Owner JS unchanged.
+- Five approved Image contracts, static validation, Promotions/security and Owner CI pass. Owner suite retains its 15 auth/provider/private-QA tests and seven-width browser checks; new assertions cover default closed state, keyboard open/close, exact routes and owner-link hiding.
+- Cloud-browser fixture independently verified native keyboard expansion/collapse and all three partner routes at desktop width. No signed-in production partner action was run.
+- PRODUCTION PENDING: normal Cloudflare Pages build/check 127849220051 for the exact merge remains in_progress. Repeated scoped release verification returns CLOUDFLARE_PENDING.
+- Direct read-only observation at 11:54:59 CET: /owner HTTP 200 still lacks the Partners group/cache version; /owner.css returns the previous workspace CSS hash e2e1dd8320905961b8120a56b358b33479630ea09fd648234ad9d5dab1e8902c. Do not report this change live from source merge or GitHub Pages alone.
+- Cloudflare build details require login in this browser. No authentication was started while the normal build is pending; no duplicate deployment, token/settings change or manual API retry.
+- Status-only checkpoint uses Cloudflare's documented [CF-Pages-Skip] prefix to avoid enqueueing another frontend deployment; application code and its completed checks are unchanged.
+- No billing, credits, customer data, model, generation, campaign or Worker change. Next: continue the existing Cloudflare build; verify /owner version, exact CSS bytes and Partners DOM before closing publication.
+
 
 ## One Owner workspace / consolidation, 2026-11-06
 - Status: published and production asset bytes verified. Canonical operational entry: https://pvlab.studio/owner.
