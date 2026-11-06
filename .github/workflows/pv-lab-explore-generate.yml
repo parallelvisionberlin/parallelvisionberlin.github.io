@@ -48,9 +48,13 @@ jobs:
         run: |
           npm install --prefix /tmp/pv-mood-generate --no-save playwright@1.62.1
           test -x /opt/google/chrome/chrome
+          cat > /tmp/pv-mood-generate/chromium.mjs <<'JS'
+          import {chromium as engine} from './node_modules/playwright/index.mjs';
+          export const chromium={executablePath:()=>process.env.PV_CHROMIUM_EXECUTABLE,launch:options=>engine.launch({...options,executablePath:process.env.PV_CHROMIUM_EXECUTABLE})};
+          JS
       - name: Check desktop, mobile, sign-in, pricing and single submission
         env:
-          PV_PLAYWRIGHT_MODULE: /tmp/pv-mood-generate/node_modules/playwright/index.mjs
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-mood-generate/chromium.mjs
           PV_CHROMIUM_EXECUTABLE: /opt/google/chrome/chrome
         run: |
           node tests/lab-explore-generation.mjs

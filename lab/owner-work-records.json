@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T22:28:00Z",
+  "updatedAt": "2026-11-06T21:22:10Z",
   "handoffs": [
     {
       "id": "owner",
@@ -719,7 +719,7 @@
         {
           "label": "Approved Image UI and handoff",
           "result": "passed",
-          "scope": "Existing 5 approved Image checks and 3 Mood handoff checks; JavaScript syntax and whitespace pass."
+          "scope": "16 approved Image, Mood handoff and Mood reference tests pass; syntax, whitespace and work-record checks pass."
         },
         {
           "label": "Stable frame browser",
@@ -742,6 +742,16 @@
           "scope": "Source audit and owner supplied screenshots.",
           "source": "lab/MOODS-FLOW-WORK-STATE.md",
           "limitations": []
+        },
+        {
+          "kind": "fixture",
+          "summary": "Desktop measured 1000x840.328px throughout generation/result/repeat/removal. Phone measured 350x593.641px before/during generation at 390x844.",
+          "scope": "Independent browser using synthetic account/local APIs and existing public test photographs.",
+          "source": "lab/MOODS-FLOW-WORK-STATE.md",
+          "limitations": [
+            "Not real signed-in production or generated quality.",
+            "Full browser CI and small-screen checks pending."
+          ]
         }
       ],
       "blockers": [],
@@ -749,7 +759,7 @@
         "No paid generation is required for this layout fix.",
         "Preserve existing pricing, providers, photo assets, quote/submit and approved credit offers."
       ],
-      "updatedAt": "2026-11-06T22:28:00Z"
+      "updatedAt": "2026-11-06T21:22:10Z"
     }
   ]
 }
