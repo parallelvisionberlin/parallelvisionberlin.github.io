@@ -1,3 +1,4 @@
+import {prepareSoulNightFlash} from './night-flash-soul.js?v=20261106v1';
 import {EIGHTIES_TAPE_RECIPE} from './80s-film-recipe.js?v=20261024v3';
 import {prepareDreamBlurBasePrompt} from './dream-blur-base.js?v=20261024v1&dreamBlurExposure=20261102v2';
 import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10&hkCinema=20261025v1';
@@ -336,6 +337,11 @@ export function imageHistoryCaption(settings={}){
 export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',filmFinish=undefined,moodVariant='original'}={}){
   const original=String(input||'').trim(),mood=moodById(id);
   if(!mood)return {prompt:original,metadata:{},error:''};
+  if(engine==='soul2'){
+    if(mood.id!=='night-flash')return {prompt:original,metadata:{},error:'Soul supports Night Flash here. Choose another image model for this Mood.'};
+    if(referenceCount>1||referenceMode==='references')return {prompt:original,metadata:{},error:'Soul Night Flash accepts one base photograph and an optional trained Soul ID.'};
+    return prepareSoulNightFlash(original,amount,{hasBase:referenceCount===1});
+  }
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Krea 3, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
   // Maximum optical reinterpretation is isolated to an actual Base photograph.
@@ -718,8 +724,9 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     summary.title=chosen?.description||chosen?.direction||'';
     selection.hidden=!chosen;
     selectedLabel.hidden=!chosen;
-    const compatible=MOOD_MODELS.includes(getEngine());
-    hint.textContent=compatible?'':'This image model does not support Moods. Try Seedream Pro or Lite, Krea 3, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.';
+    const soulNightFlash=getEngine()==='soul2';
+    const compatible=MOOD_MODELS.includes(getEngine())||(soulNightFlash&&(!selected||selected==='night-flash'));
+    hint.textContent=compatible?'':soulNightFlash?'Soul supports Night Flash here. Choose another image model for this Mood.':'This image model does not support Moods. Try Seedream Pro or Lite, Krea 3, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.';
     hint.hidden=compatible;
     switcher.hidden=compatible;
     switcher.disabled=!chosen;
@@ -843,6 +850,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   }
   function enrich(prompt,options={}){
     if(selected?.startsWith('custom:')){
+      if(options.engine==='soul2')return {prompt:String(prompt||'').trim(),metadata:{},error:'Soul supports the built-in Night Flash Mood here. Choose another image model for saved Moods.'};
       const mood=boardById(selected);
       return mood?preparePersonalMoodPrompt(prompt,mood,intensity,options):{prompt:String(prompt||'').trim(),metadata:{},error:'This saved Mood is not available. Open My Moods and choose another.'};
     }
