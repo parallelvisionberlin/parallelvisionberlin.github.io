@@ -43,6 +43,13 @@ jobs:
           node tests/lab-night-flash-soul-ui.mjs
           node tests/lab-image-replacement-ui.mjs
           node tests/lab-image-replacement-flow-ui.mjs
+      - name: Preserve approved prompt, first image and Studio layout
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-night-flash-soul/chromium.mjs
+        run: |
+          node tests/lab-image-prompt-paste-ui.mjs
+          node tests/lab-first-image-instant-browser.mjs
+          node tests/lab-studio-layout-ui.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

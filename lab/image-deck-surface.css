@@ -231,3 +231,17 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer
   .composer-mood-control #image-composer-moods-clear {
   color:#dcff00!important;
 }
+
+/* Mood/model choices stay outside the floating composer and never submit. */
+#soul-mood-dialog {
+  width:calc(100% - 32px);max-width:420px;padding:28px;border:1px solid #454845;
+  border-radius:18px;background:#1b1d1c;color:#eeefec;box-shadow:0 24px 90px #0009;
+}
+#soul-mood-dialog .eyebrow {font-size:10px;letter-spacing:.1em;color:#a6aaa6}
+#soul-mood-title {margin:12px 0;font-size:24px;line-height:1.15;letter-spacing:-.035em;font-weight:600}
+#soul-mood-description {font-size:13px;line-height:1.5;color:#b6bbb6;margin:0}
+#soul-mood-dialog .soul-mood-actions {display:flex;gap:10px;justify-content:flex-end;margin-top:24px}
+#soul-mood-dialog button {min-height:42px;padding:10px 16px;border-radius:10px;font-size:12px}
+#soul-mood-use {background:#eceee9;color:#191b19;border:1px solid #eceee9}
+#soul-mood-remove {background:transparent;color:#d0d4cf;border:1px solid #494e48}
+@media(max-width:479px){#soul-mood-dialog {padding:24px}#soul-mood-dialog .soul-mood-actions {display:grid;grid-template-columns:1fr 1fr}}
