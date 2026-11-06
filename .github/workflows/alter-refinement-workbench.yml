@@ -11,23 +11,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      RELEASE_SHA: 46054b88b991656eeb19affd7ed7e2bd6c6f8acf
-      REVIEWED_SHA: 1b361a956f4cb04fe4dca376b223ca47bc3a6ce2
-      ALTER_PR: '887'
+      RELEASE_SHA: a2d45d0793343a9575f4d83cbae0f912e37d2387
+      REVIEWED_SHA: 7f7e5e6bfbd0dcedfc23fc524619463c9d0e0ff9
+      ALTER_PR: '889'
+      SCOPED_CI_URL: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42311672012
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 46054b88b991656eeb19affd7ed7e2bd6c6f8acf
+          ref: a2d45d0793343a9575f4d83cbae0f912e37d2387
           fetch-depth: 100
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
       - name: Fetch exact read-only verifier and scoped record writer
         run: |
-          curl --fail --location --silent --show-error 'https://at.adobe.com/iSUOZ51bsH6o7OI1' -o /tmp/alter-verify-live.mjs
-          curl --fail --location --silent --show-error 'https://at.adobe.com/dWHOynZeUx0HtEVz' -o /tmp/alter-record-live.mjs
-          echo '37bd70f8028b8a0473052906c1fd1972d7942cc7eb6b5b32227ff28ce549bc0f  /tmp/alter-verify-live.mjs' | sha256sum --check
-          echo '09f226229d2335f675b8eb0f6557dac81bfed97a67b19e487a0c8abd9572df0e  /tmp/alter-record-live.mjs' | sha256sum --check
+          curl --fail --location --silent --show-error 'https://at.adobe.com/bCbg7jZuThcNAl4G' -o /tmp/alter-verify-live.mjs
+          curl --fail --location --silent --show-error 'https://at.adobe.com/hK63Cold6waa5kh9' -o /tmp/alter-record-live.mjs
+          echo 'a35bc06de5f48a8e5e4037f8ea746f3899017f61a0d273f09b85965b9be77212  /tmp/alter-verify-live.mjs' | sha256sum --check
+          echo '416de20aae7b1db22593593fe5112f10f7032afeeaed925c3eec3e9db58ab216  /tmp/alter-record-live.mjs' | sha256sum --check
       - name: Install pinned Chromium
         timeout-minutes: 3
         run: |
@@ -62,7 +63,7 @@ jobs:
           git add lab/BEAUTY-WORK-STATE.md lab/owner-work-records.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Record verified ALTER refinement publication and unchanged approved background'
+          git commit -m 'Record final ALTER scrolling verification with original background preserved'
           git push origin HEAD:refs/heads/main
       - uses: actions/upload-artifact@v4
         if: always()
