@@ -9,6 +9,8 @@ The Image Studio History eye control visually hides saved generations, pending r
 # Parallel Vision Lab
 Search Console accessibility and indexing: [Search indexing work state](SEARCH-INDEXING-WORK-STATE.md).
 Homepage character creation invitation and Elements deep link: [Character homepage work state](CHARACTER-HOME-WORK-STATE.md).
+
+Image person, object and outfit replacement flow, approved behavior and implementation audit: [Image replacement work state](IMAGE-REPLACEMENT-WORK-STATE.md).
 Phone homepage spacing, hero crop and text-only CTA preference: [Mobile homepage work state](HOME-MOBILE-WORK-STATE.md).
 Homepage image-to-motion second-hero chapter: [Homepage showcase work state](HOME-SHOWCASE-WORK-STATE.md).
 

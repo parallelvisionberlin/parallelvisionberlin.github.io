@@ -5,9 +5,11 @@ import {readFileSync} from 'node:fs';
 const source=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
 const start=source.indexOf('let historyLoadId='),end=source.indexOf('function surfaceHistoryJob',start);
 assert.ok(start>0&&end>start);
+const replacementStart=source.indexOf('function replacementPending('),replacementEnd=source.indexOf('\n}',replacementStart)+2;
+assert.ok(replacementStart>0&&replacementEnd>replacementStart,'History uses the actual pending-replacement predicate');
 const settle=async()=>{for(let i=0;i<8;i++)await Promise.resolve();};
 function fixture(){
-  const requests=[],notices=[],frames=new Map(),observations=[],previewEvents=[];
+  const requests=[],notices=[],frames=new Map(),observations=[],previewEvents=[],finalizeRequests=[],finishedJobs=[];
   // The extracted History code uses the real account-preview publisher. Supply
   // its surrounding account/browser state instead of replacing that function.
   const window={},document=new EventTarget();
@@ -19,12 +21,15 @@ function fixture(){
     observe(element){observations.push(element);}
     disconnect(){observations.length=0;}
   }
-  const rig=new Function('$','api','IntersectionObserver','requestAnimationFrame','cancelAnimationFrame','notify','window','document','CustomEvent',`
+  const rig=new Function('$','api','IntersectionObserver','requestAnimationFrame','cancelAnimationFrame','notify','window','document','CustomEvent','finalizeRequests','finishedJobs',`
     let owner=true,userId='account-a',next=null,historyRevision=0,tool='image',config={};
     const historySelected=new Set(),videoJobCache=new Map(),imageDetailCache=new Map(),cardUrls=new Set(),galleryPreviewQueue=[];
     const observer={disconnect(){}},assetLibrary={heading(){},query(){return new URLSearchParams({kind:tool});},active(){return false;}};
     const release=()=>{},updateHistorySelectionUi=()=>{},renderPendingImageCards=()=>{},setActiveJobs=()=>{},syncImageGalleryEmpty=()=>{},restoreLatestVideoSelection=()=>{};
+    const imageReplacement={finalize:job=>new Promise((resolve,reject)=>finalizeRequests.push({job,resolve,reject}))};
+    const surfaceHistoryJob=job=>finishedJobs.push(job);
     function renderCards(jobs,{upsert}){for(const job of jobs){if(upsert)$('history').children.unshift(job);else $('history').children.push(job);}}
+    ${source.slice(replacementStart,replacementEnd)}
     ${source.slice(start,end)}
     return {loadHistory,syncHistory,loadEarlierHistory,updateHistoryPagination,
       changeKind(value){tool=value;return loadHistory();},
@@ -32,8 +37,8 @@ function fixture(){
       selectAccount(value){owner=true;userId=value;syncImagePreviewAccount();return loadHistory();},
       state:()=>({next,historyLoading,historyAutoLoadPaused})};
   `)(id=>elements[id],url=>new Promise((resolve,reject)=>requests.push({url,resolve,reject})),Observer,
-    fn=>{frames.set(++frame,fn);return frame;},id=>frames.delete(id),message=>notices.push(message),window,document,CustomEvent);
-  return {...rig,elements,requests,notices,observations,previewEvents,window,
+    fn=>{frames.set(++frame,fn);return frame;},id=>frames.delete(id),message=>notices.push(message),window,document,CustomEvent,finalizeRequests,finishedJobs);
+  return {...rig,elements,requests,notices,observations,previewEvents,finalizeRequests,finishedJobs,window,
     near(){callback([{isIntersecting:true,target:elements.more}]);},
     away(){callback([{isIntersecting:false,target:elements.more}]);},
     paint(){const pending=[...frames.values()];frames.clear();pending.forEach(fn=>fn());}};
@@ -142,4 +147,32 @@ test('desktop Video History grid retains normal lazy pagination',async()=>{
   r.requests[1].resolve(page('video-2'));
   await settle();r.paint();
   assert.deepEqual(r.elements.history.children.map(job=>job.id),['video-1','video-2']);
+});
+
+test('History resumes only completed pending replacements and surfaces the finished result',async()=>{
+  const r=fixture(),initial=r.loadHistory();
+  const pending={id:'pending',status:'completed',settings:{type:'image',replacement:{scope:'person'}}};
+  r.requests[0].resolve({jobs:[
+    pending,
+    {id:'done',status:'completed',settings:{type:'image',replacement:{scope:'person'},replacementFinalized:true}},
+    {id:'queued',status:'queued',settings:{type:'image',replacement:{scope:'person'}}}
+  ]});
+  await initial;
+  assert.deepEqual(r.finalizeRequests.map(request=>request.job.id),['pending']);
+  const finished={...pending,settings:{...pending.settings,replacementFinalized:true}};
+  r.finalizeRequests[0].resolve(finished);await settle();
+  assert.deepEqual(r.finishedJobs,[finished]);
+});
+
+test('replacement finishing from an old account cannot repaint the current History',async()=>{
+  const r=fixture(),initial=r.loadHistory();
+  const pending={id:'account-a-pending',status:'completed',settings:{type:'image',replacement:{scope:'person'}}};
+  r.requests[0].resolve({jobs:[pending]});await initial;
+  assert.equal(r.finalizeRequests.length,1);
+  const switched=r.selectAccount('account-b');
+  r.finalizeRequests[0].resolve({...pending,settings:{...pending.settings,replacementFinalized:true}});
+  await settle();
+  assert.deepEqual(r.finishedJobs,[],'account-a finishing must not enter account-b History');
+  r.requests[1].resolve(page('account-b-image'));await switched;
+  assert.deepEqual(r.elements.history.children.map(job=>job.id),['account-b-image']);
 });

@@ -17,6 +17,8 @@ wallet.connect({customer:customerMode,balanceCredits:1000,billingReady:true,prod
 applyConfig({enabled:true,configured:true,geminiEnabled:true,falEnabled:true,higgsfieldEnabled:true,concurrency:{image:4,video:1}});
 $('app').hidden=false;$('gate').hidden=true;setTool('image');await loadHistory();finishLabBoot();update();
 window.__nightFlashRead=()=>({settings:settings(),source:!!file,mood:moodUI.selected()});
+window.__nightFlashGate=value=>applyConfig({soulNightFlashEnabled:value});
+window.__nightFlashReuse=job=>restore(job);
 window.__nightFlashReady=true;
 `;
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.woff2':'font/woff2','.svg':'image/svg+xml'};
@@ -26,12 +28,13 @@ const server=http.createServer((req,res)=>{
   res.setHeader('Content-Type',mime[extname(file)]||'text/plain');res.end(pathname==='/lab/lab.js'?mock:readFileSync(file));
 });
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
-const browser=await chromium.launch({headless:true});mkdirSync('test-results',{recursive:true});
+const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||undefined});mkdirSync('test-results',{recursive:true});
 try{
   for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const role of ['owner','customer']){
     const context=await browser.newContext({viewport,reducedMotion:'reduce'}),page=await context.newPage();
     const errors=[],quotes=new Map(),jobs=new Map(),requests=[];let generated=0,seq=1;
     const id=()=> '30000000-0000-4000-8000-'+String(seq++).padStart(12,'0');
+    const characterId=id(),pendingId=id(),portraitId=id();
     page.on('pageerror',e=>errors.push(e.message));
     await context.route('https://**/*',async route=>{
       const req=route.request(),url=new URL(req.url());
@@ -43,7 +46,8 @@ try{
       if(path==='/api/packs')return send({packs:[]});
       if(path==='/api/moodboards')return send({moodboards:[]});
       if(path==='/api/soul-pro/identity')return send({configured:false,count:0,refs:[]});
-      if(path==='/api/higgsfield/characters')return send({characters:[]});
+      if(path==='/api/higgsfield/characters')return send({characters:[{id:characterId,name:'Fixture identity',state:'completed',portraitAssetId:portraitId},{id:pendingId,name:'Still training',state:'queued',portraitAssetId:portraitId}]});
+      if(path.startsWith('/api/assets/'))return route.fulfill({contentType:'image/jpeg',body:readFileSync('lab/mood-previews/hd/night-flash-20261011.jpg')});
       if(path==='/api/uploads')return send({id:id()},201);
       if(path==='/api/higgsfield/quote'){
         const p=soul2Parameters(data.settings,(status,message)=>{throw new Error(message);},{hasBase:!!data.sourceId});
@@ -74,6 +78,11 @@ try{
       assert.equal(state.settings.moodIntensity,100);assert.equal(state.settings.moodOriginalPrompt,'A woman arriving at a club.');
       assert.match(state.settings.prompt,/subject and setting described by the user/);
       assert.equal(generated,0,'Selecting a Mood never generates');
+      if(role==='customer'){
+        assert.equal(await page.locator('#image-composer-generate').isEnabled(),false,'Night Flash customer gate defaults closed');
+        assert.equal(requests.filter(r=>r.path==='/api/higgsfield/quote'&&r.data.settings?.moodId==='night-flash').length,0,'Closed gate does not request a Mood quote');
+        await page.evaluate(()=>window.__nightFlashGate(true)); // Fixture-only future launch state.
+      }
       await page.locator('#image-composer-moods').click();
       await page.getByRole('button',{name:'Select Dreamcore',exact:true}).click();
       assert.equal(await page.locator('#image-composer-generate').isEnabled(),false,'Unsupported Soul Mood blocks generation');
@@ -86,6 +95,16 @@ try{
       assert.match(state.settings.prompt,/Relight the existing subject/);
       assert.equal(state.settings.moodOriginalPrompt,'Keep the expression.');
       assert.equal(await page.locator('#image-composer-generate').isEnabled(),true);
+      await page.locator('#composer-character').click();
+      assert.equal(await page.locator('#composer-library-cards').getByRole('button',{name:/Still training/}).isEnabled(),false);
+      await page.locator('#composer-library-cards').getByRole('button',{name:/Fixture identity/}).click();
+      await page.locator('#composer-library-close').click();
+      await page.locator('#image-composer-more').click();
+      await page.locator('#hf-strength').press('Home');
+      await page.locator('#hf-strength').press('ArrowRight');
+      await page.locator('#composer-options-close').click();
+      state=await page.evaluate(()=>window.__nightFlashRead());
+      assert.equal(state.settings.characterId,characterId);assert.equal(state.settings.identityStrength,.05);
       const geometry=await page.evaluate(()=>{
         const ids=['image-composer','image-composer-generate','image-composer-prompt'];
         return {width:innerWidth,height:innerHeight,overflow:document.documentElement.scrollWidth>innerWidth+1,boxes:ids.map(id=>({id,...document.getElementById(id).getBoundingClientRect().toJSON()}))};
@@ -99,10 +118,21 @@ try{
       const selectedQuote=[...quotes.values()].at(-1);
       assert.equal(selectedQuote.settings.moodId,'night-flash');assert.ok(selectedQuote.sourceId);
       assert.equal(selectedQuote.settings.moodOriginalPrompt,'Keep the expression.');
+      assert.equal(selectedQuote.settings.characterId,characterId);assert.equal(selectedQuote.settings.identityStrength,.05);
+      assert.match(await page.locator('#quote-price').innerText(),role==='customer'?/7\s*credits/:/\$/);
+      await page.locator('[data-close="quote-dialog"]').click();
+      assert.equal(generated,0,'Cancelling the quote never submits');
+      await page.locator('#image-composer-generate').click();
+      await page.locator('#quote-dialog').waitFor({state:'visible'});
       await page.locator('#confirm-generation').click();
       await page.waitForFunction(()=>!document.getElementById('quote-dialog').open);
       assert.equal(generated,1,'One explicit confirmation submits exactly once');
       assert.equal(requests.filter(r=>r.path==='/api/higgsfield/characters'&&r.method==='POST').length,0,'No training');
+      const job=[...jobs.values()].at(-1);
+      await page.evaluate(job=>window.__nightFlashReuse(job),job);
+      state=await page.evaluate(()=>window.__nightFlashRead());
+      assert.equal(state.settings.characterId,characterId);assert.equal(state.settings.identityStrength,.05);
+      assert.equal(state.settings.moodIntensity,100);assert.equal(state.settings.moodOriginalPrompt,'Keep the expression.');
       assert.deepEqual(errors,[]);
       console.log('PASS Soul Night Flash '+role+' '+viewport.width+'px: selection, text/base, unsupported Mood, geometry, bound quote and explicit submit');
     }finally{await context.close();}

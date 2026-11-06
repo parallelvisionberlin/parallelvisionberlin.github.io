@@ -452,7 +452,7 @@ body.editorial-web #panel-model #editorial-saved-rail .editorial-cast-arrow{z-in
  body.editorial-web .editorial-flow{padding-top:0!important}
  body.editorial-web #panel-model .stage-visual{height:clamp(249px,29svh,293px)!important;border:0!important}
  body.editorial-web #panel-model .stage-visual>img{
-  object-position:54% 31%!important;filter:brightness(.69) contrast(1.04);
+  object-position:54% 24%!important;filter:brightness(.69) contrast(1.04);
  }
  body.editorial-web #panel-model .stage-copy{
   left:clamp(19px,3.6vw,64px)!important;bottom:clamp(40px,7svh,76px)!important;z-index:4;
@@ -529,9 +529,22 @@ body.editorial-web #panel-model #editorial-saved-rail .editorial-cast-arrow{z-in
 }
 
 
-/* Keep the reference rail scrollable even on very wide displays; no clone cards. */
+/* At 1440px and below, the original references scroll with arrows and keyboard.
+   Wider screens show all five photos. No clone cards or invented identities. */
 @media(min-width:801px){
- body.editorial-web #panel-model .editorial-cast-rail{max-width:min(100%,1180px)}
+ body.editorial-web #panel-model .editorial-cast-rail{max-width:none!important;width:100%!important}
+}
+@media(min-width:801px) and (max-width:1550px){
+ body.editorial-web #panel-model .editorial-cast-track .atelier-reference{
+  flex:0 0 clamp(215px,18vw,244px)!important;
+  width:clamp(215px,18vw,244px)!important;
+ }
+}
+@media(min-width:1551px){
+ body.editorial-web #panel-model .editorial-cast-track .atelier-reference{
+  flex:0 0 min(280px,calc((100% - 64px)*.2))!important;
+  width:min(280px,calc((100% - 64px)*.2))!important;
+ }
 }
 @media(max-width:600px){
  body.editorial-web #panel-model{padding-bottom:10px!important}
@@ -604,21 +617,21 @@ body.editorial-web .flow-main > #editorial-casting-controls .editorial-compositi
  }
 }
 
-/* PV LAB Identity: make all three Composition options visible at 1440×900
-   without changing the main desktop/phone design or card aspect ratios. */
+/* Image-2 reference: retain the strong portrait hero and full casting photographs.
+   Natural page scrolling is preferable to squeezing art into a dashboard on low windows. */
 @media(min-width:801px) and (max-height:950px){
- body.editorial-web #panel-model .stage-visual{height:clamp(205px,24.5svh,233px)!important}
- body.editorial-web #panel-model .stage-copy{bottom:clamp(30px,4svh,45px)!important}
+ body.editorial-web #panel-model .stage-visual{height:clamp(248px,31svh,285px)!important}
+ body.editorial-web #panel-model .stage-copy{bottom:clamp(57px,7svh,78px)!important}
  body.editorial-web #panel-model .stage-copy h2{
-  font-size:clamp(66px,6vw,88px)!important;margin:5px 0 7px!important
+  font-size:clamp(80px,6.8vw,108px)!important;margin:6px 0 10px!important
  }
  body.editorial-web #panel-model .editorial-cast-pinned,
- body.editorial-web #panel-model .editorial-cast-rail{height:clamp(246px,30svh,270px)!important}
+ body.editorial-web #panel-model .editorial-cast-rail{height:clamp(258px,31svh,294px)!important}
  body.editorial-web .flow-main:has(#panel-model:not([hidden])) #step-footer{
-  min-height:58px!important;margin:10px 0 0!important;padding:6px 0 7px!important
+  min-height:62px!important;margin:8px 0 0!important;padding:7px 0 9px!important
  }
  body.editorial-web .flow-main > #editorial-casting-controls:not([hidden]){
-  min-height:0!important;margin:11px 0 0!important;padding:14px 0 6px!important;gap:19px!important
+  min-height:0!important;margin:8px 0 0!important;padding:11px 0 6px!important;gap:20px!important
  }
 }
 @media(min-width:801px) and (max-height:760px){
@@ -627,5 +640,35 @@ body.editorial-web .flow-main > #editorial-casting-controls .editorial-compositi
  body.editorial-web #panel-model .editorial-cast-rail{height:clamp(192px,32svh,238px)!important}
  body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-option{
   height:110px!important;min-height:110px!important
+ }
+}
+
+/* The approved reference anchors Identity to the left edge of the hero,
+   with both navigation actions unobtrusively accessible on the upper right. */
+@media(min-width:1200px) and (min-height:780px){
+ body.editorial-web #panel-model .stage-copy{
+  left:0!important;
+  bottom:clamp(101px,13svh,126px)!important;
+ }
+ body.editorial-web #panel-model .stage-visual>.stage-navigation .progress-top{
+  left:auto!important;right:20px!important;top:10px!important;
+  display:flex!important;align-items:center;justify-content:flex-end;
+  width:auto!important;gap:26px!important;
+ }
+ body.editorial-web #panel-model .stage-visual>.stage-navigation .step-track{display:none!important}
+}
+
+/* Wider desktop frame matching the approved 16:9 reference. Identity only. */
+@media(min-width:1200px){
+ body.editorial-web .editorial-flow:has(#panel-model:not([hidden])){
+  padding-left:clamp(32px,3.5vw,66px)!important;
+  padding-right:clamp(32px,3.5vw,66px)!important;
+ }
+ body.editorial-web .flow-main:has(#panel-model:not([hidden])){
+  max-width:1760px!important;width:100%!important;
+ }
+ body.editorial-web #panel-model #casting-reference-gallery.editorial-casting-carousel{
+  grid-template-columns:clamp(200px,14.5vw,240px) minmax(0,1fr)!important;
+  gap:14px!important;
  }
 }

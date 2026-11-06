@@ -114,6 +114,10 @@ export async function refreshHiggsfield(env,j,p,d){
 }
 export async function higgsfieldRoute(request,env,owner,url,d){
   const {fail,body,rows,first,source,sources,signedInput,jobView}=d,path=url.pathname;
+  async function checkNightFlashAccess(p){
+    if(p.moodId==='night-flash'&&env.LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED!=='true'&&d.isLabCustomer&&await d.isLabCustomer(env,owner))
+      fail(403,'Night Flash with PV Soul is awaiting provider validation. No request submitted or credits charged.');
+  }
   if(path==='/api/higgsfield/characters'&&request.method==='GET'){
     const list=await rows(env,"SELECT * FROM jobs WHERE owner_id=? AND json_extract(params,'$.provider')='higgsfield' AND json_extract(params,'$.mode')=? ORDER BY created_at DESC",owner,TRAIN);
     for(const j of list.filter(j=>['queued','running'].includes(j.state)).slice(0,3))await refreshHiggsfield(env,j,JSON.parse(j.params),d);
@@ -135,6 +139,7 @@ export async function higgsfieldRoute(request,env,owner,url,d){
   // A Soul 2 price check is read-only with respect to generation and spending.
   if(path==='/api/higgsfield/quote'&&request.method==='POST'){
     const data=await body(request),p=soul2Parameters(data.settings,fail,{hasBase:!!data.sourceId});
+    await checkNightFlashAccess(p);
     if(data.referenceSourceIds?.length)fail(400,'PV Soul accepts one base image plus a trained Soul ID, not multiple identity photos. Use Seedream for multi-reference editing.');
     const character=p.characterId?await first(env,"SELECT * FROM jobs WHERE id=? AND owner_id=? AND state='completed' AND json_extract(params,'$.provider')='higgsfield' AND json_extract(params,'$.mode')=?",p.characterId,owner,TRAIN):null;
     if(p.characterId&&!character?.provider_id)fail(409,'Choose a completed Soul 2 identity created in this Lab.');
@@ -178,6 +183,7 @@ export async function higgsfieldRoute(request,env,owner,url,d){
     if(!quote||quote.vendor_quote_id!=='higgsfield-soul2-quote-v1')fail(409,'Review a new Higgsfield price. No generation submitted.');
     if(quote.expires_at<=d.now())fail(409,'Higgsfield price review expired. No generation submitted; review again.');
     const p=JSON.parse(quote.params),payload=JSON.parse(quote.payload||'{}');
+    await checkNightFlashAccess(p);
     if(p.provider!=='higgsfield'||p.soulProModel!=='soul2'||payload.model!==p.model||!payload.input||quote.estimate_microusd<=0||quote.estimate_microusd>SOUL2_MAX_QUOTE_MICROS)fail(409,'Invalid Higgsfield quote; review the price again.');
     if(quote.source_id)await source(env,owner,quote.source_id);
     let j;

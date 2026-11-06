@@ -127,6 +127,23 @@ function elementReferenceInstructions(labels,compact=false){
   return [...(continuity?[continuity]:[]),
     ...labels.map((ref,index)=>compact?compactReferenceInstruction(ref,index):referenceInstruction(ref,index))];
 }
+export function replacementReferenceGuidance(settings={}){
+  const replacement=settings.replacement;
+  if(!replacement)return '';
+  const sources=settings.referenceSourceIds||[],destinations=replacement.referenceSourceIds||[];
+  const numbers=sources.map((id,index)=>destinations.includes(id)?index+1:null).filter(Boolean);
+  const refs=numbers.length?'References '+numbers.join(', '):'the designated replacement references';
+  const scopes={
+    face:'Use '+refs+' for facial identity only. Retain the Base hair, build, pose and clothing unless the written request explicitly changes them.',
+    person:'Use '+refs+' for the selected person’s face, hair and build supported by full-body reference views. Face-only views do not establish a new physique. Retain the Base build when unsupported, and keep its pose and outfit unless explicitly changed.',
+    garment:'Transfer only the selected garment from '+refs+' and fit it to the Base person’s existing build and pose. Preserve facial identity, hair, skin, hands and other clothing unless explicitly changed.',
+    outfit:'Transfer the requested outfit from '+refs+' and fit the clothing to the Base person’s existing build and pose. Preserve their facial identity, hair, skin and hands unless explicitly changed.',
+    object:'Transfer the selected object’s design, shape and materials from '+refs+'. Match the Base perspective, scale and lighting. Preserve the people, hands and other objects unless explicitly changed.'
+  };
+  const guidance=scopes[replacement.scope];
+  if(!guidance)return '';
+  return 'REVIEWED REPLACEMENT: '+guidance+' The written request and this scope determine which saved properties apply. Saved full-appearance defaults do not request additional changes. Preserve the Base framing, camera and other subjects unless explicitly changed.';
+}
 export function compileImagePrompt(direction,labels=[],settings={}){
   // Keep authored Mood and user direction intact. Base edits use the established
   // concise role map. Text-only Dream Blur also needs that map for its four
@@ -144,7 +161,9 @@ export function compileImagePrompt(direction,labels=[],settings={}){
   // Multi-photo Characters retain every saved note within the provider budget.
   const compact=roles.filter(ref=>ref.elementCategory==='characters').length>=3||Boolean(settings?.moodId&&
     (hongKongReferenceCount(settings)||(settings.referenceMode!=='references'&&roles.some(ref=>ref.role==='base'))||curatedDreamBlurStyles||curatedFisheyeStyles));
-  const original=compact?compileCompactUserImagePrompt(direction,labels):compileUserImagePrompt(direction,labels);
+  const authored=compact?compileCompactUserImagePrompt(direction,labels):compileUserImagePrompt(direction,labels);
+  const replacement=replacementReferenceGuidance(settings);
+  const original=[authored,replacement].filter(Boolean).join('\n\n');
   let hkGuidance=hongKongReferenceCount(settings)?hongKongReferenceGuidance(labels.length,settings.engine==='seedreamlite'):'';
   const quality=imageQualityGuidance(direction,labels,settings,original.length+hkGuidance.length);
   const prompt=quality?[original,quality].filter(Boolean).join('\n\n'):original;

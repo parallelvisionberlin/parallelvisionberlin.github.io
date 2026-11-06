@@ -30,6 +30,7 @@ import {recordLabTraffic,pruneLabTraffic} from './traffic.mjs';
 import {pruneGenerationReviewAudit} from './generation-review.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
 import {precisionEditRoute} from './precision-edit.mjs';
+import {normalizeImageReplacement,validateImageReplacement,imageReplacementRoute,replacementUploadContext,storeReplacementUpload} from './image-replacement.mjs';
 import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput} from './image-models.mjs';
 import {KREA3_EDIT,KREA3_TEXT,krea3Parameters,krea3EstimateMicros,krea3Input} from './krea3.mjs';
 import {FLASH_TEXT,FLASH_EDIT,seedreamFlashParameters,seedreamFlashInput} from './seedream-flash.mjs';
@@ -209,7 +210,7 @@ async function config(env,owner) {
   }
   return first(env,'SELECT * FROM settings WHERE owner_id=?',owner);
 }
-function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:c?.customer_no_daily_cap?null:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance','seedance15','seedance4k',...(falEnabled?['h3maxfal','omni']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
+function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,imageReplacementEnabled:true,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:c?.customer_no_daily_cap?null:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance','seedance15','seedance4k',...(falEnabled?['h3maxfal','omni']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
 async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET') {
   let r;
   try {
@@ -362,6 +363,8 @@ function parameters(value){
   const hkError=hongKongReferenceError(p,p.referenceRoles?.length||0);if(hkError)fail(400,hkError);
   // Exact Prompt skips optional quality guidance but retains all reference instructions.
   if(p?.type==='image'&&supportsReferenceGuidance(p)&&value?.exactPrompt===true)p.exactPrompt=true;
+  const replacement=normalizeImageReplacement(value?.replacement,p,fail);
+  if(replacement){p.replacement=replacement;p.replacementFinalized=false;}
   return p;
 }
 function builtInMoodReferences(p){
@@ -392,6 +395,7 @@ function assembledPrompt(p) {
   return prompt;
 }
 async function prepareInput(env,owner,data,p,url) {
+  await validateImageReplacement(env,owner,data,p,{fail,source,falImageBytes,storedImageDimensions});
   if(p.engine==='seedance'&&p.mode==='extend')return prepareVideoExtension(env,owner,data,p,{fail,source,sources});
   if(p.engine==='seedance'&&p.mode==='transform'){const {original}=await prepareCharacterTransform(env,owner,data,p,{fail,source,sources});return {primary:original,input:{}};}
   if(p.engine==='kling'){if(url)fail(400,'Use the Kling image generation route.');const ids=data.referenceSourceIds||[],refs=ids.length?await sources(env,owner,ids,1):[];p.referenceSourceIds=refs.map(a=>a.id);return {primary:refs[0]||null,input:{}};}
@@ -571,8 +575,18 @@ async function sources(env,owner,ids,max=10) {
   if(!out.length)fail(400,'Add at least one reference image.');return out;
 }
 function linkedSourceIds(row) {
-  const ids=new Set();if(row?.source_id&&UUID.test(row.source_id))ids.add(row.source_id);
-  try{const p=JSON.parse(row?.params||'{}');for(const key of ['lastSourceId','maskSourceId','repairSourceId','poseMapSourceId','filmOriginalId'])if(UUID.test(p[key]||''))ids.add(p[key]);for(const key of ['referenceSourceIds','transferSourceIds','referenceVideoIds','referenceAudioIds'])if(Array.isArray(p[key]))for(const id of p[key])if(UUID.test(id||''))ids.add(id);}catch{}
+  const ids=new Set();
+  if(row?.source_id&&UUID.test(row.source_id))ids.add(row.source_id);
+  try{
+    const p=JSON.parse(row?.params||'{}');
+    for(const key of ['lastSourceId','maskSourceId','repairSourceId','poseMapSourceId','filmOriginalId','replacementRawOutputId'])
+      if(UUID.test(p[key]||''))ids.add(p[key]);
+    for(const key of ['referenceSourceIds','transferSourceIds','referenceVideoIds','referenceAudioIds'])
+      if(Array.isArray(p[key]))for(const id of p[key])if(UUID.test(id||''))ids.add(id);
+    const replacement=p.replacement;
+    for(const id of [replacement?.originalSourceId,replacement?.maskSourceId,...(replacement?.referenceSourceIds||[])])
+      if(UUID.test(id||''))ids.add(id);
+  }catch{}
   return [...ids];
 }
 async function sourceReferenced(env,owner,id) {
@@ -928,6 +942,7 @@ async function geminiFetch(env,path,{method='GET',body:payload,timeout=60000}={}
 }
 async function geminiParts(env,owner,p,referenceSourceIds=[]){
   const ids=Array.isArray(referenceSourceIds)?referenceSourceIds:[];
+  await validateImageReplacement(env,owner,{referenceSourceIds:ids},p,{fail,source,falImageBytes,storedImageDimensions});
   if(ids.length>10)fail(400,'Nano Banana accepts up to 10 uploaded image references in this Lab.');
   const refs=ids.length?await sources(env,owner,ids):[];p.referenceSourceIds=refs.map(a=>a.id);
   const parts=[{text:assembledPrompt(p)}];
@@ -1359,9 +1374,9 @@ async function receiveSpicyMoodCallback(request,env,ctx){
 async function route(request,env,ctx) {
   const url=new URL(request.url),origin=request.headers.get('origin')||'';
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
-  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range,X-PV-Lab-Client','Access-Control-Max-Age':'600'}});
+  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range,X-PV-Lab-Client,X-Replacement-Job-Id','Access-Control-Max-Age':'600'}});
   if(url.pathname==='/api/public/local-currency'&&request.method==='GET')return localCurrency(request);
-  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION});
+  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1'});
   if(url.pathname.startsWith('/api/music/public/'))return musicPublicRoute(request,env);
   // PV LAB anonymous traffic uses its own origin-checked, bounded payload.
   if(url.pathname==='/api/public/traffic'&&request.method==='POST')return recordLabTraffic(request,env);
@@ -1493,10 +1508,14 @@ async function route(request,env,ctx) {
     path.endsWith('/retry')&&path.startsWith('/api/soul/characters/')||
     path==='/api/fal/pose-preview'))
     fail(403,'This feature is not yet enabled for customer billing.');
+  // A paid replacement may consume the customer's final credits. Its one
+  // source-sized PNG still needs to finish saving after that debit.
+  const replacementJobId=path==='/api/uploads'&&method==='POST'?request.headers.get('x-replacement-job-id'):null;
+  const replacementUpload=replacementJobId?await replacementUploadContext(env,owner,replacementJobId,request.headers.get('content-type')?.split(';')[0],{fail,first,source,falImageBytes,storedImageDimensions}):null;
   // Unfunded trial accounts must not consume unbounded private R2 storage.
   if(customer&&method==='POST'&&['/api/uploads','/api/reference-uploads'].includes(path)){
     const wallet=await first(env,'SELECT balance_credits FROM lab_customers WHERE id=?',owner);
-    if(!wallet?.balance_credits)fail(402,'Add PV Lab credits before uploading files.');
+    if(!wallet?.balance_credits&&!replacementUpload)fail(402,'Add PV Lab credits before uploading files.');
   }
   if(path==='/api/library'||path.startsWith('/api/library/'))return json(await libraryRoute(request,env,owner,url,{body,uid,fail,rows,first,run}));
   // Explicit creative-direction analysis and private low-res board uploads.
@@ -1507,6 +1526,9 @@ async function route(request,env,ctx) {
     return moodBoardsRoute(request,env,owner,url,{body,uid,fail,rows,first,run,json,now});
   // FASHN balance reports our wholesale API account balance, not the customer's credits.
   if(customer&&path==='/api/fashion/balance'&&method==='GET')return json({connected:!!env.FASHN_API_KEY,credits:null,note:'Your generation allowance is shown in your PV Lab credit wallet.'});
+  if(path.startsWith('/api/replacement/'))return imageReplacementRoute(request,env,owner,url,{
+    fail,body,first,run,source,storedImageDimensions,falImageBytes,jobView,json
+  });
   if(path.startsWith('/api/precision/'))return precisionEditRoute(request,env,owner,url,{
     customer,fail,body,first,run,source,signedInput,config,storedImageDimensions,falImageBytes,
     reserveFalImageJob,submitReservedFalJob,jobView,json,limitedBody,sniff,creditsForJobUsd
@@ -1524,7 +1546,7 @@ async function route(request,env,ctx) {
       const partnerDashboard=account.accountClosed?null:await partnerWorkspace(env,owner);
       const c=await config(env,owner);
       const ready=account.generationReady;
-      return json({...account,partnerDashboard,owner:false,ownerId:owner,version:VERSION,config:{...publicConfig(c,ready&&!!env.FAL_KEY),enabled:ready,configured:ready,customer:true,videoPreparationEngines:publicConfig(c,!!env.FAL_KEY).videoEngines,videoEngines:ready?publicConfig(c,!!env.FAL_KEY).videoEngines:[],higgsfieldEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true',videoTransformCustomerEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true'&&env.LAB_CUSTOMER_VIDEO_TRANSFORM_ENABLED==='true',geminiEnabled:ready&&!!env.GEMINI_API_KEY,soulTrainingEnabled:false,soulReinterpretEnabled:false,soulPresets:publicSoulPresets(),falEnabled:ready&&!!env.FAL_KEY}});
+      return json({...account,partnerDashboard,owner:false,ownerId:owner,version:VERSION,config:{...publicConfig(c,ready&&!!env.FAL_KEY),enabled:ready,configured:ready,customer:true,videoPreparationEngines:publicConfig(c,!!env.FAL_KEY).videoEngines,videoEngines:ready?publicConfig(c,!!env.FAL_KEY).videoEngines:[],higgsfieldEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true',soulNightFlashEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true'&&env.LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED==='true',videoTransformCustomerEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true'&&env.LAB_CUSTOMER_VIDEO_TRANSFORM_ENABLED==='true',geminiEnabled:ready&&!!env.GEMINI_API_KEY,soulTrainingEnabled:false,soulReinterpretEnabled:false,soulPresets:publicSoulPresets(),falEnabled:ready&&!!env.FAL_KEY}});
     }
     await run(env,"DELETE FROM spend WHERE owner_id=? AND job_id IN (SELECT id FROM jobs WHERE owner_id=? AND state='failed' AND COALESCE(json_extract(params,'$.provider'),'')='fal')",owner,owner);
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
@@ -1636,6 +1658,7 @@ async function route(request,env,ctx) {
     const bytes=await limitedBody(request,MAX_IMAGE);if(!bytes.length||!sniff(bytes,mime))fail(400,'File contents do not match a supported image.');
     const usage=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',owner);
     if(usage.n+bytes.length>MAX_STORAGE)fail(413,'Private archive storage limit reached (20 GiB).');
+    if(replacementUpload)return json(await storeReplacementUpload(env,owner,replacementUpload,bytes,{fail,first,run,storedImageDimensions}),201);
     const id=crypto.randomUUID(),key=`${owner}/sources/${id}`;let filename='source.'+(mime==='image/jpeg'?'jpg':mime.split('/')[1]);
     try{filename=decodeURIComponent(request.headers.get('x-filename')||filename).replace(/[\r\n\x00-\x1f]/g,'').slice(0,180);}catch{}
     await env.LAB_MEDIA.put(key,bytes,{httpMetadata:{contentType:mime}});
@@ -1665,6 +1688,7 @@ async function route(request,env,ctx) {
     if(!env.FAL_KEY)fail(503,'FAL API is not connected.');
     const ids=data.referenceSourceIds||[];
     if(!Array.isArray(ids))fail(400,'Invalid image references.');
+    await validateImageReplacement(env,owner,data,p,{fail,source,falImageBytes,storedImageDimensions});
     const refs=ids.length?await sources(env,owner,ids,1):[];
     p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=p.referenceRoles.slice(0,refs.length);
     if(refs.reduce((n,a)=>n+a.bytes,0)>16*1024*1024)fail(413,'Use smaller reference images: this route accepts up to 16 MiB combined.');

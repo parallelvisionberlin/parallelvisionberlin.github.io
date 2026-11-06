@@ -79,7 +79,8 @@ test('Night Flash quote binds source, identity, recipe and price without submitt
   db.prepare('INSERT INTO assets VALUES(?,?,?,?,?,?,?,?)').run(asset,owner,'base.png','source','image/png','base.png',100,Date.now());
   db.prepare("INSERT INTO jobs(id,owner_id,params,state,provider_id,created_at,updated_at) VALUES(?,?,?,'completed',?,1,1)").run(character,owner,JSON.stringify({provider:'higgsfield',mode:'soul-id-training',characterName:'Test identity'}),providerCharacter);
   const first=async(e,sql,...args)=>db.prepare(sql).get(...args),run=async(e,sql,...args)=>({meta:{changes:db.prepare(sql).run(...args).changes}});
-  const deps={first,run,fail,now:()=>Date.now(),config:async()=>({daily_limit_microusd:10000000}),body:r=>r.json(),jobView:j=>j,
+  let customer=false;
+  const deps={first,run,fail,isLabCustomer:async()=>customer,now:()=>Date.now(),config:async()=>({daily_limit_microusd:10000000}),body:r=>r.json(),jobView:j=>j,
     source:async(e,o,id)=>{const a=await first(e,'SELECT * FROM assets WHERE id=? AND owner_id=?',id,o);if(!a)fail(404,'source');return a;},
     signedInput:async()=> 'https://lab.example/private-input',storedImageDimensions:()=>({width:900,height:1200})};
   const env={HF_CREDENTIALS:'test:secret',LAB_MEDIA:{get:async()=>({arrayBuffer:async()=>new ArrayBuffer(1)})}};
@@ -109,5 +110,21 @@ test('Night Flash quote binds source, identity, recipe and price without submitt
     await assert.rejects(()=>invoke('/api/higgsfield/quote',{settings:{...settings,moodOriginalPrompt:''}}),/Describe a subject/);
     await assert.rejects(()=>invoke('/api/higgsfield/quote',{sourceId:asset,referenceSourceIds:[asset],settings}),/one base image/);
     assert.equal(estimates,count);assert.equal(submissions,1);
+    // Fail closed independently of the general Higgsfield launch flag, including
+    // an unused quote issued before the Night Flash gate was switched off.
+    customer=true;env.LAB_CUSTOMER_HIGGSFIELD_ENABLED='true';
+    for(const flag of [undefined,'false','TRUE']){
+      env.LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED=flag;
+      await assert.rejects(()=>invoke('/api/higgsfield/quote',{sourceId:asset,settings}),e=>e.status===403&&/awaiting provider validation/.test(e.message));
+      await assert.rejects(()=>invoke('/api/higgsfield/generate',{quoteId:text.id,confirm:true}),e=>e.status===403);
+    }
+    assert.equal(estimates,count);assert.equal(submissions,1);
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM spend').get().n,1);
+    assert.equal((await invoke('/api/higgsfield/generate',{quoteId:quoted.id,confirm:true})).job.id,job.id,'Existing jobs stay idempotently accessible');
+    // Ordinary Soul requests remain available; this gate affects only the Mood.
+    await invoke('/api/higgsfield/quote',{settings:{type:'image',prompt:'A portrait',resolution:'1080p'}});
+    env.LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED='true';
+    const enabled=await invoke('/api/higgsfield/quote',{sourceId:asset,settings});
+    assert.equal(enabled.settings.moodId,'night-flash');assert.equal(submissions,1);
   }finally{globalThis.fetch=previous;db.close();}
 });
