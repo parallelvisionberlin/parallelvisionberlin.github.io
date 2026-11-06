@@ -4615,8 +4615,15 @@ async function openVideo(job,{scroll=true,detail=false,justFinished=false}={}){
 }
 function saveDownload(url,id,ext){const a=document.createElement('a');a.href=url;a.download='parallel-vision-'+id+'.'+ext;document.body.append(a);a.click();a.remove();}
 function downloadResult(){if(!owner||!resultUrl||!resultId)return;saveDownload(resultUrl,resultId,resultExt);}
-async function downloadJob(job,{rawReplacement=false}={}){
-  if(replacementPending(job)&&!rawReplacement)job=await imageReplacement.finalize(job);
+async function downloadJob(job){
+  if(replacementPending(job))job=await imageReplacement.finalize(job);
+  return downloadSavedOutput(job);
+}
+async function downloadRawReplacement(job){
+  if(!replacementPending(job))throw new Error('This job does not need a raw replacement download.');
+  return downloadSavedOutput(job);
+}
+async function downloadSavedOutput(job){
   if(!hasResult(job))throw new Error('No output file exists for this job. The reference is not a generated result.');
   if(resultUrl&&resultId===job.outputId){downloadResult();return;}
   const blob=await assetBlob(job.outputId);if(!owner)return;
@@ -5111,7 +5118,7 @@ function renderCards(jobs,{upsert=false}={}){
     const actions=document.createElement('div');actions.className='cardactions';
     if(finishingReplacement){
       actions.append(button('Finish replacement',async()=>{const finished=await imageReplacement.finalize(j);surfaceHistoryJob(finished);await openImageRecord(finished);},viewMedia));
-      actions.append(button('Download raw image',()=>downloadJob(j,{rawReplacement:true}),viewMedia));
+      actions.append(button('Download raw image',()=>downloadRawReplacement(j),viewMedia));
     }else if(ready){
       const download=button(image?'Download image':'Download video',()=>downloadJob(j));download.classList.add('result-download');actions.append(download);
       actions.append(button(image?'View image':'View video',()=>image?openImageRecord(j):tool==='upscale'&&j.settings.engine==='video-upscale'?videoUpscaler.openJob(j):openVideo(j),viewMedia));
