@@ -43,13 +43,34 @@ jobs:
           node tests/lab-night-flash-soul-ui.mjs
           node tests/lab-image-replacement-ui.mjs
           node tests/lab-image-replacement-flow-ui.mjs
-      - name: Preserve approved prompt, first image and Studio layout
+      - name: Preserve approved prompt layout
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-night-flash-soul/chromium.mjs
+        run: node tests/lab-image-prompt-paste-ui.mjs
+      - name: Preserve first-image flow
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-night-flash-soul/chromium.mjs
+        run: node tests/lab-first-image-instant-browser.mjs
+      - name: Preserve Studio layout
+        if: always()
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-night-flash-soul/chromium.mjs
+        run: node tests/lab-studio-layout-ui.mjs
+      - name: Compare older layout failures with unchanged main baseline
+        if: failure()
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-night-flash-soul/chromium.mjs
         run: |
-          node tests/lab-image-prompt-paste-ui.mjs
-          node tests/lab-first-image-instant-browser.mjs
-          node tests/lab-studio-layout-ui.mjs
+          git fetch --no-tags --depth=1 origin 519d9fad57af01fcf836203d24f54e150a3d9455
+          for asset in lab/lab.js lab/studio.html lab/image-deck-surface.css; do
+            git show FETCH_HEAD:"$asset" > "$asset"
+          done
+          node tests/lab-first-image-instant-browser.mjs > /tmp/pv-baseline-first-image.log 2>&1 || first_status=$?
+          cat /tmp/pv-baseline-first-image.log
+          echo "BASELINE_FIRST_IMAGE_EXIT=${first_status:-0}"
+          node tests/lab-studio-layout-ui.mjs > /tmp/pv-baseline-studio-layout.log 2>&1 || layout_status=$?
+          cat /tmp/pv-baseline-studio-layout.log
+          echo "BASELINE_STUDIO_LAYOUT_EXIT=${layout_status:-0}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
