@@ -3,38 +3,65 @@ on:
   push:
     branches: [implement/alter-approved-20261106]
     paths: [.github/workflows/alter-final-review.yml]
+concurrency:
+  group: alter-final-scoped-review
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:
   review:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-      - name: Apply scoped compact spacing and scroll-independent test measurement
+      - name: Reconcile current main without losing other work records
+        run: |
+          python3 - <<'PY'
+          import json,pathlib
+          state=json.loads(pathlib.Path('lab/owner-work-records.json').read_text())
+          record=next(r for r in state['records'] if r['id']=='alter-tabbed-editor')
+          pathlib.Path('/tmp/alter-record.json').write_text(json.dumps(record))
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main --depth=50
+          git merge --no-ff --no-commit origin/main || {
+            test "$(git diff --name-only --diff-filter=U)" = lab/owner-work-records.json
+          }
+          git show origin/main:lab/owner-work-records.json > lab/owner-work-records.json
+          node scripts/owner-work-state.mjs upsert /tmp/alter-record.json
+          node scripts/owner-work-state.mjs validate
+          git add lab/owner-work-records.json
+      - name: Apply compact spacing and preserve breadcrumb hit targets
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p=Path('lab/beauty-editorial-final.css')
-          with p.open('a') as f:f.write('\n/* Compact desktops retain clearance below the native aspect-ratio control. */\n@media(min-width:1001px) and (max-width:1300px){.beauty-left-settings{gap:6px}}\n')
+          with p.open('a') as f:f.write('\n/* Compact desktops retain clearance below the native aspect-ratio control. */\n@media(min-width:1001px) and (max-width:1300px){.beauty-left-settings{gap:6px}}\n/* Keep breadcrumb navigation above the expanded decorative photograph. */\n.beauty-breadcrumb{position:relative;z-index:3}\n')
           p=Path('tests/lab-beauty-ui.mjs');s=p.read_text()
           old="const quoted=s.quotes.length,buttonBefore=await page.locator('#beauty-generate').boundingBox();"
           new="const buttonGeometry=()=>page.locator('#beauty-generate').evaluate(button=>{const a=button.getBoundingClientRect(),b=button.closest('.beauty-edit-panel').getBoundingClientRect();return {x:a.left-b.left,y:a.top-b.top,width:a.width,height:a.height};});\n  const quoted=s.quotes.length,buttonBefore=await buttonGeometry();"
           assert s.count(old)==1;s=s.replace(old,new)
           old="assert.deepEqual(await page.locator('#beauty-generate').boundingBox(),buttonBefore,'Generate placement stays stable across tabs');"
           new="assert.deepEqual(await buttonGeometry(),buttonBefore,'Generate placement stays stable across tabs');"
+          assert s.count(old)==1;s=s.replace(old,new)
+          old="await page.locator('#beauty-generate').click({trial:true});\n  await page.screenshot({path:'test-results/beauty-fit-'"
+          new="await page.locator('.beauty-breadcrumb button').click({trial:true});\n  await page.locator('#beauty-generate').click({trial:true});\n  await page.screenshot({path:'test-results/beauty-fit-'"
           assert s.count(old)==1;p.write_text(s.replace(old,new))
           PY
           node --check tests/lab-beauty-ui.mjs
           node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-beauty.test.mjs tests/lab-beauty-atelier.test.mjs
           node --test --test-name-pattern='Beauty Studio binds' tests/lab-worker.test.mjs
-      - name: Install pinned browser
+      - name: Install pinned Chromium using existing Ubuntu browser libraries
+        timeout-minutes: 3
         run: |
           npm install --prefix /tmp/pv-beauty --no-audit --no-fund playwright@1.57.0
-          node /tmp/pv-beauty/node_modules/playwright/cli.js install --with-deps chromium
+          node /tmp/pv-beauty/node_modules/playwright/cli.js install chromium
       - name: Complete existing Beauty regression
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-beauty/node_modules/playwright/index.mjs
@@ -44,12 +71,10 @@ jobs:
       - name: Save tested corrections and remove temporary reviewer
         run: |
           test "$GITHUB_REF" = refs/heads/implement/alter-approved-20261106
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add tests/lab-beauty-ui.mjs lab/beauty-editorial-final.css
           git rm .github/workflows/alter-final-review.yml
           git diff --cached --check
-          git commit -m 'Verify ALTER desktop clearance and stable controls across mobile scrolling'
+          git commit -m 'Verify ALTER desktop clearance, breadcrumb access and stable mobile controls'
           git rev-parse HEAD
           git push origin HEAD:refs/heads/implement/alter-approved-20261106
       - uses: actions/upload-artifact@v4
