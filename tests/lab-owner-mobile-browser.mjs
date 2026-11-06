@@ -273,6 +273,8 @@ try{
 
       await show('#owner-customers-section');
       assert.equal(await page.locator('.owner-customer-open').count(),3,'Each customer has a private activity action');
+      for(const action of await page.locator('.owner-customer-open').all())
+        assert.equal(await action.innerText(),'View activity','The generated-content entry point remains clearly named');
       if(width===390||width===1792){
         await page.evaluate(async()=>{
           const canvas=document.createElement('canvas');canvas.width=480;canvas.height=640;
@@ -321,6 +323,7 @@ try{
         });
         await page.locator('.owner-customer-open').nth(1).click();
         await page.locator('#owner-customer-dialog[open]').waitFor();
+        await page.locator('#owner-customer-dialog').getByRole('heading',{name:'Generation quality review',exact:true}).waitFor();
         await page.locator('#owner-customer-dialog-body').getByText('seedream-v5',{exact:true}).waitFor();
         assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/Welcome credits/);
         assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/Archived financial activity/);
@@ -505,6 +508,7 @@ try{
         await page.screenshot({path:artifactDir+'/operations-'+width+'.png',fullPage:false});
       }
       await show('#owner-overview');
+      await page.evaluate(()=>window.scrollTo(0,0));
       const dimensions=await page.evaluate(()=>({
         viewport:innerWidth,html:document.documentElement.scrollWidth,body:document.body.scrollWidth,
         sidebarVisible:getComputedStyle(document.querySelector('.owner-sidebar')).display!=='none',
@@ -522,6 +526,37 @@ try{
       assert.equal(dimensions.providerOverviewHidden,true,'Provider preview stays out of Home');
       assert.equal(dimensions.sidebarVisible,width>920,'Desktop sidebar retains tablet/mobile breakpoint');
       if(width>=1280)assert.ok(dimensions.signupsTop<790,'Recent signups remain visible in first desktop viewport');
+      const purchaseLayout=await page.locator('.owner-purchases-panel').evaluate(panel=>{
+        const title=panel.querySelector('h2'),list=panel.querySelector('.owner-payment-list'),item=list.querySelector('.owner-recent-item');
+        const rectangle=node=>{const r=node.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height};};
+        const text=document.createRange();text.selectNodeContents(title);
+        const style=getComputedStyle(panel),titleStyle=getComputedStyle(title),textRect=text.getBoundingClientRect();
+        return {
+          panel:rectangle(panel),title:rectangle(title),list:rectangle(list),text:{top:textRect.top,bottom:textRect.bottom},
+          signupTitle:rectangle(document.querySelector('#owner-recent-title')),
+          overflowY:style.overflowY,maxHeight:style.maxHeight,flexGrow:style.flexGrow,
+          paddingBottom:parseFloat(style.paddingBottom),borderBottom:parseFloat(style.borderBottomWidth),
+          scrollHeight:panel.scrollHeight,clientHeight:panel.clientHeight,titleOverflow:titleStyle.overflow,
+          person:item&&rectangle(item.querySelector('.owner-recent-person')),date:item&&rectangle(item.querySelector('.owner-recent-date'))
+        };
+      });
+      assert.equal(purchaseLayout.overflowY,'visible','Recent purchases does not clip its content');
+      assert.equal(purchaseLayout.maxHeight,'none','Recent purchases has no forced height cap');
+      assert.equal(purchaseLayout.flexGrow,'0','Recent purchases does not stretch to fill the signup column');
+      assert.ok(purchaseLayout.scrollHeight<=purchaseLayout.clientHeight+1,'Recent purchases has no internal cropped overflow');
+      assert.ok(Math.abs(purchaseLayout.panel.bottom-purchaseLayout.list.bottom-purchaseLayout.paddingBottom-purchaseLayout.borderBottom)<=2,
+        'Recent purchases ends naturally after its records: '+JSON.stringify(purchaseLayout));
+      if(width>=1280){
+        assert.ok(Math.abs(purchaseLayout.title.top-purchaseLayout.signupTitle.top)<=1,'Recent purchases aligns with Latest signups');
+        assert.equal(purchaseLayout.titleOverflow,'visible','Purchase heading glyphs remain unclipped');
+        assert.ok(purchaseLayout.text.top>=purchaseLayout.title.top-1&&purchaseLayout.text.bottom<=purchaseLayout.title.bottom+1,
+          'The complete purchase heading fits its line box: '+JSON.stringify(purchaseLayout));
+      }
+      if(width<=430)assert.ok(purchaseLayout.person.right<=purchaseLayout.date.left-4,'Purchase email and date keep separate phone columns');
+      if(width===390||width===1792){
+        await page.screenshot({path:artifactDir+'/overview-top-'+width+'.png',fullPage:false});
+        await page.locator('.owner-purchases-panel').screenshot({path:artifactDir+'/recent-purchases-'+width+'.png'});
+      }
       await page.evaluate(()=>window.scrollTo(999,1200));
       const position=await page.evaluate(()=>({x:scrollX,y:scrollY}));
       assert.ok(position.x<=1,'No horizontal document scrolling at '+width+'px');
@@ -556,6 +591,61 @@ try{
         assert.equal(await page.evaluate(()=>window.__syncCalls),1,'Automatic Clerk backfill should occur once');
         assert.match(await page.locator('#owner-recent-signups').innerText(),/user_one@example.com/,'Synced verified email appears in Latest signups');
         assert.equal(await page.locator('#owner-sync-state').innerText(),'Verified emails available','Clerk status reflects verified result');
+
+        // The real Customers Refresh button must keep the current search/page,
+        // discard stale lifetime data and load fresh exact-ID records on demand.
+        await show('#owner-customers-section');
+        await page.evaluate(async()=>{
+          window.__customerRefreshReads=[];window.__holdCustomerRefresh=false;window.__customerRefreshVersion=0;
+          const customers=[
+            {id:'user_refreshOne',email:'refresh-one@example.com',joinedAt:100,balanceCredits:19,verifiedPayments:1,subscription:'none',plan:''},
+            {id:'user_refreshTwo',email:'refresh-two@example.com',joinedAt:90,balanceCredits:29,verifiedPayments:0,subscription:'none',plan:''}
+          ];
+          const overview=()=>({summary:{accounts:41,payingCustomers:1,activeSubscriptions:0,voucherClaims:0,rewardedReferrals:0},
+            customers:customers.map(c=>({...c,balanceCredits:c.balanceCredits+window.__customerRefreshVersion*10})),
+            pagination:{page:2,pageSize:20,total:41},payments:[],referrals:[],vouchers:[],emailSyncConfigured:true});
+          call=async path=>{
+            window.__customerRefreshReads.push(path);
+            if(path.startsWith('/api/admin/overview?')){
+              if(window.__holdCustomerRefresh){window.__holdCustomerRefresh=false;return new Promise(resolve=>{window.__finishCustomerRefresh=()=>resolve(overview());});}
+              return overview();
+            }
+            if(path==='/api/admin/acquisition?days=7&page=1')return {
+              customers:[{id:'user_refreshTwo',completedJobs:23,lastCompletedAt:300},{id:'user_refreshOne',completedJobs:17,lastCompletedAt:200}],
+              pagination:{page:1,pageSize:20,total:41},notes:{cost:'Fixture only.'}
+            };
+            throw Error('Unexpected Customers refresh test route: '+path);
+          };
+          // customerUI retains the original call function, which reads through
+          // the session-request mock. Route that boundary through the same fixture.
+          window.__ownerQaMedia=async(path,options)=>({ok:true,json:async()=>call(path,options)});
+          profile={owner:true};autoClerkSyncAttempted=true;customerUI.clear();customerPage=2;
+          document.querySelector('#owner-search').value='refresh';
+          await refreshDashboard();
+          customerUI.seed({customers:[{id:'user_refreshOne',completedJobs:1,lastCompletedAt:100},{id:'user_refreshTwo',completedJobs:2,lastCompletedAt:100}],
+            pagination:{page:2,pageSize:20,total:41},notes:{}});
+        });
+        const customerRows=page.locator('#owner-customers > tr:not(.owner-customer-usage-row)');
+        assert.deepEqual(await customerRows.locator('td:nth-child(5)').allTextContents(),['1','2'],'The fixture begins with cached lifetime counts');
+        await page.evaluate(()=>{window.__customerRefreshVersion=1;window.__holdCustomerRefresh=true;});
+        await page.locator('#owner-customers-refresh').click();
+        assert.equal(await page.locator('#owner-customers-refresh').isDisabled(),true,'Customers Refresh shows the pending read');
+        assert.equal(await page.locator('#owner-customers-refresh').innerText(),'Refreshing…');
+        await page.evaluate(()=>window.__finishCustomerRefresh());
+        await page.waitForFunction(()=>!document.querySelector('#owner-customers-refresh').disabled);
+        assert.equal(await page.locator('#owner-customers-refresh').innerText(),'Refresh');
+        assert.equal(await page.locator('#owner-search').inputValue(),'refresh','Refresh preserves the customer search');
+        assert.equal(await page.locator('#owner-customers-pagination [aria-current="page"]').innerText(),'2','Refresh preserves directory page 2');
+        assert.deepEqual(await customerRows.locator('td:first-child strong').allTextContents(),['refresh-one@example.com','refresh-two@example.com'],'Refresh preserves directory identity and order');
+        assert.deepEqual(await customerRows.locator('td:nth-child(3)').allTextContents(),['29','39'],'Directory balances are read again');
+        assert.deepEqual(await customerRows.locator('td:nth-child(5)').allTextContents(),['Not loaded','Not loaded'],'Cached lifetime counts are invalidated');
+        assert.deepEqual(await page.evaluate(()=>window.__customerRefreshReads),[
+          '/api/admin/overview?page=2&search=refresh','/api/admin/overview?page=2&search=refresh'
+        ],'Search refresh is read-only, preserves the page and does not eagerly scan lifetime reports');
+        await page.locator('#owner-customers .owner-customer-row-details > summary').first().click();
+        await page.waitForFunction(()=>document.querySelector('#owner-customers > tr td:nth-child(5)').textContent==='17');
+        assert.deepEqual(await customerRows.locator('td:nth-child(5)').allTextContents(),['17','23'],'Fresh lifetime data is joined by exact customer ID');
+        assert.equal(await page.evaluate(()=>window.__customerRefreshReads.at(-1)),'/api/admin/acquisition?days=7&page=1','Details performs a fresh bounded lifetime read');
       }
     }catch(error){
       await page.screenshot({path:artifactDir+'/failure-'+width+'.png',fullPage:false}).catch(()=>{});

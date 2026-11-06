@@ -579,16 +579,21 @@ test('owner Customer and Acquisition pages return newest twenty with truthful to
   assert.equal(filtered.summary.totalAccounts,50,'Pagination must not change global account totals');
 });
 
-test('owner activity tables use compact pagination rather than rendering a hundred rows',()=>{
+test('owner customers use one compact directory pager and bounded lifetime report pages',()=>{
   const html=readFileSync(new URL('../lab/owner.html',import.meta.url),'utf8');
   const owner=readFileSync(new URL('../lab/owner.js',import.meta.url),'utf8');
   const acquisition=readFileSync(new URL('../lab/owner-acquisition-ui.js',import.meta.url),'utf8');
+  const customers=readFileSync(new URL('../lab/owner-customers-ui.js',import.meta.url),'utf8');
   const pager=readFileSync(new URL('../lab/owner-pagination.js',import.meta.url),'utf8');
-  assert.match(html,/id="owner-customers-pagination"/);
-  assert.match(html,/id="owner-acquisition-pagination"/);
+  assert.equal((html.match(/id="owner-customers-pagination"/g)||[]).length,1);
+  assert.doesNotMatch(html,/id="owner-acquisition-(?:pagination|customers)"/,'Lifetime usage belongs to the same customer list');
   assert.match(owner,/renderOwnerPagination\(\$\('owner-customers-pagination'\)/);
   assert.match(owner,/customerPage=1;void refreshDashboard/);
-  assert.match(acquisition,/renderOwnerPagination\(\$\('owner-acquisition-pagination'\)/);
+  assert.match(owner,/onReport:data=>customerUI\.seed\(data\)/,'Sales report data enriches the existing customer list');
+  assert.match(acquisition,/onReport\(data\)/);
+  assert.match(customers,/call\('\/api\/admin\/acquisition\?days=7&page='\+page\)/);
+  assert.match(customers,/reportPage\(Math\.max\(1,Number\(directory\.pagination\.page\)\|\|1\)\)/,'Unfiltered lifetime reads follow the directory page');
+  assert.match(customers,/last=customerReportPageCount\(report\.pagination\)/,'Explicit missing-row lookup is bounded by server totals');
   assert.match(pager,/add\('Previous'/);
   assert.match(pager,/add\('Next'/);
   assert.doesNotMatch(html,/latest 100 accounts/);

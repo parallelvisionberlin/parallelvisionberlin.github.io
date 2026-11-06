@@ -1,11 +1,11 @@
-import {createOwnerCustomersUI} from './owner-customers-ui.js?v=20261106-clear2';
-import {createOwnerWorkspace} from './owner-workspace-ui.js?v=20261106-clear2';
-import {createOwnerOperationsUI} from './owner-operations-ui.js?v=20261106-clear2';
+import {createOwnerCustomersUI} from './owner-customers-ui.js?v=20261106-activity3';
+import {createOwnerWorkspace} from './owner-workspace-ui.js?v=20261106-activity3';
+import {createOwnerOperationsUI} from './owner-operations-ui.js?v=20261106-activity3';
 import {createOwnerPayoutNotice} from './partner-payouts.js?v=20261028-cost1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finance1';
-import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261106-clear2';
+import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261106-activity3';
 import {renderOwnerPagination} from './owner-pagination.js?v=20261025-paged1';
 import {createOwnerGenerationReviewUI} from './owner-generation-review-ui.js?v=20261017-v1';
 import {createOwnerCustomerInspectionUI} from './owner-customer-inspection-ui.js?v=20261102-quality1';
@@ -722,6 +722,12 @@ $('owner-quick-search').addEventListener('click',()=>{
   if(location.hash!=='#owner-customers-section')history.pushState(null,'','#owner-customers-section');
   workspace.route('#owner-customers-section',{scroll:true});
   $('owner-search').focus({preventScroll:true});
+});
+$('owner-customers-refresh').addEventListener('click',async()=>{
+  if(!profile?.owner)return;
+  const button=$('owner-customers-refresh');button.disabled=true;button.textContent='Refreshing…';
+  try{clearTimeout(searchTimer);customerUI.invalidate();await refreshDashboard();}
+  finally{button.disabled=false;button.textContent='Refresh';}
 });
 $('owner-search-form').addEventListener('submit',event=>{event.preventDefault();clearTimeout(searchTimer);customerPage=1;void refreshDashboard();});
 $('owner-search').addEventListener('input',()=>{clearTimeout(searchTimer);$('owner-search-clear').hidden=!$('owner-search').value.trim();searchTimer=setTimeout(()=>{customerPage=1;void refreshDashboard();},320);});

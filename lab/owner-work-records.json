@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T14:10:15.106Z",
+  "updatedAt": "2026-11-06T14:32:30.924Z",
   "handoffs": [
     {
       "id": "owner",
@@ -69,7 +69,7 @@
       "title": "Group partner dashboards",
       "component": "Owner navigation",
       "status": "deployed",
-      "summary": "Robin / König Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
+      "summary": "Robin / K\u00f6nig Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
       "nextAction": "No additional menu work is pending. Recheck only if navigation code, routes or role behavior change.",
       "baselineSha": "e400ff36ca7e6d541dfeb8d8748fc0357a0b6730",
       "reviewedSha": "9fc17771dd75bd3eeb4cd5bbdc77812945f98e1c",
@@ -214,19 +214,16 @@
       "id": "owner-operational-workspace",
       "title": "Owner dashboard",
       "component": "Owner workspace",
-      "status": "deployed",
-      "summary": "Published: direct menu, notifications in the header, one searchable customer list with expandable full activity, readable text and checklists available only on request.",
-      "nextAction": "Continue from this record and compare its reviewed source with current main before changing Owner again. Reuse passing checks when inputs are unchanged.",
-      "baselineSha": "aea3dcd040e688150de576e09f6a001e2232c1d6",
-      "reviewedSha": "86d8adff7bd3073b5dfe49570fba71cf8378e70e",
-      "branch": "fix/owner-clear-navigation-20261106",
+      "status": "needs_verification",
+      "summary": "Restore the clear View activity entry to retained image/video review, restore manual customer refresh and improve Recent purchases spacing without changing the approved dashboard.",
+      "nextAction": "Pass focused Owner browser checks, inspect desktop/phone images, publish the reviewed source and verify exact production assets.",
+      "baselineSha": "e2cd02bce742b157d12308b76908cbacea34b604",
+      "reviewedSha": null,
+      "branch": "fix/owner-activity-access-20261106",
       "files": [
         "lab/owner.html",
         "lab/owner.css",
         "lab/owner.js",
-        "lab/owner-workspace-ui.js",
-        "lab/owner-operations-ui.js",
-        "lab/owner-acquisition-ui.js",
         "lab/owner-customers-ui.js",
         "tests/lab-owner-mobile-browser.mjs",
         "tests/lab-owner-customers-ui.test.mjs"
@@ -237,74 +234,43 @@
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/OWNER-WORK-STATE.md"
         },
         {
-          "label": "Release protocol",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/RELEASE-PROTOCOL.md"
-        },
-        {
-          "label": "Previous release receipts",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/8a652b4234a5ce2e618b2114e3d6969858d0eaae/lab/owner-work-records.json"
+          "label": "Previous release and full receipts",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/e2cd02bce742b157d12308b76908cbacea34b604/lab/owner-work-records.json"
         }
       ],
       "tests": [
         {
-          "label": "Final Owner CI",
+          "label": "Affected Owner and approved Image checks",
           "result": "passed",
-          "scope": "Scoped Node checks plus seven browser widths320/375/390/430/768/1280/1792: private QA, auth, exact-ID customer joins, search/page/session guards, notifications, dialogs, independent periods and no overflow.",
-          "observedAt": "2026-11-06T14:10:15.106Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42230610717"
-        },
-        {
-          "label": "Local affected checks",
-          "result": "passed",
-          "scope": "47 routing/customer/auth/private-QA/provider/memory/Image-contract/UI checks. Final utility style follow-up passed UI tests and full CI.",
-          "observedAt": "2026-11-06T14:10:15.106Z"
+          "scope": "50 local checks passed: seven customer merge/refresh/stale-response checks plus existing auth, private QA, routes, providers, operations, memory and approved Image contract checks. Seven-width browser CI pending.",
+          "observedAt": "2026-11-06T14:32:30.924Z"
         }
       ],
       "deployment": {
-        "state": "verified",
-        "sourceSha": "8a652b4234a5ce2e618b2114e3d6969858d0eaae",
+        "state": "pending",
+        "sourceSha": null,
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-06T14:10:15.106Z",
-        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/ecf5fdef-6b52-4dc9-a3f5-62a38450d8a6",
         "limitations": [
-          "Publication and fixture behavior are verified; current real signed-in interactions were not independently observed.",
-          "Frontend-only revision. Existing Worker and manual-only Actions policy were not changed."
+          "New activity-label, refresh and sales-layout revision not yet published.",
+          "Real signed-in production interactions remain separate from fixture and asset evidence."
         ]
       },
       "evidence": [
         {
-          "kind": "deployment",
-          "summary": "PR #869 merged to8a652b4234a5ce2e618b2114e3d6969858d0eaae. Exact Cloudflare app check127936799892 and deploymentecf5fdef-6b52-4dc9-a3f5-62a38450d8a6 succeeded.",
-          "scope": "Production frontend publication.",
-          "observedAt": "2026-11-06T14:10:15.106Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/869",
-          "limitations": []
-        },
-        {
-          "kind": "production_asset",
-          "summary": "Custom-domain /owner references clear2. JS hash e630034c2124d08a5414f7dfa3bcffdf13ab7517ef0c71efd710d8ae30759947 and CSS hash8f2dd4ce68932cff36214f5d35bd28509ab3d0432ee1ebe080c4a8f6a881f3aa matched reviewed source. All four imported UI modules and work JSON also matched.",
-          "scope": "Independent live-byte verification with exact Cloudflare app/project/commit evidence.",
-          "observedAt": "2026-11-06T14:10:15.106Z",
-          "source": "https://pvlab.studio/owner",
-          "limitations": [
-            "No paid generation, real payment or campaign action was performed."
-          ]
-        },
-        {
-          "kind": "fixture",
-          "summary": "Actual desktop and phone CI screenshots inspected; an observed default-style utility control was corrected and final seven-width CI passed.",
-          "scope": "Real renderer with synthetic private data. This is not a real signed-in production account observation.",
-          "observedAt": "2026-11-06T14:10:15.106Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42230610717",
+          "kind": "source",
+          "summary": "Original ordinary-customer inspection module is unchanged. Existing Activity button still opened it; visible View activity wording is restored. Missing manual customer/usage refresh is restored with cache and stale-response invalidation.",
+          "scope": "Source audit; generated images/videos, prompts, model/Mood/settings/costs, filters and private media remain in the original dialog.",
+          "observedAt": "2026-11-06T14:32:30.924Z",
+          "source": "lab/owner-customers-ui.js",
           "limitations": []
         },
         {
           "kind": "documented",
-          "summary": "Previous consolidation, Worker, health, D1 and asset receipts are retained in the detailed checkpoint and immutable earlier index snapshot.",
-          "scope": "Historical release evidence; do not reconstruct completed investigations.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/8a652b4234a5ce2e618b2114e3d6969858d0eaae/lab/owner-work-records.json",
+          "summary": "Email connection, search/page, sales, referrals, voucher controls, provider refresh, partners, account and Studio routes remain. Prior release receipts are retained in the immutable snapshot and detailed checkpoint.",
+          "scope": "Existing feature continuity and historical publication.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/e2cd02bce742b157d12308b76908cbacea34b604/lab/owner-work-records.json",
           "limitations": [
-            "Those receipts describe their recorded revisions, not a fresh current production observation."
+            "Historical deployment receipts are not a new production observation."
           ]
         }
       ],
@@ -318,7 +284,7 @@
         "Use direct destinations and one customer list. Keep detailed finance and IDs expandable, notifications in the header, and body text at least14px.",
         "No Worker or billing change is needed for this presentation revision."
       ],
-      "updatedAt": "2026-11-06T14:10:15.106Z"
+      "updatedAt": "2026-11-06T14:32:30.924Z"
     },
     {
       "id": "worker-release-policy",

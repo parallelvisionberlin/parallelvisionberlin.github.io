@@ -1,3 +1,15 @@
+## Owner activity and sales follow-up, 2026-11-06
+- Current task: preserve the approved simplified dashboard, make generated-content inspection clear again and correct Recent purchases spacing.
+- Baseline e2cd02bce742b157d12308b76908cbacea34b604; branch fix/owner-activity-access-20261106. Same canonical record owner-operational-workspace.
+- Source audit: Activity still called the original customer dialog. owner-customer-inspection-ui.js is unchanged from pre-unification and retains images/videos, prompts, model/Mood/settings/costs, filters, paging and private media. Visible View activity label restored.
+- Actual regression: manual customer/lifetime Refresh was absent. Restored in Customers, preserving current search/page and invalidating cached/stale responses. Search usage remains an explicit bounded Details lookup.
+- Recent purchases: reset legacy height:100%; align title/action at top; improve title breathing room, wrap buyer email separately from date, remove doubled Shortcuts separator. No vertical clipping rule was found, so this is not claimed as a proven clipping root cause.
+- Retained controls audited: email sync/setup, search/pages, payments/receipts, referrals, vouchers, provider refresh, partners, agency, account and Studio. No generated-content implementation was replaced or restricted to promo customers.
+- Frontend-only. No Worker/auth/billing/models/schema/campaign change and no paid generation or payment. Worker Actions stays manual-only; direct Cloudflare remains its release path.
+- 50 local affected/auth/private-QA/customer refresh/operations/memory/approved Image checks passed. Seven-width browser CI pending.
+- Publication pending. Next: inspect final browser evidence, merge fixed candidate, verify exact Cloudflare project/commit and live activity3 asset bytes. Real signed-in production behavior is distinct from fixture evidence.
+- Earlier presentation and publication receipts follow below; do not repeat completed investigations.
+
 ## Owner clarity revision, 2026-11-06
 - User rejected the Business parent, tiny text, Overview attention block, duplicate customer screens and technical manuals in the main page. This supersedes the previous four-view presentation, without removing tools or information.
 - Baseline aea3dcd040e688150de576e09f6a001e2232c1d6; branch fix/owner-clear-navigation-20261106. Canonical active record remains owner-operational-workspace in lab/owner-work-records.json; no second ledger.
