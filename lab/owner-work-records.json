@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T13:14:07Z",
+  "updatedAt": "2026-11-06T13:31:13.683Z",
   "handoffs": [
     {
       "id": "owner",
@@ -69,7 +69,7 @@
       "title": "Group partner dashboards",
       "component": "Owner navigation",
       "status": "deployed",
-      "summary": "Robin / K\u00f6nig Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
+      "summary": "Robin / König Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
       "nextAction": "No additional menu work is pending. Recheck only if navigation code, routes or role behavior change.",
       "baselineSha": "e400ff36ca7e6d541dfeb8d8748fc0357a0b6730",
       "reviewedSha": "9fc17771dd75bd3eeb4cd5bbdc77812945f98e1c",
@@ -146,8 +146,8 @@
       "title": "Use one Owner workspace",
       "component": "Owner access",
       "status": "deployed",
-      "summary": "Existing Launch Desk and Purchase Flow Sites redirect to the canonical Owner workspace. Their original sources were retained reversibly. The current static Release checks is documentation, not live operations.",
-      "nextAction": "Continue Owner work in /owner using the existing data sources. Apply the approved operational navigation and memory without introducing another dashboard.",
+      "summary": "Historical consolidation made /owner the single entry and redirected duplicate operational Sites. The subsequent four-view flow and live operations are recorded under owner-operational-workspace.",
+      "nextAction": "Keep /owner as the single entry. Continue from owner-operational-workspace; do not rebuild the retired auxiliary Sites.",
       "baselineSha": null,
       "reviewedSha": "13304a12b8611138632bfa74a06520914211270a",
       "branch": "fix/owner-unified-access-20261106",
@@ -208,17 +208,17 @@
         "Do not create another disconnected operational Site.",
         "Preserve existing Owner authorization, private review, accounts, billing, providers and partner access."
       ],
-      "updatedAt": "2026-11-06T13:03:58Z"
+      "updatedAt": "2026-11-06T13:31:13.683Z"
     },
     {
       "id": "owner-operational-workspace",
       "title": "Make Owner useful for business and operational continuity",
       "component": "Owner workspace",
-      "status": "in_progress",
-      "summary": "Four Owner views reuse every existing report and customer profile. System reads retained job/billing attention and the same repository work memory used by future tasks.",
-      "nextAction": "Complete seven-width Owner CI, publish the compatible Worker directly, merge and verify Cloudflare Pages and exact live frontend bytes. Keep real signed-in behavior separate.",
+      "status": "needs_verification",
+      "summary": "Published four-view Owner workspace: Home, Business, Customers and System. The operational read model and shared source-controlled memory are live. Real signed-in Owner behavior remains unobserved.",
+      "nextAction": "Observe authenticated Home/Business/Customers/System navigation, private customer drilldown and live attention using an existing owner session. Reuse passing source/fixture evidence unless the relevant input changes.",
       "baselineSha": "0cb72cbce8a5da018537bbb4cad818cbe0ecf020",
-      "reviewedSha": null,
+      "reviewedSha": "b8d5a03ec7e505d90d9524fd36894668dbef5217",
       "branch": "feat/owner-operational-workspace-20261106",
       "files": [
         "lab/owner.html",
@@ -245,36 +245,36 @@
       ],
       "tests": [
         {
+          "label": "Final-source Owner CI",
+          "result": "passed",
+          "scope": "37 Node tests and seven browser widths 320/375/390/430/768/1280/1792, including private review, routing/back, periods, memory, safe text, unknown data and no overflow.",
+          "observedAt": "2026-11-06T13:31:13.683Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42225028929"
+        },
+        {
           "label": "Worker, promotions and generation finance",
           "result": "passed",
-          "scope": "139 isolated tests on candidate; preserves auth, quotes, billing, History, references and idempotency. No production generation.",
-          "observedAt": "2026-11-06T13:14:07Z"
+          "scope": "139 isolated tests preserve existing models, image tools, private History/archive, reusable references, explicit confirmation, concurrency and idempotent billing; no paid production requests.",
+          "observedAt": "2026-11-06",
+          "source": "tests/lab-worker.test.mjs"
         },
         {
-          "label": "Owner privacy, providers, traffic and auth",
+          "label": "Existing Owner/privacy/provider/traffic checks",
           "result": "passed",
-          "scope": "22 existing tests, isolated fixtures.",
-          "observedAt": "2026-11-06T13:14:07Z"
-        },
-        {
-          "label": "Operations backend and UI",
-          "result": "passed",
-          "scope": "11 tests: owner-only read model, unavailable data, bounded lists, session isolation, single-flight/cache and health flag.",
-          "observedAt": "2026-11-06T13:14:07Z"
-        },
-        {
-          "label": "Routing, shared memory and approved Image contract",
-          "result": "passed",
-          "scope": "15 tests; seven-width browser run pending CI.",
-          "observedAt": "2026-11-06T13:14:07Z"
+          "scope": "22 isolated tests; existing private media and promotional review permissions retained.",
+          "observedAt": "2026-11-06",
+          "source": "tests/lab-owner-quality-review.test.mjs"
         }
       ],
       "deployment": {
-        "state": "pending",
-        "sourceSha": null,
-        "environment": "Existing Cloudflare Worker and Cloudflare Pages pvlab-studio",
+        "state": "verified",
+        "sourceSha": "8a1b1b69e0cfb8b3713f6f8f33a562441ef55e38",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio and Cloudflare Worker parallel-vision-lab",
+        "observedAt": "2026-11-06T13:31:13.683Z",
+        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/6bbc3c1c-a201-446d-a861-d73be8cfcdd1",
         "limitations": [
-          "No publication or signed-in production behavior is claimed for this work."
+          "Publication verified; real signed-in Owner behavior is not independently observed.",
+          "GitHub Pages is a separate destination and is not used as pvlab.studio evidence."
         ]
       },
       "evidence": [
@@ -287,26 +287,78 @@
           "limitations": [
             "Not an audit of private live account data."
           ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "PR #867 merge8a1b1b6; exact-merge Cloudflare Pages app check127918404711 succeeded. Deployment6bbc3c1c-a201-446d-a861-d73be8cfcdd1.",
+          "scope": "Production frontend publication, not a signed-in customer journey.",
+          "observedAt": "2026-11-06T13:31:13.683Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/867",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Owner HTML references operations1. Exact JS/CSS hashes6c90d0508df882df1e07db6e492402c3cfaab4b28dbd21c0ee7f1cea815d0728 and e63ba38afe8a2133ab19a308ff7b6cbf3c546e8851a08dbcce643cefa9f7962f matched source; all three imported UI modules and work JSON also matched.",
+          "scope": "Independent custom-domain asset-byte verification using exact Cloudflare app/project/commit evidence.",
+          "observedAt": "2026-11-06T13:31:13.683Z",
+          "source": "https://pvlab.studio/owner",
+          "limitations": [
+            "No authenticated production session was available for this observation."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "Direct Worker versiona9d78a2f-8d1c-4cc0-b174-2ead4704aaf7 / deployment85929d4d-2f64-47e1-a0f6-6b5add2017a0. All79 deployed modules matched reviewed transport hashes and all33 bindings were inherited.",
+          "scope": "Worker source parity and binding-name/type preservation. Version metadata records source150ea88d; backend code is unchanged at final reviewed source.",
+          "observedAt": "2026-11-06T13:23:56.094Z",
+          "source": "lab-worker/worker.mjs",
+          "limitations": [
+            "Two browser cache-query import markers were normalized for unbundled ES-module transport; original source bodies otherwise retained.",
+            "No migration or script-level schedule/observability change."
+          ]
+        },
+        {
+          "kind": "production_health",
+          "summary": "Public health returned200 and operations owner-operations-v1; unauthenticated operations returned401. All four read-model queries succeeded against live LAB_DB with zero writes.",
+          "scope": "Liveness, unauthenticated rejection and live schema/read compatibility through Cloudflare admin API. No private identifiers or counts are copied here.",
+          "observedAt": "2026-11-06",
+          "source": "https://parallel-vision-lab.parallelvision.workers.dev/health",
+          "limitations": [
+            "Direct database reads are not an authenticated HTTP Owner observation.",
+            "Does not prove provider availability, cron execution or a paid generation."
+          ]
+        },
+        {
+          "kind": "documented",
+          "summary": "Broad Node CI has exactly the same five failures as baseline0cb72cb. Gallery, Trial and Partner failures are unchanged fixtures/source expectations; no gate disabled.",
+          "scope": "Baseline comparison and source parity, separate from passing scoped Owner and Worker checks.",
+          "observedAt": "2026-11-06",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42225028969",
+          "limitations": [
+            "Gallery baseline job was cancelled; classification uses unchanged inputs and prior checkpoint, not a fresh baseline execution."
+          ]
         }
       ],
-      "blockers": [],
+      "blockers": [
+        "Independent signed-in production observation remains to be recorded."
+      ],
       "doNotRepeat": [
         "Read this record and compare the baseline/current main delta before investigating again.",
         "Reuse existing authenticated APIs and ledgers; no imported duplicate event database.",
         "No paid generations, real payments or campaign changes.",
         "A deployed frontend asset is not proof of signed-in behavior or Worker readiness."
       ],
-      "updatedAt": "2026-11-06T13:14:07Z"
+      "updatedAt": "2026-11-06T13:31:13.683Z"
     },
     {
       "id": "worker-release-policy",
       "title": "Keep Worker publication manual",
       "component": "Worker release",
-      "status": "in_progress",
-      "summary": "Candidate removes the push trigger. Worker Actions is workflow_dispatch only; direct Cloudflare remains the working publication route.",
-      "nextAction": "Verify merged workflow policy and record direct Worker deployment/version, health and preserved bindings.",
+      "status": "deployed",
+      "summary": "Worker Actions is workflow_dispatch only while CLOUDFLARE_API_TOKEN is unavailable. Direct Cloudflare publication is working and independently read back.",
+      "nextAction": "Keep automatic Worker deployment paused. Preserve bindings and runtime settings; compare the deployed version/source before a later direct release.",
       "baselineSha": "0cb72cbce8a5da018537bbb4cad818cbe0ecf020",
-      "reviewedSha": null,
+      "reviewedSha": "b8d5a03ec7e505d90d9524fd36894668dbef5217",
       "branch": "feat/owner-operational-workspace-20261106",
       "files": [
         ".github/workflows/deploy-lab-worker.yml",
@@ -332,12 +384,13 @@
         }
       ],
       "deployment": {
-        "state": "pending",
-        "sourceSha": null,
-        "environment": "Cloudflare Worker parallel-vision-lab",
+        "state": "verified",
+        "sourceSha": "8a1b1b69e0cfb8b3713f6f8f33a562441ef55e38",
+        "environment": "Merged Worker release policy and direct Cloudflare Worker",
+        "observedAt": "2026-11-06T13:31:13.683Z",
         "limitations": [
-          "Token availability has not been independently checked.",
-          "Public /health version does not prove SHA, bindings, migrations or module parity."
+          "Availability of the GitHub token was not independently inspected; the user constraint remains in force.",
+          "Public health alone does not prove full functional readiness."
         ]
       },
       "evidence": [
@@ -368,6 +421,16 @@
           "limitations": [
             "Recheck latest version and settings immediately before staging; stop on drift."
           ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "Merged policy contains only workflow_dispatch. Direct deployment85929d4d-2f64-47e1-a0f6-6b5add2017a0 serves versiona9d78a2f-8d1c-4cc0-b174-2ead4704aaf7 with fetch/scheduled handlers and33 inherited bindings.",
+          "scope": "Repository trigger policy and independent Cloudflare control-plane readback.",
+          "observedAt": "2026-11-06T13:31:13.683Z",
+          "source": ".github/workflows/deploy-lab-worker.yml",
+          "limitations": [
+            "No automatic Worker Actions deployment was invoked."
+          ]
         }
       ],
       "blockers": [],
@@ -375,7 +438,7 @@
         "Do not infer Worker deployment from a frontend merge or GitHub Pages success.",
         "Do not run paid generations or training to verify deployment."
       ],
-      "updatedAt": "2026-11-06T13:14:07Z"
+      "updatedAt": "2026-11-06T13:31:13.683Z"
     }
   ]
 }
