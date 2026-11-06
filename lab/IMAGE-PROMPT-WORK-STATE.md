@@ -1,3 +1,15 @@
+## 2026-11-06 | Long desktop prompt and Inspiration card clearance
+
+- Owner references: image(20261106-200556).png and image(20261106-200657).png. Main baseline `24d2b96d4c1b171edfd431f840aa73bcc1f366eb`; isolated branch `fix/image-prompt-deck-clearance-20261106`.
+- Confirmed source cause: fixed welcome-card allowance does not follow the fixed deck as long text expands upward. Earlier desktop top/width locking and mobile fixes did not add measured desktop card clearance.
+- Desktop standard Image and guest prompt text: 14px → 13px. Bounded prompt height: 176px → 136px. Native/phone text and phone caps retain their existing rules.
+- Presentation controller measures the actual deck top after sizing. Desktop welcome cards move upward into spare heading space, retaining their original images and widths; only when the viewport cannot accommodate them does their height reduce. The full card bottom, including the name, keeps a 16px gap. Navigation bounds remain protected.
+- Observe both actual deck sizes so photos and asynchronous fitting also recalculate. Clear the adjustment on leaving desktop/welcome. History bottom padding follows the actual deck reserve so its final row can scroll above the editor.
+- Existing model, toolbar, Generate geometry, text, Base/Character/reference controls, prices, credits and provider submission are preserved.
+- Local approved Image contract: 5 passed. Syntax and diff checks passed. Browser launch is blocked locally by Chromium socket permission; required prompt-paste, first-image and Studio-layout suites attempted, with CI browser validation pending. No paid generation or payment used.
+- Regression extends the existing paste browser suite: public / signed-in Inspiration / History, 1920×900, 1440×900, 1280×720, long text, photos, clear and crossing the phone breakpoint. Checks text preservation, 13px type, bounded prompt, card gap, navigation and visible Generate. Existing phone paste cases remain.
+- Production: not merged or deployed. Require passing affected browser checks, then exact Cloudflare Pages result, custom-domain asset bytes and rendered behavior before claiming live. Existing unrelated first-image backdrop expectation predates this change.
+
 ## 2026-11-04 | Urgent correction: preserve locked iPhone Image viewport
 
 - Owner clarified the approved signed-in iPhone composition has a locked page, fixed editor/Generate, full portrait cards and no downward page reflow. Embedded-browser screenshots prove PR #830 wrongly made the composer position:relative; browser chrome covered Generate as it moved with scroll.

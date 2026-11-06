@@ -1960,7 +1960,7 @@ function fitImageComposerPrompt(){
   const viewport=window.visualViewport?.height||window.innerHeight;
   // Expand pasted direction until the bounded scroll height. Seedream must not
   // collapse to a single 56px line on desktop.
-  const maximum=Math.max(minimum,Math.min(narrow?122:176,Math.floor(viewport*(short ? 0.21 : narrow ? 0.22 : 0.25))));
+  const maximum=Math.max(minimum,Math.min(narrow?122:136,Math.floor(viewport*(short ? 0.21 : narrow ? 0.22 : 0.25))));
   const previousScroll=textbox.scrollTop;
   const top=imageComposer.querySelector('.image-composer-top');
   top.style.removeProperty('min-height');
