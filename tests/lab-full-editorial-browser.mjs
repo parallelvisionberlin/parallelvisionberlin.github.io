@@ -234,11 +234,20 @@ try{
    const cards=Array.from(root.querySelectorAll('[data-cast-composition]'));
    const rects=cards.map(card=>card.getBoundingClientRect());
    const firstImg=cards[0].querySelector('.editorial-composition-art img');
-   return {heights:rects.map(r=>r.height),tops:rects.map(r=>r.top),
+   return {heights:rects.map(r=>r.height),widths:rects.map(r=>r.width),tops:rects.map(r=>r.top),
+    shelfWidth:root.getBoundingClientRect().width,
+    photosPosition:getComputedStyle(firstImg.parentElement).position,
+    copyPosition:getComputedStyle(cards[0].querySelector('.editorial-composition-copy')).position,
     columns:getComputedStyle(root.querySelector('.editorial-composition-grid')).gridTemplateColumns,
     filter:getComputedStyle(firstImg).filter};
   });
   assert.ok(compositionLayout.heights.every(h=>Math.abs(h-(width>800?132:146))<2),'Three compact photographic Composition cards');
+  assert.equal(compositionLayout.photosPosition,'absolute','Composition images fill their cards instead of flowing into columns');
+  assert.equal(compositionLayout.copyPosition,'absolute','Composition labels overlay photographs');
+  if(width>800){
+   assert.ok(compositionLayout.shelfWidth>1100,'Composition uses full editorial width, not obsolete 650px form: '+JSON.stringify(compositionLayout));
+   assert.ok(compositionLayout.widths.every(w=>w>185),'Three balanced Composition options, no narrow image strips: '+JSON.stringify(compositionLayout));
+  }
   if(width>800)assert.ok(compositionLayout.tops.every(t=>Math.abs(t-compositionLayout.tops[0])<1),'Desktop choices share one row');
   assert.match(compositionLayout.filter,/brightness\(0\.83\)/,'Composition photos are brighter');
   assert.equal(await page.locator('[data-cast-composition="mixed"]').isEnabled(),true,'Second model enables composition');
