@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T21:08:44Z",
+  "updatedAt": "2026-11-06T22:28:00Z",
   "handoffs": [
     {
       "id": "owner",
@@ -690,6 +690,66 @@
         "Preserve approved phone viewport, card images and generation controls."
       ],
       "updatedAt": "2026-11-06T20:55:35.186Z"
+    },
+    {
+      "id": "mood-atlas-stable-flow",
+      "title": "Stable Mood Atlas window",
+      "component": "Mood Atlas photobooth",
+      "status": "needs_verification",
+      "summary": "One photographic frame across source upload, generation, result, Make another and Remove photo. Delayed wait guidance reserves its space. Browser/release checks pending.",
+      "nextAction": "Run focused browser CI and inspect desktop/phone captures; publish reviewed source and verify custom-domain assets.",
+      "baselineSha": "519d9fad57af01fcf836203d24f54e150a3d9455",
+      "reviewedSha": null,
+      "branch": "fix/mood-atlas-stable-flow-20261106",
+      "files": [
+        "lab/explore-moods-photobooth.css",
+        "lab/explore-moods-nav.css",
+        "lab/explore-moods.js",
+        "lab/moods.html",
+        "tests/lab-explore-generation.mjs",
+        "lab/MOODS-FLOW-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Scoped checkpoint",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/MOODS-FLOW-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI and handoff",
+          "result": "passed",
+          "scope": "Existing 5 approved Image checks and 3 Mood handoff checks; JavaScript syntax and whitespace pass."
+        },
+        {
+          "label": "Stable frame browser",
+          "result": "not_run",
+          "scope": "New desktop/phone/small and 45-second virtual wait regression in the existing Explore suite."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "sourceSha": null,
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "No paid generation or real signed-in session was performed."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Upload used photobooth shell while result fell back to older geometry; hidden wait note changed loader copy height.",
+          "scope": "Source audit and owner supplied screenshots.",
+          "source": "lab/MOODS-FLOW-WORK-STATE.md",
+          "limitations": []
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "No paid generation is required for this layout fix.",
+        "Preserve existing pricing, providers, photo assets, quote/submit and approved credit offers."
+      ],
+      "updatedAt": "2026-11-06T22:28:00Z"
     }
   ]
 }

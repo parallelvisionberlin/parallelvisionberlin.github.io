@@ -1,9 +1,7 @@
-/* Owner-approved Explore Moods photobooth. Editor only; result and billing flow stay shared. */
+/* One photographic frame for upload, processing and result. Credit offers retain their own layout. */
 .mc-photobooth-header{display:none}
 #mc-look-dialog.mc-photobooth .mc-look-prompt[hidden]{display:none!important}
-#mc-look-dialog.mc-photobooth.is-result-view .mc-photobooth-heading{display:contents}
-#mc-look-dialog.mc-photobooth.is-result-view .mc-look-close{position:absolute!important;z-index:10!important;top:18px!important;right:18px!important}
-#mc-look-dialog.mc-photobooth:not(.is-result-view)[open]{
+#mc-look-dialog.mc-photobooth:not(.is-credit-offer)[open]{
  container-type:inline-size;box-sizing:border-box!important;
  display:block!important;position:fixed!important;inset:0!important;
  width:min(1000px,calc(100vw - 64px),calc((100dvh - 80px)*1.19))!important;
@@ -15,55 +13,55 @@
  box-shadow:0 30px 110px #0009!important;
 }
 #mc-look-dialog.mc-photobooth::backdrop{background:rgba(9,9,9,.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-#mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-photobooth-header{
+#mc-look-dialog.mc-photobooth:not(.is-credit-offer) .mc-photobooth-header{
  display:flex;align-items:center;position:absolute;inset:0 0 auto;z-index:4;
  height:10.8%;padding:0 10.4% 0 3.4%;gap:18px;pointer-events:none;
 }
 .mc-photobooth-brand{font:550 clamp(14px,2.5cqw,24px)/1 'DM Sans',Arial,sans-serif;letter-spacing:-.065em}
 .mc-photobooth-header img{display:none}
 .mc-photobooth-section{margin-left:auto;font:500 clamp(7px,1cqw,10px)/1 'DM Sans',Arial,sans-serif;letter-spacing:.14em}
-#mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-look-close{
+#mc-look-dialog.mc-photobooth:not(.is-credit-offer) .mc-look-close{
  position:absolute!important;inset:2.1% 2.5% auto auto!important;z-index:6!important;
  width:44px!important;height:44px!important;min-height:44px!important;
  border:0!important;background:transparent!important;color:#a5adb5!important;
  padding:0!important;border-radius:5px!important;font:300 27px/1 'DM Sans',Arial,sans-serif!important;
 }
-#mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-look-dialog-media{
+#mc-look-dialog.mc-photobooth:not(.is-credit-offer) .mc-look-dialog-media{
  position:absolute!important;inset:0 auto 0 0!important;width:60%!important;
  height:100%!important;min-height:0!important;margin:0!important;border:0!important;
  border-radius:0!important;overflow:hidden!important;background:#101214!important;
 }
-#mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-look-dialog-media img{
+#mc-look-dialog.mc-photobooth:not(.is-credit-offer) .mc-look-dialog-media img{
  display:block!important;position:absolute!important;inset:0!important;
  width:100%!important;height:100%!important;object-fit:cover!important;
  object-position:50% 35%;filter:none!important;transform:scale(1.15)!important;opacity:1!important;
 }
-#mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-look-dialog-media::after{
+#mc-look-dialog.mc-photobooth:not(.is-credit-offer) .mc-look-dialog-media::after{
  content:"";position:absolute;inset:0;pointer-events:none;
  background:linear-gradient(90deg,transparent 40%,#0d101400 60%,#0d1014 100%),linear-gradient(0deg,#0d10147d,transparent 45%);
 }
-#mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-look-dialog-body{
+#mc-look-dialog.mc-photobooth:not(.is-credit-offer) .mc-look-dialog-body{
  position:absolute!important;inset:13.6% 3.6% 4% 49%!important;
  display:flex!important;flex-direction:column!important;width:auto!important;
  min-height:0!important;max-height:none!important;margin:0!important;
  padding:0!important;gap:0!important;overflow:visible!important;background:none!important;
 }
-#mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-photobooth-heading{
+#mc-look-dialog.mc-photobooth:not(.is-credit-offer) .mc-photobooth-heading{
  position:absolute;left:calc(-96.2%);bottom:5%;width:87%;z-index:2;
  pointer-events:none;
 }
-#mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-look-dialog-eyebrow{
+#mc-look-dialog.mc-photobooth:not(.is-credit-offer) .mc-look-dialog-eyebrow{
  display:block!important;margin:0 0 3cqw!important;
  font:500 clamp(7px,1cqw,10px)/1.3 'DM Sans',Arial,sans-serif!important;
  color:#d0d5db!important;letter-spacing:.16em!important;
 }
-#mc-look-dialog.mc-photobooth:not(.is-result-view) #mc-look-title{
+#mc-look-dialog.mc-photobooth:not(.is-credit-offer) #mc-look-title{
  max-width:70%!important;margin:0!important;padding:0!important;
  font:300 clamp(30px,8.7cqw,87px)/.99 'DM Sans',Arial,sans-serif!important;
  letter-spacing:-.075em!important;color:#f3f3f1!important;text-wrap:balance;overflow-wrap:normal;
 }
-#mc-look-dialog.mc-photobooth:not(.is-result-view) #mc-look-title::after{content:"."}
-#mc-look-dialog.mc-photobooth:not(.is-result-view) #mc-look-description{
+#mc-look-dialog.mc-photobooth:not(.is-credit-offer) #mc-look-title::after{content:"."}
+#mc-look-dialog.mc-photobooth:not(.is-credit-offer) #mc-look-description{
  margin:2.6cqw 0 0!important;max-width:95%!important;
  font:400 clamp(10px,1.35cqw,13px)/1.5 'DM Sans',Arial,sans-serif!important;
  color:#d7dbe0!important;
@@ -276,3 +274,54 @@
  #mc-look-dialog.mc-photobooth:not(.is-result-view) #mc-look-continue{height:54px!important}
 }
 
+
+/* Result content replaces only the right-hand workspace, never the outer frame. */
+#mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) .mc-look-result{
+ display:flex;flex-direction:column;flex:1 1 0;min-height:0;height:100%;
+ max-height:none;margin:0;overflow:visible;transition:opacity .2s ease;
+}
+#mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) .mc-look-result-artwork{
+ display:grid;flex:1;min-height:0;grid-template-rows:28px minmax(0,1fr) 54px 18px 32px;gap:8px;
+}
+#mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) .mc-look-result-heading{
+ margin:0;padding:0;border:0;min-width:0;color:#bfc5cc;
+}
+#mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) .mc-look-result-frame{
+ height:auto;min-height:0;aspect-ratio:auto;width:100%;box-sizing:border-box;background:#101417;
+}
+#mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) .mc-look-result-actions{
+ display:grid;margin:0;min-height:0;
+}
+#mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) .mc-look-result-actions[hidden]{visibility:hidden}
+#mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) #mc-look-result-balance{
+ display:block;min-height:0;margin:0;font-size:10px;line-height:18px;
+}
+#mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) #mc-look-result-again{
+ display:block;min-height:0;margin:0;padding:6px;text-align:center;
+}
+#mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) :is(#mc-look-result-balance,#mc-look-result-again)[hidden]{visibility:hidden}
+/* Distinguish removing the source photo from closing the Mood window. */
+#mc-look-dialog.mc-photobooth:not(.is-result-view) #mc-look-file-clear{
+ display:flex;align-items:center;gap:6px;width:auto!important;height:36px!important;
+ padding:7px 10px!important;font:400 11px/1.2 'DM Sans',Arial,sans-serif;
+}
+#mc-look-dialog.mc-photobooth #mc-look-file-clear[hidden]{display:none!important}
+@media(max-width:600px){
+ #mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer)[open]{
+  height:var(--mc-editor-height)!important;overflow:hidden!important;
+ }
+ #mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) .mc-look-dialog-body{
+  height:calc(100% - clamp(144px,26dvh,220px) - 54px);box-sizing:border-box;
+ }
+ #mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) .mc-photobooth-heading{flex:none}
+ #mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) .mc-look-result-artwork{
+  grid-template-rows:22px minmax(0,1fr) 44px 14px 28px;gap:5px;
+ }
+ #mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) .mc-look-result-actions button{
+  min-height:44px;padding:6px;font-size:11px;
+ }
+ #mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) .mc-look-exposure-copy{bottom:10px;gap:4px}
+}
+@media(max-width:600px) and (max-height:740px){
+ #mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) .mc-look-dialog-body{height:calc(100% - 196px)}
+}

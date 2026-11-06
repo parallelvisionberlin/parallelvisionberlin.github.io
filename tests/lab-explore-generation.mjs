@@ -28,13 +28,13 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.
 const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||chromium.executablePath()});
 const accountSource=guest=>`const callbacks=[];const account={isSignedIn:${!guest},user:${guest?'null':"{id:'user_Test'}"},session:{id:'sess_Test',getToken:async()=> 'test.'+btoa(JSON.stringify({exp:Math.floor(Date.now()/1000)+120}))+'.fixture'},addListener(fn){callbacks.push(fn);fn(account);return()=>{}},openSignIn(){const button=document.createElement('button');button.id='mock-signin';button.textContent='Complete sign-in';button.style='position:fixed;inset:30%;z-index:999999;background:white;color:black';button.onclick=()=>{account.isSignedIn=true;account.user={id:'user_Test'};callbacks.forEach(fn=>fn(account));button.remove();};document.body.append(button);}};export async function loadLabAccount(){return account;}`;
 const scenarioFailures=[];
-try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobile','text','changed','failure','draft','studio','slowquote','saving','compact','phone','card-oversize','variant-swap','paused','review','catalogue-phone','catalogue-desktop']){
+try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobile','text','changed','failure','draft','studio','slowquote','saving','compact','phone','card-oversize','variant-swap','paused','review','catalogue-phone','catalogue-desktop','longwait']){
  const page=await browser.newPage({viewport:{
   width:scenario==='small'?320:['mobile','phone','catalogue-phone','zero-mobile'].includes(scenario)?390:scenario==='compact'?1280:1440,
   height:scenario==='small'?640:scenario==='compact'?720:scenario==='phone'?700:900
  }});
  try{
- let paid=0,quotes=0,uploads=0,jobStatusChecks=0,funded=false;const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ let paid=0,quotes=0,uploads=0,jobStatusChecks=0,funded=false,finishLongWait=false;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',async route=>{const req=route.request(),url=new URL(req.url());
   if(url.pathname==='/lab/native-account.js')return route.fulfill({contentType:'text/javascript',body:accountSource(scenario==='guest')});
   if(url.hostname==='parallel-vision-lab.parallelvision.workers.dev'){
@@ -64,6 +64,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobil
      return route.fulfill({status:200,contentType:'image/png',body:png});
    }
    if(url.pathname==='/api/jobs/job-test'&&req.method()==='GET'){
+     if(scenario==='longwait'&&!finishLongWait)return send({job:{id:'job-test',status:'running'}});
      if(scenario==='saving'&&++jobStatusChecks===1)return send({job:{id:'job-test',status:'saving'}});
      return send({job:{id:'job-test',status:'completed',outputId:'result-1'}});
    }
@@ -76,6 +77,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobil
   }
   if(url.hostname!=='127.0.0.1')return route.abort();return route.continue();
  });
+ if(scenario==='longwait')await page.clock.install();
  await page.goto(base+'/lab/moods');
  if(scenario.startsWith('catalogue-')){
   const ids=await page.locator('#mc-look-grid [data-mood-id]').evaluateAll(els=>els.map(el=>el.dataset.moodId));
@@ -193,7 +195,14 @@ try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobil
    continue;
  }
  await page.locator('[data-mood-id="hong-kong-nights"]').click();
- const editorHeight=await page.locator('#mc-look-dialog').evaluate(el=>el.getBoundingClientRect().height);
+ const editorBounds=await page.locator('#mc-look-dialog').boundingBox();
+ const editorArtwork=await page.locator('.mc-look-dialog-media').boundingBox();
+ const editorHeight=editorBounds.height;
+ const assertStable=async stage=>{
+  if(scenario.startsWith('zero')||['paused','review'].includes(scenario))return;
+  const current=await page.locator('#mc-look-dialog').boundingBox();
+  for(const key of ['x','y','width','height'])assert.ok(Math.abs(current[key]-editorBounds[key])<2,scenario+': '+stage+' retains '+key+' '+JSON.stringify({editorBounds,current}));
+ };
  const button=page.locator('#mc-look-continue');assert.equal(await button.textContent(),'Generate');assert.equal(await button.isDisabled(),true);assert.equal(paid,0);assert.equal(quotes,0);
  if(scenario==='text'){
   assert.equal(await page.locator('#mc-look-direction').isVisible(),false);
@@ -321,7 +330,8 @@ try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobil
      await page.screenshot({path:out+'/preparing-photo-matte-phone.png',fullPage:false});
    }
    assert.equal(await page.locator('#mc-look-dialog').getAttribute('class'), 'mc-look-dialog mc-photobooth is-result-view',
-     'Generation should switch to a compact result view, not append underneath the full form');
+     'Generation replaces the editor workspace inside the same photographic frame');
+   await assertStable('preparation');
    assert.equal(await page.locator('#mc-look-dropzone').isVisible(),false);
    assert.equal(await page.locator('.mc-look-prompt').isVisible(),false);
    assert.equal(await page.locator('.mc-look-dialog-actions').isVisible(),false);
@@ -361,8 +371,8 @@ try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobil
         });
         assert.ok(state.left>=15&&state.right>=15,
           scenario+': processing card keeps same horizontal framing '+JSON.stringify(state));
-        assert.ok(state.photoInset>=10&&state.photoHeight<=156,
-          scenario+': processing has matching inset Mood artwork');
+        assert.ok(state.photoInset<=2&&Math.abs(state.photoHeight-editorArtwork.height)<2,
+          scenario+': processing retains the full approved Mood artwork');
         assert.ok(state.closeTop>=state.photoTop&&state.closeBottom<=state.photoBottom+2,
           scenario+': processing close control overlays its photograph');
         assert.ok(state.resultBottom<=state.dialogBottom+2,
@@ -396,6 +406,19 @@ try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobil
      await page.screenshot({path:out+'/living-light-almost-ready.png'});
      assert.equal(paid,1,'Finalizing state never submits another generation');
    }
+   if(scenario==='longwait'){
+     await page.waitForFunction(()=>!document.querySelector('#mc-look-result-history').hidden);
+     const before=await page.locator('.mc-look-exposure-copy').boundingBox();
+     const frame=await page.locator('#mc-look-result-frame').boundingBox();
+     await page.clock.runFor(46000);
+     assert.equal(await page.locator('#mc-look-result-wait-note').isVisible(),true);
+     assert.deepEqual(await page.locator('.mc-look-exposure-copy').boundingBox(),before,'Wait guidance appears without moving the loading copy');
+     assert.deepEqual(await page.locator('#mc-look-result-frame').boundingBox(),frame,'Wait guidance leaves the photo frame fixed');
+     await assertStable('45-second wait message');
+     await page.screenshot({path:out+'/stable-long-wait.png'});
+     finishLongWait=true;
+     await page.clock.runFor(4000);
+   }
    if(scenario==='failure'){
      await page.waitForFunction(()=>document.querySelector('#mc-look-result-progress').textContent.includes('Not enough credits.'));
      assert.equal(paid,1,'One confirmed attempt, no automatic retry');
@@ -407,6 +430,8 @@ try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobil
    }else{
      await page.locator('#mc-look-result-image').waitFor({state:'visible'});
      await page.locator('#mc-look-result-actions').waitFor({state:'visible'});
+     await assertStable('completed result');
+     if(['desktop','mobile','small'].includes(scenario))await page.screenshot({path:out+'/stable-result-'+scenario+'.png'});
      assert.equal(paid,1,'One explicit click submits exactly one paid job');
      assert.equal(await page.locator('#mc-look-result-actions').isVisible(),true);
      assert.equal(await page.locator('#mc-look-result-wait-note').isVisible(),false,
@@ -424,8 +449,11 @@ try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobil
        assert.equal(await page.evaluate(()=>window.restoredFile),'pvlab-hong-kong-nights.png');
        assert.equal(paid,1,'Opening Studio never repeats a job');
      }else{
-       if(scenario==='desktop'){
+       if(['desktop','mobile','small'].includes(scenario)){
          await page.locator('#mc-look-result-again').click();
+         await assertStable('Make another');
+         assert.equal(await page.locator('#mc-look-file-preview').count(),1,'Make another retains the original source');
+         await page.screenshot({path:out+'/stable-another-'+scenario+'.png'});
          assert.equal(await page.locator('#mc-look-result').isVisible(),false,
            'Make another returns to the editor with no extra paid job');
          assert.equal(await page.locator('#mc-look-dropzone').isVisible(),true);
@@ -440,6 +468,8 @@ try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobil
          await remove.click();
          assert.equal(await page.locator('#mc-look-file-preview').count(),0);
          assert.equal(await button.isDisabled(),true);
+         await assertStable('Remove photo');
+         await page.screenshot({path:out+'/stable-empty-'+scenario+'.png'});
          assert.ok(Math.abs((await page.locator('#mc-look-dialog').evaluate(el=>el.getBoundingClientRect().height))-editorHeight)<2,
            'Removing the photo leaves the card dimensions untouched');
          assert.equal(paid,1,'Remove photo does not start another paid generation');

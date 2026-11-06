@@ -1,3 +1,20 @@
+## Stable Mood Atlas frame / 2026-11-06
+
+- Objective: preserve one responsive photobooth frame through upload, preparation, generation, result, Make another and source-photo removal.
+- User references: six screenshots image(20261106-210622/210701/210733/210844/210859/210912).png.
+- Baseline main: 519d9fad57af01fcf836203d24f54e150a3d9455.
+- Root cause: photobooth shell/artwork/headings excluded is-result-view; processing fell back to the older green result dialog. A display:none long-wait note also moved the loader copy.
+- Share the approved photographic shell, title, branding, close placement and artwork across editor/result. Form controls remain editor-only.
+- Desktop keeps the approved large frame. Phone retains its approved compact framing and measures editor height for the result workspace.
+- Reserve result actions/balance/repeat rows before completion. Reserve the delayed 45-second wait-note footprint; no new generation action or changed timer.
+- Make another retains the original source and requires explicit Generate. Source removal is visibly labelled Remove photo to distinguish it from the window close control.
+- Backend, provider, prices, credits, checkout, curated photos, prompts and existing insufficient-credit offer are untouched.
+- Files: explore-moods-photobooth.css, explore-moods-nav.css, explore-moods.js, moods.html; existing Explore browser/unit tests and CI.
+- Local: JavaScript syntax, whitespace, approved Image contract and Mood handoff checks pass. Sparse checkout omits Dream Blur assets; existing inline-return static assertions also predate approved navigation/upload sizes.
+- Added browser checks: frame position/width/height across preparation, completion, Make another and removal at desktop/phone/small widths; virtual 45-second wait note without moving copy/frame; one explicit job only.
+- Publication and browser QA pending. No paid generation or real-account mutation.
+- Next: run focused CI, inspect resulting desktop/phone screenshots, merge reviewed source and verify exact Cloudflare/custom-domain assets.
+
 ## Approved option A: no header bar / 2026-11-04
 
 - Owner approved option A from Dreamcore modal: two clean header options.png (libfile_b7ed24d4a4548191aa6cd5363831c600).

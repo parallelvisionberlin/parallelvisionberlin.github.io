@@ -75,6 +75,7 @@ function initialize(){
     resultURL=null;resultBlob=null;resultOutputId=null;
     result.hidden=true;result.classList.remove('is-visible');
     dialog.classList.remove('is-result-view');
+    dialog.style.removeProperty('--mc-editor-height');
     dialog.classList.remove('is-credit-offer');
     dialog.querySelector('.mc-photobooth-section').textContent='MOOD ATLAS';
     resultImg.hidden=true;resultImg.removeAttribute('src');resultActions.hidden=true;
@@ -88,6 +89,7 @@ function initialize(){
   function revealResult(){
     // The result replaces the form during preparation instead of being
     // stacked below it and clipped by the dialog's viewport height.
+    dialog.style.setProperty('--mc-editor-height',dialog.getBoundingClientRect().height+'px');
     dialog.classList.add('is-result-view');
     result.hidden=false;
     requestAnimationFrame(()=>result.classList.add('is-visible'));

@@ -102,7 +102,7 @@ test('Mood loading uses an accessible full-frame exposure and honest job states'
   assert.match(page,/id="mc-look-result-wait-note" hidden/);
   assert.doesNotMatch(page,/mc-look-exposure-arc/);
   assert.doesNotMatch(css,/mc-look-exposure-arc/);
-  assert.match(css,/#mc-look-result-wait-note\[hidden\]\{display:none\}/);
+  assert.match(css,/#mc-look-result-wait-note\[hidden\]\{display:block;visibility:hidden\}/);
   assert.match(js,/waitNoteTimer=setTimeout\(\(\)=>\{/);
   assert.match(js,/45000/);
   assert.match(js,/clearTimeout\(waitNoteTimer\)/);
