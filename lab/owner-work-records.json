@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T13:31:13.683Z",
+  "updatedAt": "2026-11-06T13:54:42Z",
   "handoffs": [
     {
       "id": "owner",
@@ -69,7 +69,7 @@
       "title": "Group partner dashboards",
       "component": "Owner navigation",
       "status": "deployed",
-      "summary": "Robin / König Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
+      "summary": "Robin / K\u00f6nig Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
       "nextAction": "No additional menu work is pending. Recheck only if navigation code, routes or role behavior change.",
       "baselineSha": "e400ff36ca7e6d541dfeb8d8748fc0357a0b6730",
       "reviewedSha": "9fc17771dd75bd3eeb4cd5bbdc77812945f98e1c",
@@ -146,7 +146,7 @@
       "title": "Use one Owner workspace",
       "component": "Owner access",
       "status": "deployed",
-      "summary": "Historical consolidation made /owner the single entry and redirected duplicate operational Sites. The subsequent four-view flow and live operations are recorded under owner-operational-workspace.",
+      "summary": "Historical consolidation made /owner the single entry and redirected duplicate operational Sites. Current presentation and continuity are tracked in owner-operational-workspace.",
       "nextAction": "Keep /owner as the single entry. Continue from owner-operational-workspace; do not rebuild the retired auxiliary Sites.",
       "baselineSha": null,
       "reviewedSha": "13304a12b8611138632bfa74a06520914211270a",
@@ -212,14 +212,14 @@
     },
     {
       "id": "owner-operational-workspace",
-      "title": "Make Owner useful for business and operational continuity",
+      "title": "Owner dashboard",
       "component": "Owner workspace",
-      "status": "needs_verification",
-      "summary": "Published four-view Owner workspace: Home, Business, Customers and System. The operational read model and shared source-controlled memory are live. Real signed-in Owner behavior remains unobserved.",
-      "nextAction": "Observe authenticated Home/Business/Customers/System navigation, private customer drilldown and live attention using an existing owner session. Reuse passing source/fixture evidence unless the relevant input changes.",
-      "baselineSha": "0cb72cbce8a5da018537bbb4cad818cbe0ecf020",
-      "reviewedSha": "b8d5a03ec7e505d90d9524fd36894668dbef5217",
-      "branch": "feat/owner-operational-workspace-20261106",
+      "status": "in_progress",
+      "summary": "Candidate revision: direct menu destinations, notifications outside Overview, one combined customer list, readable type and reference checklists behind a dialog.",
+      "nextAction": "Run scoped Owner browser CI, inspect its real desktop/mobile screenshots, publish the frontend and verify live bytes. Worker is unchanged.",
+      "baselineSha": "aea3dcd040e688150de576e09f6a001e2232c1d6",
+      "reviewedSha": null,
+      "branch": "fix/owner-clear-navigation-20261106",
       "files": [
         "lab/owner.html",
         "lab/owner.css",
@@ -227,11 +227,9 @@
         "lab/owner-workspace-ui.js",
         "lab/owner-operations-ui.js",
         "lab/owner-acquisition-ui.js",
-        "lab/owner-work-records.json",
-        "lab-worker/owner-operations.mjs",
-        "lab-worker/worker.mjs",
-        "scripts/owner-work-state.mjs",
-        "tests/lab-owner-mobile-browser.mjs"
+        "lab/owner-customers-ui.js",
+        "tests/lab-owner-mobile-browser.mjs",
+        "tests/lab-owner-customers-ui.test.mjs"
       ],
       "links": [
         {
@@ -245,36 +243,18 @@
       ],
       "tests": [
         {
-          "label": "Final-source Owner CI",
+          "label": "Scoped local checks",
           "result": "passed",
-          "scope": "37 Node tests and seven browser widths 320/375/390/430/768/1280/1792, including private review, routing/back, periods, memory, safe text, unknown data and no overflow.",
-          "observedAt": "2026-11-06T13:31:13.683Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42225028929"
-        },
-        {
-          "label": "Worker, promotions and generation finance",
-          "result": "passed",
-          "scope": "139 isolated tests preserve existing models, image tools, private History/archive, reusable references, explicit confirmation, concurrency and idempotent billing; no paid production requests.",
-          "observedAt": "2026-11-06",
-          "source": "tests/lab-worker.test.mjs"
-        },
-        {
-          "label": "Existing Owner/privacy/provider/traffic checks",
-          "result": "passed",
-          "scope": "22 isolated tests; existing private media and promotional review permissions retained.",
-          "observedAt": "2026-11-06",
-          "source": "tests/lab-owner-quality-review.test.mjs"
+          "scope": "47 routing/customer/auth/private-QA/provider/memory/Image-contract/UI checks. Seven-width browser run pending CI.",
+          "observedAt": "2026-11-06T13:54:42Z"
         }
       ],
       "deployment": {
-        "state": "verified",
-        "sourceSha": "8a1b1b69e0cfb8b3713f6f8f33a562441ef55e38",
-        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio and Cloudflare Worker parallel-vision-lab",
-        "observedAt": "2026-11-06T13:31:13.683Z",
-        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/6bbc3c1c-a201-446d-a861-d73be8cfcdd1",
+        "state": "pending",
+        "sourceSha": null,
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
         "limitations": [
-          "Publication verified; real signed-in Owner behavior is not independently observed.",
-          "GitHub Pages is a separate destination and is not used as pvlab.studio evidence."
+          "Prior publication receipts below describe the previous presentation. This revision has not yet been published."
         ]
       },
       "evidence": [
@@ -339,16 +319,17 @@
           ]
         }
       ],
-      "blockers": [
-        "Independent signed-in production observation remains to be recorded."
-      ],
+      "blockers": [],
       "doNotRepeat": [
         "Read this record and compare the baseline/current main delta before investigating again.",
         "Reuse existing authenticated APIs and ledgers; no imported duplicate event database.",
         "No paid generations, real payments or campaign changes.",
-        "A deployed frontend asset is not proof of signed-in behavior or Worker readiness."
+        "A deployed frontend asset is not proof of signed-in behavior or Worker readiness.",
+        "No Business parent page, no Overview attention block, no separate Directory/Lifetime usage screens, and no checklists laid out in the main deck.",
+        "Use direct destinations and one customer list. Keep detailed finance and IDs expandable, notifications in the header, and body text at least14px.",
+        "No Worker or billing change is needed for this presentation revision."
       ],
-      "updatedAt": "2026-11-06T13:31:13.683Z"
+      "updatedAt": "2026-11-06T13:54:42Z"
     },
     {
       "id": "worker-release-policy",

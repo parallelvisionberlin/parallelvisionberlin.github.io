@@ -12,18 +12,24 @@ function definition(parent,label,value){const group=text('div','');group.append(
 export function createOwnerOperationsUI({call,ownerReady,revision,openActivity,loadWorkRecords}={}){
   const $=id=>document.getElementById(id);
   let serial=0,recordSerial=0,lastSnapshotAt=0,snapshot=null,health=null,records=null,recordsPending=null,pending=null,filter='all';
-  const recordLoader=loadWorkRecords||(async()=>{const response=await fetch('./owner-work-records.json?v=20261106-operations1',{cache:'no-cache',credentials:'omit'});if(!response.ok)throw Error('Work memory unavailable');return response.json();});
+  const recordLoader=loadWorkRecords||(async()=>{const response=await fetch('./owner-work-records.json?v=20261106-clear2',{cache:'no-cache',credentials:'omit'});if(!response.ok)throw Error('Work memory unavailable');return response.json();});
   function renderHome(){
     const root=$('owner-home-attention-items');if(!root)return;root.replaceChildren();
-    if(!snapshot){root.append(text('p',ownerReady()?'System snapshot unavailable. Open System to retry.':'Available after owner verification.','owner-small'));return;}
-    const jobs=snapshot.jobs,settlements=snapshot.settlements;
-    const unresolved=jobs?.available?jobs.counts.uncertain+jobs.counts.stale:null;
-    const label=unresolved===null?'Job status unavailable':unresolved?'Uncertain or slow work: '+count(unresolved):'No uncertain or slow work in this snapshot';
-    const link=text('a',label);link.href='#owner-system';root.append(link);
-    if(jobs?.available&&jobs.counts.failed){const failure=text('a',count(jobs.counts.failed)+' failed jobs · last '+snapshot.window.days+' days');failure.href='#owner-system';root.append(failure);}
-    if(settlements?.available&&settlements.pending){const cost=text('a',count(settlements.pending)+' costs awaiting billing confirmation');cost.href='#owner-system';root.append(cost);}
-    if(records){const work=records.records.filter(r=>r.status!=='deployed');const link=text('a',count(work.length)+' work records open');link.href='#owner-work-section';root.append(link);}
-    root.append(text('small','System snapshot · '+date(snapshot.asOf)));
+    let updates=0;
+    const add=(label,href)=>{const link=text('a',label);link.href=href;root.append(link);updates++;};
+    if(!snapshot)root.append(text('p',ownerReady()?'Notifications are unavailable. Refresh to retry.':'Available after owner verification.','owner-small'));
+    else{
+      const jobs=snapshot.jobs,settlements=snapshot.settlements;
+      const unresolved=jobs?.available?jobs.counts.uncertain+jobs.counts.stale:null;
+      if(unresolved===null)add('Job status unavailable','#owner-system');
+      else if(unresolved)add(count(unresolved)+' jobs need a status check','#owner-system');
+      if(jobs?.available&&jobs.counts.failed)add(count(jobs.counts.failed)+' failed jobs in the last '+snapshot.window.days+' days','#owner-system');
+      if(settlements?.available&&settlements.pending)add(count(settlements.pending)+' costs awaiting confirmation','#owner-system');
+      if(records){const work=records.records.filter(r=>r.status==='needs_verification');if(work.length)add(count(work.length)+(work.length===1?' update needs verification':' updates need verification'),'#owner-work-section');}
+      if(!updates)root.append(text('p','No pending status checks.','owner-small'));
+      root.append(text('small','Checked '+date(snapshot.asOf)+'. Failed jobs may already have been refunded.'));
+    }
+    const badge=$('owner-notifications-count');if(badge){badge.textContent=updates?String(updates):'';badge.hidden=!updates;}
   }
   function itemList(root,items,{settlement=false}={}){
     if(!items?.length)return;
@@ -106,8 +112,9 @@ export function createOwnerOperationsUI({call,ownerReady,revision,openActivity,l
     finally{if(id===serial){button.disabled=false;pending=null;}}})();return pending;
   }
   function clear(){serial++;recordSerial++;snapshot=null;health=null;records=null;pending=null;recordsPending=null;lastSnapshotAt=0;
-    if($('owner-operations-status'))$('owner-operations-status').textContent='Available after owner verification.';if($('owner-work-status'))$('owner-work-status').textContent='Available after owner verification.';$('owner-operations-content')?.replaceChildren();$('owner-work-records')?.replaceChildren();$('owner-work-handoffs')?.replaceChildren();$('owner-home-attention-items')?.replaceChildren();if($('owner-operations-refresh'))$('owner-operations-refresh').disabled=false;
+    if($('owner-operations-status'))$('owner-operations-status').textContent='Available after owner verification.';if($('owner-work-status'))$('owner-work-status').textContent='Available after owner verification.';$('owner-operations-content')?.replaceChildren();$('owner-work-records')?.replaceChildren();$('owner-work-handoffs')?.replaceChildren();$('owner-home-attention-items')?.replaceChildren();if($('owner-notifications-count'))$('owner-notifications-count').hidden=true;if($('owner-operations-refresh'))$('owner-operations-refresh').disabled=false;
   }
+  $('owner-notifications-refresh')?.addEventListener('click',()=>void refresh({force:true}));
   $('owner-operations-refresh')?.addEventListener('click',()=>void refresh({force:true}));
   for(const button of document.querySelectorAll('[data-owner-work-state]'))button.addEventListener('click',()=>{filter=button.dataset.ownerWorkState;for(const b of document.querySelectorAll('[data-owner-work-state]'))b.setAttribute('aria-pressed',String(b===button));renderRecords();});
   return {refresh,loadRecords,clear};

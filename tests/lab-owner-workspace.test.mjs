@@ -6,14 +6,13 @@ const {resolveOwnerRoute}=await import('../lab/owner-workspace-ui.js');
 
 test('existing deep links retain their report while selecting its workspace',()=>{
   const expected=[
-    ['owner-traffic-section','business','traffic'],
-    ['owner-acquisition-section','business','conversion'],
-    ['owner-payments-section','business','payments'],
-    ['owner-providers-section','business','costs'],
-    ['owner-referrals-section','business','referrals'],
-    ['owner-vouchers-section','business','vouchers'],
-    ['owner-customers-section','customers','directory'],
-    ['owner-release-section','system','documentation']
+    ['owner-traffic-section','traffic','traffic'],
+    ['owner-acquisition-section','sales','sales'],
+    ['owner-payments-section','sales','sales'],
+    ['owner-providers-section','costs','costs'],
+    ['owner-referrals-section','promotions','promotions'],
+    ['owner-vouchers-section','promotions','promotions'],
+    ['owner-customers-section','customers','customers']
   ];
   for(const [section,view,tab] of expected)
     assert.deepEqual(resolveOwnerRoute('#'+section),{view,tab,section});
@@ -21,11 +20,12 @@ test('existing deep links retain their report while selecting its workspace',()=
 
 test('primary destinations have one explicit default report and customer usage stays with customers',()=>{
   assert.deepEqual(resolveOwnerRoute('#owner-overview'),{view:'home',tab:'home',section:'owner-overview'});
-  assert.deepEqual(resolveOwnerRoute('#owner-business'),{view:'business',tab:'conversion',section:'owner-acquisition-section'});
-  assert.deepEqual(resolveOwnerRoute('#owner-system'),{view:'system',tab:'attention',section:'owner-system-attention'});
+  assert.deepEqual(resolveOwnerRoute('#owner-business'),{view:'sales',tab:'sales',section:'owner-acquisition-section'});
+  assert.deepEqual(resolveOwnerRoute('#owner-system'),{view:'work',tab:'attention',section:'owner-work-section'});
   assert.deepEqual(resolveOwnerRoute('#owner-system-attention'),resolveOwnerRoute('#owner-system'));
-  assert.deepEqual(resolveOwnerRoute('#owner-work-section'),{view:'system',tab:'work',section:'owner-work-section'});
-  assert.deepEqual(resolveOwnerRoute('#owner-customer-usage'),{view:'customers',tab:'usage',section:'owner-customer-usage'});
+  assert.deepEqual(resolveOwnerRoute('#owner-work-section'),{view:'work',tab:'work',section:'owner-work-section'});
+  assert.deepEqual(resolveOwnerRoute('#owner-release-section'),{view:'work',tab:'reference',section:'owner-work-section'});
+  assert.deepEqual(resolveOwnerRoute('#owner-customer-usage'),{view:'customers',tab:'customers',section:'owner-customers-section'});
 });
 
 test('unknown and prototype-property hash values safely return Home',()=>{
@@ -36,7 +36,7 @@ test('unknown and prototype-property hash values safely return Home',()=>{
 test('resolved route records cannot mutate future navigation',()=>{
   const first=resolveOwnerRoute('#owner-payments-section');
   first.view='system';first.tab='attention';first.section='owner-work-section';
-  assert.deepEqual(resolveOwnerRoute('#owner-payments-section'),{view:'business',tab:'payments',section:'owner-payments-section'});
+  assert.deepEqual(resolveOwnerRoute('#owner-payments-section'),{view:'sales',tab:'sales',section:'owner-payments-section'});
 });
 
 test('every routed report exists exactly once in Owner HTML',async()=>{
@@ -47,4 +47,15 @@ test('every routed report exists exactly once in Owner HTML',async()=>{
     const {section}=resolveOwnerRoute('#'+hash);
     assert.equal((html.match(new RegExp('id="'+section+'"','g'))||[]).length,1,hash+' has one preserved destination');
   }
+});
+
+
+test('sidebar uses direct task labels and no second customer or Business navigation',async()=>{
+  const html=await readFile(new URL('../lab/owner.html',import.meta.url),'utf8');
+  const nav=html.match(/<nav class="owner-side-nav"[\s\S]*?<\/nav>/)?.[0]||'';
+  const labels=[...nav.matchAll(/<span>([^<]+)<\/span>/g)].map(m=>m[1]);
+  assert.deepEqual(labels,['Overview','Customers','Sales','Traffic','Costs','Promotions','Work log']);
+  assert.doesNotMatch(html,/id="owner-(?:business-nav|customer-nav|system-nav|customer-usage)"/);
+  assert.match(html,/id="owner-notifications-dialog"/);
+  assert.match(html,/id="owner-reference-dialog"/);
 });

@@ -1,3 +1,14 @@
+## Owner clarity revision, 2026-11-06
+- User rejected the Business parent, tiny text, Overview attention block, duplicate customer screens and technical manuals in the main page. This supersedes the previous four-view presentation, without removing tools or information.
+- Baseline aea3dcd040e688150de576e09f6a001e2232c1d6; branch fix/owner-clear-navigation-20261106. Canonical active record remains owner-operational-workspace in lab/owner-work-records.json; no second ledger.
+- Direct menu: Overview, Customers, Sales, Traffic, Costs, Promotions, Work log. Old hashes still resolve. Sales combines conversion and verified payments.
+- Header Notifications contains the former attention summary; job details and release checklists open native dialogs, never reserve space on Overview. Work log preserves evidence and reference links.
+- One searchable/paginated customer list merges lifetime usage by exact account ID. Full account, finance, checkout, review and subscription fields expand below each row. Missing/search usage loads only on explicit expansion, caches bounded pages and never invents zero. Existing private activity/review dialogs and server permissions unchanged.
+- Main labels and data14–16px, secondary metadata12px minimum, compact headers and no forced empty card heights. Archive/cost methodology remains in collapsed notes.
+- Scope is frontend only. Existing deployed Worker, authorization, billing, provider behavior, private History, models and live campaigns unchanged. No paid requests or customer mutations.
+- Local47 scoped checks passed. Seven-width browser CI and screenshot inspection pending, then normal Pages publication and live bytes.
+- Prior publication evidence below is historical and retained. Latest status is in the shared structured record.
+
 ## Operational Owner workspace, 2026-11-06
 - Status: frontend and Worker published; source/asset evidence verified. Real signed-in Owner behavior remains needs-verification in the shared task record.
 - PR #867. Reviewed head b8d5a03ec7e505d90d9524fd36894668dbef5217, merge8a1b1b69e0cfb8b3713f6f8f33a562441ef55e38. Baseline main0cb72cbce8a5da018537bbb4cad818cbe0ecf020; no unrelated product files changed.

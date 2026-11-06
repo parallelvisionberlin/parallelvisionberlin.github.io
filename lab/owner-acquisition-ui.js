@@ -1,21 +1,9 @@
 // Owner-only acquisition UI. Renders only text from the secure admin endpoint.
-import {renderOwnerPagination} from './owner-pagination.js?v=20261025-paged1';
-export function createOwnerAcquisitionUI({request,ownerReady,revision,days,formatDate,formatNumber,openActivity,openReview,mobileLabels}){
+export function createOwnerAcquisitionUI({request,ownerReady,revision,days,formatDate,formatNumber,openActivity,openReview,mobileLabels,onReport}){
   const $=id=>document.getElementById(id);
   const money=(value,symbol,multiplier=1)=>symbol+(Number(value||0)*multiplier)
     .toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const node=(tag,text,className)=>{
-    const item=document.createElement(tag);
-    item.textContent=String(text??'—');
-    if(className)item.className=className;
-    return item;
-  };
   let serial=0,page=1,lastDays=null;
-  const cell=(row,value,kind)=>{
-    const td=node('td',value,kind);
-    row.append(td);
-    return td;
-  };
   function paint(data){
     const s=data.summary||{},starts=Number(s.checkoutStarts)||0,paid=Number(s.checkoutPaid)||0;
     $('owner-acquisition-new').textContent=formatNumber(s.newUsers);
@@ -27,70 +15,13 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
     $('owner-acquisition-checkout-note').textContent=starts?
       paid+' paid / '+starts+' tracked sessions':'No tracked sessions yet';
     const dollar=String.fromCharCode(36);
-    $('owner-acquisition-summary').textContent='Last '+data.days+' days · '+
-      formatNumber(s.completedJobs)+' completed jobs · '+formatNumber(s.netCreditsSpent)+
-      ' net credits used. '+formatNumber(s.archivedJobs||0)+
-      ' finance records retained after creative deletion ('+
-      money(s.archivedExposureUsd,dollar)+' in retained exposure). Customer rows show lifetime usage.';
-    $('owner-acquisition-customers').closest('.owner-table-wrap').hidden=false;
-    const body=$('owner-acquisition-customers');
-    body.replaceChildren();
-    const customers=Array.isArray(data.customers)?data.customers:[];
-    if(!customers.length){
-      const tr=document.createElement('tr'),td=cell(tr,'No customer records yet.');
-      td.colSpan=9;body.append(tr);
-    }
-    for(const customer of customers){
-      const row=document.createElement('tr'),identity=document.createElement('td');
-      identity.append(node('strong',customer.accountClosed?'Closed account':customer.email||'Verified email pending','owner-acquisition-identity'));
-      identity.append(node('small',customer.id||'','owner-acquisition-subid'));
-      const button=node('button','View activity ↗','owner-acquisition-open');
-      button.type='button';
-      button.addEventListener('click',()=>openActivity(customer));
-      identity.append(button);
-      if(customer.promoHeld===true&&typeof openReview==='function'){
-        const reviewButton=node('button','Review generations ↗','owner-acquisition-review-button');
-        reviewButton.type='button';
-        reviewButton.setAttribute('aria-label','Review completed generated image previews for '+(customer.email||customer.id));
-        reviewButton.addEventListener('click',()=>openReview(customer));
-        identity.append(reviewButton);
-      }
-      row.append(identity);
-      cell(row,formatDate(customer.joinedAt));
-      cell(row,formatNumber(customer.completedJobs));
-      cell(row,customer.lastCompletedAt?new Date(Number(customer.lastCompletedAt)).toLocaleString('en-GB',
-        {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—');
-      cell(row,formatNumber(customer.creditsSpent));
-      const cost=cell(row,money(customer.providerExposureUsd,dollar));
-      const archivedCount=Number(customer.archivedJobs)||0;
-      if(archivedCount){
-        cost.append(node('small',formatNumber(archivedCount)+
-          (archivedCount===1?' archived record':' archived records'),'owner-acquisition-subid'));
-      }
-      cell(row,formatNumber(customer.checkoutStarts));
-      cell(row,money(customer.revenueCents,'€',.01));
-      const status=customer.accountClosed?'Closed account'
-        :customer.promoHeld?'Free generation paused'
-        :customer.reviewFlag==='disposable-email'?'Review temporary email'
-        :customer.reviewFlag==='unverified'?'Email not verified'
-        :Number(customer.revenueCents)>0?'Purchased'
-        :Number(customer.checkoutStarts)>0?'Checkout started · no payment recorded'
-        :Number(customer.completedJobs)>0?'Completed generations'
-        :Number(customer.creditsSpent)>0?'Credits consumed'
-        :'No completed jobs';
-      const review=cell(row,status,'owner-acquisition-review');
-      review.dataset.level=customer.reviewFlag?'review':'normal';
-      body.append(row);
-    }
-    renderOwnerPagination($('owner-acquisition-pagination'),{
-      ...data.pagination,
-      onPage:next=>{page=next;void refresh({scroll:true});}
-    });
+    $('owner-acquisition-summary').textContent='Last '+data.days+' days · '+formatNumber(s.completedJobs)+' completed generations · '+formatNumber(s.netCreditsSpent)+' credits used.';
+    $('owner-acquisition-archive-note').textContent=formatNumber(s.archivedJobs||0)+' financial records retained after creative deletion ('+money(s.archivedExposureUsd,dollar)+' in settled or estimated provider exposure).';
+    if(typeof onReport==='function')onReport(data);
     $('owner-acquisition-notes').textContent=(data.notes?.checkout||'')+' '+
       (data.notes?.cost||'')+' Returning visitors are not tracked by the anonymous meter.';
     $('owner-acquisition-content').hidden=false;
     $('owner-acquisition-status').textContent='';
-    $('owner-customer-usage-status').textContent='Lifetime usage · refreshed '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     mobileLabels();
   }
   async function refresh({scroll=false}={}){
@@ -99,8 +30,7 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
     if(lastDays!==selectedDays){page=1;lastDays=selectedDays;}
     const version=revision(),id=++serial,button=$('owner-acquisition-refresh');
     button.disabled=true;
-    $('owner-acquisition-status').textContent='Refreshing private business activity…';
-    $('owner-customer-usage-status').textContent='Refreshing lifetime activity…';
+    $('owner-acquisition-status').textContent='Reading sales…';
     try{
       let report=await request('/api/admin/acquisition?days='+selectedDays+'&page='+page);
       if(version!==revision()||id!==serial)return;
@@ -111,18 +41,16 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
         if(version!==revision()||id!==serial)return;
       }
       paint(report);
-      if(scroll)$('owner-customer-usage').scrollIntoView({block:'start'});
+      if(scroll)$('owner-acquisition-section').scrollIntoView({block:'start'});
     }catch(error){
       if(version!==revision()||id!==serial)return;
       $('owner-acquisition-content').hidden=true;
-      $('owner-acquisition-status').textContent='Unable to read business metrics: '+(error.message||'Retry.');
-      $('owner-customer-usage-status').textContent=$('owner-acquisition-status').textContent;
-      $('owner-acquisition-customers').closest('.owner-table-wrap').hidden=true;$('owner-acquisition-pagination').replaceChildren();
+      $('owner-acquisition-status').textContent='Sales figures unavailable: '+(error.message||'Retry.');
     }finally{
       if(version===revision()&&id===serial)button.disabled=false;
     }
   }
   $('owner-acquisition-refresh').addEventListener('click',()=>void refresh());
-  function clear(){$('owner-acquisition-refresh').disabled=false;serial++;page=1;lastDays=null;$('owner-acquisition-content').hidden=true;$('owner-acquisition-customers').replaceChildren();$('owner-acquisition-pagination').replaceChildren();$('owner-customer-usage-status').textContent='Available after owner verification.';}
+  function clear(){$('owner-acquisition-refresh').disabled=false;serial++;page=1;lastDays=null;$('owner-acquisition-content').hidden=true;}
   return {refresh,clear};
 }

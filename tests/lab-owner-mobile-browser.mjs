@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {readFile, mkdir} from 'node:fs/promises';
 const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
 const root=new URL('../lab/',import.meta.url);
-const [rawHtml,css,rawJs,rawProviderUi,rawAcquisitionUi,rawReviewUi,rawPaginationUi,rawPayoutUi,rawInspectUi,rawWorkspaceUi,rawOperationsUi]=await Promise.all([
+const [rawHtml,css,rawJs,rawProviderUi,rawAcquisitionUi,rawReviewUi,rawPaginationUi,rawPayoutUi,rawInspectUi,rawWorkspaceUi,rawOperationsUi,rawCustomersUi]=await Promise.all([
   readFile(new URL('owner.html',root),'utf8'),
   readFile(new URL('owner.css',root),'utf8'),
   readFile(new URL('owner.js',root),'utf8'),
@@ -15,7 +15,8 @@ const [rawHtml,css,rawJs,rawProviderUi,rawAcquisitionUi,rawReviewUi,rawPaginatio
   readFile(new URL('partner-payouts.js',root),'utf8'),
   readFile(new URL('owner-customer-inspection-ui.js',root),'utf8'),
   readFile(new URL('owner-workspace-ui.js',root),'utf8'),
-  readFile(new URL('owner-operations-ui.js',root),'utf8')
+  readFile(new URL('owner-operations-ui.js',root),'utf8'),
+  readFile(new URL('owner-customers-ui.js',root),'utf8')
 ]);
 // Run the real dashboard renderer with synthetic owner data, without authentication/network requests.
 const providerJs="const {createOwnerProviderUI,renderOwnerProviderFinances}=(()=>{"+
@@ -28,7 +29,8 @@ const inspectJs=rawInspectUi.replace(/^export /gm,'')+'\n';
 const payoutJs="const {createOwnerPayoutNotice}=(()=>{"+rawPayoutUi.replace(/^export /gm,'')+";return {createOwnerPayoutNotice};})();\n";
 const workspaceJs=rawWorkspaceUi.replace(/^import .*\n/gm,'').replace(/^export /gm,'')+'\n';
 const operationsJs=rawOperationsUi.replace(/^import .*\n/gm,'').replace(/^export /gm,'')+'\n';
-const runtimeJs=payoutJs+providerJs+paginationJs+acquisitionJs+reviewJs+inspectJs+workspaceJs+operationsJs+"const createSessionRequest=()=>async(...args)=>window.__ownerQaMedia?window.__ownerQaMedia(...args):({ok:false,json:async()=>({})});\n"+
+const customersJs="const {createOwnerCustomersUI}=(()=>{"+rawCustomersUi.replace(/^export /gm,'')+";return {createOwnerCustomersUI};})();\n";
+const runtimeJs=customersJs+payoutJs+providerJs+paginationJs+acquisitionJs+reviewJs+inspectJs+workspaceJs+operationsJs+"const createSessionRequest=()=>async(...args)=>window.__ownerQaMedia?window.__ownerQaMedia(...args):({ok:false,json:async()=>({})});\n"+
   rawJs.replace(/^import .*\n/gm,'').replace(/\ntry\{clerk=await loadLabAccount\(\);[\s\S]*$/,'');
 const html=rawHtml
   .replace(/<link\b[^>]*>/g,'')
@@ -66,6 +68,7 @@ try{
         const identity=profile;profile=null;workspace.route(hash);profile=identity;
       },hash);
       await page.evaluate(()=>{
+        profile={owner:true};
         render({
           summary:{accounts:3,payingCustomers:1,activeSubscriptions:1,voucherClaims:0,rewardedReferrals:0},
           customers:[
@@ -110,7 +113,7 @@ try{
       assert.match(await page.locator('#owner-provider-details').innerText(),/\$12\.34/,'Spicy balance shown once');
       assert.match(await page.locator('#owner-provider-details').innerText(),/Balance unavailable/,'Unknown balances are not zeros');
       assert.match(await page.locator('#owner-customer-liability').innerText(),/250 PV LAB credits/,'Customer units are separate');
-      assert.equal(await page.locator('#owner-business-nav a[href="#owner-providers-section"]').count(),1,'Providers remains a dedicated Business destination');
+      assert.equal(await page.locator('.owner-side-nav a[href="#owner-providers-section"]').count(),1,'Providers remains a dedicated Business destination');
       const partnerGroup=page.locator('.owner-side-bottom > details.owner-partners');
       assert.equal(await partnerGroup.count(),1,'One expandable Partners group replaces all three flat sidebar links');
       assert.equal(await page.locator('.owner-side-nav > a[data-owner-robin],.owner-side-bottom > a[data-owner-robin],.owner-side-bottom > a[data-owner-vitolas],.owner-side-bottom > a[data-owner-bellini]').count(),0,'Partner studios are not separate primary or utility navigation items');
@@ -152,7 +155,7 @@ try{
       assert.equal(await page.locator('#owner-traffic-signups').textContent(),'2');
       assert.equal(await page.locator('#owner-traffic-chart .owner-traffic-chart-column').count(),7);
       assert.ok((await page.locator('#owner-traffic-sources').innerText()).includes('Reddit'));
-      assert.equal(await page.locator('#owner-business-nav a[href="#owner-traffic-section"]').count(),1,'Traffic remains reachable within Business');
+      assert.equal(await page.locator('.owner-side-nav a[href="#owner-traffic-section"]').count(),1,'Traffic remains reachable within Business');
       assert.match(await page.locator('#owner-audience-empty').innerText(),/Earlier traffic totals have no location or device data/);
       assert.equal(await page.locator('#owner-audience-content').isVisible(),false,'One shared empty state replaces all empty panels');
       assert.equal(await page.locator('#owner-audience-metric').isEnabled(),false,'Empty audience has no active metric selector');
@@ -233,7 +236,7 @@ try{
               joinedAt:Date.UTC(2026,9,14),completedJobs:2,creditsSpent:100,
               providerExposureUsd:.15,archivedJobs:1,archivedExposureUsd:.15,
               reconstructedCompleted:1,checkoutStarts:1,revenueCents:1000,reviewFlag:''},
-            {id:'user_SuspectedTemporaryA',email:'temp@yournike.com',joinedAt:Date.UTC(2026,9,15),
+            {id:'user_earlier_creator',email:'model@example.com',joinedAt:Date.UTC(2026,9,15),
               completedJobs:1,creditsSpent:20,providerExposureUsd:.04,
               checkoutStarts:0,revenueCents:0,reviewFlag:'disposable-email',promoHeld:true}
           ],notes:{checkout:'Tracking begins with this release.',cost:'Provider costs are estimates.'}};
@@ -242,14 +245,23 @@ try{
       });
       assert.equal(await page.locator('#owner-acquisition-new').textContent(),'2');
       assert.equal(await page.locator('#owner-acquisition-revenue').textContent(),'€10.00');
-      assert.match(await page.locator('#owner-acquisition-summary').textContent(),/1 finance records retained/);
-      await show('#owner-customer-usage');
-      assert.match(await page.locator('#owner-acquisition-customers').innerText(),/1 archived record/);
-      assert.equal(await page.locator('#owner-acquisition-customers tr').count(),2,'Customer activity table is populated');
-      assert.match(await page.locator('#owner-acquisition-customers').innerText(),/Free generation paused/);
-      assert.equal(await page.locator('.owner-acquisition-review-button').count(),1,
-        'Only the active promotional hold shows a review control');
-      await page.locator('.owner-acquisition-review-button').click();
+      assert.match(await page.locator('#owner-acquisition-archive-note').textContent(),/1 financial records retained/);
+      await show('#owner-customers-section');
+      assert.equal(await page.locator('#owner-acquisition-customers').count(),0,'There is no duplicate customer report table');
+      assert.equal(await page.locator('#owner-customers .owner-customer-row-details').count(),3,'One customer list retains all accounts');
+      await page.locator('#owner-customers .owner-customer-row-details > summary').nth(0).click();
+      const firstUsage=page.locator('#owner-customers .owner-customer-usage-row').nth(0);
+      await firstUsage.waitFor({state:'visible'});
+      assert.match(await firstUsage.innerText(),/Archived finance records\s+1/,'Archived finance remains in the same account details');
+      for(const field of ['Current balance','Verified payments','Subscription','Last payment','Net credits used','Provider exposure','Checkout starts','Recorded gross receipts','Review flag','Promotional hold'])
+        assert.match(await firstUsage.innerText(),new RegExp(field),'Merged customer view retains '+field);
+      assert.match(await page.locator('#owner-customers tr').nth(2).innerText(),/Not loaded/,'An unmatched account never inherits another customer activity');
+      await page.locator('#owner-customers .owner-customer-row-details > summary').nth(2).click();
+      const heldUsage=page.locator('#owner-customers .owner-customer-usage-row').nth(2);
+      await heldUsage.waitFor({state:'visible'});
+      assert.match(await heldUsage.innerText(),/Free generation paused/);
+      assert.equal(await page.locator('.owner-customer-review-action').count(),1,'Only the active promotional hold shows a review control');
+      await page.locator('.owner-customer-review-action').click();
       await page.locator('#owner-generation-review-dialog').waitFor({state:'visible'});
       await page.locator('.owner-generation-review-placeholder').first().waitFor({state:'visible'});
       assert.match(await page.locator('#owner-generation-review-status').innerText(),/Review access is logged/);
@@ -356,58 +368,70 @@ try{
       assert.equal(await page.locator('#owner-recent-title').innerText(),'Latest subscribers.','Filter title is accurate');
       await page.locator('[data-recent-filter="all"]').click();
       assert.equal(await page.locator('#owner-recent-signups .owner-recent-item').count(),3,'All signups can be restored');
-      // Four workspaces replace one long document; legacy section URLs keep their destinations.
-      assert.equal(await page.locator('.owner-side-nav a[data-owner-nav]').count(),4,'Four primary destinations only');
+      // Direct destinations replace vague parent tabs; legacy URLs retain all data and actions.
+      assert.equal(await page.locator('.owner-side-nav a[data-owner-nav]').count(),7,'Seven direct task destinations');
       assert.deepEqual(await page.locator('.owner-side-nav a[data-owner-nav]').evaluateAll(links=>links.map(link=>link.textContent.trim())),
-        ['Home','Business','Customers','System'],'Primary labels remain consistent');
-      assert.equal(await page.locator('#owner-mobile-access').isVisible(),width<=920,'Mobile navigation replaces sidebar at the existing breakpoint');
-      assert.equal(await page.locator('#owner-release-section .owner-check-detail[open]').count(),0,'Documentation remains collapsed by default');
+        ['Overview','Customers','Sales','Traffic','Costs','Promotions','Work log'],'Primary labels describe their actual tasks');
+      assert.equal(await page.locator('#owner-mobile-access').isVisible(),width<=920,'Mobile navigation retains its established breakpoint');
+      assert.equal(await page.locator('#owner-business-nav,#owner-customer-nav,#owner-system-nav').count(),0,'No redundant parent or customer view toggles');
+      assert.equal(await page.locator('#owner-home-attention').count(),0,'Notifications are not repeated on Overview');
+      assert.equal(await page.locator('#owner-notifications-dialog #owner-home-attention-items').count(),1,'Notification source has one header-dialog location');
+      assert.equal(await page.locator('#owner-release-section').isVisible(),false,'Technical checklists stay out of the main page');
       for(const id of ['owner-traffic-section','owner-acquisition-section','owner-customers-section','owner-payments-section',
         'owner-referrals-section','owner-vouchers-section','owner-providers-section','owner-release-section'])
         assert.equal(await page.locator('#'+id).count(),1,'Every existing report/tool remains in the DOM');
       for(const [hash,view,section] of [
         ['#owner-overview','home','.owner-activity'],
-        ['#owner-traffic-section','business','#owner-traffic-section'],
-        ['#owner-acquisition-section','business','#owner-acquisition-section'],
-        ['#owner-payments-section','business','#owner-payments-section'],
-        ['#owner-providers-section','business','#owner-providers-section'],
-        ['#owner-referrals-section','business','#owner-referrals-section'],
-        ['#owner-vouchers-section','business','#owner-vouchers-section'],
+        ['#owner-traffic-section','traffic','#owner-traffic-section'],
+        ['#owner-acquisition-section','sales','#owner-acquisition-section'],
+        ['#owner-payments-section','sales','#owner-payments-section'],
+        ['#owner-providers-section','costs','#owner-providers-section'],
+        ['#owner-referrals-section','promotions','#owner-referrals-section'],
+        ['#owner-vouchers-section','promotions','#owner-vouchers-section'],
         ['#owner-customers-section','customers','#owner-customers-section'],
-        ['#owner-customer-usage','customers','#owner-customer-usage'],
-        ['#owner-system','system','#owner-system-attention'],
-        ['#owner-work-section','system','#owner-work-section'],
-        ['#owner-release-section','system','#owner-release-section']
+        ['#owner-customer-usage','customers','#owner-customers-section'],
+        ['#owner-work-section','work','#owner-work-section']
       ]){
         await show(hash);
-        assert.equal(await page.evaluate(()=>workspace.current().view),view,'Legacy and new hashes select the right workspace');
+        assert.equal(await page.evaluate(()=>workspace.current().view),view,'Legacy and new hashes select the right task');
         assert.equal(await page.locator(section).isVisible(),true,'Requested report remains visible: '+hash);
         const visible=await page.locator('[data-owner-view]').evaluateAll(nodes=>nodes.filter(n=>getComputedStyle(n).display!=='none').map(n=>n.dataset.ownerView));
-        assert.ok(visible.every(value=>value===view),'Other workspaces stay hidden: '+hash+' '+JSON.stringify(visible));
+        assert.ok(visible.every(value=>value===view),'Other task pages stay hidden: '+hash+' '+JSON.stringify(visible));
         const fit=await page.evaluate(()=>({html:document.documentElement.scrollWidth,body:document.body.scrollWidth,width:innerWidth}));
-        assert.ok(fit.html<=width+1&&fit.body<=width+1,'Each workspace fits '+width+'px: '+hash+' '+JSON.stringify(fit));
-        if(width<=430){
-          for(const card of await page.locator('.owner-table-wrap:visible').evaluateAll(nodes=>nodes.map(n=>({client:n.getBoundingClientRect().width,scroll:n.scrollWidth}))))
-            assert.ok(card.scroll<=card.client+1,'Visible mobile tables reflow within '+hash);
-        }
+        assert.ok(fit.html<=width+1&&fit.body<=width+1,'Each task page fits '+width+'px: '+hash+' '+JSON.stringify(fit));
+        if(width<=430)for(const card of await page.locator('.owner-table-wrap:visible').evaluateAll(nodes=>nodes.map(n=>({client:n.getBoundingClientRect().width,scroll:n.scrollWidth}))))
+          assert.ok(card.scroll<=card.client+1,'Visible mobile tables reflow within '+hash);
       }
-      // Programmatic hash changes and browser back use the same route; navigation is not just scrolling.
+      await show('#owner-acquisition-section');
+      assert.equal(await page.locator('#owner-payments-section').isVisible(),true,'Sales includes the existing verified payment ledger');
+      // Same-origin navigation and browser back retain task identity.
       await page.evaluate(()=>{profile=null;location.hash='owner-payments-section';});
-      await page.waitForFunction(()=>workspace.current().tab==='payments');
-      await page.evaluate(()=>{location.hash='owner-release-section';});
-      await page.waitForFunction(()=>workspace.current().tab==='documentation');
+      await page.waitForFunction(()=>workspace.current().view==='sales');
+      await page.evaluate(()=>{location.hash='owner-work-section';});
+      await page.waitForFunction(()=>workspace.current().view==='work');
       await page.goBack();
-      await page.waitForFunction(()=>workspace.current().tab==='payments');
-      assert.equal(await page.locator('#owner-payments-section').isVisible(),true,'Back restores the previous workspace');
+      await page.waitForFunction(()=>workspace.current().view==='sales');
+      assert.equal(await page.locator('#owner-payments-section').isVisible(),true,'Back restores Sales with the payment ledger');
       if(width<=920){
         await page.locator('#owner-mobile-access > summary').click();
-        await page.locator('.owner-jumpbar a[href="#owner-business"]').click();
-        await page.waitForFunction(()=>workspace.current().view==='business'&&workspace.current().tab==='conversion'&&location.hash==='#owner-business');
-        assert.equal(await page.locator('#owner-mobile-access').getAttribute('open'),null,'Mobile menu closes after selecting a workspace');
+        await page.locator('.owner-jumpbar a[href="#owner-traffic-section"]').click();
+        await page.waitForFunction(()=>workspace.current().view==='traffic'&&location.hash==='#owner-traffic-section');
+        assert.equal(await page.locator('#owner-mobile-access').getAttribute('open'),null,'Mobile menu closes after selecting a task');
       }else{
-        await page.locator('.owner-side-nav a[href="#owner-system"]').press('Enter');
-        await page.waitForFunction(()=>workspace.current().view==='system');
+        await page.locator('.owner-side-nav a[href="#owner-work-section"]').press('Enter');
+        await page.waitForFunction(()=>workspace.current().view==='work');
       }
+      // Checklists are a tool opened from Work log, not an always-present extra screen.
+      await show('#owner-work-section');
+      await page.evaluate(()=>{profile={owner:true};});
+      await page.locator('#owner-work-section [data-owner-open-dialog="owner-reference-dialog"]').click();
+      assert.equal(await page.locator('#owner-reference-dialog').isVisible(),true,'Release checklists remain accessible');
+      assert.equal(await page.locator('#owner-release-section .owner-check-detail[open]').count(),0,'Checklist details stay collapsed until requested');
+      await page.locator('[data-owner-close-dialog="owner-reference-dialog"]').click();
+      assert.equal(await page.locator('#owner-release-section').isVisible(),false,'Closing the tool hides the engineering material');
+      await page.evaluate(()=>workspace.route('#owner-release-section'));
+      assert.equal(await page.locator('#owner-reference-dialog').isVisible(),true,'Legacy checklist URL opens the same tool');
+      await page.locator('[data-owner-close-dialog="owner-reference-dialog"]').click();
       // Report periods are independent: changing conversion must never silently refresh Traffic.
       await page.evaluate(()=>{
         profile={owner:true};trafficDays=7;acquisitionDays=7;window.__periodReads=[];
@@ -447,7 +471,18 @@ try{
           await operationsUI.refresh({force:true});
           await operationsUI.loadRecords();
         });
-        await show('#owner-system');
+        await page.locator('#owner-notifications-toggle').click();
+        assert.equal(await page.locator('#owner-notifications-dialog').isVisible(),true,'Header opens the one notification list');
+        assert.match(await page.locator('#owner-home-attention-items').innerText(),/1 jobs? needs? a status check/);
+        assert.match(await page.locator('#owner-home-attention-items').innerText(),/1 failed job/);
+        assert.match(await page.locator('#owner-home-attention-items').innerText(),/1 update needs verification/);
+        await page.keyboard.press('Escape');
+        assert.equal(await page.locator('#owner-notifications-dialog').isVisible(),false,'Escape closes the native notifications dialog');
+        await page.locator('#owner-notifications-toggle').click();
+        await page.locator('[data-owner-close-dialog="owner-notifications-dialog"]').click();
+        assert.equal(await page.locator('#owner-notifications-dialog').isVisible(),false,'Notifications close without changing the selected page');
+        await page.evaluate(()=>workspace.route('#owner-system'));
+        assert.equal(await page.locator('#owner-system-dialog').isVisible(),true,'Old System URL opens job status details');
         assert.match(await page.locator('#owner-operations-content').innerText(),/Provider result uncertain/);
         assert.match(await page.locator('#owner-operations-content').innerText(),/Settlement source unavailable/,'Missing source is not shown as zero');
         assert.equal(await page.locator('#owner-operations-content button').filter({hasText:'View customer'}).count(),1,'Operational item leads to the existing customer profile');
@@ -456,6 +491,7 @@ try{
         assert.ok(reads.every(r=>r.method==='GET'),'System must not trigger a retry, generation or payment mutation');
         await page.evaluate(()=>operationsUI.refresh());
         assert.equal(await page.evaluate(()=>window.__opsReads.length),2,'Fresh snapshot is reused instead of repeating reads');
+        await page.locator('[data-owner-close-dialog="owner-system-dialog"]').click();
         await show('#owner-work-section');
         await page.locator('.owner-work-record > summary').click();
         assert.match(await page.locator('#owner-work-records').innerText(),/No production verification/);
@@ -474,10 +510,15 @@ try{
         sidebarVisible:getComputedStyle(document.querySelector('.owner-sidebar')).display!=='none',
         providerOverviewHidden:document.querySelector('.owner-balances-overview').hidden,
         firstLabel:document.querySelector('#owner-customers td')?.dataset.label||'',
-        signupsTop:document.querySelector('#owner-recent-signups').getBoundingClientRect().top
+        signupsTop:document.querySelector('#owner-recent-signups').getBoundingClientRect().top,
+        bodyFont:parseFloat(getComputedStyle(document.body).fontSize),
+        customerFont:parseFloat(getComputedStyle(document.querySelector('#owner-customers td')).fontSize),
+        introHidden:document.querySelector('#owner-view-intro').hidden
       }));
       assert.ok(dimensions.html<=width+1&&dimensions.body<=width+1,'Home fits viewport '+JSON.stringify(dimensions));
-      assert.equal(dimensions.firstLabel,'Email / account','Mobile rows retain accessible column headings');
+      assert.equal(dimensions.firstLabel,'Account','Mobile rows retain accessible column headings');
+      assert.ok(dimensions.bodyFont>=14&&dimensions.customerFont>=14,'Primary content remains readable: '+JSON.stringify(dimensions));
+      assert.equal(dimensions.introHidden,true,'Section headlines do not repeat descriptive paragraphs');
       assert.equal(dimensions.providerOverviewHidden,true,'Provider preview stays out of Home');
       assert.equal(dimensions.sidebarVisible,width>920,'Desktop sidebar retains tablet/mobile breakpoint');
       if(width>=1280)assert.ok(dimensions.signupsTop<790,'Recent signups remain visible in first desktop viewport');
@@ -516,7 +557,10 @@ try{
         assert.match(await page.locator('#owner-recent-signups').innerText(),/user_one@example.com/,'Synced verified email appears in Latest signups');
         assert.equal(await page.locator('#owner-sync-state').innerText(),'Verified emails available','Clerk status reflects verified result');
       }
+    }catch(error){
+      await page.screenshot({path:artifactDir+'/failure-'+width+'.png',fullPage:false}).catch(()=>{});
+      throw error;
     }finally{await context.close();}
   }
-  console.log('Owner workspace routes, retained private review and independent periods fit 320, 375, 390, 430, 768, 1280 and 1792px.');
+  console.log('Owner direct navigation, merged customers, notifications, private review and independent periods fit 320, 375, 390, 430, 768, 1280 and 1792px.');
 }finally{await browser.close();}
