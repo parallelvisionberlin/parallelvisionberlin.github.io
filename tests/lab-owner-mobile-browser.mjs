@@ -33,7 +33,7 @@ const runtimeJs=payoutJs+providerJs+paginationJs+acquisitionJs+reviewJs+inspectJ
 const html=rawHtml
   .replace(/<link\b[^>]*>/g,'')
   .replace(/<script\b[^>]*>[\s\S]*?<\/script>/g,'')
-  .replace('</head>', '<base href="https://owner-fixture.test/"><style>'+css+'</style></head>');
+  .replace('</head>', '<style>'+css+'</style></head>');
 const artifactDir='/tmp/pv-lab-owner-mobile';
 await mkdir(artifactDir,{recursive:true});
 const browser=await chromium.launch({headless:true});
@@ -45,7 +45,9 @@ try{
     });
     const page=await context.newPage();
     try{
-      await page.setContent(html,{waitUntil:'domcontentloaded'});
+      // Give pushState and browser back a real same-origin history while mocking every document byte.
+      await page.route('https://owner-fixture.test/',route=>route.fulfill({contentType:'text/html',body:html}));
+      await page.goto('https://owner-fixture.test/',{waitUntil:'domcontentloaded'});
       await page.route('**/owner-work-records.json*',route=>route.fulfill({
         contentType:'application/json',body:JSON.stringify({schemaVersion:1,updatedAt:'2026-11-06T12:00:00.000Z',handoffs:[],records:[{
           id:'qa-retained-work',title:'Saved change <img src=x onerror=alert(1)>',component:'Owner',status:'needs_verification',
@@ -400,7 +402,7 @@ try{
       if(width<=920){
         await page.locator('#owner-mobile-access > summary').click();
         await page.locator('.owner-jumpbar a[href="#owner-business"]').click();
-        await page.waitForFunction(()=>workspace.current().view==='business');
+        await page.waitForFunction(()=>workspace.current().view==='business'&&workspace.current().tab==='conversion'&&location.hash==='#owner-business');
         assert.equal(await page.locator('#owner-mobile-access').getAttribute('open'),null,'Mobile menu closes after selecting a workspace');
       }else{
         await page.locator('.owner-side-nav a[href="#owner-system"]').press('Enter');
