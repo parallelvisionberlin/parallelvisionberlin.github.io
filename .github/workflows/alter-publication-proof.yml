@@ -1,0 +1,126 @@
+name: ALTER production evidence
+on:
+  push:
+    branches: [verify/alter-880-live-20261106]
+    paths: [.github/workflows/alter-publication-proof.yml]
+permissions:
+  contents: write
+  checks: read
+env:
+  REVIEWED_SHA: ed1752ce3c8f06691fcb711d279fafec75a7fee4
+jobs:
+  verify-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ed1752ce3c8f06691fcb711d279fafec75a7fee4
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install pinned browser for read-only public inspection
+        run: |
+          npm install --prefix /tmp/pv-beauty --no-audit --no-fund playwright@1.57.0
+          node /tmp/pv-beauty/node_modules/playwright/cli.js install chromium
+      - name: Verify exact Cloudflare deployment, production bytes and actual public controls
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {createHash} from 'node:crypto';
+          import {readFileSync,readdirSync,mkdirSync,writeFileSync} from 'node:fs';
+          const sha=process.env.REVIEWED_SHA,repo=process.env.GITHUB_REPOSITORY;
+          assert.match(sha,/^[a-f0-9]{40}$/);
+          mkdirSync('test-results',{recursive:true});
+          const hash=b=>createHash('sha256').update(b).digest('hex');
+          const get=async(url,github=false)=>{const r=await fetch(url,{headers:github?{Accept:'application/vnd.github+json',Authorization:'Bearer '+process.env.GITHUB_TOKEN}:{},cache:'no-store',signal:AbortSignal.timeout(20000)});assert.ok(r.ok,url+' HTTP '+r.status);return r;};
+          const checks=(await (await get(`https://api.github.com/repos/${repo}/commits/${sha}/check-runs?per_page=100`,true)).json()).check_runs;
+          const cf=checks.filter(c=>c.name==='Cloudflare Pages'&&c.head_sha===sha&&c.app?.slug==='cloudflare-workers-and-pages'&&c.details_url?.startsWith('https://dash.cloudflare.com/')&&c.details_url.includes('/pages/view/pvlab-studio/')).sort((a,b)=>b.id-a.id)[0];
+          assert.equal(cf?.conclusion,'success','Exact production Cloudflare deployment must succeed');
+          const url='https://pvlab.studio/beauty',html=await(await get(url)).text();
+          assert.ok(html.includes('beauty-editorial-final.css?v=20261106-atelier2'));
+          assert.ok(html.includes('<link rel="icon" href="./branding/pv-mark.png" type="image/png">'));
+          const refs=[...html.matchAll(/(?:href|src)=["']([^"']+)["']/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'),url));
+          const assets=['lab/beauty.js','lab/beauty-settings.js','lab/beauty-approved-20261029.js','lab/beauty-editorial-final.css','lab/branding/pv-mark.png',...readdirSync('lab/visuals/beauty/atelier').filter(n=>n.endsWith('.webp')).map(n=>'lab/visuals/beauty/atelier/'+n)];
+          const receipts=[];
+          for(const path of assets){const pathname='/'+path.slice(4);const asset=refs.find(r=>r.origin==='https://pvlab.studio'&&r.pathname===pathname)?.href||'https://pvlab.studio'+pathname+'?v=20261106-atelier1';const bytes=Buffer.from(await(await get(asset)).arrayBuffer());const expected=hash(readFileSync(path));assert.equal(hash(bytes),expected,'Exact production bytes: '+path);receipts.push({path,sha256:expected});}
+          const proof={state:'ASSETS_VERIFIED',sourceSha:sha,cloudflare:{id:cf.id,url:cf.details_url},url,assets:receipts,observedAt:new Date().toISOString(),signedIn:false,paidGenerations:0};
+          writeFileSync('test-results/alter-publication.json',JSON.stringify(proof,null,2));console.log(JSON.stringify(proof));
+          const {chromium}=await import('/tmp/pv-beauty/node_modules/playwright/index.mjs');
+          const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+          try{
+           for(const width of [1440,390]){
+            const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce',hasTouch:width===390});const page=await context.newPage(),blocked=[];
+            await context.route('https://parallel-vision-lab.parallelvision.workers.dev/**',route=>{if(!['GET','HEAD','OPTIONS'].includes(route.request().method())){blocked.push(new URL(route.request().url()).pathname);return route.abort();}return route.continue();});
+            await page.goto(url,{waitUntil:'load'});
+            await page.locator('#beauty-tab-makeup').waitFor({state:'visible'});
+            await page.evaluate(()=>document.fonts.ready);
+            const values=()=>page.evaluate(()=>Object.fromEntries(['makeup','hair','skin','light','color','strength'].map(k=>[k,document.getElementById('beauty-'+k).value])));
+            const defaults={makeup:'keep',hair:'keep',skin:'natural',light:'keep',color:'keep',strength:'50'};
+            assert.deepEqual(await values(),defaults);
+            assert.equal(await page.locator('link[rel="icon"]').getAttribute('href'),'./branding/pv-mark.png');
+            assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+            await page.screenshot({path:`test-results/alter-live-${width}.png`,fullPage:true});
+            await page.locator('#beauty-tab-hair').click();await page.locator('[data-beauty-choice="beauty-hair"][data-value="wet"]').click();
+            await page.locator('#beauty-tab-skin').click();assert.equal((await values()).hair,'wet');
+            await page.locator('#beauty-reset-look').click();assert.deepEqual(await values(),defaults);
+            const direction=await page.locator('#beauty-direction').inputValue();
+            await page.locator('#beauty-looks-list [data-look]').first().focus();await page.keyboard.press('End');
+            await page.waitForFunction(()=>document.querySelector('#beauty-looks-list').scrollLeft>0);
+            assert.equal(await page.locator('#beauty-direction').inputValue(),direction);
+            assert.equal(await page.locator('#beauty-looks-list [data-look]').last().evaluate(el=>el===document.activeElement),true);
+            assert.deepEqual(blocked,[],'No Worker mutations during guest inspection');
+            await context.close();
+           }
+           proof.state='LIVE_VERIFIED';proof.browser={widths:[1440,390],scope:'Real public production page; default values, original favicon, independent tabs, reset, keyboard archive and no page overflow. No login, upload, quote or generation.'};writeFileSync('test-results/alter-publication.json',JSON.stringify(proof,null,2));console.log('LIVE_VERIFIED');
+          }finally{await browser.close();}
+          JS
+      - name: Record verified publication without replacing concurrent project work
+        run: |
+          git fetch origin main --depth=80
+          git fetch origin c6eaf5602cd3fe6a19b2f9e3c8d4c02980032797 --depth=1
+          git checkout -B alter-publication-record origin/main
+          git diff --quiet "$REVIEWED_SHA" HEAD -- lab/beauty.html lab/beauty.js lab/beauty-settings.js lab/beauty-approved-20261029.js lab/beauty-editorial-final.css lab/visuals/beauty/atelier lab/branding/pv-mark.png
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import assert from 'node:assert/strict';
+          const proof=JSON.parse(readFileSync('test-results/alter-publication.json','utf8'));assert.equal(proof.state,'LIVE_VERIFIED');
+          const original=JSON.parse(execFileSync('git',['show','c6eaf5602cd3fe6a19b2f9e3c8d4c02980032797:lab/owner-work-records.json'],{encoding:'utf8'}));
+          const state=JSON.parse(readFileSync('lab/owner-work-records.json','utf8'));
+          const r=state.records.find(r=>r.id==='alter-tabbed-editor')||original.records.find(r=>r.id==='alter-tabbed-editor');assert.ok(r);
+          const now=new Date().toISOString(),run='https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID;
+          const limitations=['Public production interaction and exact asset publication verified. No real signed-in account or paid provider generation was exercised.'];
+          r.status='deployed';r.reviewedSha='70b58d7c621c6976b4929aba73bb4f76e157f172';r.updatedAt=now;
+          r.summary='Approved ALTER tabbed editor, horizontal photographic archive and original PV LAB favicon published. Exact production assets and real guest desktop/mobile controls verified.';
+          r.nextAction='No frontend publication work remains. Real signed-in generation and quality of provider outputs are not part of this no-spend verification.';
+          r.deployment={state:'verified',sourceSha:proof.sourceSha,environment:'Cloudflare Pages pvlab-studio / pvlab.studio',observedAt:now,evidenceUrl:run,limitations};
+          r.tests.push({label:'Actual public production controls',result:'passed',scope:proof.browser.scope,observedAt:now,source:run});
+          r.evidence.push({kind:'deployment',summary:'PR #880 merged; exact merge Cloudflare app check '+proof.cloudflare.id+' succeeded.',scope:'Production frontend publication, not GitHub Pages.',observedAt:now,source:proof.cloudflare.url,limitations:[]});
+          r.evidence.push({kind:'production_asset',summary:'HTML references atelier2; '+proof.assets.length+' production asset SHA-256 hashes match reviewed source, including PV LAB favicon. Desktop 1440px and mobile 390px controls verified.',scope:'Real public production page; defaults, tabs, reset, keyboard carousel and page overflow. Screenshots and hashes retained in run artifacts.',observedAt:now,source:run,limitations});
+          r.blockers=[];
+          if(!r.links.some(x=>x.url.endsWith('/pull/880')))r.links.push({label:'Implementation PR #880',url:'https://github.com/'+process.env.GITHUB_REPOSITORY+'/pull/880'});
+          writeFileSync('/tmp/alter-publication-record.json',JSON.stringify(r,null,2));
+          const p='lab/BEAUTY-WORK-STATE.md',s=readFileSync(p,'utf8'),heading='# Beauty Studio and Studios navigation\n\n';assert.equal(s.split(heading).length,2);
+          const note=`## 2026-11-06 | LIVE publication verified\n\n- PR #880 merged as ${proof.sourceSha}; reviewed application source 70b58d7c621c6976b4929aba73bb4f76e157f172.\n- Exact Cloudflare Pages pvlab-studio check ${proof.cloudflare.id} succeeded.\n- Actual /beauty HTML serves 20261106-atelier2 and the existing ./branding/pv-mark.png favicon. ${proof.assets.length} production asset hashes match source, including all approved image crops.\n- Real guest browser checks passed at 1440px and 390px: defaults Original/Original/Natural/50, independent tabs, reset, final archive card reachable by keyboard, no page overflow, no Worker mutations.\n- Complete intercepted Beauty/Studios tests and quote/idempotency tests passed in run 42299866022. The later date-format save issue and concurrent work-index conflict did not change tested application bytes.\n- Real signed-in generation and provider output quality were not tested. No paid generation or payment was performed.\n- Evidence and real production screenshots: ${run}.\n- Work record alter-tabbed-editor upserted against current main, preserving other tasks. No frontend deployment remains pending.\n\n`;
+          writeFileSync(p,s.replace(heading,heading+note));
+          JS
+          node scripts/owner-work-state.mjs upsert /tmp/alter-publication-record.json
+          node scripts/owner-work-state.mjs validate
+          git add lab/BEAUTY-WORK-STATE.md lab/owner-work-records.json
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Record verified ALTER production interface and PV LAB favicon'
+          git push origin HEAD:main
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: alter-production-evidence
+          path: |
+            test-results/alter-live-*.png
+            test-results/alter-publication.json
+          retention-days: 7
