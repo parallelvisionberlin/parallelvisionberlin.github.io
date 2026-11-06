@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T16:42:24Z",
+  "updatedAt": "2026-11-06T18:32:18Z",
   "handoffs": [
     {
       "id": "owner",
@@ -417,10 +417,10 @@
       "title": "Night Flash with Higgsfield Soul",
       "component": "Image Moods / Soul 2",
       "status": "needs_verification",
-      "summary": "Prepared on an isolated branch: Night Flash photographic instructions reach Soul 2 with one base image or authored text, optional trained Soul ID, server compilation and bound quote metadata. Production unchanged.",
-      "nextAction": "Review draft PR/CI, finish 390px and 1440px mocked browser verification, then evaluate a controlled provider result before customer activation.",
+      "summary": "Live publication authorized. The prepared integration passes 64 focused Node tests and full mocked owner/customer Studio flows at 1440px and 390px. Production release is blocked by missing Cloudflare authentication.",
+      "nextAction": "Complete Cloudflare authentication, compare deployed Worker source/settings, publish backend preserving bindings, then merge the reviewed frontend and verify production. Live publication is already authorized.",
       "baselineSha": "15c3fd0e736ac4544d6ae534622f6039e091e923",
-      "reviewedSha": "5dbc07e2cb075520772775133386ebab10e33fc1",
+      "reviewedSha": "b6e5ee4c52c2992243e99cf2fa1dd45c052394d7",
       "branch": "feat/night-flash-soul-20261106",
       "files": [
         "lab/night-flash-soul.js",
@@ -430,7 +430,9 @@
         "lab-worker/higgsfield.mjs",
         "tests/lab-night-flash-soul.test.mjs",
         "lab/NIGHT-FLASH-SOUL-WORK-STATE.md",
-        "lab/README.md"
+        "lab/README.md",
+        "tests/lab-night-flash-soul-ui.mjs",
+        ".github/workflows/pv-lab-night-flash-soul.yml"
       ],
       "links": [
         {
@@ -446,26 +448,30 @@
         {
           "label": "Focused Node verification",
           "result": "passed",
-          "scope": "64 tests: new Night Flash integration cases, Soul API/pricing, Moods and approved Image contract. Mock providers; no real generation."
+          "scope": "64 tests on Node 22.16.0 in CI, including the approved Image contract and 5 new Night Flash cases.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42259976134/job/128037028189"
         },
         {
-          "label": "Browser verification",
-          "result": "not_run",
-          "scope": "Prompt-paste and first-image launch blocked by environment socket denial. Studio-layout stops on unchanged baseline Clerk assertion before rendering."
+          "label": "Owner/customer browser integration",
+          "result": "passed",
+          "scope": "Actual Studio/controller at 1440x900 and 390x844 with synthetic sessions and mocked providers. Selection, text/base, unsupported Mood blocking, geometry, quote and explicit submission. Four screenshots retained.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42259976134/job/128037028189"
         },
         {
-          "label": "GitHub CI",
-          "result": "not_run",
-          "scope": "Started on prepared source 5dbc07e2; private-lab queued and gallery-browser running at last read. No CI pass claimed."
+          "label": "General unit baseline comparison",
+          "result": "failed",
+          "scope": "Candidate 1043/1048 and base 1038/1043; identical five existing failures. No assertion was weakened.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42259976116/job/128037028334"
         }
       ],
       "deployment": {
-        "state": "not_started",
+        "state": "blocked",
         "sourceSha": null,
         "environment": "Prepared branch only; production frontend and Worker unchanged",
         "limitations": [
-          "No independent signed-in browser or real provider quality check.",
-          "Worker publication is manual and separate from frontend deployment."
+          "Cloudflare dashboard is signed out and secure authentication did not complete.",
+          "Branch preview success does not establish production publication.",
+          "No real signed-in production or paid image quality check."
         ]
       },
       "evidence": [
@@ -477,11 +483,19 @@
           "limitations": [
             "Does not establish generated appearance or production behavior."
           ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "Full mocked owner/customer flow passed at desktop and phone widths in GitHub Chromium.",
+          "scope": "Actual Studio/controller, simulated account and provider boundaries.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42259976134/job/128037028189",
+          "limitations": [
+            "Not a real signed-in production or paid provider quality test."
+          ]
         }
       ],
       "blockers": [
-        "Rendered 390px/1440px verification remains incomplete.",
-        "Real Soul Night Flash quality and likeness preservation remain unevaluated."
+        "Cloudflare deployment authentication is required; no backend, main merge or production frontend release performed."
       ],
       "doNotRepeat": [
         "Do not infer activation from a prepared branch.",
@@ -489,7 +503,7 @@
         "Do not overwrite overlapping Image replacement work in PR #870.",
         "Reuse existing Soul account, pricing and job safeguards."
       ],
-      "updatedAt": "2026-11-06T16:42:24Z"
+      "updatedAt": "2026-11-06T18:32:18Z"
     }
   ]
 }

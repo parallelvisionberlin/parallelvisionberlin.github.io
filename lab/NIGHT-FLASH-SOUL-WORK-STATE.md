@@ -1,14 +1,14 @@
 # Night Flash with Higgsfield Soul
 
-## Prepared integration, 2026-11-06
+## Live release requested, 2026-11-06
 
-- Request: develop and prepare Night Flash on Higgsfield Soul. No production activation requested.
+- User explicitly authorized live publication on 2026-11-06. Do not ask for that authorization again.
 - Baseline: `15c3fd0e736ac4544d6ae534622f6039e091e923`.
 - Reviewed source: `5dbc07e2cb075520772775133386ebab10e33fc1`; remote tree exactly matches the locally tested tree.
 - Draft PR: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/874
-- GitHub CI started; final results remain pending.
+- Final tested source: `b6e5ee4c52c2992243e99cf2fa1dd45c052394d7`; application source unchanged from the reviewed implementation.
 - Isolated branch: `feat/night-flash-soul-20261106`.
-- Existing PR #870 changes Image replacement behavior in overlapping files; do not replace its work or merge this preparation into production automatically.
+- PR #870 has overlapping Image work. Preserve it; inspect current deployed Worker source/settings before staging.
 - Night Flash remains the existing photographic Mood with its existing card and imagery.
 - User chooses PV Soul in the existing Image model menu, then Night Flash in Moods.
 - No automatic model switch or price change when selecting a Mood.
@@ -34,12 +34,17 @@
 
 ## Verification and release boundary
 
-- Focused Node tests: 64 passing, including 5 new Night Flash cases, existing Soul API/pricing, Moods and approved Image contract.
-- New tests exercise the actual Studio settings compiler, server recipe reconstruction, History labels, invalid combinations, quote binding and simulated idempotent submission.
-- Syntax and whitespace checks passed for affected source files.
-- Prompt-paste and first-image browser attempts cannot launch Chromium: process singleton socket denied by the environment.
-- Studio-layout browser suite stops at the unchanged baseline assertion `Clerk resources cannot load indefinitely` in `tests/lab-studio-layout-ui.mjs:28`.
-- Neither that test nor its account-session source was changed. No assertion was weakened.
-- No independent rendered desktop/mobile check, real signed-in interaction or provider quality result is claimed.
-- Production frontend and Worker are unchanged. Worker publication remains manual and separate from frontend publication.
-- Next: review the prepared PR and CI, finish mocked browser verification at 390/1440, then evaluate one controlled photo result before considering customer activation.
+- GitHub Node 22.16.0: 64 focused tests PASS, including 5 new Night Flash cases and the approved Image contract.
+- GitHub browser: actual Studio/controller with synthetic owner and customer sessions PASS at 1440x900 and 390x844.
+- Verified selection, text/base recipe, unsupported Mood blocking, geometry without horizontal overflow, bound quote and one explicit confirmed submission.
+- No live vendor, payment, training or generation call; provider boundaries are mocked.
+- CI receipt: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42259976134/job/128037028189
+- Four desktop/phone screenshots retained in that run's night-flash-soul-desktop-phone artifact.
+- General suite: candidate 1043/1048 PASS; base 1038/1043 PASS. Both fail the same five named tests: checkout Meta cookie IDs, Moods header links, oversized Mood upload, Soft Pastel focal point and photobooth stylesheet semantics.
+- Candidate general-suite receipt: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42259976116/job/128037028334
+- Baseline job: 127983011457 on 15c3fd0e736ac4544d6ae534622f6039e091e923. Existing assertions remain unchanged.
+- Local prompt-paste/first-image browser launch was environment-blocked; existing Studio-layout stops on its unchanged baseline Clerk assertion. The new focused CI flow supplies the missing actual browser coverage.
+- Cloudflare branch preview succeeds; this is not production publication.
+- Deployment BLOCKED: Cloudflare dashboard is signed out; no deployment credentials are available in this session. Secure sign-in request was aborted and the page still shows login.
+- No backend deployment, main merge or production frontend release performed. No real signed-in production or paid quality result claimed.
+- Next: complete authorized Cloudflare authentication, compare deployed Worker source/settings, deploy backend preserving bindings, then merge the reviewed frontend and verify exact production assets and live behavior.
