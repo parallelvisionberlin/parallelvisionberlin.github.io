@@ -9,11 +9,11 @@ test('ALTER defaults remain Original / Original / Natural / 50 and preserve the 
  for(const [id,value] of [['makeup','keep'],['hair','keep'],['skin','natural'],['light','keep'],['color','keep']])assert.match(source,new RegExp(`id="beauty-${id}"[\\s\\S]*?<option value="${value}" selected>`));
  assert.match(source,/id="beauty-strength"[^>]*value="50"/);
 });
-test('All 30 visible choices compile through the existing image route',()=>{
+test('All 45 visible choices compile through the existing image route',()=>{
  const selects=[...source.matchAll(/<select id="beauty-(makeup|hair|skin|light|color)"[^>]*>([\s\S]*?)<\/select>/g)];
  assert.equal(selects.length,5);
  for(const [,category,options] of selects){
-  const values=[...options.matchAll(/<option value="([^"]+)"/g)].map(m=>m[1]);assert.equal(values.length,6);
+  const values=[...options.matchAll(/<option value="([^"]+)"/g)].map(m=>m[1]);assert.equal(values.length,9);
   for(const value of values){const s=beautySettings({[category]:value});assert.equal(s.type,'image');assert.equal(s.engine,'seedream');assert.equal(s.mode,'image');assert.equal(s.referenceRoles[0].role,'identity');}
  }
 });

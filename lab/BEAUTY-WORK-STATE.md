@@ -1,5 +1,17 @@
 # Beauty Studio and Studios navigation
 
+## 2026-11-07 | Approved three-row refinement
+
+- Original mixed-case heading, hero, existing PV LAB favicon, backend, quote/submission, model, billing, comparison and History retained.
+- Three columns x three rows in all five tabs; 45 labelled choices from one label/instruction catalogue. Taller panel rises into unused breadcrumb-side space rather than pushing the look archive down.
+- Larger lower photo cards, reduced gap, no carousel arrow buttons; wheel/trackpad, mouse drag, keyboard and native touch inertia retained.
+- Original preview now uses the user's local photo and clears on sign-out. Other images are illustrative crops/tonal samples, not live generated previews.
+- Mood presets set the actual category fields; manual edits discard only auto-inserted preset direction, never user-authored text.
+- Monochrome no longer conflicts with a chromatic skin-tone instruction. Strength zero suppresses lighting, colour and optional extra edits.
+- Scoped unit/browser tests and publication evidence must be recorded after execution. No real provider generation or payment is authorized for this work.
+- Files: beauty-look-catalog.js, beauty-controls-refined.css, beauty.html, beauty-settings.js, beauty.js (import version only), beauty-approved-20261029.js, scoped Beauty tests.
+
+
 ## 2026-11-06 | LIVE publication verified
 
 - PR #880 merged as ed1752ce3c8f06691fcb711d279fafec75a7fee4; reviewed application source 70b58d7c621c6976b4929aba73bb4f76e157f172.

@@ -1,0 +1,73 @@
+/* Approved ALTER refinement. Scope: this workspace only. Keep the mixed-case heading,
+   original hero, native controls and all private generation/account behavior. */
+.beauty-edit-panel{grid-template-rows:30px 38px minmax(260px,1fr) 30px 66px 50px;gap:10px;padding:16px 20px}
+.beauty-edit-heading strong{font-size:28px;line-height:1.05;font-weight:500;letter-spacing:-.035em}
+.beauty-tabs button{font-size:14px}
+.beauty-preset-group{overflow:auto;overscroll-behavior-y:auto;scrollbar-width:thin;scrollbar-color:#666 transparent;scroll-padding:3px}
+.beauty-preset-group .beauty-choice-list{height:100%;min-height:260px;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(80px,1fr));grid-auto-rows:minmax(80px,1fr);gap:10px;padding:2px;box-sizing:border-box}
+.beauty-choice-name{opacity:1;padding:20px 7px 6px;font-size:11px;line-height:1.15;font-weight:500;letter-spacing:0;background:linear-gradient(transparent,#000c);text-shadow:0 1px 2px #000}
+.beauty-choice-photo{display:block;position:relative;background-color:#171919;background-position:center}
+.beauty-choice-photo::before{content:'';position:absolute;inset:0;pointer-events:none;background:var(--beauty-preview-overlay,none)}
+.beauty-choice-photo[data-beauty-original]{display:grid;place-items:center;background-image:none;background-size:cover;background-position:center;filter:none!important}
+.beauty-original-symbol{font-size:29px;line-height:1;color:#aaa;transform:translateY(-5px)}
+.beauty-choice-photo.has-source .beauty-original-symbol{display:none}
+.beauty-choice-list button[aria-pressed=true]::after{width:18px;height:18px;font-size:12px;right:5px;top:5px}
+/* These are representative crops/tonal samples, not AI previews or new provider calls. */
+.beauty-choice-photo[data-preview=hair-crop]{background-size:175%;background-position:60% 12%}
+.beauty-choice-photo[data-preview=updo-crop]{background-size:190%;background-position:50% 4%}
+.beauty-choice-photo[data-preview=dry-texture]{filter:contrast(.85) brightness(1.05)!important}
+.beauty-choice-photo[data-preview=rose]{filter:sepia(.15) hue-rotate(318deg) saturate(.75)!important}
+.beauty-choice-photo[data-preview=matte]{filter:contrast(.82) brightness(.95)!important}
+.beauty-choice-photo[data-preview=dewy]{filter:contrast(1.1) brightness(1.08)!important}
+.beauty-choice-photo[data-preview=satin]{filter:contrast(.94) brightness(1.03)!important}
+.beauty-choice-photo[data-preview=daylight]{filter:brightness(1.12) saturate(.82)!important}
+.beauty-choice-photo[data-preview=softbox]{filter:brightness(1.16) contrast(.72)!important}
+.beauty-choice-photo[data-preview=flash]{filter:brightness(1.2) contrast(1.2)!important}
+.beauty-choice-photo[data-preview=side]{--beauty-preview-overlay:linear-gradient(90deg,#000d,transparent 75%)}
+.beauty-choice-photo[data-preview=low-key]{filter:brightness(.6) contrast(1.15)!important}
+.beauty-choice-photo[data-preview=rim]{--beauty-preview-overlay:radial-gradient(ellipse at center,#0009 10%,transparent 90%)}
+.beauty-choice-photo[data-preview=high-key]{filter:brightness(1.45) contrast(.65)!important}
+.beauty-choice-photo[data-preview=overhead]{--beauty-preview-overlay:linear-gradient(0deg,#000d,transparent 85%)}
+.beauty-choice-photo[data-preview=neutral]{filter:saturate(.75)!important}
+.beauty-choice-photo[data-preview=warm]{filter:sepia(.35) saturate(1.1)!important}
+.beauty-choice-photo[data-preview=cool]{filter:saturate(.65)!important;--beauty-preview-overlay:linear-gradient(#4e75ac33,#4e75ac33)}
+.beauty-choice-photo[data-preview=mono]{filter:grayscale(1)!important}
+.beauty-choice-photo[data-preview=film]{filter:saturate(.7) contrast(.86) sepia(.1)!important}
+.beauty-choice-photo[data-preview=muted]{filter:saturate(.25)!important}
+.beauty-choice-photo[data-preview=rich]{filter:saturate(1.25) contrast(1.06)!important}
+.beauty-choice-photo[data-preview=faded]{filter:contrast(.68) saturate(.65) brightness(1.05)!important}
+.beauty-edit-panel .beauty-direction{font-size:13px;gap:6px}
+.beauty-edit-panel .beauty-direction textarea{font-size:13px;min-height:44px;height:44px}
+.beauty-looks{padding-top:12px}
+.beauty-looks-heading{margin-bottom:12px;min-height:27px;gap:24px}
+.beauty-looks-heading strong{font-size:23px}
+.beauty-looks-list>button{flex-basis:clamp(235px,16.3vw,310px);width:clamp(235px,16.3vw,310px);height:clamp(202px,24vh,250px);border-radius:11px}
+.beauty-look-copy strong{font-size:23px;font-weight:400;letter-spacing:-.035em}
+.beauty-looks-list{touch-action:pan-x pan-y;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+@media(min-width:1001px){
+ .beauty-edit-panel{position:relative;top:-38px;height:calc(100% + 38px)}
+ .beauty-editor-grid{height:clamp(534px,60vh,620px)}
+ .beauty-edit-panel .beauty-strength,.beauty-strength output{font-size:13px}
+}
+/* Retain the published large-desktop hero height for the unchanged left settings. */
+@media(min-width:1601px){.beauty-editor-grid{height:clamp(560px,60vh,620px)}}
+@media(min-width:1001px) and (max-width:1300px){
+ .beauty-edit-panel{padding:16px 14px}
+ .beauty-choice-name{font-size:10.5px;padding-left:6px}
+ .beauty-tabs button{font-size:12.5px}
+}
+@media(min-width:701px) and (max-width:1000px){
+ .beauty-edit-panel{min-height:590px}
+}
+@media(max-width:700px){
+ .beauty-edit-panel{top:auto;height:590px;min-height:590px;padding:16px 12px;gap:10px}
+ .beauty-edit-heading strong{font-size:26px}
+ .beauty-tabs button{font-size:12px}
+ .beauty-preset-group .beauty-choice-list{gap:8px;grid-template-rows:repeat(3,minmax(82px,1fr))}
+ .beauty-choice-name{font-size:10px;padding-left:5px;padding-right:5px}
+ .beauty-looks{padding-top:14px}
+ .beauty-looks-heading strong{font-size:21px}
+ .beauty-looks-list>button{flex-basis:min(72vw,290px);width:min(72vw,290px);height:230px}
+ .beauty-look-copy strong{font-size:23px}
+}
+@media(prefers-reduced-motion:reduce){.beauty-looks-list{scroll-behavior:auto}.beauty-choice-name{transition:none}}

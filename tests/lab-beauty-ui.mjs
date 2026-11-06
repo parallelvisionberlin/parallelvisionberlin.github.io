@@ -112,7 +112,7 @@ try{
    assert.equal(editorial.background,'rgba(0, 0, 0, 0)','Hero no longer has the hard gray rectangle');
    assert.equal(editorial.overflow,'visible','Hero is not clipped at its former hard bottom');
    assert.ok(editorial.panelWidth>=(width>=1366?365:330),'Edit Look panel remains full-size: '+width+'px '+editorial.panelWidth);
-   assert.equal(editorial.thumbnails,6,'Active tab shows six large photographic controls');
+   assert.equal(editorial.thumbnails,9,'Active tab shows three rows of three photographic controls');
    assert.ok(editorial.minThumbHeight>=80,'Right-hand visual presets are readable, not tiny');
    assert.equal(editorial.fullDeck,false,'Archive has true horizontal overflow instead of squeezing six cards');
    if(width>=1440)assert.ok(editorial.titleSize>=70,'Desktop ALTER title has the approved editorial scale');
@@ -126,7 +126,7 @@ try{
  // Visual shortcuts must control the native fields used by credit quotes and generation.
  {
   const s=await scenario({role:'guest',width:1448}),{page}=s;
-  assert.equal(await page.locator('[data-beauty-choice]').count(),30,'Five independent categories each have six working options');
+  assert.equal(await page.locator('[data-beauty-choice]').count(),45,'Five independent categories each have nine working options');
   const src=await page.locator('.beauty-looks-list .beauty-look-photo').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('src')));
   assert.equal(src.length,6,'Six editorial cards are visible');
   assert.equal(new Set(src).size,6,'Editorial cards use six distinct photographic assets');
@@ -134,8 +134,8 @@ try{
   // Explicitly approved redesign: new photo assets, five tabs, continuous archive.
   const hero=await page.locator('.beauty-editor-grid').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
   assert.match(hero,/atelier\/hero\.webp/,'The approved mock photograph is the background');
-  assert.equal(await page.locator('.beauty-looks-prev').isVisible(),true,'Left carousel arrow is visible');
-  assert.equal(await page.locator('.beauty-looks-next').isVisible(),true,'Right carousel arrow is visible');
+  assert.equal(await page.locator('.beauty-looks-prev').count(),0,'Requested arrow-free archive');
+  assert.equal(await page.locator('.beauty-looks-next').count(),0,'No right arrow button');
   // Larger cards intentionally overflow; keyboard/arrows must reach every card.
   const fit=await page.locator('.beauty-looks-list').evaluate(track=>{
    const rect=track.getBoundingClientRect();
@@ -145,11 +145,12 @@ try{
    });
   });
   assert.equal(fit,false,'The archive is a continuous scrollable track, not a forced six-column grid');
-  assert.equal(await page.locator('.beauty-looks-prev').isDisabled(),true);
+  assert.equal(await page.locator('#beauty-looks-list').evaluate(el=>el.scrollLeft),0);
   const originalDirection=await page.locator('#beauty-direction').inputValue();
-  await page.locator('.beauty-looks-next').click();
+  await page.locator('#beauty-looks-list').hover();
+  await page.mouse.wheel(0,260);
   await page.waitForFunction(()=>document.querySelector('#beauty-looks-list').scrollLeft>0);
-  assert.equal(await page.locator('#beauty-direction').inputValue(),originalDirection,'Arrow scrolling does not select a look');
+  assert.equal(await page.locator('#beauty-direction').inputValue(),originalDirection,'Wheel scrolling does not select a look');
   await page.locator('[data-look="natural"]').focus();
   assert.equal(await page.locator('#beauty-direction').inputValue(),originalDirection,'Browsing does not apply a look');
   await page.keyboard.press('ArrowLeft');
@@ -164,6 +165,45 @@ try{
   await page.locator('[data-look="night"]').click();
   assert.match(await page.locator('#beauty-direction').inputValue(),/low-key evening/i,'Editorial mood cards produce real creative directions');
   await s.context.close();
+ }
+ // Verify visible choices, quotes and preset/manual precedence use the same reviewed contract.
+ for(const width of [1440,390]){
+  const s=await scenario({role:'customer',width,height:900}),{page}=s;
+  await page.locator('#beauty-photo').setInputFiles(input);
+  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
+  const catalog=(await import('../lab/beauty-look-catalog.js')).beautyLookCatalog;
+  for(const [category,options] of Object.entries(catalog)){
+   await page.locator('#beauty-tab-'+category).click();
+   for(const option of options){
+    const control=page.locator('[data-beauty-choice="beauty-'+category+'"][data-value="'+option.id+'"]');
+    assert.equal(await control.locator('.beauty-choice-name').innerText(),option.label);
+    assert.equal(await control.locator('.beauty-choice-name').evaluate(el=>getComputedStyle(el).opacity),'1','Labels stay readable without hover');
+    const before=await page.evaluate(()=>Object.fromEntries(['makeup','hair','skin','light','color'].map(k=>[k,document.getElementById('beauty-'+k).value])));
+    await control.click();
+    const after=await page.evaluate(()=>Object.fromEntries(['makeup','hair','skin','light','color'].map(k=>[k,document.getElementById('beauty-'+k).value])));
+    assert.equal(after[category],option.id);
+    for(const other of Object.keys(before))if(other!==category)assert.equal(after[other],before[other],'A category never changes another category');
+   }
+  }
+  assert.equal(s.submits,0,'Every option selection remains non-generating');
+  await page.locator('[data-look="night"]').click();
+  assert.equal(await page.locator('#beauty-light').inputValue(),'low-key','Night recipe is reflected in the actual Light field');
+  await page.locator('#beauty-tab-light').click();
+  await page.locator('[data-beauty-choice="beauty-light"][data-value="keep"]').click();
+  assert.equal(await page.locator('#beauty-direction').inputValue(),'','Old automatic low-key instruction cannot override Original');
+  await page.locator('#beauty-direction').fill('Keep my jacket exactly as uploaded.');
+  await page.locator('[data-beauty-choice="beauty-light"][data-value="flash"]').click();
+  assert.equal(await page.locator('#beauty-direction').inputValue(),'Keep my jacket exactly as uploaded.','Manual writing is never erased');
+  assert.equal(await page.locator('[data-beauty-original].has-source').count(),5,'Original thumbnails use the current uploaded photo');
+  await page.locator('#beauty-reset-look').click();
+  for(const tab of ['makeup','hair','skin','light','color']){
+   await page.locator('#beauty-tab-'+tab).click();
+   await page.screenshot({path:'test-results/beauty-category-'+tab+'-'+width+'.png',fullPage:true});
+  }
+  await page.evaluate(()=>window.__beautyAccount.signOut());
+  await page.waitForFunction(()=>document.querySelector('#beauty-photo-preview').hidden);
+  assert.equal(await page.locator('[data-beauty-original].has-source').count(),0,'Sign-out removes every private source preview');
+  assert.deepEqual(s.errors,[]);await s.context.close();
  }
  // Tab state, native generation settings, reset and busy controls remain connected.
  for(const width of [1440,390]){
