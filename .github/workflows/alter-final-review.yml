@@ -14,10 +14,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-      - name: Measure control placement relative to its panel, not mobile scroll
+      - name: Apply scoped compact spacing and scroll-independent test measurement
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          p=Path('lab/beauty-editorial-final.css')
+          with p.open('a') as f:f.write('\n/* Compact desktops retain clearance below the native aspect-ratio control. */\n@media(min-width:1001px) and (max-width:1300px){.beauty-left-settings{gap:6px}}\n')
           p=Path('tests/lab-beauty-ui.mjs');s=p.read_text()
           old="const quoted=s.quotes.length,buttonBefore=await page.locator('#beauty-generate').boundingBox();"
           new="const buttonGeometry=()=>page.locator('#beauty-generate').evaluate(button=>{const a=button.getBoundingClientRect(),b=button.closest('.beauty-edit-panel').getBoundingClientRect();return {x:a.left-b.left,y:a.top-b.top,width:a.width,height:a.height};});\n  const quoted=s.quotes.length,buttonBefore=await buttonGeometry();"
@@ -39,15 +41,15 @@ jobs:
         run: |
           node tests/lab-studios-menu-ui.mjs
           node tests/lab-beauty-ui.mjs
-      - name: Save tested correction and remove temporary reviewer
+      - name: Save tested corrections and remove temporary reviewer
         run: |
           test "$GITHUB_REF" = refs/heads/implement/alter-approved-20261106
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tests/lab-beauty-ui.mjs
+          git add tests/lab-beauty-ui.mjs lab/beauty-editorial-final.css
           git rm .github/workflows/alter-final-review.yml
           git diff --cached --check
-          git commit -m 'Verify ALTER controls independent of mobile viewport scrolling'
+          git commit -m 'Verify ALTER desktop clearance and stable controls across mobile scrolling'
           git rev-parse HEAD
           git push origin HEAD:refs/heads/implement/alter-approved-20261106
       - uses: actions/upload-artifact@v4
