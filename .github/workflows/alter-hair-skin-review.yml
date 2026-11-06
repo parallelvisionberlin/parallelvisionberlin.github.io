@@ -16,8 +16,8 @@ jobs:
           node-version: '22.16.0'
       - name: Import exact cropped previews and retain original control behavior
         run: |
-          curl --fail --location --silent --show-error 'https://at.adobe.com/7hBIu6B3zbxQ3ggr' -o /tmp/alter-hair-skin.zip
-          echo '3a1483dce1b655dc9bbab745ae3474c5552bf24d62c18b72d2fb16c56dc0a40d  /tmp/alter-hair-skin.zip' | sha256sum --check
+          curl --fail --location --silent --show-error 'https://at.adobe.com/XFLhOnGU7uN7sBRQ' -o /tmp/alter-hair-skin.zip
+          echo 'd6739a010c903c381c7aac2f42c6f6b3894d49faa61129fcaa442b455a876295  /tmp/alter-hair-skin.zip' | sha256sum --check
           mkdir -p /tmp/alter-hair-skin
           unzip -q /tmp/alter-hair-skin.zip -d /tmp/alter-hair-skin
           python3 - <<'PY'
