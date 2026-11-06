@@ -84,7 +84,7 @@ export function createOwnerOperationsUI({call,ownerReady,revision,openActivity,l
     }
     if(!matching.length)root.append(text('p','No records in this state.','owner-small'));
     const handoffs=$('owner-work-handoffs');if(handoffs){handoffs.replaceChildren();for(const handoff of records.handoffs||[]){const row=text('p','');row.append(safeLink(handoff.title,'https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/'+handoff.path),text('small',handoff.scope));handoffs.append(row);}}
-    $('owner-work-status').textContent='Source-controlled work memory · '+date(records.updatedAt)+'. Publication and signed-in verification are recorded separately.';renderHome();
+    $('owner-work-status').textContent='Updated '+date(records.updatedAt)+' · '+matching.length+(matching.length===1?' change.':' changes.');renderHome();
   }
   async function loadRecords(){
     if(!ownerReady()||records)return records;

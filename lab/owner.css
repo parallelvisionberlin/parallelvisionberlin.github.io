@@ -1221,3 +1221,7 @@ body{font-size:16px;line-height:1.5}
 .owner-visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
 #owner-reference-dialog .owner-release-checks>.owner-section-head>div,#owner-system-dialog .owner-section-head .owner-index{display:none}
 .owner-metric-notes .owner-small{font-size:14px;line-height:1.6}
+.owner-work-tools,.owner-notification-actions{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;margin:10px 0 16px}
+.owner-work-tools button,.owner-notification-actions button{font:inherit;font-size:14px;line-height:1.5;min-height:40px;padding:8px 0;color:#e7e7e3;background:transparent;border:0;border-bottom:1px solid #555;cursor:pointer}
+.owner-work-tools button:hover,.owner-notification-actions button:hover{border-bottom-color:#eee}
+@media(max-width:600px){.owner-work-tools button,.owner-notification-actions button{min-height:44px}}
