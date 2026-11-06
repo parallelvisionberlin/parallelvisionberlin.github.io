@@ -861,10 +861,10 @@ button.owner-inspect-media{cursor:pointer}
 
 /* One Owner entry: quick paths, direct conversion access and optional release checklists. */
 .owner-workspace-paths{display:grid;grid-template-columns:1fr;gap:0;margin:0;border:0;background:transparent}
-.owner-workspace-paths a{display:flex;min-width:0;flex-direction:column;justify-content:center;gap:4px;padding:11px 0;min-height:0;border-bottom:1px solid var(--owner-line)}
+.owner-workspace-paths a{display:flex;min-width:0;flex-direction:column;justify-content:center;gap:4px;padding:6px 0;min-height:0;border-bottom:1px solid var(--owner-line)}
 .owner-workspace-paths a:last-child{border-bottom:0}
 .owner-workspace-paths a:hover{background:#1a1a1a}
-.owner-workspace-paths span{font-size:8px;letter-spacing:.13em;color:var(--owner-muted)}
+.owner-workspace-paths span{display:none;font-size:8px;letter-spacing:.13em;color:var(--owner-muted)}
 .owner-workspace-paths strong{font-size:15px;font-weight:400;letter-spacing:-.04em;line-height:1.25}
 .owner-workspace-paths small{color:var(--owner-muted);font-size:10px;line-height:1.6}
 .owner-side-nav a[aria-current=location]{background:#242424;color:#fff}

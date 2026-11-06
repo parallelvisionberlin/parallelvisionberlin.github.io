@@ -10,7 +10,8 @@
 - The unlaunched Soul Site is marked Retired; no further publication was started.
 - Changed source: owner.html, owner.css, owner.js; extended existing lab-owner-mobile-browser.mjs navigation assertions without weakening its existing activity, layout or private-media checks.
 - Validation: JS syntax, whitespace and five approved Image contract tests passed. Local headless Owner suite could not launch because the runtime browser is missing / system Chromium sockets are restricted; no tests were bypassed or browser installed.
-- Cloud-browser fixture preview exercises the real Owner renderer without live APIs; phone and desktop QA in progress. Not a real signed-in production session.
+- Cloud-browser fixture review passed at 390px and 1440px: no document overflow, menu open/selection/close and current-location sync; desktop shortcuts and section layout inspected. Fixture review is not a real signed-in production session.
+- PR #859 initial Owner CI passed 15 provider/auth/private-QA tests, then found a test race reading aria-current before hashchange. Await the exact active-location state before the original assertions; do not weaken checks. Hero shortcuts compacted to preserve the overview vertical space. Final-head CI pending.
 - Publication: Owner source candidate not yet uploaded/merged. Follow lab/RELEASE-PROTOCOL.md; this frontend-only change requires no Worker deployment.
 - Next: complete scoped preview and PR Owner CI, publish only the validated candidate, verify Cloudflare Pages and exact production assets. Keep real signed-in verification distinct.
 

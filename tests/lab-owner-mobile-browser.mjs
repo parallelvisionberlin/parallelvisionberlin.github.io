@@ -329,9 +329,11 @@ try{
         assert.equal(await page.locator('.owner-jumpbar a[href="#owner-acquisition-section"]').isVisible(),true,'Revenue is reachable in the mobile menu');
         await page.locator('.owner-jumpbar a[href="#owner-acquisition-section"]').click();
         assert.equal(await page.locator('#owner-mobile-access').getAttribute('open'),null,'Menu closes after selecting a destination');
+        await page.waitForFunction(()=>document.querySelector('.owner-side-nav a[href="#owner-acquisition-section"]').getAttribute('aria-current')==='location');
         assert.equal(await page.locator('.owner-side-nav a[href="#owner-acquisition-section"]').getAttribute('aria-current'),'location','Mobile and sidebar location remain in sync');
       }else{
         await page.locator('.owner-workspace-paths a[href="#owner-acquisition-section"]').click();
+        await page.waitForFunction(()=>document.querySelector('.owner-side-nav a[href="#owner-acquisition-section"]').getAttribute('aria-current')==='location');
         assert.equal(await page.locator('.owner-side-nav a[href="#owner-acquisition-section"]').getAttribute('aria-current'),'location','Overview shortcuts update sidebar location');
       }
       await page.evaluate(()=>window.scrollTo(0,0));
