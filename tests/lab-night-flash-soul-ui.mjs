@@ -132,7 +132,7 @@ try{
       await page.evaluate(job=>window.__nightFlashReuse(job),job);
       state=await page.evaluate(()=>window.__nightFlashRead());
       assert.equal(state.settings.characterId,characterId);assert.equal(state.settings.identityStrength,.05);
-      assert.equal(state.settings.moodIntensity,100);assert.equal(state.settings.moodOriginalPrompt,'Keep the expression.');
+      assert.equal(state.settings.moodIntensity,selectedQuote.settings.moodIntensity,'Reuse restores the reviewed intensity');assert.equal(state.settings.moodOriginalPrompt,'Keep the expression.');
       assert.deepEqual(errors,[]);
       console.log('PASS Soul Night Flash '+role+' '+viewport.width+'px: selection, text/base, unsupported Mood, geometry, bound quote and explicit submit');
     }finally{await context.close();}
