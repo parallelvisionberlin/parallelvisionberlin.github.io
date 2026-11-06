@@ -2135,9 +2135,9 @@ function syncImageComposer(){
   // Controlled Pose instructions belong to accessible hover guidance, not a
   // third row that changes the approved Image deck geometry.
   const soulNeedsSetup=window.__PV_LAB_NATIVE__!==1&&imageEngine==='soulpro'&&!isSoul2()&&(!file||!soulProIdentity.configured);
-  const inlineMessage=imageEngine==='fal'||queueBlocked||exactPreparing||idleMoodNeedsInput||soulNeedsSetup?'':message;
+  const inlineMessage=imageEngine==='fal'||queueBlocked||exactPreparing||idleMoodNeedsInput?'':message;
   // Resolve the owner Mood/model mismatch in a dialog, without moving the deck.
-  block.hidden=!inlineMessage||ownerSoulMoodMismatch();reason.textContent=block.hidden?'':inlineMessage;review.hidden=true;
+  block.hidden=!inlineMessage||ownerSoulMoodMismatch()||soulNeedsSetup;reason.textContent=block.hidden?'':inlineMessage;review.hidden=true;
   const poseHint='Controlled Pose: add one Pose photo, 1–4 Identity photos, and a prompt.';
   const modelButton=$('image-composer-model');
   if(imageEngine==='fal'){

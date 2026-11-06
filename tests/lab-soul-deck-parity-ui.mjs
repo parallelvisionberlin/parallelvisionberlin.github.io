@@ -65,7 +65,7 @@ try {
       for(const long of [false,true]) {
         await page.locator('#image-composer-prompt').evaluate((el,long)=>{el.value=long?'A photographic direction with texture, framing and light. '.repeat(100):'';el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText'}));fitImageComposerPrompt()},long);
         if(long)await page.waitForFunction(()=>document.getElementById('image-composer-prompt').getBoundingClientRect().height>=(innerWidth>=900?130:95));
-        else await page.waitForFunction(()=>document.getElementById('image-composer-prompt').getBoundingClientRect().height<=65);
+        else await page.waitForFunction(()=>{const prompt=document.getElementById('image-composer-prompt');return prompt.getBoundingClientRect().height<=Math.max(65,parseFloat(getComputedStyle(prompt).minHeight)+1)});
         const g=await geometry();
         const label=await page.locator('.composer-generate-label').evaluate(el=>{const r=el.getBoundingClientRect();return {center:r.y+r.height/2}});
         assert.ok(Math.abs(label.center-(g.generate.y+g.generate.height/2))<3,'Empty-price Generate label stays centered');

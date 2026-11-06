@@ -7,6 +7,9 @@ on:
       - 'tests/lab-won-kar-night.test.mjs'
       - 'lab/moods.js'
       - 'lab/image-deck-surface.css'
+      - 'lab/image-editorial-deck.js'
+      - 'lab/studio.html'
+      - 'tests/lab-soul-deck-parity-ui.mjs'
       - 'lab/lab.js'
       - 'lab-worker/higgsfield.mjs'
       - 'tests/lab-night-flash-soul*'
@@ -50,4 +53,52 @@ jobs:
           path: |
             test-results/night-flash-soul-*.png
             test-results/pv-replacement-*.png
+          retention-days: 2
+
+  shared-image-deck:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Prepare the hosted Chrome runtime
+        run: |
+          npm install --prefix /tmp/pv-shared-deck --no-save --no-audit --no-fund playwright@1.57.0
+          chrome="${CHROME_BIN:-/usr/bin/google-chrome}"
+          test -x "$chrome"
+          echo "PV_CHROMIUM_EXECUTABLE=$chrome" >> "$GITHUB_ENV"
+          cat > /tmp/pv-shared-deck/chromium.mjs <<'JS'
+          import {chromium as engine} from './node_modules/playwright/index.mjs';
+          export const chromium={launch:options=>engine.launch({...options,executablePath:process.env.PV_CHROMIUM_EXECUTABLE})};
+          JS
+      - name: Verify shared Soul and normal deck geometry
+        if: ${{ !cancelled() }}
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-shared-deck/chromium.mjs
+        run: node tests/lab-soul-deck-parity-ui.mjs
+      - name: Verify pasted and cleared Image prompts
+        if: ${{ !cancelled() }}
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-shared-deck/chromium.mjs
+        run: node tests/lab-image-prompt-paste-ui.mjs
+      - name: Verify the normal first-image flow
+        if: ${{ !cancelled() }}
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-shared-deck/chromium.mjs
+        run: node tests/lab-first-image-instant-browser.mjs
+      - name: Verify Studio layout and navigation
+        if: ${{ !cancelled() }}
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-shared-deck/chromium.mjs
+        run: node tests/lab-studio-layout-ui.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shared-image-deck-desktop-phone
+          path: |
+            test-results/lab-soul-deck-*.png
+            test-results/lab-image-prompt-*.png
+            test-results/lab-image-floating-*.png
           retention-days: 2
