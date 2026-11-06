@@ -1,3 +1,21 @@
+## One Owner workspace / consolidation, 2026-11-06
+- User explicitly requests one intuitive entry to all existing PV LAB operations, preserving every implemented function.
+- Baseline source: 259c707894f1f7d8780d6c6e6bb986e86789fba0. Open Owner PRs checked; unrelated Director PR #252 remains untouched. Concurrent main through 454ee6b has no overlap in scoped files.
+- Canonical operational entry: https://pvlab.studio/owner. Existing customer, payments, traffic, acquisition, referrals, vouchers, partner, agency, account, Studio and provider routes remain.
+- Add direct Revenue & conversion and Release checks sidebar destinations. Replace the nonfunctional hero manifesto with three concise entry paths to revenue, customer/results review and technical checks.
+- Mobile navigation uses a compact native disclosure containing existing destinations; selecting a link closes it. Hash navigation synchronizes the sidebar/current section, including direct links and overview shortcuts.
+- Existing metrics and activity stay in their original order. Read-only purchase/release checklists are inside Owner, collapsed initially, with repository evidence links and explicit production-verification limits.
+- No new metrics store, imports, simulated purchase UI or local business-data copy. No Worker, auth, billing, credit, generation or provider API change.
+- Duplicate Sites sources/checklists archived reversibly in their existing source repositories. Launch Desk now redirects to /owner#owner-acquisition-section; Purchase Flow to /owner#owner-payments-section. Both native publications succeeded; browser independently verified both destinations.
+- The unlaunched Soul Site is marked Retired; no further publication was started.
+- Changed source: owner.html, owner.css, owner.js; extended existing lab-owner-mobile-browser.mjs navigation assertions without weakening its existing activity, layout or private-media checks.
+- Validation: JS syntax, whitespace and five approved Image contract tests passed. Local headless Owner suite could not launch because the runtime browser is missing / system Chromium sockets are restricted; no tests were bypassed or browser installed.
+- Cloud-browser fixture review passed at 390px and 1440px: no document overflow, menu open/selection/close and current-location sync; desktop shortcuts and section layout inspected. Fixture review is not a real signed-in production session.
+- PR #859 initial Owner CI passed 15 provider/auth/private-QA tests, then found a test race reading aria-current before hashchange. Await the exact active-location state before the original assertions; do not weaken checks. Hero shortcuts compacted to preserve the overview vertical space. Final-head CI pending.
+- PR #859 is uploaded. Existing desktop Providers navigation test found an immediate active-state regression after replacing its click handler; restored immediate feedback for all access paths while retaining hash/back/direct-link synchronization. Original assertion preserved. Final-head Owner CI pending.
+- Publication: Owner source candidate not yet merged. Follow lab/RELEASE-PROTOCOL.md; this frontend-only change requires no Worker deployment.
+- Next: complete scoped preview and PR Owner CI, publish only the validated candidate, verify Cloudflare Pages and exact production assets. Keep real signed-in verification distinct.
+
 ## Compact initial audience sample, 2026-11-03
 - User approved a single small adjustment: compact collecting state with expandable existing details; preserve measurement and bar rows.
 - Baseline main `7f4492b967ab81fae0ee37e16e88ce09ffbda2ed`; branch `fix/audience-mini-state-20261103`. Concurrent ALTER Studio publication preserved. Open PRs checked before publication.

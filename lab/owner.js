@@ -707,17 +707,27 @@ for(const button of document.querySelectorAll('[data-recent-filter]'))button.add
   paintRecentActivity();
 });
 // Providers is now a dedicated sidebar destination, not an overview widget.
+function syncOwnerNavigation(target=location.hash||'#owner-overview'){
+  for(const link of document.querySelectorAll('[data-owner-nav],.owner-jumpbar a[href^="#"]')){
+    if(link.getAttribute('href')===target)link.setAttribute('aria-current','location');
+    else link.removeAttribute('aria-current');
+  }
+}
+syncOwnerNavigation();
+for(const link of document.querySelectorAll('[data-owner-nav],.owner-jumpbar a[href^="#"],.owner-workspace-paths a'))
+  link.addEventListener('click',()=>syncOwnerNavigation(link.getAttribute('href')));
 window.addEventListener('hashchange',()=>{
+  syncOwnerNavigation();
   if(profile?.owner&&location.hash==='#owner-providers-section')void providerUI.refresh();
+});
+$('owner-mobile-access')?.addEventListener('click',event=>{
+  if(event.target.closest('a'))$('owner-mobile-access').open=false;
 });
 $('owner-quick-search').addEventListener('click',()=>{
   if(!profile?.owner){clerk?.openSignIn();return;}
+  location.hash='owner-customers-section';
   $('owner-customers-section').scrollIntoView({behavior:'smooth',block:'start'});
   $('owner-search').focus({preventScroll:true});
-});
-for(const link of document.querySelectorAll('[data-owner-nav]'))link.addEventListener('click',()=>{
-  for(const previous of document.querySelectorAll('[data-owner-nav][aria-current]'))previous.removeAttribute('aria-current');
-  link.setAttribute('aria-current','location');
 });
 $('owner-search-form').addEventListener('submit',event=>{event.preventDefault();clearTimeout(searchTimer);customerPage=1;void refreshDashboard();});
 $('owner-search').addEventListener('input',()=>{clearTimeout(searchTimer);$('owner-search-clear').hidden=!$('owner-search').value.trim();searchTimer=setTimeout(()=>{customerPage=1;void refreshDashboard();},320);});
