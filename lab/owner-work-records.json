@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T23:10:56.004Z",
+  "updatedAt": "2026-11-06T23:11:37.049Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1126,11 +1126,11 @@
       "id": "image-reference-remove-hover",
       "title": "Smaller Image reference removal controls",
       "component": "Image prompt deck",
-      "status": "needs_verification",
-      "summary": "Mouse-equipped Image decks reveal a smaller 16px thumbnail × on hover or keyboard focus-visible. Touch/native access is preserved. Publication explicitly authorized on 2026-11-07.",
-      "nextAction": "Complete browser CI, merge and verify Cloudflare plus live CSS bytes.",
+      "status": "deployed",
+      "summary": "Published: Image thumbnail × controls are 16px and appear on hover or visible keyboard focus on mouse-equipped web devices. Existing touch/native visibility and sizing remain.",
+      "nextAction": "No further work pending for this request. Real signed-in hover/removal observation remains separate from asset publication and synthetic-session browser checks.",
       "baselineSha": "c714d7ec533da9807bb3f0f03e5c571463d2a4e4",
-      "reviewedSha": null,
+      "reviewedSha": "dd1aab176c7cadbfe987955c14cdf055188c3a31",
       "branch": "fix/image-thumbnail-remove-hover-20261106",
       "files": [
         "lab/editorial-polish.css",
@@ -1141,35 +1141,75 @@
         {
           "label": "Scoped checkpoint",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
+        },
+        {
+          "label": "PR #886",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/886"
         }
       ],
       "tests": [
         {
           "label": "Approved Image UI contract",
           "result": "passed",
-          "scope": "All five checks passed before editing."
+          "scope": "All five checks pass locally and in final-head CI.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42309397539/job/128206801549"
         },
         {
-          "label": "Required local browser attempts",
-          "result": "not_run",
-          "scope": "Prompt-paste and first-image Chromium launch blocked by socket EPERM. Studio-layout fails unchanged Clerk preflight assertion."
+          "label": "Image/Soul geometry and prompt paste",
+          "result": "passed",
+          "scope": "All 20 Soul parity cases at five widths pass. Prompt paste/clear/internal scroll/Generate checks and 36 guest/signed-in/History geometry cases pass. Actual-controller Soul owner/customer integration passes at 1440 and 390. Desktop/phone CI screenshots inspected.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42309397477"
+        },
+        {
+          "label": "Existing wider regression failures",
+          "result": "failed",
+          "scope": "First-image retains owner Base 120px vs guest96px mismatch. Studio-layout retains Clerk source preflight failure. Compact suite retains >=17px Generate-label assertion against unchanged15px. Mobile entry has a compact-height parity assertion. Broad Node suite retains the five documented Meta/Mood/photobooth failures. Their relevant sources/tests are unchanged; no assertions weakened."
         }
       ],
       "deployment": {
-        "state": "pending",
-        "sourceSha": null,
+        "state": "verified",
+        "sourceSha": "7db1e0684e0f396c3bb8ea665e74b7ff309ac285",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-06T23:11:37.049Z",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=image",
         "limitations": [
-          "No real signed-in production behavior observed."
+          "No real signed-in production reference removal was performed.",
+          "Existing unrelated broad-suite failures remain documented."
         ]
       },
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Merged PR #886 has exactly the reviewed candidate tree d9208d3ae2f5e51c6ca429c5a9885c99d825288f.",
+          "scope": "Four-file change; only editorial-polish.css and the Studio CSS version affect application behavior.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/886",
+          "limitations": []
+        },
+        {
+          "kind": "deployment",
+          "summary": "PR #886 merged as 7db1e0684e0f396c3bb8ea665e74b7ff309ac285. Exact Cloudflare Pages app check 128208744367 succeeded.",
+          "scope": "Production frontend publication; no Worker change.",
+          "observedAt": "2026-11-06T23:11:37.049Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/886",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Scoped read-only verifier returned LIVE_VERIFIED for editorial-polish.css?v=20261106-reference-remove-hover1. SHA-256 0adfbf33d2a14ac060771f5dcea3a18efc4f15f261cdd8ee7b5e5deb194de776 matches reviewed bytes.",
+          "scope": "Exact custom-domain HTML version and CSS source bytes.",
+          "observedAt": "2026-11-06T23:11:37.049Z",
+          "source": "lab/RELEASE-PROTOCOL.md",
+          "limitations": [
+            "Asset publication is distinct from a real signed-in journey."
+          ]
+        }
+      ],
       "blockers": [],
       "doNotRepeat": [
         "No paid generation needed.",
         "Keep thumbnail and deck dimensions unchanged."
       ],
-      "updatedAt": "2026-11-06T23:03:33.893Z"
+      "updatedAt": "2026-11-06T23:11:37.049Z"
     }
   ]
 }
