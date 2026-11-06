@@ -1,5 +1,27 @@
 # Beauty Studio and Studios navigation
 
+## 2026-11-06 | Approved tabbed ALTER implementation
+
+- Objective: implement the owner-supplied dark ALTER reference, not another mock image.
+- Baseline main: `674b340bcb7217ed4b4ca42344a8fde8c55c0be8`.
+- Branch: `implement/alter-approved-20261106`; version `20261106-atelier1`.
+- Desktop: large central photograph/upload workspace, wider Edit Look panel and six large options per active tab.
+- Makeup / Hair / Skin / Light / Color retain independent native select state. Keyboard tabs use roving focus and do not change quotes.
+- Defaults: Makeup Original, Hair Original, Skin Natural, Light Original, Color Original, strength 50.
+- Light and Color are validated prompt instructions on the existing image route, not new backend/provider integrations. Original produces the exact legacy prompt.
+- Native model/resolution/ratio, quote binding, explicit Generate confirmation, ambiguous-job protection, account access, history, comparison and zoom remain intact.
+- Carousel supports native touch/trackpad, bounded wheel scrolling, mouse dragging, reduced-motion-aware inertia, heading arrows and keyboard focus. Browsing does not apply a look or generate.
+- Approved six image directions remain selectable. Clicking a direction sets its makeup/direction and resets other category overrides to avoid stale contradictory instructions.
+- The 15 small WebP assets are non-generative crops from the approved mock and its clean uploaded-photo flow screen. No new image generation or stock purchase occurred. They are illustrative, not guaranteed model outputs.
+- Original previous assets remain in the repository. Header, other studios, backend, pricing and payment files are unchanged.
+- Local checks passed: 5 approved Image contracts, 4 new ALTER unit contracts, syntax and whitespace.
+- Local isolated rendered controls passed at 320/390/768/1024/1280/1366/1440/1672/1920 px: no horizontal page overflow, visible Generate, no textarea overlap, independent selections, reset, keyboard and reachable final card.
+- Local browser navigation is environment-blocked, so the full original role/billing suite must run in GitHub CI. Isolated HTML rendering is not represented as a real signed-in test.
+- Extended the existing Beauty browser suite for the explicitly approved visual contract, tabs, native field state, light/color quote binding and sign-out reset. Existing role, credit, source/comparison, history race and zoom assertions are retained.
+- Publication is not yet verified. Required next steps: pass scoped CI, review screenshot artifacts, merge exact reviewed head, inspect Cloudflare pvlab-studio check and verify custom-domain assets.
+- No real-account generation, customer payment or private media access was performed. Real provider output quality for new prompt directions remains untested.
+
+
 ## 2026-11-05 | ALTER editorial composition, original photographs locked
 
 - Owner rejected the hard-edged, near-unchanged production layout and requested the previously approved cinematic editorial composition implemented and published, but with the ORIGINAL central hero photograph and a large, fully usable Edit Look deck.

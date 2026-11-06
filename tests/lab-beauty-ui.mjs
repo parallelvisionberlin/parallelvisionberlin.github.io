@@ -80,7 +80,7 @@ try{
    const panel=document.querySelector('.beauty-edit-panel').getBoundingClientRect();
    const cards=[...document.querySelectorAll('.beauty-looks-list [data-look]')];
    const track=document.querySelector('.beauty-looks-list').getBoundingClientRect();
-   const previews=[...document.querySelectorAll('.beauty-choice-photo')];
+   const previews=[...document.querySelectorAll('.beauty-preset-group:not([hidden]) .beauty-choice-photo')];
    return {
     hero:pseudo.backgroundImage,
     mask:pseudo.maskImage||pseudo.webkitMaskImage,
@@ -94,16 +94,16 @@ try{
     fullDeck:cards.every(el=>{const r=el.getBoundingClientRect();return r.left>=track.left-2&&r.right<=track.right+2;})
    };
   });
-  assert.match(editorial.hero,/beauty-hero-refined-20261031\.jpg/,'Original hero JPEG remains the exact background asset');
+  assert.match(editorial.hero,/atelier\/hero\.webp/,'Approved mock photograph is the new hero asset');
   assert.equal(editorial.lookCount,6,'All six original editorial photographs remain');
   if(width>1000){
    assert.match(editorial.mask,/gradient/,'Hero has a real photographic fade into the archive');
    assert.equal(editorial.background,'rgba(0, 0, 0, 0)','Hero no longer has the hard gray rectangle');
    assert.equal(editorial.overflow,'visible','Hero is not clipped at its former hard bottom');
    assert.ok(editorial.panelWidth>=(width>=1366?365:330),'Edit Look panel remains full-size: '+width+'px '+editorial.panelWidth);
-   assert.equal(editorial.thumbnails,12,'Makeup, hair and skin controls remain visible');
-   assert.ok(editorial.minThumbHeight>=39,'Right-hand visual presets are readable, not tiny');
-   assert.equal(editorial.fullDeck,true,'No editorial photo is cut off');
+   assert.equal(editorial.thumbnails,6,'Active tab shows six large photographic controls');
+   assert.ok(editorial.minThumbHeight>=80,'Right-hand visual presets are readable, not tiny');
+   assert.equal(editorial.fullDeck,false,'Archive has true horizontal overflow instead of squeezing six cards');
    if(width>=1440)assert.ok(editorial.titleSize>=70,'Desktop ALTER title has the approved editorial scale');
   }
   await page.locator('#beauty-generate').click({trial:true});
@@ -113,17 +113,17 @@ try{
  // Visual shortcuts must control the native fields used by credit quotes and generation.
  {
   const s=await scenario({role:'guest',width:1448}),{page}=s;
-  assert.equal(await page.locator('[data-beauty-choice]').count(),12,'Three editable categories show four visual options each');
+  assert.equal(await page.locator('[data-beauty-choice]').count(),30,'Five independent categories each have six working options');
   const src=await page.locator('.beauty-looks-list .beauty-look-photo').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('src')));
   assert.equal(src.length,6,'Six editorial cards are visible');
   assert.equal(new Set(src).size,6,'Editorial cards use six distinct photographic assets');
 
-  // Design-only change: original hero and six asset paths are preserved.
+  // Explicitly approved redesign: new photo assets, five tabs, continuous archive.
   const hero=await page.locator('.beauty-editor-grid').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
-  assert.match(hero,/beauty-hero-refined-20261031\.jpg/,'The original ALTER photograph remains the background');
+  assert.match(hero,/atelier\/hero\.webp/,'The approved mock photograph is the background');
   assert.equal(await page.locator('.beauty-looks-prev').isVisible(),true,'Left carousel arrow is visible');
   assert.equal(await page.locator('.beauty-looks-next').isVisible(),true,'Right carousel arrow is visible');
-  // All six images must be fully visible at desktop widths; no clipped sixth card.
+  // Larger cards intentionally overflow; keyboard/arrows must reach every card.
   const fit=await page.locator('.beauty-looks-list').evaluate(track=>{
    const rect=track.getBoundingClientRect();
    return [...track.querySelectorAll('[data-look]')].every(card=>{
@@ -131,15 +131,17 @@ try{
     return r.left>=rect.left-1&&r.right<=rect.right+1;
    });
   });
-  assert.equal(fit,true,'Six editorial cards fit inside the desktop track');
+  assert.equal(fit,false,'The archive is a continuous scrollable track, not a forced six-column grid');
   assert.equal(await page.locator('.beauty-looks-prev').isDisabled(),true);
   const originalDirection=await page.locator('#beauty-direction').inputValue();
   await page.locator('.beauty-looks-next').click();
-  assert.equal(await page.locator('[data-look="natural"]').evaluate(el=>document.activeElement===el),true,'Next browses to Natural');
+  await page.waitForFunction(()=>document.querySelector('#beauty-looks-list').scrollLeft>0);
+  assert.equal(await page.locator('#beauty-direction').inputValue(),originalDirection,'Arrow scrolling does not select a look');
+  await page.locator('[data-look="natural"]').focus();
   assert.equal(await page.locator('#beauty-direction').inputValue(),originalDirection,'Browsing does not apply a look');
   await page.keyboard.press('ArrowLeft');
   assert.equal(await page.locator('[data-look="editorial"]').evaluate(el=>document.activeElement===el),true,'Left key moves focus back');
-  await page.locator('.beauty-looks-next').click();
+  await page.keyboard.press('ArrowRight');
   await page.keyboard.press('Enter');
   assert.match(await page.locator('#beauty-direction').inputValue(),/natural light/i,'Enter applies the focused look');
   await page.locator('[data-beauty-choice="beauty-makeup"][data-value="bold"]').click();
@@ -149,6 +151,48 @@ try{
   await page.locator('[data-look="night"]').click();
   assert.match(await page.locator('#beauty-direction').inputValue(),/low-key evening/i,'Editorial mood cards produce real creative directions');
   await s.context.close();
+ }
+ // Tab state, native generation settings, reset and busy controls remain connected.
+ for(const width of [1440,390]){
+  const s=await scenario({role:'customer',width,height:900}),{page}=s;
+  const defaults=()=>page.evaluate(()=>Object.fromEntries(['makeup','hair','skin','light','color','strength'].map(k=>[k,document.getElementById('beauty-'+k).value])));
+  assert.deepEqual(await defaults(),{makeup:'keep',hair:'keep',skin:'natural',light:'keep',color:'keep',strength:'50'});
+  await page.locator('#beauty-photo').setInputFiles(input);
+  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
+  const quoted=s.quotes.length,buttonBefore=await page.locator('#beauty-generate').boundingBox();
+  for(const tab of ['hair','skin','light','color','makeup'])await page.locator('#beauty-tab-'+tab).click();
+  await page.waitForTimeout(500);
+  assert.equal(s.quotes.length,quoted,'Tab browsing does not invalidate or reprice a quote');
+  assert.equal(s.submits,0,'Tab browsing cannot generate');
+  assert.deepEqual(await page.locator('#beauty-generate').boundingBox(),buttonBefore,'Generate placement stays stable across tabs');
+  for(const [tab,value] of [['makeup','metallic'],['hair','wet'],['skin','matte'],['light','flash'],['color','warm']]){
+   await page.locator('#beauty-tab-'+tab).click();
+   await page.locator(`[data-beauty-choice="beauty-${tab}"][data-value="${value}"]`).click();
+  }
+  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'));
+  assert.deepEqual(await defaults(),{makeup:'metallic',hair:'wet',skin:'matte',light:'flash',color:'warm',strength:'50'});
+  const prompt=s.quotes.at(-1).settings.prompt;
+  for(const pattern of [/metallic fashion/,/wet-look/,/matte finish/,/on-camera flash/,/warm colour/])assert.match(prompt,pattern);
+  assert.equal(s.submits,0,'Selecting look options only prepares a price');
+  await page.locator('#beauty-tab-makeup').focus();await page.keyboard.press('ArrowRight');
+  assert.equal(await page.locator('#beauty-tab-hair').getAttribute('aria-selected'),'true');
+  await page.keyboard.press('End');assert.equal(await page.locator('#beauty-tab-color').getAttribute('aria-selected'),'true');
+  await page.evaluate(()=>document.querySelector('#beauty-color').disabled=true);
+  await page.waitForFunction(()=>document.querySelector('[data-beauty-choice="beauty-color"]').disabled);
+  assert.equal(await page.locator('[data-beauty-choice="beauty-color"][data-value="cool"]').isDisabled(),true,'Native busy state disables visual choices');
+  await page.evaluate(()=>document.querySelector('#beauty-color').disabled=false);
+  await page.locator('#beauty-reset-look').click();
+  assert.deepEqual(await defaults(),{makeup:'keep',hair:'keep',skin:'natural',light:'keep',color:'keep',strength:'50'});
+  await page.locator('[data-look="editorial"]').focus();await page.keyboard.press('End');
+  const visible=await page.locator('[data-look="film"]').evaluate(card=>{const a=card.getBoundingClientRect(),b=card.parentElement.getBoundingClientRect();return a.left>=b.left-3&&a.right<=b.right+3;});
+  assert.equal(visible,true,'Last archive card is fully reachable by keyboard');
+  assert.equal(await page.locator('#beauty-direction').inputValue(),'','Archive keyboard navigation does not apply the focused preset');
+  await page.evaluate(()=>window.__beautyAccount.signOut());
+  await page.waitForFunction(()=>document.querySelector('#beauty-photo-preview').hidden);
+  assert.deepEqual(await defaults(),{makeup:'keep',hair:'keep',skin:'natural',light:'keep',color:'keep',strength:'50'});
+  assert.equal(await page.locator('#beauty-tab-makeup').getAttribute('aria-selected'),'true','Sign-out resets visible tab');
+  assert.equal(await page.locator('[data-beauty-choice="beauty-makeup"][data-value="keep"]').getAttribute('aria-pressed'),'true');
+  assert.deepEqual(s.errors,[]);await s.context.close();
  }
  for(const width of [1448,1024,390,320]){
   const s=await scenario({role:'guest',width}),{page}=s;

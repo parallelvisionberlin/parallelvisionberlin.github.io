@@ -532,6 +532,67 @@
         "Preserve the merged #870 replacement flow and existing quote, credit, idempotency and budget safeguards."
       ],
       "updatedAt": "2026-11-06T20:20:54Z"
+    },
+    {
+      "id": "alter-tabbed-editor",
+      "title": "ALTER Studio tabbed editor",
+      "component": "ALTER Studio",
+      "status": "needs_verification",
+      "summary": "Owner-approved photographic interface implemented on isolated branch: five independent visual tabs, larger controls and continuous editorial archive. Existing image generation route preserved.",
+      "nextAction": "Run full Beauty browser/role/quote suite, inspect screenshots, then verify exact merge Cloudflare and production asset bytes before declaring publication.",
+      "baselineSha": "674b340bcb7217ed4b4ca42344a8fde8c55c0be8",
+      "reviewedSha": null,
+      "branch": "implement/alter-approved-20261106",
+      "files": [
+        "lab/beauty.html",
+        "lab/beauty-editorial-final.css",
+        "lab/beauty-approved-20261029.js",
+        "lab/beauty-settings.js",
+        "lab/beauty.js",
+        "lab/visuals/beauty/atelier",
+        "tests/lab-beauty-ui.mjs",
+        "tests/lab-beauty-atelier.test.mjs"
+      ],
+      "links": [
+        {
+          "label": "Scoped handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/BEAUTY-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Local Image and ALTER unit contracts",
+          "result": "passed",
+          "scope": "9 tests; default legacy prompt, all 30 options, quote-bound prompt directions and no generation side effects."
+        },
+        {
+          "label": "Isolated rendered controls",
+          "result": "passed",
+          "scope": "Nine widths 320 to 1920 px; geometry, tabs, independent selections, reset and keyboard archive. Not authenticated production."
+        },
+        {
+          "label": "Full browser role/quote regression",
+          "result": "not_run",
+          "scope": "Requires normal GitHub Beauty CI; local browser navigation blocked by environment."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "sourceSha": null,
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "Not yet merged or verified in production.",
+          "No real signed-in production actions or paid generation."
+        ]
+      },
+      "evidence": [],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not regenerate approved photos.",
+        "Do not add providers or change billing.",
+        "Do not substitute the previous stacked tiny-choice layout."
+      ],
+      "updatedAt": "2026-11-06"
     }
   ]
 }
