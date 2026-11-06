@@ -19,9 +19,10 @@
 - Extended diagnostic run: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42296062207
 - Legacy first-image test fails at line258: new/guest Base widths 120px vs 96px. Studio layout stops at line28, its Clerk source assertion. Both reproduce identically against unchanged main `519d9fad57af01fcf836203d24f54e150a3d9455` in that run; neither assertion was edited. The temporary comparison steps are absent from the final diff; original CI gates remain.
 - Current focused run: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42296435939 (115 Node cases and all scoped Soul/replacement browser checks passed on the final candidate).
-- #883 is merged, not yet verified live as of 2026-11-06T21:32:29Z. Production deployment `131dec02-1ad0-4e3b-a214-84b691c104e3` remains queued; check `128162944648` in_progress. An older preview `91b206df-d8c5-46de-b7f2-1f79614d72f2` remained in clone_repo since 21:21:33Z. No cancellation of unrelated builds, second deployment or Worker changes.
+- #883 frontend LIVE_VERIFIED at 2026-11-06T22:01:47Z through production commit `9401a465bc1061f94ea4e7fa59893dedb892f4bd`, deployment `07bab2ba-ab7b-492e-b464-d45d0218306e`, successful Cloudflare check `128179600406`. Both JS/CSS scoped verifiers pass. Actual pvlab.studio/studio HTML returns 200 and contains the popup, both actions and ownerSoulFlow=20261106v1.
+- Queue recovery: removed only unfinished superseded previews 91b206df (stalled clone over 30minutes), 5ede7e8d (merged #883), 6b01aab5 (merged Mood branch). Exact source commits were verified before removal. No production/completed deployment, account setting, credential, Worker or generation was changed. Production subsequently completed normally.
+- Next: owner can refresh Studio. No further publication work is pending for this flow; customer activation still requires the provider/account and explicitly authorized quality validation below.
 - Expected production SHA256: lab.js `d617259251ee204439cefddb2b76bc36f989938ce26f07bae5eb0ae970e0d266`; image-deck-surface.css `1559aa13af7c2181c6637cadfe4d6bb9801d1ac89e920f5abfd74004ef9d28e2`. HTML must contain soul-mood-dialog and ownerSoulFlow=20261106v1.
-- Next: recheck that queued deployment, then run the scoped release verifier for both assets at merge 9919574d and inspect actual HTML. Do not repeat completed source/browser work.
 
 ## Approved photographic behavior and assets
 

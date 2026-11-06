@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T21:57:56Z",
+  "updatedAt": "2026-11-06T22:01:47Z",
   "handoffs": [
     {
       "id": "owner",
@@ -417,8 +417,8 @@
       "title": "Night Flash with Higgsfield Soul",
       "component": "Image Moods / Soul 2",
       "status": "needs_verification",
-      "summary": "Owner Soul one-click generation and compact Won Kar Night/model popup are merged in #883. Focused CI, phone/desktop fixtures, prompt sizing and replacement compatibility pass. Production deployment is queued; customer activation and paid quality validation remain pending.",
-      "nextAction": "Recheck Cloudflare production deployment131dec02-1ad0-4e3b-a214-84b691c104e3, then verify merged9919574d JS/CSS bytes and actual popup HTML. Source,115focused tests and mocked phone/desktop/replacement flows are complete. Do not repeat them unchanged or start a second deployment. Keep customer gate closed and do not run paid generation.",
+      "summary": "Owner Soul one-click generation and compact Won Kar Night/model popup are now LIVE_VERIFIED on pvlab.studio. Actual popup HTML and exact tested JS/CSS bytes verified. Customer activation and independent paid photographic/identity validation remain pending.",
+      "nextAction": "Owner can refresh Studio; this frontend publication is complete. Keep customer Night Flash closed until provider/account and explicitly authorized quality/identity conditions are met. No paid generation is authorized.",
       "baselineSha": "519d9fad57af01fcf836203d24f54e150a3d9455",
       "reviewedSha": "04413ed5aa58f6db557bb6a5c21e4b4a7fabe0d0",
       "branch": "fix/soul-owner-flow-20261106",
@@ -495,16 +495,15 @@
         }
       ],
       "deployment": {
-        "state": "pending",
-        "sourceSha": "9919574d5d40044c04c739b7e7ed206245e5e68f",
-        "environment": "Owner Soul/frontend only, Cloudflare Pages normal production deployment queued; Worker unchanged",
+        "state": "verified",
+        "sourceSha": "9401a465bc1061f94ea4e7fa59893dedb892f4bd",
+        "environment": "Cloudflare Pages production pvlab.studio; owner Soul flow actual HTML and exact JS/CSS verified",
         "limitations": [
-          "Production deployment131dec02-1ad0-4e3b-a214-84b691c104e3 remains queued; no live-asset claim for #883 yet.",
-          "Older preview91b206df-d8c5-46de-b7f2-1f79614d72f2 remained cloning since21:21:33Z; unrelated builds were not cancelled.",
-          "Customer activation conditions and independent signed-in/paid photographic quality validation remain pending."
+          "No independently verified real signed-in journey or paid photographic/identity test.",
+          "Customer Night Flash remains gated; no Worker or provider/billing configuration changes."
         ],
         "evidenceUrl": "https://pvlab.studio/studio",
-        "observedAt": "2026-11-06T21:32:29Z"
+        "observedAt": "2026-11-06T22:01:47Z"
       },
       "evidence": [
         {
@@ -607,6 +606,16 @@
             "Not verified live.",
             "No real paid provider generation or signed-in journey."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "LIVE_VERIFIED via production9401a465, deployment07bab2ba-ab7b-492e-b464-d45d0218306e, Cloudflare check128179600406 success. lab.js SHA256 d617259251ee204439cefddb2b76bc36f989938ce26f07bae5eb0ae970e0d266; CSS1559aa13af7c2181c6637cadfe4d6bb9801d1ac89e920f5abfd74004ef9d28e2. Actual HTML contains the popup/actions/version.",
+          "scope": "Direct custom-domain HTTP200 HTML plus byte-for-byte JS/CSS equality with reviewed source; compatible browser fixtures were verified earlier. Removed only obsolete unfinished previews to unblock the queue; production completed normally.",
+          "source": "https://pvlab.studio/studio",
+          "observedAt": "2026-11-06T22:01:47Z",
+          "limitations": [
+            "No paid generation or real signed-in production journey performed."
+          ]
         }
       ],
       "blockers": [
@@ -620,7 +629,7 @@
         "Preserve the merged #870 replacement flow and existing quote, credit, idempotency and budget safeguards.",
         "The first-image width and Studio Clerk assertions reproduce on519d9fad in run42296062207. Do not rerun the same baseline investigation without a relevant source change; keep those failures distinct from the passing focused Soul flow."
       ],
-      "updatedAt": "2026-11-06T21:32:29Z"
+      "updatedAt": "2026-11-06T22:01:47Z"
     },
     {
       "id": "image-prompt-deck-clearance",
