@@ -13,7 +13,7 @@ permissions:
   contents: read
 jobs:
   night-flash-soul:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
@@ -21,18 +21,30 @@ jobs:
         with:
           node-version: '22.16.0'
       - name: Test Soul API, pricing, Mood and approved Image contracts
-        run: node --test tests/lab-night-flash-soul.test.mjs tests/lab-higgsfield.test.mjs tests/lab-soul-commercial-pricing.test.mjs tests/lab-moods.test.mjs tests/lab-approved-image-ui-contract.test.mjs
-      - name: Install browser
+        run: node --test tests/lab-night-flash-soul.test.mjs tests/lab-higgsfield.test.mjs tests/lab-soul-commercial-pricing.test.mjs tests/lab-moods.test.mjs tests/lab-approved-image-ui-contract.test.mjs tests/lab-image-replacement-intent.test.mjs tests/lab-image-replacement-backend.test.mjs tests/lab-image-replacement-composite.test.mjs tests/lab-image-replacement-draft.test.mjs tests/lab-precision-edit.test.mjs
+      - name: Use the hosted runner Chrome without downloading browser dependencies
         run: |
-          npm install --prefix /tmp/pv-night-flash-soul --no-save playwright@1.57.0
-          node /tmp/pv-night-flash-soul/node_modules/playwright/cli.js install --with-deps chromium
+          npm install --prefix /tmp/pv-night-flash-soul --no-save --no-audit --no-fund playwright@1.57.0
+          chrome="${CHROME_BIN:-/usr/bin/google-chrome}"
+          test -x "$chrome"
+          "$chrome" --version
+          echo "PV_CHROMIUM_EXECUTABLE=$chrome" >> "$GITHUB_ENV"
+          cat > /tmp/pv-night-flash-soul/chromium.mjs <<'JS'
+          import {chromium as engine} from './node_modules/playwright/index.mjs';
+          export const chromium={launch:options=>engine.launch({...options,executablePath:process.env.PV_CHROMIUM_EXECUTABLE})};
+          JS
       - name: Verify owner and customer Studio at desktop and phone widths
         env:
-          PV_PLAYWRIGHT_MODULE: /tmp/pv-night-flash-soul/node_modules/playwright/index.mjs
-        run: node tests/lab-night-flash-soul-ui.mjs
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-night-flash-soul/chromium.mjs
+        run: |
+          node tests/lab-night-flash-soul-ui.mjs
+          node tests/lab-image-replacement-ui.mjs
+          node tests/lab-image-replacement-flow-ui.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: night-flash-soul-desktop-phone
-          path: test-results/night-flash-soul-*.png
+          path: |
+            test-results/night-flash-soul-*.png
+            test-results/pv-replacement-*.png
           retention-days: 2
