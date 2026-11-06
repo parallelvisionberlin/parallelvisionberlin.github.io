@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T22:05:18.886Z",
+  "updatedAt": "2026-11-06T22:44:59Z",
   "handoffs": [
     {
       "id": "owner",
@@ -69,7 +69,7 @@
       "title": "Group partner dashboards",
       "component": "Owner navigation",
       "status": "deployed",
-      "summary": "Robin / König Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
+      "summary": "Robin / K\u00f6nig Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
       "nextAction": "No additional menu work is pending. Recheck only if navigation code, routes or role behavior change.",
       "baselineSha": "e400ff36ca7e6d541dfeb8d8748fc0357a0b6730",
       "reviewedSha": "9fc17771dd75bd3eeb4cd5bbdc77812945f98e1c",
@@ -216,7 +216,7 @@
       "component": "Owner workspace",
       "status": "deployed",
       "summary": "Published: clear View activity access to existing generated-content review, restored manual Customers Refresh and improved Recent purchases spacing. Approved simplified navigation and existing functions retained.",
-      "nextAction": "Use Customers → View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
+      "nextAction": "Use Customers \u2192 View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
       "baselineSha": "e2cd02bce742b157d12308b76908cbacea34b604",
       "reviewedSha": "01362b3073f7d997d98d7ebd2830ad586d244d77",
       "branch": "fix/owner-activity-access-20261106",
@@ -716,7 +716,7 @@
         },
         {
           "kind": "production_asset",
-          "summary": "Actual public Chrome Couture selection at 1363×936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
+          "summary": "Actual public Chrome Couture selection at 1363\u00d7936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
           "scope": "Rendered public production layout after reload; no Generate click.",
           "source": "https://pvlab.studio/studio?tool=image",
           "observedAt": "2026-11-06T20:55:35.186Z",
@@ -1022,6 +1022,91 @@
         "Do not substitute the previous stacked tiny-choice layout."
       ],
       "updatedAt": "2026-11-06T22:05:18.886Z"
+    },
+    {
+      "id": "shared-image-soul-deck",
+      "title": "One Image deck for standard, Soul Pro and Higgsfield Soul",
+      "component": "Image composer",
+      "status": "needs_verification",
+      "summary": "Locked the normal web Image deck as the shared design. Soul identity uses the normal toolbar and source photos use the existing +/reference strip. Legacy Soul and character grids are native-only. Missing Pro setup uses existing accessible button help rather than a third row.",
+      "nextAction": "Await the final Soul phone integration check after the More-disclosure test update. Merge the fixed candidate, then verify production bytes for lab.js, image-editorial-deck.js and image-deck-surface.css at version 20261106-shared-soul-deck1. Keep legacy first-image/auth test failures documented separately.",
+      "baselineSha": "429ea39bc6d4884cb09407d8765043b0b6f04758",
+      "reviewedSha": "8ca2fe655746ca98b2e1d8c802addb7fca4bca69",
+      "branch": "fix/soul-deck-unification-20261106",
+      "files": [
+        "lab/AGENTS.md",
+        "lab/lab.js",
+        "lab/studio.html",
+        "lab/image-editorial-deck.js",
+        "lab/image-deck-surface.css",
+        "tests/lab-soul-deck-parity-ui.mjs",
+        "tests/lab-night-flash-soul-ui.mjs",
+        ".github/workflows/pv-lab-night-flash-soul.yml"
+      ],
+      "links": [
+        {
+          "label": "PR #885",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/885"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image, Soul integration, Higgsfield and private portraits",
+          "result": "passed",
+          "scope": "65 local Node tests pass, including Mood/Controlled Pose guidance, approved Image, Soul integration, Higgsfield and portraits. JS syntax and whitespace pass."
+        },
+        {
+          "label": "Managed Chrome rendering",
+          "result": "passed",
+          "scope": "Actual Studio/controller with synthetic session and read-only API fixtures at 1440x900 and 390x844. Standard, Soul and Pro share the 1120x142 desktop shell, 144x84 Generate, 54px prompt and 19px corners. Phone keeps common width/Generate baseline and wraps its optional identity control. Source photo + long prompt stay bounded without horizontal overflow; HF phone ratio, 720p selection and identity picker operate."
+        },
+        {
+          "label": "Existing standalone Playwright suites",
+          "result": "not_run",
+          "scope": "Local Chromium could not create its process socket in this runtime. Existing CI suites remain required; no test gate was removed."
+        },
+        {
+          "label": "Initial CI diagnosis",
+          "result": "documented",
+          "scope": "Approved Image and prompt-paste passed. Fixed a strict source-contract mismatch while retaining the existing Controlled Pose expression. The parity fixture now checks the normal CSS minimum when a source photo remains attached, rather than imposing the retired Soul empty height. Added independent CI execution of all four required Image browser suites so unrelated earlier steps cannot prevent them."
+        },
+        {
+          "label": "Shared Image browser CI on 8ca2fe6",
+          "result": "passed",
+          "scope": "Soul parity passes all 20 photo/long/empty cases at 1920/1440/1100/390/320. Prompt paste and measured clearance pass at desktop/mobile widths. Approved Image contract passes. Actual Soul owner/customer desktop flows pass, including quotes, input, identity and generation boundaries. Phone test is updated to open the normal More disclosure before identity strength."
+        },
+        {
+          "label": "Required legacy suites were executed independently",
+          "result": "failed",
+          "scope": "First-image fails unchanged owner Base width120 vs guest96 declarations; these rules are unchanged by this task. Studio-layout stops on an unchanged native-account.js timeout-source assertion before launching the browser. No auth source or legacy test was changed to hide it. Full Node CI passes1106 with the same five previously observed unrelated failures; no new unit failure remains."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "sourceSha": null,
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "Local fixture evidence is separate from production and real signed-in actions.",
+          "No paid generation or training was run."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "fixture",
+          "summary": "1440 desktop geometry measured identically across normal, HF Soul and Soul Pro. Identity picker remains inside composer-controls; duplicate source card is hidden. 390px output changes synchronize the existing HF resolution field.",
+          "scope": "Managed browser rendering, original controller and styles, synthetic account/local media.",
+          "limitations": [
+            "No actual provider request or identity quality validation."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Normal web Image geometry is locked; model selection changes available controls only.",
+        "Never reintroduce separate web is-pv-soul/has-character-picker grids or right-side IMAGE/Soul ID tiles.",
+        "Keep native layout and existing identity, pricing, model restrictions and provider handlers."
+      ],
+      "updatedAt": "2026-11-06T22:44:59Z"
     }
   ]
 }

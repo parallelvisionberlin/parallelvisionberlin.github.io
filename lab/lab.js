@@ -2010,7 +2010,7 @@ function syncImageComposer(){
   syncSoulBar();
   // Trained characters keep their identity tile. Reference image models use only the left +.
   const trainedCharacterTile=imageEngine==='soul'||imageEngine==='soulpro';
-  imageComposer.classList.toggle('has-character-picker',(imageEngine==='soul'||imageEngine==='soulpro')&&!isSoul2());
+  imageComposer.classList.toggle('has-character-picker',window.__PV_LAB_NATIVE__===1&&(imageEngine==='soul'||imageEngine==='soulpro')&&!isSoul2());
   $('composer-character').hidden=!trainedCharacterTile;
   textbox.disabled=busy || $('prompt').disabled;
   $('image-composer-model-label').textContent=imageStudioModelTitle();
@@ -2113,7 +2113,7 @@ function syncImageComposer(){
     else if(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))message='Request started. You can generate another variation in a moment.';
     else if(soulNightFlashUnavailable())message='Night Flash with PV Soul is awaiting provider validation.';
     else if(isSoul2()&&!config.higgsfieldEnabled)message='Connect your Higgsfield API credential in Cloudflare. Open Identity strength for setup details.';
-    else if(isSoul2()&&!hf.ready())message='Choose or create a completed Soul ID using the identity photo tile.';
+    else if(isSoul2()&&!hf.ready())message='Choose or create a completed Soul ID using the Soul ID control.';
     else if(isSoul2()&&!file&&!$('prompt').value.trim())message='Add a Base image or describe what you want to create.';
     else if(imageEngine==='soulpro'&&!isSoul2()&&!file)message='Add a base image.';
     else if(imageEngine==='soulpro'&&!isSoul2()&&!soulProIdentity.configured)message='Choose and save the identity reference photos.';
@@ -2134,9 +2134,10 @@ function syncImageComposer(){
   const idleMoodNeedsInput=moodUI.active()&&!imageInputReferences().length&&!$('prompt').value.trim()||(isSoul2()&&!file&&!$('prompt').value.trim());
   // Controlled Pose instructions belong to accessible hover guidance, not a
   // third row that changes the approved Image deck geometry.
+  const soulNeedsSetup=window.__PV_LAB_NATIVE__!==1&&imageEngine==='soulpro'&&!isSoul2()&&(!file||!soulProIdentity.configured);
   const inlineMessage=imageEngine==='fal'||queueBlocked||exactPreparing||idleMoodNeedsInput?'':message;
   // Resolve the owner Mood/model mismatch in a dialog, without moving the deck.
-  block.hidden=!inlineMessage||ownerSoulMoodMismatch();reason.textContent=block.hidden?'':inlineMessage;review.hidden=true;
+  block.hidden=!inlineMessage||ownerSoulMoodMismatch()||soulNeedsSetup;reason.textContent=block.hidden?'':inlineMessage;review.hidden=true;
   const poseHint='Controlled Pose: add one Pose photo, 1–4 Identity photos, and a prompt.';
   const modelButton=$('image-composer-model');
   if(imageEngine==='fal'){
@@ -5478,11 +5479,11 @@ try{clerk=await loadLabAccount();clerk.addListener(()=>void sync());await sync()
 
 
 
-// Soul composer: independent scene and optional character, with visible output controls.
+// Soul composer: capabilities use the shared web Image deck. Legacy layout classes belong only to the native app.
 function syncSoulBar(){
-  const active=isSoul2();imageComposer.classList.toggle('is-pv-soul',active);imageComposer.classList.toggle('is-seedream',tool==='image'&&['seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy','gemini','gemini21'].includes(imageEngine));imageComposer.classList.toggle('has-soul-source',active&&!!sourceUrl);
+  const active=isSoul2(),native=window.__PV_LAB_NATIVE__===1;imageComposer.classList.toggle('is-pv-soul',active&&native);imageComposer.classList.toggle('is-seedream',tool==='image'&&['seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy','gemini','gemini21'].includes(imageEngine));imageComposer.classList.toggle('has-soul-source',active&&!!sourceUrl);
   document.querySelectorAll('.hf-bar-control').forEach(el=>el.hidden=!active);
-  $('hf-bar-source').hidden=!active||!!sourceUrl;
+  $('hf-bar-source').hidden=!active||!!sourceUrl||!native;
   if(!active)return;
   $('hf-bar-resolution').value=$('hf-resolution').value;
   const ratios=['16:9','9:16','4:3','3:4','1:1','2:3','3:2'];
