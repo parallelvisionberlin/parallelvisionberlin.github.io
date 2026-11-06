@@ -70,7 +70,9 @@ test('Atelier references remain real and the creative steps feed real generation
  assert.match(js,/function updateSeriesSummary/);
  assert.match(js,/selectedDirections=\{location:null,moods:null,material:null\}/);
  assert.match(js,/const moodText=Object\.entries\(selectedDirections\)/);
- assert.match(html,/id="model-drop" class="editorial-own-cast"/,'First casting slot is the upload card');
+ assert.match(html,/class="editorial-cast-pinned"/,'Create Character and Upload photos share one pinned casting tile');
+ assert.match(html,/id="model-drop" class="editorial-own-cast editorial-cast-upload"/,'Original upload picker remains available');
+ assert.match(html,/id="editorial-cast-track"/,'Casting references scroll independently');
  assert.match(html,/id="saved-character-gallery"/,'Saved characters are available inline');
  assert.match(html,/data-cast-composition="mixed"/,'Mixed editorial composition is available');
  assert.match(html,/data-cast-composition="alternating"/,'Individual portraits composition is available');
@@ -104,6 +106,12 @@ test('Identity casting uses the approved photographic layout rather than standal
  assert.match(stage,/id="editorial-casting-controls"/);
  assert.ok(stage.indexOf('id="model-thumbs"')<stage.indexOf('id="model-selection-count"'),'Thumbnails appear before count and Clear all');
  assert.match(js,/editorial-footer-add/,'Footer + adds another model using existing picker');
+ assert.match(js,/footer\.prepend\(selection\)/,'Selected models move into the only active footer dock');
+ const identityCss=read('lab/full-editorial-identity-refresh.css');
+ assert.match(identityCss,/scroll-snap-type:x mandatory/,'Casting supports a horizontal snap carousel');
+ assert.match(identityCss,/position:sticky!important/,'Selection dock follows the active viewport');
+ assert.match(html,/full-editorial-identity-refresh\.css\?v=20261106-gallery1/);
+
  const atelierCss=read('lab/full-editorial-atelier.css');
  assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
  assert.match(atelierCss,/#panel-model \.editorial-composition-option/);
@@ -111,9 +119,9 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.match(html,/full-editorial\.js\?v=20261105-scene-photography1/);
+ assert.match(html,/full-editorial\.js\?v=20261106-gallery1/);
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
- assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);go\(directStart\?1:0\)/);
+ assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);setIdentitySource\('casting'\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=!ready/,'Composition only appears with two selected models');
  assert.match(js,/button\.disabled=!ready/,'Composition requires at least two models');
  assert.match(js,/\$\('editorial-cast-empty'\)\.hidden=modelGroups\.length>0/,'Cast strip has explicit empty state');
@@ -195,4 +203,19 @@ test('Identity typography clears Back and progress rail; Continue uses a subdued
  assert.match(c,/#step-next:disabled/);
  assert.doesNotMatch(c.slice(c.indexOf('PVLAB_IDENTITY_HERO_TEXT_CTA_20261101')),/#editorial-cast-empty:not/,'No state-dependent hero geometry');
  assert.match(html,/id="step-next" class="primary"/,'Existing continue action and semantics unchanged');
+});
+
+test('Identity carousel retains saved character, uploading and multi-cast controls',()=>{
+ assert.match(html,/id="editorial-cast-track"[^>]*tabindex="0"/);
+ assert.match(html,/id="editorial-cast-prev"/);
+ assert.match(html,/id="editorial-cast-next"/);
+ assert.match(html,/id="editorial-clear-cast"/);
+ assert.equal((html.match(/data-sample-kind="model"/g)||[]).length,5,'All five existing reference portraits remain');
+ assert.match(html,/createCharacter=1/,'Create Character deep link remains genuine');
+ assert.match(js,/function moveCastCarousel/);
+ assert.match(js,/document\.addEventListener\('keydown'/);
+ assert.match(js,/updateCastCarouselControls/);
+ assert.match(js,/querySelectorAll\('\[data-cast-composition\]'\)/);
+ assert.match(js,/covers=modelGroups\.map\(groupCover\)/,'Appearance previews use the chosen people');
+ assert.match(js,/group\.files\.push\(\.\.\.accepted\)/,'Extra identity references remain attached');
 });
