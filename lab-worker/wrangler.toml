@@ -30,6 +30,9 @@ LAB_PUBLIC_APP_URL = "https://pvlab.studio/studio.html"
 LAB_MINOR_PROMPT_SAFETY_ENABLED = "true"
 # Customer Higgsfield endpoints still use provider authentication and safeguards.
 LAB_CUSTOMER_HIGGSFIELD_ENABLED = "true"
+# Separate Night Flash launch gate. Keep false until provider terms, account
+# pricing and an authorized real-image identity/quality review are verified.
+LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED = "false"
 
 [ai]
 binding = "AI"

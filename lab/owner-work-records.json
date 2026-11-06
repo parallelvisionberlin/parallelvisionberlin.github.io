@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T21:15:00Z",
+  "updatedAt": "2026-11-06T20:25:00Z",
   "handoffs": [
     {
       "id": "owner",
@@ -413,14 +413,135 @@
       "updatedAt": "2026-11-06T13:31:13.683Z"
     },
     {
+      "id": "night-flash-soul",
+      "title": "Night Flash with Higgsfield Soul",
+      "component": "Image Moods / Soul 2",
+      "status": "needs_verification",
+      "summary": "PR #874 merged and gated code deployed. Production frontend and Worker bytes verified; mocked owner/customer and replacement flows pass at 390px/1440px. Customer Night Flash remains disabled pending provider/account and real-image validation.",
+      "nextAction": "Retain LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED closed until commercial permission, the real API account quote and an explicitly authorized real-image quality/identity review are recorded. No paid test is authorized.",
+      "baselineSha": "24d2b96d4c1b171edfd431f840aa73bcc1f366eb",
+      "reviewedSha": "c1119d687d487e8a324189cdf0037194f1ae1d86",
+      "branch": "feat/night-flash-soul-20261106",
+      "files": [
+        "lab/night-flash-soul.js",
+        "lab/moods.js",
+        "lab/lab.js",
+        "lab/studio.html",
+        "lab-worker/higgsfield.mjs",
+        "tests/lab-night-flash-soul.test.mjs",
+        "lab/NIGHT-FLASH-SOUL-WORK-STATE.md",
+        "lab/README.md",
+        "tests/lab-night-flash-soul-ui.mjs",
+        ".github/workflows/pv-lab-night-flash-soul.yml",
+        "lab-worker/worker.mjs",
+        "lab-worker/wrangler.toml"
+      ],
+      "links": [
+        {
+          "label": "Merged PR #874",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/874"
+        },
+        {
+          "label": "Scoped handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/feat/night-flash-soul-20261106/lab/NIGHT-FLASH-SOUL-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Focused CI contracts and replacement compatibility",
+          "result": "passed",
+          "scope": "112 tests on Node 22.16.0, including the approved Image contract. Hosted Chrome replaces the timed-out apt browser dependency installation.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42286485840"
+        },
+        {
+          "label": "Owner/customer browser integration and #870",
+          "result": "passed",
+          "scope": "Actual Studio with synthetic sessions at 1440x900 and 390x844. Model, Mood, intensity, Base, ready/pending Soul IDs, identity strength, credit quote, cancel, explicit confirmation, Reuse, default closed customer gate and replacement selection/full flow. All external provider boundaries mocked.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42286485840"
+        },
+        {
+          "label": "Worker, customer lifecycle, pricing, prompt safety and submission",
+          "result": "passed",
+          "scope": "139 local tests on Node 24.22.1. No paid provider calls.",
+          "source": "tests/lab-worker.test.mjs"
+        },
+        {
+          "label": "General Node suite and main baseline",
+          "result": "failed",
+          "scope": "1096/1102 pass locally. The same six failures reproduce on main 24d2b96 in the four affected files (20 cases: 14 pass, 6 fail); existing assertions untouched. Node 24 also exposes the existing Dream Blur scheduling failure.",
+          "source": "lab/NIGHT-FLASH-SOUL-WORK-STATE.md"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "sourceSha": "454c5ab51f9a2417e0977e791705450699a9e3f4",
+        "environment": "Cloudflare Pages pvlab.studio frontend and Cloudflare Worker; customer Night Flash activation disabled",
+        "limitations": [
+          "Customer Night Flash flag is absent and therefore false by default.",
+          "No real signed-in production journey, live provider estimate or generated image was verified."
+        ],
+        "evidenceUrl": "https://pvlab.studio/studio",
+        "observedAt": "2026-11-06T20:20:54Z"
+      },
+      "evidence": [
+        {
+          "kind": "fixture",
+          "summary": "Owner/customer and existing replacement browser flows pass at phone/desktop widths; four screenshots retained. A future enabled customer state exists only inside the fixture.",
+          "scope": "Real Studio/controller; synthetic sessions and mocked provider boundaries.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42286485840/artifacts/13538485226",
+          "limitations": [
+            "Does not establish photographic quality or identity preservation."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "Cloudflare content-only Worker deployment 0397edf10b1542beb37b61679cd83ca3, 2026-11-06T20:12:14Z. Downloaded code SHA-256 exactly matches tested bundle 43a390e06f862bc9ecfae56a4dd9bc3114a31cf5d005a43428f7f00a82fede97; bindings and compatibility date unchanged.",
+          "scope": "Verified current main baseline bundle first; no settings/secret/binding update. Customer launch gate remains false.",
+          "source": "https://parallel-vision-lab.parallelvision.workers.dev/health",
+          "limitations": [
+            "Source/health verification is separate from a real signed-in customer journey."
+          ]
+        },
+        {
+          "kind": "production_health",
+          "summary": "Health is OK and retains imageReplacement 20261106-replacement1.",
+          "scope": "Public read-only health endpoint after Worker publication.",
+          "source": "https://parallel-vision-lab.parallelvision.workers.dev/health",
+          "limitations": [
+            "Not a provider quote or generation test."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Scoped release verifier returned LIVE_VERIFIED for merge 454c5ab51f9a2417e0977e791705450699a9e3f4; Cloudflare Pages app check 128131672180 successful. Production lab.js SHA-256 299c5d0973c35f7fbbf58fd2cf297efbd9f0d1e27fd6348d81185331797cbe98 matches reviewed source.",
+          "scope": "Custom-domain HTML version and exact JavaScript bytes.",
+          "source": "https://pvlab.studio/studio",
+          "limitations": [
+            "Not a real signed-in production journey or paid image quality result."
+          ]
+        }
+      ],
+      "blockers": [
+        "Customer activation requires verified commercial/resale permission, the real API account quote within existing ceilings, a completed same-account Soul ID when identity is needed, a provider-accessible Base URL and an explicitly authorized real-image quality/identity review."
+      ],
+      "doNotRepeat": [
+        "Do not enable LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED before the provider/account and quality conditions are recorded.",
+        "Do not run paid generation or training without explicit authorization.",
+        "Do not equate fixture screenshots with real generated results or signed-in production.",
+        "Do not fabricate a native style UUID or convert Qwen LoRAs/Character photos to Soul IDs.",
+        "Preserve the merged #870 replacement flow and existing quote, credit, idempotency and budget safeguards."
+      ],
+      "updatedAt": "2026-11-06T20:20:54Z"
+    },
+    {
       "id": "image-prompt-deck-clearance",
       "title": "Compact Image prompt and visible Inspiration card names",
       "component": "Image prompt deck",
       "status": "needs_verification",
-      "summary": "Reduced desktop prompt type to 13px and cap to 136px; desktop Inspiration cards clear the measured upward-growing deck. History reserves the actual deck height.",
+      "summary": "Desktop prompt uses 13px type and a 136px cap. Public/signed-in Inspiration clears the measured deck by 16px; History reserves its actual height.",
       "nextAction": "Run affected browser CI, resolve regressions, merge, verify exact Cloudflare deployment and production assets/rendering.",
       "baselineSha": "24d2b96d4c1b171edfd431f840aa73bcc1f366eb",
-      "reviewedSha": null,
+      "reviewedSha": "09bc25163dc8c10ba4473e50849111e5230119a3",
       "branch": "fix/image-prompt-deck-clearance-20261106",
       "files": [
         "lab/image-editorial-deck.js",
@@ -448,6 +569,12 @@
           "result": "not_run",
           "scope": "Local Chromium blocked by socket permissions. Prompt-paste, first-image and Studio-layout CI required.",
           "source": "lab/IMAGE-PROMPT-WORK-STATE.md"
+        },
+        {
+          "label": "Cloud browser actual layout fixtures",
+          "result": "passed",
+          "scope": "36 cases: public / simulated signed-in Inspiration / History, three desktop sizes, empty / long / attachments / clear. No paid requests or real signed-in production claims.",
+          "source": "lab/IMAGE-PROMPT-WORK-STATE.md"
         }
       ],
       "deployment": {
@@ -474,7 +601,7 @@
         "No paid generation is needed for this layout fix.",
         "Preserve approved phone viewport, card images and generation controls."
       ],
-      "updatedAt": "2026-11-06T21:15:00Z"
+      "updatedAt": "2026-11-06T20:25:00Z"
     }
   ]
 }
