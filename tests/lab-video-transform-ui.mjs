@@ -75,7 +75,7 @@ try{
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     const layout=await page.evaluate(()=>{
       const controls=document.querySelector('.workspace.video-layout .controls-body');
-      const output=controls.querySelector('.parameter-grid');
+      const output=controls.querySelector(':scope > .parameter-grid');
       const footer=document.querySelector('.workspace.video-layout>.controls>.generate-zone');
       const prompt=document.querySelector('#pv-video-prompt-box textarea#prompt');
       const {top:footerTop}=footer.getBoundingClientRect();
@@ -92,6 +92,41 @@ try{
     assert.ok(layout.scrollHeight<=layout.clientHeight+3,
       'Empty Transform must not require a nested editor scroll: '+JSON.stringify(layout));
     assert.ok(layout.promptHeight<=104,'Transform does not inherit the oversized Create prompt');
+    // Match the owner's captured 1919px desktop. Browser chrome occupies
+    // part of the display, so test both realistic available viewport heights.
+    for(const height of [820,760]){
+      await page.setViewportSize({width:1919,height});
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      const wide=await page.evaluate(()=>{
+        const controls=document.querySelector('.workspace.video-layout .controls-body');
+        const output=controls.querySelector(':scope > .parameter-grid');
+        const resolution=document.getElementById('resolution-control');
+        const footer=document.querySelector('.workspace.video-layout>.controls>.generate-zone');
+        const prompt=document.querySelector('#pv-video-prompt-box textarea#prompt');
+        const outputRect=output.getBoundingClientRect(),footerRect=footer.getBoundingClientRect();
+        return {height:innerHeight,screenWidth:innerWidth,outputBottom:outputRect.bottom,
+          resolutionBottom:resolution.getBoundingClientRect().bottom,
+          resolutionHeight:resolution.getBoundingClientRect().height,
+          footerTop:footerRect.top,scrollHeight:controls.scrollHeight,clientHeight:controls.clientHeight,
+          promptHeight:prompt.getBoundingClientRect().height,
+          outputDisplay:getComputedStyle(output).display,
+          controlRect:controls.getBoundingClientRect().toJSON()};
+      });
+      assert.notEqual(wide.outputDisplay,'none');
+      assert.ok(wide.resolutionHeight>20,'Native resolution must have real dimensions: '+JSON.stringify(wide));
+      if(height===820){
+        assert.ok(wide.resolutionBottom<=wide.footerTop-3,
+          'Real screenshot: resolution must stay above Generate: '+JSON.stringify(wide));
+        assert.ok(wide.scrollHeight<=wide.clientHeight+3,
+          'Real screenshot: empty Transform must not require scroll: '+JSON.stringify(wide));
+      }else{
+        await page.evaluate(()=>{const el=document.querySelector('.workspace.video-layout .controls-body');el.scrollTop=el.scrollHeight;});
+        await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
+        const bottom=await page.evaluate(()=>document.getElementById('resolution-control').getBoundingClientRect().bottom);
+        assert.ok(bottom>0&&bottom<=wide.footerTop-3,
+          'Short window: settings must be reachable above fixed Generate: '+JSON.stringify({wide,bottom}));
+      }
+    }
     await page.setViewportSize({width:1440,height:1000});
   }
   assert.equal(await page.locator('#mode-transform').getAttribute('aria-selected'),'true');
