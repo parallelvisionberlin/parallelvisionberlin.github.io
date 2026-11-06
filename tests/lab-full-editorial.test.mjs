@@ -110,7 +110,7 @@ test('Identity casting uses the approved photographic layout rather than standal
  const identityCss=read('lab/full-editorial-identity-refresh.css');
  assert.match(identityCss,/scroll-snap-type:x mandatory/,'Casting supports a horizontal snap carousel');
  assert.match(identityCss,/position:sticky!important/,'Selection dock follows the active viewport');
- assert.match(html,/full-editorial-identity-refresh\.css\?v=20261106-typography5/);
+ assert.match(html,/full-editorial-identity-refresh\.css\?v=20261106-typography6/);
 
  const atelierCss=read('lab/full-editorial-atelier.css');
  assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
@@ -253,11 +253,18 @@ test('Identity matches wide editorial reference without losing narrow desktop sc
 
 test('Identity display typography avoids artificial bold and colliding letters',()=>{
  const s=read('lab/full-editorial-identity-refresh.css');
- assert.match(s,/font-weight:400!important;font-synthesis:none!important/);
+ assert.match(s,/font-weight:700!important;font-synthesis:none!important/);
  assert.match(s,/letter-spacing:\.02em!important/);
  assert.match(s,/letter-spacing:\.01em!important/);
  assert.match(s,/transform:scaleX\(\.90\)/);
  assert.doesNotMatch(s,/letter-spacing:-\.06em!important/);
  assert.doesNotMatch(s,/letter-spacing:-\.035em!important/);
  assert.doesNotMatch(s,/transform:scaleX\(\.84\)/);
+});
+
+test('Identity uses an available bundled bold fallback when Impact is missing',()=>{
+ const s=read('lab/full-editorial-identity-refresh.css');
+ assert.equal((s.match(/font-family:Impact,'Arial Narrow',DM,Arial,sans-serif!important/g)||[]).length,2);
+ assert.match(s,/font-synthesis:none!important/);
+ assert.doesNotMatch(s,/font-weight:900!important/);
 });
