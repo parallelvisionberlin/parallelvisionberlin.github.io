@@ -2131,11 +2131,10 @@ function syncImageComposer(){
   const exactPreparing=tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey());
   // A selected look without a prompt or photo already has a disabled Generate
   // button and a tooltip. Repeating the hint inline adds an unwanted third row.
-  const idleMoodNeedsInput=moodUI.active()&&!imageInputReferences().length&&!$('prompt').value.trim();
+  const idleMoodNeedsInput=moodUI.active()&&!imageInputReferences().length&&!$('prompt').value.trim()||(isSoul2()&&!file&&!$('prompt').value.trim());
   // Controlled Pose instructions belong to accessible hover guidance, not a
   // third row that changes the approved Image deck geometry.
-  const idleSoulNeedsInput=isSoul2()&&!file&&!$('prompt').value.trim();
-  const inlineMessage=imageEngine==='fal'||queueBlocked||exactPreparing||idleMoodNeedsInput||idleSoulNeedsInput?'':message;
+  const inlineMessage=imageEngine==='fal'||queueBlocked||exactPreparing||idleMoodNeedsInput?'':message;
   block.hidden=!inlineMessage;reason.textContent=inlineMessage;review.hidden=true;
   const poseHint='Controlled Pose: add one Pose photo, 1–4 Identity photos, and a prompt.';
   const modelButton=$('image-composer-model');
