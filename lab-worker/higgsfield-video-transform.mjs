@@ -13,7 +13,7 @@ const VIDEO_MIME=new Set(['video/mp4','video/quicktime']);
 export function characterTransformPrompt(p){
   const images=p.referenceSourceIds||[],roles=p.referenceRoles||[];
   const lines=[
-    'VIDEO EDIT: Replace the main visible person in the uploaded source video with the character identity shown in the attached reference images.',
+    'VIDEO EDIT: Replace only the subject specified in the Additional direction with the character identity shown in the attached reference images. If no subject is specified, target the central or most prominent subject and leave other people unchanged.',
     'Preserve the original video timeline, gestures, body movement, posing, camera movement, framing, lens perspective, location, background, props, wardrobe, scene lighting and editing rhythm. Keep the motion continuous and physically plausible.',
     'Use the identity references for recognizable face structure, hairstyle, skin texture and stable visible traits only. Do not import their clothing, setting, poses or lighting into the video.',
     'Do not add or remove other people, change the environment, invent a new shot, or turn the clip into a slideshow.',
@@ -61,8 +61,9 @@ export async function prepareCharacterTransform(env,owner,data,p,d){
 export async function quoteCharacterTransform(env,owner,data,p,url,d){
   const {fail,signedInput,run,now,isLabCustomer}=d;
   if(!env.HF_CREDENTIALS)fail(503,'Higgsfield Video Edit is not connected. No generation submitted.');
-  if(isLabCustomer&&await isLabCustomer(env,owner)&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED!=='true')
-    fail(403,'Transform is not enabled for customer billing yet. No generation submitted.');
+  if(isLabCustomer&&await isLabCustomer(env,owner)&&
+     (env.LAB_CUSTOMER_HIGGSFIELD_ENABLED!=='true'||env.LAB_CUSTOMER_VIDEO_TRANSFORM_ENABLED!=='true'))
+    fail(403,'Transform customer billing is not enabled yet. No generation submitted.');
   const {original,images}=await prepareCharacterTransform(env,owner,data,p,d);
   let prompt;
   try{prompt=characterTransformPrompt(p);}catch(e){fail(400,e.message);}
@@ -88,8 +89,9 @@ export async function quoteCharacterTransform(env,owner,data,p,url,d){
 
 export async function submitCharacterTransform(env,owner,q,p,payload,d){
   const {fail,first,source,run,now,config,isLabCustomer}=d;
-  if(isLabCustomer&&await isLabCustomer(env,owner)&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED!=='true')
-    fail(403,'Transform customer billing is not enabled. No job submitted.');
+  if(isLabCustomer&&await isLabCustomer(env,owner)&&
+     (env.LAB_CUSTOMER_HIGGSFIELD_ENABLED!=='true'||env.LAB_CUSTOMER_VIDEO_TRANSFORM_ENABLED!=='true'))
+    fail(403,'Transform customer billing is not enabled yet. No job submitted.');
   if(!env.HF_CREDENTIALS||q.vendor_quote_id!=='higgsfield-video-transform-character-v1'||
      p.mode!=='transform'||p.transformType!=='replace-character'||p.model!==TRANSFORM_MODEL||
      payload.model!==TRANSFORM_MODEL||!payload.input?.video_url||

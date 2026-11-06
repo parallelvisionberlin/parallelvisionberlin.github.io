@@ -269,3 +269,9 @@ html body #app.video-studio-active.video-transform-active .pv-transform-inspecto
     padding:12px 0!important;
   }
 }
+
+/* Retail accounts may see the feature tab, but cannot spend on an unverified
+   provider edit until its separate backend enable flag is explicitly set. */
+#app.video-studio-active #mode-transform:disabled{
+  cursor:not-allowed!important;opacity:.58!important;
+}

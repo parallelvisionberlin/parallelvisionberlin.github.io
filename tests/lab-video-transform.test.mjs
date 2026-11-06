@@ -48,7 +48,7 @@ test('Transform is a real separate Seedance mode; Create and Extend endpoints st
 
 test('identity-transfer instruction preserves the film scene, camera and performance',()=>{
   const prompt=characterTransformPrompt({...selected,referenceSourceIds:data.referenceSourceIds});
-  for(const phrase of ['Replace the main visible person','original video timeline','camera movement',
+  for(const phrase of ['Replace only the subject','original video timeline','camera movement',
     'wardrobe','background','character identity','Identity reference 1','Profile view','Additional direction'])
     assert.match(prompt,new RegExp(phrase,'i'));
   assert.doesNotMatch(prompt,/https:\/\/|data:image/);
@@ -118,6 +118,19 @@ test('Transform quotes a bound estimate, never submits without explicit confirma
     assert.equal(payload.model,TRANSFORM_MODEL);
     assert.equal(payload.input.video_url,'https://signed.example/video');
   }finally{globalThis.fetch=original;}
+});
+
+test('retail Transform requires its own explicit enable flag, never borrowing Soul/Extend access',async()=>{
+  const customerDeps={...deps,isLabCustomer:async()=>true};
+  await assert.rejects(
+    quoteCharacterTransform({HF_CREDENTIALS:'synthetic',LAB_CUSTOMER_HIGGSFIELD_ENABLED:'true'},
+      'customer',data,structuredClone(selected),new URL('https://site.example'),customerDeps),
+    /not enabled/i);
+  await assert.rejects(
+    submitCharacterTransform({HF_CREDENTIALS:'synthetic',LAB_CUSTOMER_HIGGSFIELD_ENABLED:'true'},
+      'customer',{vendor_quote_id:'higgsfield-video-transform-character-v1',estimate_microusd:100000},
+      structuredClone(selected),{model:TRANSFORM_MODEL,input:{video_url:'synthetic',image_urls:['one','two']}},customerDeps),
+    /not enabled/i);
 });
 
 test('a mismatched Transform job quote is rejected without provider submission',async()=>{

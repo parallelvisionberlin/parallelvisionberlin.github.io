@@ -59,3 +59,7 @@ Status: implementation committed to **draft PR only**, not merged or deployed.
 - No modifications to video-history-cards.css, center stage dimensions, source image, History renderer, Create or Extend mode layouts.
 
 - Test hardening: wait until all eight saved Character photographs finish preparation before asserting the inspector count; preserve existing Character remove test with a focused DOM fixture; update the verified Character allowlist contract to include Transform.
+
+- Verified public Higgsfield API reference for `bytedance/seedance-2.5/video-edit`: required prompt/video_url, optional image_urls/resolution/output_format/generate_audio; source/output time is billable.
+- Separate retail release flag `LAB_CUSTOMER_VIDEO_TRANSFORM_ENABLED=true` now required on both quote and submit, alongside existing Higgsfield customer approval. Default is disabled; owner testing remains possible without allowing customer charges.
+- Target subject in a multi-person source video is now governed by the explicit user prompt, rather than an unconditional main-person substitution.
