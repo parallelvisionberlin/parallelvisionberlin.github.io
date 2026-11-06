@@ -719,7 +719,7 @@ window.addEventListener('hashchange',()=>{
   syncOwnerNavigation();
   if(profile?.owner&&location.hash==='#owner-providers-section')void providerUI.refresh();
 });
-$('owner-mobile-access').addEventListener('click',event=>{
+$('owner-mobile-access')?.addEventListener('click',event=>{
   if(event.target.closest('a'))$('owner-mobile-access').open=false;
 });
 $('owner-quick-search').addEventListener('click',()=>{
