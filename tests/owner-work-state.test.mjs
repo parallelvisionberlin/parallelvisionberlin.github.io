@@ -79,3 +79,10 @@ test('CLI read is deterministic and scoped; upsert keeps unrelated records and r
     assert.equal((await readWorkState(file)).updatedAt,after.updatedAt);
   }finally{await rm(directory,{recursive:true,force:true});}
 });
+
+test('production Worker Actions remains manual-only while direct Cloudflare is the release path',async()=>{
+  const workflow=await readFile(new URL('../.github/workflows/deploy-lab-worker.yml',import.meta.url),'utf8');
+  const events=workflow.slice(workflow.indexOf('\non:')+4,workflow.indexOf('\npermissions:'));
+  assert.match(events,/^  workflow_dispatch:/m);
+  assert.doesNotMatch(events,/^  (push|pull_request|schedule|workflow_run):/m);
+});

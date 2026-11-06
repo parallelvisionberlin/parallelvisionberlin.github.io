@@ -116,10 +116,3 @@ test('public health identifies the operations capability without touching privat
   const data=await response.json();assert.equal(data.ok,true);assert.equal(data.operations,OWNER_OPERATIONS_VERSION);
   assert.equal('bindings' in data,false);assert.equal('secrets' in data,false);
 });
-
-test('production Worker Actions remains manual-only while direct Cloudflare is the release path',async()=>{
-  const workflow=readFileSync(new URL('../.github/workflows/deploy-lab-worker.yml',import.meta.url),'utf8');
-  const events=workflow.slice(workflow.indexOf('\non:')+4,workflow.indexOf('\npermissions:'));
-  assert.match(events,/^  workflow_dispatch:/m);
-  assert.doesNotMatch(events,/^  (push|pull_request|schedule|workflow_run):/m);
-});
