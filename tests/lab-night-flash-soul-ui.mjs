@@ -204,7 +204,7 @@ try{
         const blockedDeck=await page.locator('#image-composer').boundingBox();
         await page.locator('#soul-mood-remove').click();
         state=await page.evaluate(()=>window.__nightFlashRead());
-        assert.equal(state.settings.provider,'gemini');assert.equal(state.mood,null);assert.equal(state.source,true);
+        assert.equal(state.settings.engine,'gemini');assert.equal(state.mood,null);assert.equal(state.source,true);
         assert.equal(state.settings.prompt,'Keep the expression.','Remove mood preserves authored direction');
         assert.equal(await page.locator('#soul-mood-dialog').isVisible(),false);
         const resolvedDeck=await page.locator('#image-composer').boundingBox();
