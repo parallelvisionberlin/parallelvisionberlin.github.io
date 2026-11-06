@@ -504,6 +504,10 @@ try{
   await page.locator('#casting-reference-gallery .atelier-reference').first().click();
   await page.locator('#casting-reference-gallery .atelier-reference').nth(2).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
+  await page.waitForFunction(()=>{
+   const button=document.getElementById('step-next');
+   return !button.disabled&&getComputedStyle(button).backgroundColor==='rgb(244, 241, 234)'&&Number(getComputedStyle(button).opacity)>=.98;
+  },null,{timeout:5000});
   assert.equal(await page.locator('#editorial-casting-controls').getAttribute('data-cast-state'),'group');
   await page.screenshot({path:'test-results/editorial/1680-reference-two-models.png'});
   await page.close();
