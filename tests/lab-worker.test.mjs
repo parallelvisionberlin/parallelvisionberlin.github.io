@@ -79,8 +79,13 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
     if(options.method==='POST'){
       falSubmitCount++;samRequestCounter++;
       const input=JSON.parse(options.body);
-      assert.equal(input.point_prompts.length,1);
-      assert.equal(input.point_prompts[0].label,1);
+      if(input.prompt){
+        assert.equal(input.point_prompts.length,0);
+        assert.ok(input.prompt.length<=300);
+      }else{
+        assert.equal(input.point_prompts.length,1);
+        assert.equal(input.point_prompts[0].label,1);
+      }
       assert.equal(input.output_format,'png');
       assert.equal(input.apply_mask,false);
       return Response.json({request_id:'fal_sam_synthetic_'+samRequestCounter.toString().padStart(6,'0')});
@@ -2419,4 +2424,121 @@ test('Smart Links accepts a verified Parallel Vision public session without crea
   const lab=await worker.fetch(new Request(BASE+'/api/session',{headers:{Origin:ORIGIN,Authorization:'Bearer '+signed}}),env,{});
   assert.equal(lab.status,403,'Music access does not enable Lab signup or private owner routes');
   const owner=await call(await token());assert.equal(owner.status,200);assert.equal((await owner.json()).releases.length,2);
+});
+
+test('Image replacement quote binds the reviewed area and destination references to the chosen model',async()=>{
+  const {env}=fixture();await setup(env);createCount=0;createMode='ok';providerState='queued';
+  const upload=async name=>{
+    const response=await req(env,'/api/uploads',{method:'POST',raw:pngDimensions(640,480),headers:{'Content-Type':'image/png','X-Filename':name}});
+    assert.equal(response.status,201);return (await response.json()).id;
+  };
+  const originalSourceId=await upload('original.png'),maskSourceId=await upload('selection.png'),destination=await upload('Alma.png');
+  const replacement={version:1,scope:'person',originalSourceId,maskSourceId,referenceSourceIds:[destination]};
+  const settings={type:'image',engine:'seedream',mode:'image',referenceMode:'base',prompt:'Replace the woman on the left with Alma',resolution:'1k',aspectRatio:'auto',outputFormat:'png',referenceRoles:[{role:'base'},{role:'identity'}],replacement};
+  const pricedResponse=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[originalSourceId,destination]}});
+  assert.equal(pricedResponse.status,200,await pricedResponse.clone().text());
+  const priced=await pricedResponse.json();assert.deepEqual(priced.settings.replacement,replacement);
+  assert.equal(priced.settings.replacementFinalized,false);assert.equal(priced.settings.engine,'seedream');
+  assert.match(quotedRequest.input.prompt,/REVIEWED REPLACEMENT/);
+  assert.equal(quotedRequest.input.image_urls.length,2,'The private selection is never substituted for a destination reference');
+  const paid=await req(env,'/api/jobs',{method:'POST',data:{quoteId:priced.id,confirm:true,settings:{...settings,replacement:{...replacement,scope:'face'}}}});
+  assert.equal(paid.status,202,await paid.clone().text());
+  const job=(await paid.json()).job;assert.deepEqual(job.settings.replacement,replacement);
+  assert.equal(job.settings.engine,'seedream');assert.equal(createCount,1);
+  const again=await req(env,'/api/jobs',{method:'POST',data:{quoteId:priced.id,confirm:true}});
+  assert.equal((await again.json()).job.id,job.id);assert.equal(createCount,1);
+  const wrong=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[destination,originalSourceId]}});
+  assert.equal(wrong.status,409,'A stale Base association cannot be priced or submitted');
+});
+
+test('a replacement can upload and finalize once after using the final customer credits',async()=>{
+  const {env,objects,owner,authToken}=await archiveAccount(true),db=env.LAB_DB.db;
+  const png=pngDimensions(640,480);
+  const upload=async()=>{
+    const response=await req(env,'/api/uploads',{method:'POST',authToken,raw:png,headers:{'Content-Type':'image/png'}});
+    assert.equal(response.status,201);return (await response.json()).id;
+  };
+  const originalSourceId=await upload(),maskSourceId=await upload(),destination=await upload(),rawOutputId=await upload(),jobId=crypto.randomUUID();
+  const params={type:'image',engine:'seedream',mode:'image',referenceMode:'base',replacementFinalized:false,
+    replacement:{version:1,scope:'person',originalSourceId,maskSourceId,referenceSourceIds:[destination]}};
+  db.prepare("INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,output_id,created_at,updated_at) VALUES(?,?,?,?, 'completed',0,?,?,?)")
+    .run(jobId,owner,originalSourceId,JSON.stringify(params),rawOutputId,Date.now(),Date.now());
+  db.prepare('UPDATE lab_customers SET balance_credits=0 WHERE id=?').run(owner);
+  const plain=await req(env,'/api/uploads',{method:'POST',authToken,raw:png,headers:{'Content-Type':'image/png'}});
+  assert.equal(plain.status,402,'Ordinary unfunded uploads remain blocked');
+  const headers={'Content-Type':'image/png','X-Replacement-Job-Id':jobId};
+  const before=objects.size;
+  const finishedUpload=await req(env,'/api/uploads',{method:'POST',authToken,raw:png,headers});
+  assert.equal(finishedUpload.status,201,await finishedUpload.clone().text());
+  const asset=await finishedUpload.json();assert.equal(objects.size,before+1);
+  const repeat=await req(env,'/api/uploads',{method:'POST',authToken,raw:png,headers});
+  assert.equal((await repeat.json()).id,asset.id);assert.equal(objects.size,before+1,'Repeated finalization upload reuses one private asset');
+  const preflight=await req(env,'/api/uploads',{method:'OPTIONS',headers:{'Access-Control-Request-Headers':'content-type,x-replacement-job-id'}});
+  assert.match(preflight.headers.get('access-control-allow-headers'),/X-Replacement-Job-Id/);
+  const response=await req(env,'/api/replacement/commit',{method:'POST',authToken,data:{jobId,compositeSourceId:asset.id,expectedOutputId:rawOutputId}});
+  assert.equal(response.status,200,await response.clone().text());
+  const result=(await response.json()).job;
+  assert.equal(result.outputId,asset.id);assert.equal(result.settings.replacementRawOutputId,rawOutputId);
+  assert.equal(result.settings.replacementFinalized,true);
+  assert.equal(db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(owner).balance_credits,0);
+  assert.equal((await req(env,'/api/uploads',{method:'POST',authToken,raw:png,headers})).status,409,'A finished job cannot fund additional uploads');
+});
+
+test('replacement upload allowance rejects foreign, unfinished, unrelated and mismatched images',async()=>{
+  const {env,owner,authToken}=await archiveAccount(true),db=env.LAB_DB.db;
+  const png=pngDimensions(640,480),response=await req(env,'/api/uploads',{method:'POST',authToken,raw:png,headers:{'Content-Type':'image/png'}});
+  const originalSourceId=(await response.json()).id,jobId=crypto.randomUUID();
+  const params={type:'image',replacement:{version:1,scope:'face',originalSourceId,maskSourceId:originalSourceId,referenceSourceIds:[originalSourceId]},replacementFinalized:false};
+  db.prepare("INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,output_id,created_at,updated_at) VALUES(?,?,?,?, 'completed',0,?,?,?)")
+    .run(jobId,owner,originalSourceId,JSON.stringify(params),originalSourceId,Date.now(),Date.now());
+  db.prepare('UPDATE lab_customers SET balance_credits=0 WHERE id=?').run(owner);
+  const attempt=(raw,headers={})=>req(env,'/api/uploads',{method:'POST',authToken,raw,headers:{'Content-Type':'image/png','X-Replacement-Job-Id':jobId,...headers}});
+  assert.equal((await attempt(pngDimensions(800,600))).status,400);
+  assert.equal((await attempt(new Uint8Array([255,216,255]),{'Content-Type':'image/jpeg'})).status,415);
+  assert.equal((await attempt(new Uint8Array(20*1024*1024+1))).status,413);
+  for(const state of ['running','failed','uncertain']){
+    db.prepare('UPDATE jobs SET state=? WHERE id=?').run(state,jobId);
+    assert.equal((await attempt(png)).status,409);
+  }
+  db.prepare("UPDATE jobs SET state='completed',params='{}' WHERE id=?").run(jobId);
+  assert.equal((await attempt(png)).status,409);
+  db.prepare('UPDATE jobs SET params=? WHERE id=?').run(JSON.stringify(params),jobId);
+  const foreign=await req(env,'/api/uploads',{method:'POST',authToken:await token('user_ForeignReplacement'),raw:png,headers:{'Content-Type':'image/png','X-Replacement-Job-Id':jobId}});
+  assert.equal(foreign.status,404);
+});
+
+test('replacement text segmentation keeps point selection compatible and reserves one metered request',async()=>{
+  const {env,owner,authToken}=await archiveAccount(true),db=env.LAB_DB.db;
+  const response=await req(env,'/api/uploads',{method:'POST',authToken,raw:pngDimensions(640,480),headers:{'Content-Type':'image/png'}});
+  const sourceId=(await response.json()).id,before=falSubmitCount;
+  const balance=db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(owner).balance_credits;
+  const selected=await req(env,'/api/precision/segment',{method:'POST',authToken,data:{sourceId,targetPrompt:'the red-haired woman on the left'}});
+  assert.equal(selected.status,202,await selected.clone().text());
+  const submitted=JSON.parse(calls.findLast(call=>call.url==='https://queue.fal.run/fal-ai/sam-3/image'&&call.options.method==='POST').options.body);
+  assert.equal(submitted.prompt,'the red-haired woman on the left');assert.deepEqual(submitted.point_prompts,[]);
+  assert.equal(falSubmitCount,before+1);assert.equal(db.prepare('SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?').get(owner).n,0);
+  assert.equal(db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(owner).balance_credits,balance);
+  const invalid=await req(env,'/api/precision/segment',{method:'POST',authToken,data:{sourceId,targetPrompt:'x'.repeat(301)}});
+  assert.equal(invalid.status,400);assert.equal(falSubmitCount,before+1,'Invalid selection does not submit another request');
+});
+
+test('replacement upload recovery keeps the paid raw output when a duplicate upload is still being stored',async()=>{
+  const {env,objects,owner,authToken}=await archiveAccount(true),db=env.LAB_DB.db;
+  const png=pngDimensions(640,480);
+  const source=await req(env,'/api/uploads',{method:'POST',authToken,raw:png,headers:{'Content-Type':'image/png'}});
+  const originalSourceId=(await source.json()).id,rawOutputId=originalSourceId,jobId=crypto.randomUUID();
+  const params={type:'image',engine:'seedream',mode:'image',replacementFinalized:false,
+    replacement:{version:1,scope:'face',originalSourceId,maskSourceId:originalSourceId,referenceSourceIds:[originalSourceId]}};
+  db.prepare("INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,output_id,created_at,updated_at) VALUES(?,?,?,?, 'completed',0,?,?,?)")
+    .run(jobId,owner,originalSourceId,JSON.stringify(params),rawOutputId,Date.now(),Date.now());
+  db.prepare('UPDATE lab_customers SET balance_credits=0 WHERE id=?').run(owner);
+  const upload=await req(env,'/api/uploads',{method:'POST',authToken,raw:png,headers:{'Content-Type':'image/png','X-Replacement-Job-Id':jobId}});
+  assert.equal(upload.status,201);const compositeSourceId=(await upload.json()).id;
+  const asset=db.prepare('SELECT * FROM assets WHERE id=?').get(compositeSourceId);objects.delete(asset.object_key);
+  const finish=()=>req(env,'/api/replacement/commit',{method:'POST',authToken,data:{jobId,compositeSourceId,expectedOutputId:rawOutputId}});
+  const pending=await finish();assert.notEqual(pending.status,200);
+  assert.equal(db.prepare('SELECT output_id FROM jobs WHERE id=?').get(jobId).output_id,rawOutputId);
+  objects.set(asset.object_key,png);
+  const recovered=await finish();assert.equal(recovered.status,200,await recovered.clone().text());
+  assert.equal((await recovered.json()).job.settings.replacementFinalized,true);
 });

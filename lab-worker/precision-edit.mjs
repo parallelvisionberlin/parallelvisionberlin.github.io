@@ -95,8 +95,12 @@ export async function precisionEditRoute(request,env,owner,url,d){
     if(!['image/png','image/jpeg','image/webp'].includes(source.mime))d.fail(400,'Magic Select needs an image source.');
     const bytes=await d.falImageBytes(env,source);
     const dimensions=precisionOutputSize(bytes,source.mime,d.storedImageDimensions);
-    let point;try{point=precisionPoint(data.point,dimensions.width,dimensions.height);}
-    catch(e){d.fail(400,e.message);}
+    let point=null;
+    const targetPrompt=typeof data.targetPrompt==='string'?data.targetPrompt.trim():'';
+    if(data.point!=null){
+      try{point=precisionPoint(data.point,dimensions.width,dimensions.height);}
+      catch(e){d.fail(400,e.message);}
+    }else if(!targetPrompt||targetPrompt.length>300)d.fail(400,'Choose a point or describe the area to select in up to 300 characters.');
     const settings=await d.config(env,owner);
     const dayStart=Math.floor(Date.now()/86400000)*86400000;
     // Validate and prepare the signed image before taking a metered slot.
@@ -131,7 +135,7 @@ export async function precisionEditRoute(request,env,owner,url,d){
         'Magic Select would exceed your daily spending limit.');
     const requestId=verifyRequestId(await falSubmit(PRECISION_SEGMENT_MODEL,env.FAL_KEY,{
       image_url:imageUrl,
-      point_prompts:[point],prompt:'',apply_mask:false,output_format:'png',
+      point_prompts:point?[point]:[],prompt:point?'':targetPrompt,apply_mask:false,output_format:'png',
       return_multiple_masks:false,max_masks:1
     }),d.fail);
     const expires=Math.floor(Date.now()/1000)+3600;
