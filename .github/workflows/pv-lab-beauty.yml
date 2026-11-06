@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '22.16.0'
       - name: Approved Image and Beauty price binding contracts
-        run: node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-beauty.test.mjs
+        run: node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-beauty.test.mjs tests/lab-beauty-atelier.test.mjs
       - name: Beauty uses the existing Worker quote and idempotent submission routes
         run: node --test --test-name-pattern="Beauty Studio binds" tests/lab-worker.test.mjs
       - name: Install pinned browser runtime

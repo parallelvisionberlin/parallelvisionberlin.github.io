@@ -1,7 +1,7 @@
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createSessionRequest} from './session-request.js?v=20261015-canonical-studio1';
 import {createAccountMenu} from './account-menu.js?v=20261030-robin-partner1';
-import {beautySettings,validateBeautyQuote,BEAUTY_PROMPT_PREFIX,beautyAutoRatio} from './beauty-settings.js?v=20261031-photo-ratio2';
+import {beautySettings,validateBeautyQuote,BEAUTY_PROMPT_PREFIX,beautyAutoRatio} from './beauty-settings.js?v=20261106-atelier1';
 const API='https://parallel-vision-lab.parallelvision.workers.dev',$=id=>document.getElementById(id);
 const activeStates=new Set(['submitting','queued','running','saving','uncertain']);
 const menu=createAccountMenu($('beauty-account')),pendingKey='pvlab-beauty-pending';
@@ -16,7 +16,7 @@ function readPending(){try{const p=JSON.parse(sessionStorage.getItem(pendingKey)
 function savePending(value){try{if(value)sessionStorage.setItem(pendingKey,JSON.stringify({...value,sessionId}));else sessionStorage.removeItem(pendingKey);}catch{}}
 function busy(){return submitting||!!activeId||uncertain;}
 function clearQuote(){quote=null;clearTimeout(expiryTimer);clearTimeout(quoteTimer);}
-function settings(){return beautySettings({makeup:$('beauty-makeup').value,hair:$('beauty-hair').value,skin:$('beauty-skin').value,strength:$('beauty-strength').value,direction:$('beauty-direction').value,model:$('beauty-model').value,resolution:$('beauty-resolution').value,aspectRatio:$('beauty-ratio').value,sourceWidth:photoWidth,sourceHeight:photoHeight,filename:file?.name});}
+function settings(){return beautySettings({makeup:$('beauty-makeup').value,hair:$('beauty-hair').value,skin:$('beauty-skin').value,light:$('beauty-light').value,color:$('beauty-color').value,strength:$('beauty-strength').value,direction:$('beauty-direction').value,model:$('beauty-model').value,resolution:$('beauty-resolution').value,aspectRatio:$('beauty-ratio').value,sourceWidth:photoWidth,sourceHeight:photoHeight,filename:file?.name});}
 function update(){
  $('beauty-strength-value').value=$('beauty-strength').value;
  const button=$('beauty-generate');button.disabled=busy()||preparing;button.setAttribute('aria-busy',String(submitting||!!activeId||preparing));
@@ -178,7 +178,7 @@ $('beauty-photo').addEventListener('change',event=>{const chosen=event.target.fi
 for(const name of ['dragenter','dragover'])$('beauty-photo-drop').addEventListener(name,event=>{event.preventDefault();if(!busy())$('beauty-photo-drop').classList.add('is-dragging');});
 $('beauty-photo-drop').addEventListener('dragleave',event=>{if(!event.currentTarget.contains(event.relatedTarget))event.currentTarget.classList.remove('is-dragging');});
 $('beauty-photo-drop').addEventListener('drop',event=>{event.preventDefault();event.currentTarget.classList.remove('is-dragging');void setPhoto(event.dataTransfer?.files?.[0]);});
-for(const id of ['beauty-makeup','beauty-hair','beauty-skin','beauty-model','beauty-resolution','beauty-ratio'])$(id).addEventListener('change',()=>{status('');invalidate();});
+for(const id of ['beauty-makeup','beauty-hair','beauty-skin','beauty-light','beauty-color','beauty-model','beauty-resolution','beauty-ratio'])$(id).addEventListener('change',()=>{status('');invalidate();});
 for(const id of ['beauty-strength','beauty-direction'])$(id).addEventListener('input',()=>{status('');invalidate();});
 $('beauty-form').addEventListener('submit',event=>void generate(event));$('beauty-signin').addEventListener('click',()=>void signIn());
 $('beauty-refresh').addEventListener('click',()=>{if(activeId)void poll(activeId);void loadHistory();});
