@@ -44,3 +44,22 @@ test('Approved hero image and its full composition stylesheet remain byte-identi
  assert.doesNotMatch(refinement,/background-image|beauty-editor-grid|\bh1\b/);
  assert.doesNotMatch(source,/class="beauty-looks-arrow/);
 });
+
+test('Wheel animation settles on pixel-quantized and fractional scroll positions without idle frames',async()=>{
+ const {runInNewContext}=await import('node:vm');
+ const ui=readFileSync(new URL('../lab/beauty-approved-20261029.js',import.meta.url),'utf8');
+ const body=ui.match(/const animateWheel=\(\)=>\{([\s\S]*?)\n  \};/)?.[1];assert.ok(body);
+ for(const quantized of [true,false])for(const [start,end] of [[0,126],[126,0],[0,75.25],[35,.4]]){
+  const context={result:null,start,end,quantized};
+  runInNewContext(`let offset=start,target=end,wheelFrame=0;const queue=[];
+   const track={get scrollLeft(){return offset},set scrollLeft(v){offset=quantized?Math.round(v):v}};
+   const clamp=v=>Math.max(0,Math.min(200,v));
+   const requestAnimationFrame=fn=>{queue.push(fn);return queue.length};
+   const animateWheel=()=>{${body}};
+   animateWheel();let frames=0;while(queue.length&&frames<80){frames++;queue.shift()()}
+   result={frames,pending:queue.length,left:offset,wheelFrame};`,context);
+  assert.equal(context.result.pending,0,'No idle animation loop after '+start+' -> '+end);
+  assert.equal(context.result.wheelFrame,0);
+  assert.ok(Math.abs(context.result.left-end)<=.5,'Final scroll position is reached to pixel precision');
+ }
+});
