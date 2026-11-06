@@ -83,6 +83,7 @@ function installVideoEditorialDeck(){
   else empty.prepend(collage);
 
   const activeMode=()=>{
+    if(app.classList.contains('video-transform-active'))return 'transform';
     if(app.classList.contains('video-extend-active'))return 'extend';
     const selected=modes.querySelector('.mode-tab[aria-selected="true"]');
     return selected?.id==='mode-reference'?'reference':selected?.id==='mode-start'?'start':'text';

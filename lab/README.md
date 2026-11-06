@@ -21,6 +21,7 @@ Wan reference drag-and-drop and Seedream opening frame: [Video opening frame wor
 Motion Effects discovery and video presets: [Video Effects work state](VIDEO-EFFECTS-WORK-STATE.md).
 Direct downloads from completed Video History cards: [Video downloads work state](VIDEO-DOWNLOAD-WORK-STATE.md).
 Customer Video model preparation and credit handoff: [Customer Video work state](VIDEO-CUSTOMER-WORK-STATE.md).
+Seedance Transform Replace Character: [Video Transform work state](VIDEO-TRANSFORM-WORK-STATE.md) (draft PR #853, not published).
 
 ## First-party public traffic meter (2026-10-15)
 
