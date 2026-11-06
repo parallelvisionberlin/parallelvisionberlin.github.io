@@ -35,3 +35,11 @@ test('reference warnings allow matching multiple identity views',()=>{
  assert.match(referenceRoleAdvisories([{role:'body'},{role:'body'}]).join(' '),/Multiple Body/);
 });
 test('video prompts are untouched',()=>assert.equal(imageQualityGuidance('portrait of a woman',[],{type:'video',mode:'image',engine:'seedream'}),''));
+
+test('Base plus Character respects a targeted identity replacement',()=>{
+ const direction='iamge 1 intact replace woman left red hair using alma with provided images. keep mood and filter and adapt, real photography asian nostalgia.';
+ const prompt=compileImagePrompt(direction,[{role:'base',name:'street.png'},{role:'identity',name:'Alma'}],s());
+ assert.ok(prompt.includes(direction));
+ assert.match(prompt,/Preserve other people in the Base/);
+ assert.doesNotMatch(prompt,/No beautification, face swapping|Do not change expression, pose, age, outfit or person|Keep the reference face and anatomy intact/);
+});
