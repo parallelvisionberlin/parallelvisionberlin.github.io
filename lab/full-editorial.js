@@ -75,13 +75,13 @@ function renderCastingControls(){
 }
 function renderIdentityFooter(){
  const footer=$('editorial-footer-cast'),selection=$('editorial-cast-selection');
- const composition=$('editorial-casting-controls');
+ const actionDock=$('step-footer'),composition=$('editorial-casting-controls');
  const workspace=$('panel-model').querySelector('.atelier-workspace');
  footer.hidden=step!==1;
  // Composition follows the selection dock, matching the approved editorial reference.
  // Move back to its original panel when leaving Identity so other steps never expose it.
  if(step===1){
-  if(composition.previousElementSibling!==footer)footer.after(composition);
+  if(composition.previousElementSibling!==actionDock)actionDock.after(composition);
  }else if(composition.parentElement!==workspace){workspace.append(composition)}
  renderCastingControls();
  if(footer.hidden)return;
