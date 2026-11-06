@@ -339,16 +339,20 @@ html body #app.video-studio-active.video-transform-active #duration-control #pv-
 @media(min-width:821px){
   html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.video-transform-active
   .workspace.video-layout>.controls #pv-video-prompt-box{
-    flex:0 0 auto!important;
-    min-height:0!important;
+    /* Absorb unused editor height, as the Create prompt does, while still
+       shrinking on short screens to keep native Output settings reachable. */
+    display:flex!important;
+    flex-direction:column!important;
+    flex:1 1 145px!important;
+    min-height:115px!important;
     height:auto!important;
   }
   html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.video-transform-active
   .workspace.video-layout>.controls #pv-video-prompt-box textarea#prompt{
-    flex:0 0 auto!important;
-    height:clamp(78px,10dvh,98px)!important;
+    flex:1 1 auto!important;
+    height:auto!important;
     min-height:78px!important;
-    max-height:45dvh!important;
+    max-height:none!important;
     overflow-y:auto!important;
     resize:vertical!important;
   }
@@ -361,6 +365,6 @@ html body #app.video-studio-active.video-transform-active #duration-control #pv-
 @media(min-width:821px) and (max-height:820px){
   html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.video-transform-active
   .workspace.video-layout>.controls #pv-video-prompt-box textarea#prompt{
-    height:78px!important;
+    min-height:78px!important;
   }
 }

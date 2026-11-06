@@ -152,7 +152,7 @@ test('Video Transform has its own entry and keeps the existing source-only film 
   }
   assert.match(html,/video-transform\.css\?v=20261106-viewport-fit2/);
   assert.match(css,/video-transform-active[\s\S]*?#pv-video-prompt-box textarea#prompt/);
-  assert.match(css,/flex:0 0 auto!important/);
+  assert.match(css,/flex:1 1 145px!important/);
   assert.match(css,/min-height:78px!important/);
   assert.doesNotMatch(html,/id="pv-transform-source-settings"/);
   assert.match(app,/\$\('duration'\)\.hidden=mode==='transform'/);
