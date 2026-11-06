@@ -643,6 +643,21 @@ body.editorial-web .flow-main > #editorial-casting-controls .editorial-compositi
  }
 }
 
+/* The approved reference anchors Identity to the left edge of the hero,
+   with both navigation actions unobtrusively accessible on the upper right. */
+@media(min-width:1200px) and (min-height:780px){
+ body.editorial-web #panel-model .stage-copy{
+  left:0!important;
+  bottom:clamp(101px,13svh,126px)!important;
+ }
+ body.editorial-web #panel-model .stage-visual>.stage-navigation .progress-top{
+  left:auto!important;right:20px!important;top:10px!important;
+  display:flex!important;align-items:center;justify-content:flex-end;
+  width:auto!important;gap:26px!important;
+ }
+ body.editorial-web #panel-model .stage-visual>.stage-navigation .step-track{display:none!important}
+}
+
 /* Wider desktop frame matching the approved 16:9 reference. Identity only. */
 @media(min-width:1200px){
  body.editorial-web .editorial-flow:has(#panel-model:not([hidden])){

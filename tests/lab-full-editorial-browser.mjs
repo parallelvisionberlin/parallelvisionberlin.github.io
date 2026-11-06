@@ -114,12 +114,17 @@ try{
    const textClearance=await page.evaluate(()=>{
     const box=selector=>document.querySelector(selector).getBoundingClientRect();
     const button=document.getElementById('step-next');
-    return {backBottom:box('#editorial-top-back').bottom,kickerTop:box('#panel-model .stage-index').top,
+    return {backBottom:box('#editorial-top-back').bottom,backLeft:box('#editorial-top-back').left,
+     kickerTop:box('#panel-model .stage-index').top,heroTop:box('#panel-model .stage-visual').top,
+     copyLeft:box('#panel-model .stage-copy').left,copyRight:box('#panel-model .stage-copy').right,
      subtitleBottom:box('#panel-model .stage-copy p').bottom,heroBottom:box('#panel-model .stage-visual').bottom,
      buttonRadius:getComputedStyle(button).borderRadius,
      disabledBackground:getComputedStyle(button).backgroundColor};
    });
-   assert.ok(textClearance.kickerTop>=textClearance.backBottom+4,'Stage kicker must clear Back: '+JSON.stringify(textClearance));
+   assert.ok(textClearance.kickerTop>=textClearance.backBottom+4||
+    textClearance.copyRight<textClearance.backLeft-16,
+    'Stage text must not collide with Back: '+JSON.stringify(textClearance));
+   assert.ok(textClearance.kickerTop>=textClearance.heroTop-2,'Stage kicker remains inside photographic hero');
    assert.ok(textClearance.subtitleBottom<=textClearance.heroBottom-15,'Subtitle clears the hero edge: '+JSON.stringify(textClearance));
    assert.equal(textClearance.buttonRadius,'0px','Continue has square corners');
    assert.notEqual(textClearance.disabledBackground,'rgb(244, 241, 234)','Disabled Continue is dark');
@@ -485,6 +490,15 @@ try{
   assert.ok(geometry.mainWidth>1500,'Desktop casting frame extends to reference margins: '+JSON.stringify(geometry));
   assert.equal(geometry.width,1680);
   assert.ok(geometry.heroHeight>=248,'Wide desktop keeps portrait film hero');
+  const heroCopy=await page.evaluate(()=>{
+   const hero=document.querySelector('#panel-model .stage-visual').getBoundingClientRect();
+   const text=document.querySelector('#panel-model .stage-copy').getBoundingClientRect();
+   const back=document.querySelector('#editorial-top-back').getBoundingClientRect();
+   return {left:Math.round(text.left-hero.left),top:Math.round(text.top-hero.top),separated:text.right+16<back.left};
+  });
+  assert.ok(Math.abs(heroCopy.left)<=3,'Identity title is left-aligned with the hero: '+JSON.stringify(heroCopy));
+  assert.ok(heroCopy.top>=0&&heroCopy.top<=45,'Hero intro begins high like the approved reference: '+JSON.stringify(heroCopy));
+  assert.equal(heroCopy.separated,true,'Back control stays clear of the hero title');
   assert.ok(geometry.lastRight<=geometry.trackRight+2,'All five casting photos visible without clipping: '+JSON.stringify(geometry));
   assert.ok(geometry.firstLeft<geometry.lastRight,'Original portraits in natural order');
   await page.locator('#casting-reference-gallery .atelier-reference').first().click();
