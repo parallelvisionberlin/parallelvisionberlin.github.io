@@ -176,7 +176,7 @@ try{
           'History deck keeps its original dimensions on focus');
         await editor.fill(longPrompt);
         await page.waitForFunction(()=>document.getElementById('image-composer-prompt')
-          .getBoundingClientRect().height>=150,null,{timeout:2500});
+          .getBoundingClientRect().height>=125,null,{timeout:2500});
         const historyTall=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
         assert.ok(historyTall>historyBaseline+55,
           'Typing in History must expand the two-row deck: '+JSON.stringify({historyTall,historyBaseline}));

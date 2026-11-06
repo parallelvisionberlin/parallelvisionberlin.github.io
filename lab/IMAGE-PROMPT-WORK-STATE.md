@@ -8,7 +8,9 @@
 - Existing model, toolbar, Generate geometry, text, Base/Character/reference controls, prices, credits and provider submission are preserved.
 - Local approved Image contract: 5 passed. Syntax and diff checks passed. Browser launch is blocked locally by Chromium socket permission; required prompt-paste, first-image and Studio-layout suites attempted, with CI browser validation pending. No paid generation or payment used.
 - Regression extends the existing paste browser suite: public / signed-in Inspiration / History, 1920×900, 1440×900, 1280×720, long text, photos, clear and crossing the phone breakpoint. Checks text preservation, 13px type, bounded prompt, card gap, navigation and visible Generate. Existing phone paste cases remain.
-- Production: not merged or deployed. Require passing affected browser checks, then exact Cloudflare Pages result, custom-domain asset bytes and rendered behavior before claiming live. Existing unrelated first-image backdrop expectation predates this change.
+- Browser preview: 36/36 actual HTML/CSS/controller layout cases passed in the cloud browser for public, simulated signed-in Inspiration and simulated History at 1920×900, 1440×900 and 1280×720, each empty / long / attached photos / clear. Full photos and labels keep 16–17px clearance with long input; Generate stays 30px above the bottom. Public real-script preview also confirmed 13px type and visible controls. These are layout fixtures, not real signed-in production verification.
+- Initial CI exposed two old test thresholds requiring at least 150px prompt height, contradicting the explicitly requested 136px cap. Updated those thresholds to 125–138px while preserving internal scrolling, text, navigation, reference and Generate checks.
+- Production: not merged or deployed. Require final affected browser checks, then exact Cloudflare Pages result, custom-domain asset bytes and rendered behavior before claiming live. Existing unrelated first-image backdrop expectation and Studio Clerk assertion predate this change.
 
 ## 2026-11-04 | Urgent correction: preserve locked iPhone Image viewport
 

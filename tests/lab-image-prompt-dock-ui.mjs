@@ -89,12 +89,12 @@ try{
           const deck=document.getElementById('image-composer'),field=document.getElementById('image-composer-prompt');
           return deck.classList.contains('pv-editorial-deck')&&
             deck.querySelectorAll('.composer-reference-tile').length===14&&
-            field.getBoundingClientRect().height>=150&&field.getBoundingClientRect().height<=178;
+            field.getBoundingClientRect().height>=125&&field.getBoundingClientRect().height<=138;
         },null,{timeout:2500});
       }else{
         await page.waitForFunction(()=>{
           const h=document.getElementById('image-composer-prompt').getBoundingClientRect().height;
-          return h>=(document.getElementById('image-composer').classList.contains('is-pv-soul')?120:innerWidth>900?154:innerWidth<=740?90:110);
+          return h>=(document.getElementById('image-composer').classList.contains('is-pv-soul')?120:innerWidth>900?125:innerWidth<=740?90:110);
         },null,{timeout:2500});
       }
       const metrics=await page.evaluate(()=>{
@@ -163,9 +163,9 @@ try{
         await textbox.fill(lorem);
         await page.evaluate(()=>window.__resizePVPrompt());
       }
-      assert.ok(metrics.prompt.height<=178,kind+': editor must never fill the screen');
+      assert.ok(metrics.prompt.height<=138,kind+': editor must never fill the screen');
       if(kind==='seedream'){
-        assert.ok(metrics.prompt.height>=150&&metrics.prompt.height<=178,
+        assert.ok(metrics.prompt.height>=125&&metrics.prompt.height<=138,
           'Long reference-guided prompts use a bounded, expanded writing area: '+metrics.prompt.height);
         assert.ok(metrics.dock.height>235&&metrics.dock.height<440,
           'Reference-first dock grows vertically but stays within the viewport: '+JSON.stringify(metrics));
@@ -282,7 +282,7 @@ try{
         'PV Soul resolution must align with model and Mood controls: '+JSON.stringify(positions));
       assert.ok(positions.controls.height<52 && positions.controls.scrollWidth<=positions.controls.clientWidth+2,
         'PV Soul controls must not overflow or wrap: '+JSON.stringify(positions));
-      assert.ok(positions.prompt.height>=140&&positions.prompt.height<=178,
+      assert.ok(positions.prompt.height>=125&&positions.prompt.height<=138,
         'Soul prompt continues using the original bounded scroll editor');
       assert.ok(Math.abs(positions.identity.bottom-positions.generate.bottom)<10,
         'Compact Soul ID stays anchored beside Generate');
