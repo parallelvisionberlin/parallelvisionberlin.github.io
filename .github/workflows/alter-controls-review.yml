@@ -19,9 +19,8 @@ jobs:
           node-version: '22.16.0'
       - name: Apply reviewed scoped patch
         run: |
-          curl --fail --location --silent --show-error 'https://at.adobe.com/IRY7VlSRsUQCctnH' -o /tmp/alter-refinement.zip
-          echo '5e12ea60371f8be6502ee2255ff7e764c7749518a3b5c5a636c11997df9925cb6  /tmp/alter-refinement.zip' > /tmp/unused
-          echo '5e12ea60371f8be6502ee2255ff7e764c7749518a3b5c06d900d35855f13da7c  /tmp/alter-refinement.zip' | sha256sum --check
+          curl --fail --location --silent --show-error 'https://at.adobe.com/rFRgitYyNQ2mvgnX' -o /tmp/alter-refinement.zip
+          echo '45c4260530c46578638b6276f85920d2e10cf53aee95542a8dd20da118ea90a6  /tmp/alter-refinement.zip' | sha256sum --check
           mkdir -p /tmp/alter-refinement
           unzip -q /tmp/alter-refinement.zip -d /tmp/alter-refinement
           node /tmp/alter-refinement/apply-alter-refinement.mjs
