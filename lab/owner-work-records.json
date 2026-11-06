@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T20:46:57Z",
+  "updatedAt": "2026-11-06T20:55:35.186Z",
   "handoffs": [
     {
       "id": "owner",
@@ -566,6 +566,107 @@
         "Preserve the merged #870 replacement flow and existing quote, credit, idempotency and budget safeguards."
       ],
       "updatedAt": "2026-11-06T20:46:57Z"
+    },
+    {
+      "id": "image-prompt-deck-clearance",
+      "title": "Compact Image prompt and visible Inspiration card names",
+      "component": "Image prompt deck",
+      "status": "deployed",
+      "summary": "Published: 13px desktop prompt text, 136px writing cap and measured 16px Inspiration-card clearance. History reserves the actual deck height; existing images and controls are retained.",
+      "nextAction": "No prompt-layout work remains. Preserve the measured gap, compact sizing and existing phone behavior in subsequent Studio changes.",
+      "baselineSha": "24d2b96d4c1b171edfd431f840aa73bcc1f366eb",
+      "reviewedSha": "4b24116921698ef352ce3259bda77e37ef544c7a",
+      "branch": "fix/image-prompt-deck-clearance-20261106",
+      "files": [
+        "lab/image-editorial-deck.js",
+        "lab/image-editorial-deck.css",
+        "lab/image-deck-surface.css",
+        "lab/lab.js",
+        "lab/studio.html",
+        "tests/lab-image-prompt-paste-ui.mjs"
+      ],
+      "links": [
+        {
+          "label": "Scoped checkpoint",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image contract",
+          "result": "passed",
+          "scope": "All 5 existing invariants passed locally and in CI at the reviewed source.",
+          "source": "tests/lab-approved-image-ui-contract.test.mjs"
+        },
+        {
+          "label": "Prompt paste and measured card clearance",
+          "result": "passed",
+          "scope": "Final CI: desktop/phone paste, shrink, preserved text/internal scrolling, controls and 36 public/signed-in/History geometry cases. Independent browser fixtures also passed those 36 plus 12 Soul layouts.",
+          "source": "tests/lab-image-prompt-paste-ui.mjs"
+        },
+        {
+          "label": "Existing broader checks",
+          "result": "failed",
+          "scope": "First-image role check has the exact same 120px/96px Base-width failure at baseline 24d2b96 and 454c5ab. Compact check runs with hosted Chrome but expects a Generate label >=17px while unchanged approved production uses 15px. Original assertions retained. Studio preflight has an unchanged Clerk assertion; broad suite has five existing failures.",
+          "source": "lab/IMAGE-PROMPT-WORK-STATE.md"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "sourceSha": "d442a70730dedec9ff76bf13258d2400e4f5e995",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-06T20:55:35.186Z",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=image",
+        "limitations": [
+          "Public production layout and exact assets verified. Real signed-in Inspiration/History were validated with fixtures, not a live private account.",
+          "Existing unrelated Base-width, Generate-label and broad-suite assertions remain documented; no assertions were weakened."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Measured deck/card clearance replaces the unchanging desktop spacing allowance.",
+          "scope": "Source diagnosis and implementation.",
+          "source": "lab/IMAGE-PROMPT-WORK-STATE.md",
+          "limitations": [
+            "Browser checks pending."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "PR #876 merged as d442a70730dedec9ff76bf13258d2400e4f5e995. Exact Cloudflare Pages app check 128147866508 completed successfully.",
+          "scope": "Production Pages publication; no Worker deployment in this task.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/876",
+          "observedAt": "2026-11-06T20:55:35.186Z",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Read-only verifier returned LIVE_VERIFIED for all four changed assets. SHA-256: image-editorial-deck.js d7aa9a72a25cb18e032c1de28a2ed7cede60ea1c61cd53228d0969a059de6565; image-editorial-deck.css ccb90836e118e4e5e50c1f344bf7e8a67f1d6041ddd2bda2df5b0aa7f8a6b62b; image-deck-surface.css 19691864b0d115ef1019e946f9d40102ce7f5f2482d944a8daddf13c59e6875b; lab.js 8f9021ae9bfae066e3071f4ab9e5644ac61cd8744ce9ba6ff42a539feb0bc0d9.",
+          "scope": "Exact custom-domain HTML references and reviewed source bytes at the production merge.",
+          "source": "lab/RELEASE-PROTOCOL.md",
+          "observedAt": "2026-11-06T20:55:35.186Z",
+          "limitations": [
+            "Asset verification does not establish real signed-in journeys or provider quality."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Actual public Chrome Couture selection at 1363×936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
+          "scope": "Rendered public production layout after reload; no Generate click.",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "observedAt": "2026-11-06T20:55:35.186Z",
+          "limitations": [
+            "No real signed-in or paid generation observation."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "No paid generation is needed for this layout fix.",
+        "Preserve approved phone viewport, card images and generation controls."
+      ],
+      "updatedAt": "2026-11-06T20:55:35.186Z"
     }
   ]
 }

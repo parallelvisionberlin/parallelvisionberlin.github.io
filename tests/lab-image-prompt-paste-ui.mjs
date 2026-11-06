@@ -2,7 +2,7 @@
 // Exercises the production Studio styles and the actual prompt sizing/input handlers.
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import {readFileSync,existsSync} from 'node:fs';
+import {readFileSync,existsSync,mkdirSync} from 'node:fs';
 import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
@@ -94,7 +94,7 @@ try{
       // Wait for the actual deck height transition before sampling the completed layout.
       await page.waitForFunction(()=>{
         const h=document.getElementById('image-composer-prompt').getBoundingClientRect().height;
-        return h>=(innerWidth>899?150:95);
+        return h>=(innerWidth>899?125:95);
       },null,{timeout:2500});
       // Pasted-at-end scrolling occurs on the next animation frame. Await
       // that frame before asserting the final scroll position.
@@ -119,16 +119,16 @@ try{
         };
       });
       assert.equal(result.value,longPrompt,'Pasted text is preserved');
-      // The later editorial deck (promptType=20261101-14px1) supersedes
+      // The later editorial deck (promptType=20261106-13px-compact1) supersedes
       // image-composer-stable.css's older 15.5px desktop typography.
-      if(viewport.width>=900)assert.equal(result.fontSize,14,'Desktop Image prompt keeps the approved editorial 14px type');
+      if(viewport.width>=900)assert.equal(result.fontSize,13,'Desktop Image prompt uses the requested smaller 13px type');
       else if(viewport.width>=741)assert.equal(result.fontSize,15.5,'Tablet Image prompt retains the existing 15.5px type');
       else assert.equal(result.fontSize,16,'Phone prompt uses readable text to avoid iOS focus zoom');
       assert.equal(result.overflow,'auto','Long prompt scrolls in its own field');
       assert.ok(result.scrollMax>140,'The input must contain hidden text beyond the visible area');
       assert.ok(result.scrollTop>=result.scrollMax-3,'Pasting at end shows the final lines');
-      assert.ok(result.field.height>= (viewport.width>899?150:95),'Prompt expands beyond one strip: '+JSON.stringify(result));
-      assert.ok(result.field.height<= (viewport.width>899?178:124),'Prompt remains bounded');
+      assert.ok(result.field.height>= (viewport.width>899?125:95),'Prompt expands beyond one strip: '+JSON.stringify(result));
+      assert.ok(result.field.height<= (viewport.width>899?138:124),'Prompt remains bounded');
       assert.ok(result.composer.height>empty+(viewport.width>899?70:40),'Composer grows only when needed');
       assert.ok(result.composer.height<Math.min(viewport.height-40,410),'Composer cannot cover the gallery');
       assert.ok(result.composer.top>=0&&result.composer.bottom<=viewport.height+2,'Composer stays in view');
@@ -176,7 +176,7 @@ try{
           'History deck keeps its original dimensions on focus');
         await editor.fill(longPrompt);
         await page.waitForFunction(()=>document.getElementById('image-composer-prompt')
-          .getBoundingClientRect().height>=150,null,{timeout:2500});
+          .getBoundingClientRect().height>=125,null,{timeout:2500});
         const historyTall=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
         assert.ok(historyTall>historyBaseline+55,
           'Typing in History must expand the two-row deck: '+JSON.stringify({historyTall,historyBaseline}));
@@ -232,6 +232,88 @@ try{
     }finally{await context.close();}
   }
   console.log('PASS image prompt paste expansion, scroll, Generate/toolbar stability: '+JSON.stringify(checks));
+
+  // Actual desktop entrance cards must clear both public and signed-in decks
+  // after long paste, photo attachment, viewport resize and returning to empty.
+  // The separate History check verifies the deck without a welcome surface.
+  const clearance=[];
+  for(const role of ['guest','signed-in','history']){
+    const context=await browser.newContext({viewport:{width:1920,height:900},reducedMotion:'reduce'});
+    const page=await context.newPage();
+    await page.route('https://**/*',route=>route.abort());
+    try{
+      await page.goto('http://127.0.0.1:'+port+'/lab/studio.html?tool=image',{waitUntil:'domcontentloaded'});
+      await page.evaluate(role=>{
+        document.body.classList.remove('lab-booting');document.body.classList.add('lab-ready');
+        document.documentElement.classList.remove('pv-studio-boot-lock','pv-studio-route-pending');
+        document.getElementById('lab-boot').hidden=true;
+        const app=document.getElementById('app'),gate=document.getElementById('gate');
+        app.hidden=role==='guest';app.classList.toggle('image-studio-active',role!=='guest');
+        gate.hidden=role!=='guest';gate.classList.add('pv-guest-image');gate.dataset.guestTool='image';
+        document.getElementById('image-studio').hidden=false;
+        document.getElementById('image-gallery-empty').hidden=role==='history';
+        document.getElementById('lab-welcome-start').hidden=role==='history';
+        document.getElementById('lab-image-empty-intro').hidden=true;
+        document.getElementById('image-composer').classList.add('is-seedream');
+        document.getElementById('image-composer-references').hidden=true;
+      },role);
+      await page.addScriptTag({content:"const $=id=>document.getElementById(id);const imageComposer=$('image-composer');"+
+        sizing+"\nwindow.__fitDeckTest=fitImageComposerPrompt;"});
+      for(const viewport of [{width:390,height:844},{width:1920,height:900},{width:1440,height:900},{width:1280,height:720}]){
+        // Phone is covered by the original paste assertions above. Crossing
+        // its breakpoint here also verifies desktop measurements reset cleanly.
+        await page.setViewportSize(viewport);
+        if(viewport.width<1180)continue;
+        const selector=role==='guest'?'#pv-guest-prompt':'#image-composer-prompt';
+        for(const state of ['empty','long','references','cleared']){
+          await page.locator(selector).evaluate((field,{state,text,role})=>{
+            const refs=document.getElementById('image-composer-references');
+            const attachments=document.getElementById('pv-guest-attachments');
+            refs.replaceChildren();refs.hidden=true;attachments.hidden=true;
+            if(state==='references'){
+              if(role==='guest')attachments.hidden=false;
+              else{
+                refs.hidden=false;
+                const tile=document.createElement('div');tile.className='composer-reference-tile';refs.append(tile);
+              }
+            }
+            field.value=state==='long'||state==='references'?text:'';
+            field.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertFromPaste'}));
+            if(role!=='guest')window.__fitDeckTest();
+            field.blur();window.dispatchEvent(new Event('pv-guest-photos-changed'));
+          },{state,text:longPrompt,role});
+          await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(done)))));
+          const geometry=await page.evaluate(role=>{
+            const guest=role==='guest';
+            const deck=document.querySelector(guest?'#pv-guest-composer':'#image-composer').getBoundingClientRect();
+            const field=document.querySelector(guest?'#pv-guest-prompt':'#image-composer-prompt');
+            const cards=[...document.querySelectorAll(guest?'.pv-guest-card':'.lab-welcome-preset')].filter(el=>el.getBoundingClientRect().width>0);
+            const title=document.querySelector(guest?'#gate h1':'#lab-welcome-start h2').getBoundingClientRect();
+            return {deckTop:deck.top,deckBottom:deck.bottom,deckHeight:deck.height,
+              cardBottom:Math.max(...cards.map(el=>el.getBoundingClientRect().bottom)),
+              titleTop:title.top,headerBottom:document.getElementById('studio-header').getBoundingClientRect().bottom,
+              font:parseFloat(getComputedStyle(field).fontSize),promptHeight:field.getBoundingClientRect().height,
+              scrollWidth:document.documentElement.scrollWidth,value:field.value};
+          },role);
+          const label=JSON.stringify({role,viewport,state,geometry});
+          if(role!=='history')assert.ok(geometry.cardBottom<=geometry.deckTop-15,'Card names and photos clear the actual prompt deck: '+label);
+          assert.ok(geometry.deckBottom<=viewport.height-28,'Generate stays above the browser bottom: '+label);
+          assert.ok(geometry.promptHeight<=138,'Long desktop prompts stop at the smaller height: '+label);
+          assert.equal(geometry.font,13,'Both desktop views use 13px prompt text: '+label);
+          assert.ok(geometry.scrollWidth<=viewport.width+2,'No horizontal overflow: '+label);
+          assert.equal(geometry.value,state==='long'||state==='references'?longPrompt:'','Sizing preserves all authored text');
+          if(role!=='history')assert.ok(geometry.titleTop>=geometry.headerBottom+14,'Heading remains below navigation: '+label);
+          clearance.push({role,viewport,state,gap:Math.round(geometry.deckTop-geometry.cardBottom),height:geometry.deckHeight});
+          if(viewport.width===1440&&state==='long'){
+            mkdirSync('test-artifacts/prompt-deck',{recursive:true});
+            await page.screenshot({path:'test-artifacts/prompt-deck/'+role+'-long.png'});
+          }
+        }
+      }
+    }finally{await context.close();}
+  }
+  console.log('PASS measured Image deck clearance and compact text: '+JSON.stringify(clearance));
+
 }finally{
   await browser.close();
   await new Promise(done=>server.close(done));

@@ -160,7 +160,7 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   }
   html:not(.pv-native-lab) #app.image-studio-active
     #image-composer.pv-editorial-deck:not(.is-pv-soul) #image-composer-prompt{
-    font-size:14px!important;
+    font-size:13px!important;
     line-height:1.53!important;
   }
   html:not(.pv-native-lab) #app.image-studio-active
@@ -696,4 +696,15 @@ html:not(.pv-native-lab) #app.image-studio-active
 @media(min-width:1180px) and (max-width:1349px) and (min-height:680px){
   html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .inspiration-nav-prev{left:-20px}
   html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .inspiration-nav-next{right:-20px}
+}
+
+/* The welcome cards clear the measured, upward-growing Image deck. */
+@media(min-width:1180px) and (min-height:680px){
+  html:not(.pv-native-lab) #gate.pv-guest-image .pv-guest-content > :is(.pv-guest-kicker,h1,.pv-guest-subtitle,.pv-guest-credit-note,.pv-guest-carousel),
+  html:not(.pv-native-lab) #app.image-studio-active #lab-welcome-start{
+    translate:0 calc(-1 * var(--pv-welcome-deck-lift,0px));
+  }
+  html:not(.pv-native-lab) #app.image-studio-active .image-studio .archive{
+    padding-bottom:max(230px,var(--pv-image-deck-reserve,230px));
+  }
 }
