@@ -1,0 +1,70 @@
+name: ALTER published controls verification
+on:
+  push:
+    branches: [verify/alter-controls-live-20261107]
+    paths: [.github/workflows/alter-controls-live-proof.yml]
+permissions:
+  contents: write
+  checks: read
+jobs:
+  production-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      ALTER_DEPLOY_SHA: 865708443a88fcdc7e0555426e8df817e9765f83
+      ALTER_BASE_SHA: c697605c2866abfaef3c19e2db3ee56611e7f13f
+      ALTER_REVIEWED_SHA: f474eab432537393c768befd257ffb6ccbadf1e5
+      ALTER_TEST_RUN: '42312800540'
+      PV_PLAYWRIGHT_MODULE: /tmp/pv-beauty/node_modules/playwright/index.mjs
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 865708443a88fcdc7e0555426e8df817e9765f83
+          fetch-depth: 50
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Load reviewed read-only verification scripts
+        run: |
+          curl --fail --location --silent --show-error 'https://at.adobe.com/B5ObAfoNbfh28Uw1' -o /tmp/alter-proof.zip
+          echo '3e552f4c76e57fe39be184c14519e5189db941d7956868d81fc363a2e4cbf2f6  /tmp/alter-proof.zip' | sha256sum --check
+          mkdir -p /tmp/alter-proof
+          unzip -q /tmp/alter-proof.zip -d /tmp/alter-proof
+          node --check /tmp/alter-proof/alter-refinement-live-proof.mjs
+          node --check /tmp/alter-proof/alter-refinement-record.mjs
+      - name: Install pinned browser
+        timeout-minutes: 3
+        run: |
+          npm install --prefix /tmp/pv-beauty --no-audit --no-fund playwright@1.57.0
+          node /tmp/pv-beauty/node_modules/playwright/cli.js install chromium
+      - name: Verify exact Cloudflare source, custom-domain bytes and guest interactions
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node /tmp/alter-proof/alter-refinement-live-proof.mjs
+      - name: Record only verified receipts in existing project records
+        run: |
+          test "$GITHUB_REF" = refs/heads/verify/alter-controls-live-20261107
+          git fetch origin main --depth=50
+          git switch -C main origin/main
+          node /tmp/alter-proof/alter-refinement-record.mjs
+          node scripts/owner-work-state.mjs validate
+          git diff --check
+          python3 - <<'PY'
+          import subprocess
+          changed=set(subprocess.check_output(['git','diff','--name-only'],text=True).splitlines())
+          assert changed=={'lab/owner-work-records.json','lab/BEAUTY-WORK-STATE.md'},changed
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/owner-work-records.json lab/BEAUTY-WORK-STATE.md
+          git commit -m 'Record verified ALTER category controls and production evidence'
+          git push origin HEAD:refs/heads/main
+          git rev-parse HEAD > test-results/alter-receipt-sha.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: alter-published-controls-evidence
+          path: |
+            test-results/alter-live-*
+            test-results/alter-receipt-sha.txt
+          retention-days: 3
