@@ -1,0 +1,87 @@
+name: ALTER category follow-up on published layout
+on:
+  push:
+    branches: [fix/alter-three-row-controls-20261107]
+    paths: [.github/workflows/alter-semantic-reconcile.yml]
+permissions:
+  contents: write
+concurrency:
+  group: alter-semantic-followup
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Preserve the already published main implementation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main --depth=50
+          git merge --no-ff --no-commit origin/main || {
+            python3 - <<'PY'
+          import subprocess
+          conflicts=set(subprocess.check_output(['git','diff','--name-only','--diff-filter=U'],text=True).splitlines())
+          allowed={'lab/BEAUTY-WORK-STATE.md','lab/beauty.html','lab/beauty.js','lab/beauty-settings.js','lab/beauty-approved-20261029.js','tests/lab-beauty-ui.mjs','tests/lab-beauty-atelier.test.mjs'}
+          assert conflicts and conflicts<=allowed,conflicts
+          PY
+          }
+          git restore --source=origin/main --staged --worktree -- lab/BEAUTY-WORK-STATE.md lab/beauty.html lab/beauty.js lab/beauty-settings.js lab/beauty-approved-20261029.js tests/lab-beauty-ui.mjs tests/lab-beauty-atelier.test.mjs
+          git rm --ignore-unmatch lab/beauty-controls-refined.css
+          sha256sum lab/beauty-editorial-final.css lab/beauty-flow-refinement.css lab/visuals/beauty/atelier/hero.webp > /tmp/locked-alter-layout.sha256
+      - name: Apply category semantics without changing layout or carousel
+        run: |
+          curl --fail --location --silent --show-error 'https://at.adobe.com/FvyQzpRafikhQJTO' -o /tmp/alter-semantic.zip
+          echo '67367374b671c238e40f3ca968483adeac6ceb5473ac83419d5bc5a244ad8901  /tmp/alter-semantic.zip' | sha256sum --check
+          mkdir -p /tmp/alter-semantic
+          unzip -q /tmp/alter-semantic.zip -d /tmp/alter-semantic
+          node /tmp/alter-semantic/apply-alter-semantic.mjs
+          sha256sum --check /tmp/locked-alter-layout.sha256
+          node --check lab/beauty-approved-20261029.js
+          node --check lab/beauty-settings.js
+          node --check tests/lab-beauty-ui.mjs
+          git diff --check
+      - name: All category instructions, original contracts and Worker binding
+        run: |
+          mkdir -p test-results
+          node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-beauty.test.mjs tests/lab-beauty-atelier.test.mjs tests/lab-beauty-category-contract.test.mjs | tee test-results/alter-unit.log
+          node --test --test-name-pattern='Beauty Studio binds' tests/lab-worker.test.mjs
+      - name: Browser runtime
+        timeout-minutes: 3
+        run: |
+          npm install --prefix /tmp/pv-beauty --no-audit --no-fund playwright@1.57.0
+          node /tmp/pv-beauty/node_modules/playwright/cli.js install chromium
+      - name: Complete main browser suite plus all 45 semantic interactions
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-beauty/node_modules/playwright/index.mjs
+        run: |
+          node tests/lab-studios-menu-ui.mjs
+          node tests/lab-beauty-ui.mjs
+      - name: Save tested reconciliation on the review branch
+        run: |
+          test "$GITHUB_REF" = refs/heads/fix/alter-three-row-controls-20261107
+          git add lab/beauty.html lab/beauty.js lab/beauty-settings.js lab/beauty-approved-20261029.js lab/beauty-look-catalog.js lab/beauty-category-labels.css lab/BEAUTY-WORK-STATE.md tests/lab-beauty-ui.mjs tests/lab-beauty-atelier.test.mjs tests/lab-beauty-category-contract.test.mjs
+          git diff --cached --check
+          git commit -m 'Preserve published ALTER layout and bind categories to coherent instructions'
+          git push origin HEAD:refs/heads/fix/alter-three-row-controls-20261107
+      - name: Record exact tested source and screenshots
+        if: always()
+        run: |
+          mkdir -p test-results/alter-source
+          cp lab/beauty*.js lab/beauty*.html lab/beauty*.css tests/lab-beauty*.mjs lab/BEAUTY-WORK-STATE.md test-results/alter-source/
+          git rev-parse HEAD > test-results/alter-source-sha.txt
+          git diff > test-results/alter-working.diff
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: alter-semantic-reconciled-evidence
+          path: |
+            test-results/beauty-*.png
+            test-results/alter-*
+          retention-days: 3
