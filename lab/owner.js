@@ -1,8 +1,10 @@
+import {createOwnerWorkspace} from './owner-workspace-ui.js?v=20261106-operations1';
+import {createOwnerOperationsUI} from './owner-operations-ui.js?v=20261106-operations1';
 import {createOwnerPayoutNotice} from './partner-payouts.js?v=20261028-cost1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finance1';
-import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261025-settlement1';
+import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261106-operations1';
 import {renderOwnerPagination} from './owner-pagination.js?v=20261025-paged1';
 import {createOwnerGenerationReviewUI} from './owner-generation-review-ui.js?v=20261017-v1';
 import {createOwnerCustomerInspectionUI} from './owner-customer-inspection-ui.js?v=20261102-quality1';
@@ -210,7 +212,7 @@ function labelTableCellsForMobile(){
 }
 
 // Cookie-free acquisition totals. Public pages report aggregates, never visitor identities.
-let trafficDays=7,trafficSerial=0;
+let trafficDays=7,acquisitionDays=7,trafficSerial=0;
 const trafficLabels={
   reddit:'Reddit',instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',
   youtube:'YouTube',google:'Google',search:'Other search',newsletter:'Newsletter',
@@ -390,7 +392,6 @@ for(const button of document.querySelectorAll('[data-traffic-days]'))button.addE
   if(!profile?.owner)return;
   trafficDays=Number(button.dataset.trafficDays);
   void refreshTraffic();
-  void acquisitionUI.refresh();
 });
 $('owner-traffic-refresh').addEventListener('click',()=>void refreshTraffic());
 $('owner-audience-refresh').addEventListener('click',()=>void refreshTraffic());
@@ -404,10 +405,34 @@ const customerInspectUI=createOwnerCustomerInspectionUI({
   revision:()=>revision,formatDate:activityDate
 });
 const acquisitionUI=createOwnerAcquisitionUI({
-  request:path=>call(path),ownerReady:()=>!!profile?.owner,revision:()=>revision,days:()=>trafficDays,
+  request:path=>call(path),ownerReady:()=>!!profile?.owner,revision:()=>revision,days:()=>acquisitionDays,
   formatDate,formatNumber,openActivity:openCustomerActivity,
   openReview:customer=>generationReviewUI.open(customer),mobileLabels:labelTableCellsForMobile
 });
+const operationsUI=createOwnerOperationsUI({call,ownerReady:()=>!!profile?.owner,revision:()=>revision,openActivity:openCustomerActivity});
+const reportLoads=new Map();
+function loadViewReport(key,load){
+  const existing=reportLoads.get(key);
+  if(existing&&(existing.pending||Date.now()-existing.at<300000))return;
+  const item={at:Date.now(),pending:true};reportLoads.set(key,item);
+  Promise.resolve().then(load).catch(()=>{reportLoads.delete(key);}).finally(()=>{item.pending=false;});
+}
+function loadCurrentView(view){
+  if(!profile?.owner)return;
+  if(view.view==='home'){void operationsUI.refresh();loadViewReport('payout',()=>payoutNotice.load(revision));}
+  if(view.view==='system'){if(view.tab==='attention')void operationsUI.refresh();else void operationsUI.loadRecords();}
+  if(view.tab==='traffic')loadViewReport('traffic',refreshTraffic);
+  if(view.tab==='conversion'||view.tab==='usage')loadViewReport('acquisition',()=>acquisitionUI.refresh());
+  if(view.tab==='costs')loadViewReport('providers',()=>providerUI.refresh());
+}
+const workspace=createOwnerWorkspace({ownerReady:()=>!!profile?.owner,onNavigate:loadCurrentView});
+for(const button of document.querySelectorAll('[data-acquisition-days]'))button.addEventListener('click',()=>{
+  if(!profile?.owner)return;
+  acquisitionDays=Number(button.dataset.acquisitionDays);
+  for(const b of document.querySelectorAll('[data-acquisition-days]'))b.setAttribute('aria-pressed',String(b===button));
+  void acquisitionUI.refresh();
+});
+$('owner-customer-usage-refresh').addEventListener('click',()=>void acquisitionUI.refresh());
 let recentFilter='all',recentCustomers=[],recentPayments=[],customerPage=1;
 function recentRow(list,index,{primary,secondary,emphasis,at}){
   const li=document.createElement('li');li.className='owner-recent-item';
@@ -600,7 +625,7 @@ async function refreshDashboard({scrollCustomers=false}={}){
     }
     render(data);status('');
     if(scrollCustomers)$('owner-customers-section').scrollIntoView({block:'start'});
-    if(!search&&customerPage===1){void refreshTraffic();void acquisitionUI.refresh();void payoutNotice.load(revision);}
+    loadCurrentView(workspace.current());
     if(!autoClerkSyncAttempted&&!syncing&&!search&&data.emailSyncConfigured&&
         Array.isArray(data.customers)&&data.customers.some(c=>!c.accountClosed&&!c.email)){
       autoClerkSyncAttempted=true;
@@ -612,7 +637,8 @@ async function refreshDashboard({scrollCustomers=false}={}){
 async function refreshSession(){
   customerInspectUI.clear();
   payoutNotice.clear();
-  for(const link of document.querySelectorAll('[data-owner-vitolas],[data-owner-bellini],[data-owner-robin]'))link.hidden=true;
+  operationsUI.clear();acquisitionUI.clear();reportLoads.clear();
+  for(const link of document.querySelectorAll('[data-owner-vitolas],[data-owner-bellini],[data-owner-robin],[data-owner-agency]'))link.hidden=true;
   const current=++revision;fetchSerial++;generationReviewUI.close();profile=null;
   voucherRecipientsObserver?.disconnect();voucherRecipientsObserver=null;voucherRecipientsGeneration++;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;$('owner-agency-link').hidden=true;
   trafficSerial++;trafficAudienceData=null;$('owner-traffic-content').hidden=true;
@@ -626,7 +652,7 @@ async function refreshSession(){
   try{
     const result=await call('/api/session');if(current!==revision)return;
     if(result.owner!==true)throw Error('This page is reserved for the PV LAB owner account.');
-    profile=result;$('owner-agency-link').hidden=false;for(const link of document.querySelectorAll('[data-owner-vitolas],[data-owner-bellini],[data-owner-robin]'))link.hidden=false;await refreshDashboard();if(location.hash==='#owner-providers-section')void providerUI.refresh();
+    profile=result;$('owner-agency-link').hidden=false;for(const link of document.querySelectorAll('[data-owner-vitolas],[data-owner-bellini],[data-owner-robin],[data-owner-agency]'))link.hidden=false;await refreshDashboard();
   }catch(error){if(current===revision){$('owner-dashboard').hidden=true;status(error.message);}}
 }
 async function copyLink(url,button){
@@ -706,27 +732,10 @@ for(const button of document.querySelectorAll('[data-recent-filter]'))button.add
   recentFilter=button.dataset.recentFilter==='subscribed'?'subscribed':'all';
   paintRecentActivity();
 });
-// Providers is now a dedicated sidebar destination, not an overview widget.
-function syncOwnerNavigation(target=location.hash||'#owner-overview'){
-  for(const link of document.querySelectorAll('[data-owner-nav],.owner-jumpbar a[href^="#"]')){
-    if(link.getAttribute('href')===target)link.setAttribute('aria-current','location');
-    else link.removeAttribute('aria-current');
-  }
-}
-syncOwnerNavigation();
-for(const link of document.querySelectorAll('[data-owner-nav],.owner-jumpbar a[href^="#"],.owner-workspace-paths a'))
-  link.addEventListener('click',()=>syncOwnerNavigation(link.getAttribute('href')));
-window.addEventListener('hashchange',()=>{
-  syncOwnerNavigation();
-  if(profile?.owner&&location.hash==='#owner-providers-section')void providerUI.refresh();
-});
-$('owner-mobile-access')?.addEventListener('click',event=>{
-  if(event.target.closest('a'))$('owner-mobile-access').open=false;
-});
 $('owner-quick-search').addEventListener('click',()=>{
   if(!profile?.owner){clerk?.openSignIn();return;}
-  location.hash='owner-customers-section';
-  $('owner-customers-section').scrollIntoView({behavior:'smooth',block:'start'});
+  if(location.hash!=='#owner-customers-section')history.pushState(null,'','#owner-customers-section');
+  workspace.route('#owner-customers-section',{scroll:true});
   $('owner-search').focus({preventScroll:true});
 });
 $('owner-search-form').addEventListener('submit',event=>{event.preventDefault();clearTimeout(searchTimer);customerPage=1;void refreshDashboard();});

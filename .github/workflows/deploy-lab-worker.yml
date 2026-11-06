@@ -2,16 +2,8 @@ name: Deploy Parallel Vision Lab Worker
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'lab-worker/**'
-      - 'tests/lab-first-image-trial.test.mjs'
-      - 'tests/lab-spicy-image-credit-steps.test.mjs'
-      - 'links/shared.mjs'
-      - 'lab/reference-guidance.js'
-      - 'lab/prompt-quality.js'
-      - '.github/workflows/deploy-lab-worker.yml'
+  # Automatic Worker deployment is paused while CLOUDFLARE_API_TOKEN is unavailable.
+  # Publish directly through Cloudflare; keep this workflow manual-only.
 
 permissions:
   contents: read
