@@ -1,20 +1,22 @@
 ## One Owner workspace / consolidation, 2026-11-06
-- User explicitly requests one intuitive entry to all existing PV LAB operations, preserving every implemented function.
-- Baseline source: 259c707894f1f7d8780d6c6e6bb986e86789fba0. Open Owner PRs checked; unrelated Director PR #252 remains untouched. Concurrent main through 454ee6b has no overlap in scoped files.
-- Canonical operational entry: https://pvlab.studio/owner. Existing customer, payments, traffic, acquisition, referrals, vouchers, partner, agency, account, Studio and provider routes remain.
-- Add direct Revenue & conversion and Release checks sidebar destinations. Replace the nonfunctional hero manifesto with three concise entry paths to revenue, customer/results review and technical checks.
-- Mobile navigation uses a compact native disclosure containing existing destinations; selecting a link closes it. Hash navigation synchronizes the sidebar/current section, including direct links and overview shortcuts.
-- Existing metrics and activity stay in their original order. Read-only purchase/release checklists are inside Owner, collapsed initially, with repository evidence links and explicit production-verification limits.
-- No new metrics store, imports, simulated purchase UI or local business-data copy. No Worker, auth, billing, credit, generation or provider API change.
-- Duplicate Sites sources/checklists archived reversibly in their existing source repositories. Launch Desk now redirects to /owner#owner-acquisition-section; Purchase Flow to /owner#owner-payments-section. Both native publications succeeded; browser independently verified both destinations.
-- The unlaunched Soul Site is marked Retired; no further publication was started.
-- Changed source: owner.html, owner.css, owner.js; extended existing lab-owner-mobile-browser.mjs navigation assertions without weakening its existing activity, layout or private-media checks.
-- Validation: JS syntax, whitespace and five approved Image contract tests passed. Local headless Owner suite could not launch because the runtime browser is missing / system Chromium sockets are restricted; no tests were bypassed or browser installed.
-- Cloud-browser fixture review passed at 390px and 1440px: no document overflow, menu open/selection/close and current-location sync; desktop shortcuts and section layout inspected. Fixture review is not a real signed-in production session.
-- PR #859 initial Owner CI passed 15 provider/auth/private-QA tests, then found a test race reading aria-current before hashchange. Await the exact active-location state before the original assertions; do not weaken checks. Hero shortcuts compacted to preserve the overview vertical space. Final-head CI pending.
-- PR #859 is uploaded. Existing desktop Providers navigation test found an immediate active-state regression after replacing its click handler; restored immediate feedback for all access paths while retaining hash/back/direct-link synchronization. Original assertion preserved. Final-head Owner CI pending.
-- Publication: Owner source candidate not yet merged. Follow lab/RELEASE-PROTOCOL.md; this frontend-only change requires no Worker deployment.
-- Next: complete scoped preview and PR Owner CI, publish only the validated candidate, verify Cloudflare Pages and exact production assets. Keep real signed-in verification distinct.
+- Status: published and production asset bytes verified. Canonical operational entry: https://pvlab.studio/owner.
+- User requested one intuitive access flow and preservation of every existing function. Reviewed PR #859 head 13304a12b8611138632bfa74a06520914211270a; merge e61076abe921e0d4890c6f3c998c9f3b596391a8. Source tree d0f6b6cc6af968633233bd1dfcc06aa36ab196d6 exactly matched the local candidate.
+- Existing traffic, acquisition/revenue, customers/private generation review, payments, referrals, vouchers, providers, partners, agency, account, settings and Studio routes remain. No Worker, auth, wallet, billing, model, generation or provider API change.
+- Three compact overview shortcuts replace the nonfunctional manifesto: revenue/conversion, customers/results and release checks. Metrics and existing recent activity keep their order.
+- Direct Revenue & conversion and Release checks sidebar links. Mobile uses a native section disclosure, closes after selection and synchronizes current location with sidebar, overview shortcuts and direct/hash/back navigation.
+- New navigation initialization tolerates older cached HTML. Original immediate Providers navigation feedback is preserved.
+- Collapsed technical purchase and publication checklists are inside Owner with repository evidence links. They are not a purchase simulator, live deployment status or automatically verified production sign-off.
+- Duplicate Launch Desk now redirects to /owner#owner-acquisition-section; Purchase Flow to /owner#owner-payments-section. Both native publications succeeded and both exact destinations were independently browser-verified. Duplicate ChatGPT Site gates removed; original PV LAB owner authorization remains.
+- Original duplicate apps/checklists archived reversibly in their existing source repositories, not deleted. Both Site titles marked Retired / use Owner. Unlaunched Soul tracker marked Retired, not published.
+- Changed: lab/owner.html, lab/owner.css, lab/owner.js, tests/lab-owner-mobile-browser.mjs and this checkpoint. Cache marker 20261106-owner-workspace1.
+- Final-head Owner CI passed twice: 15 provider/auth/private-QA tests plus the existing browser suite at 320/375/390/430/768/1280/1792px. Added navigation assertions without weakening existing activity, private media or layout checks.
+- Promotions/security, approved Image contract, static validation, motion, search and transform checks passed. Cloud-browser fixtures independently checked 390px and 1440px navigation, disclosure and no document overflow.
+- Initial CI caught a new assertion race and loss of immediate active-section feedback; fixed before merge. Local headless tests were unavailable due runtime/browser restrictions; no test gate was disabled or browser installed.
+- Five broad Node failures exactly matched baseline main 454ee6b: Meta test ReferenceError, Moods header, oversized Mood uploads, Soft Pastel mobile focal point and Photobooth stylesheet. Video repeats the broad sweep; Gallery's redundant Video-badge assertion fails in unchanged code. No unrelated product changes or test weakening.
+- Exact-merge Cloudflare Pages pvlab-studio succeeded. Scoped /owner verifier returned LIVE_VERIFIED for JS and CSS; hashes ec51c505cf2307b09ea3009fe234e14fce2b972f60921ad529b07cb722c1c6bb and e2e1dd8320905961b8120a56b358b33479630ea09fd648234ad9d5dab1e8902c respectively.
+- Browser production navigation independently displays the new sidebar and three overview access paths. This browser has no authenticated PV LAB owner session; real signed-in production actions/data were not retested. Source/fixture verification is not a claim about that session.
+- No real payment, paid generation, campaign action, customer-data mutation or Worker deployment performed.
+- Complete. Future Owner work belongs here; do not create separate disconnected operational Sites. Use existing read-only production metrics; keep technical evidence distinct from live business figures.
 
 ## Compact initial audience sample, 2026-11-03
 - User approved a single small adjustment: compact collecting state with expandable existing details; preserve measurement and bar rows.
