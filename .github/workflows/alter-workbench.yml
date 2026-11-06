@@ -4,29 +4,54 @@ on:
     branches: [implement/alter-approved-20261106]
     paths: [.github/workflows/alter-workbench.yml]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  source:
+  import:
+    if: github.ref == 'refs/heads/implement/alter-approved-20261106'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Export scoped review source
-        run: |
-          python3 - <<'PY'
-          import subprocess, zipfile
-          paths=subprocess.check_output(['git','ls-files'],text=True).splitlines()
-          with zipfile.ZipFile('/tmp/alter-source.zip','w',zipfile.ZIP_DEFLATED) as z:
-            for p in paths:
-              if not (p.startswith(('lab/','tests/','.github/','scripts/')) or p in ('package.json','package-lock.json','AGENTS.md')): continue
-              ext=p.rsplit('.',1)[-1].lower()
-              if ext in ('mp4','mov','wav','mp3','glb','psd','pdf'): continue
-              if ext in ('jpg','jpeg','webp','png','gif','avif') and not p.startswith(('lab/visuals/beauty/','lab/branding/')): continue
-              z.write(p)
-            z.writestr('SOURCE_SHA.txt',subprocess.check_output(['git','rev-parse','HEAD'],text=True))
-          PY
-      - uses: actions/upload-artifact@v4
+      - uses: actions/setup-node@v4
         with:
-          name: alter-review-source
-          path: /tmp/alter-source.zip
-          retention-days: 2
+          node-version: '22.16.0'
+      - name: Import exact locally reviewed bytes
+        run: |
+          curl --fail --location --silent --show-error 'https://at.adobe.com/0IXU79n32tXsTeFm' -o /tmp/alter-patch.zip
+          echo 'f782cb6afa5bcc9c81909567da9737b687bd35e3a63a0c3d52971d1993e1b8e0  /tmp/alter-patch.zip' | sha256sum --check
+          python3 - <<'PY'
+          import hashlib,json,pathlib,subprocess,zipfile
+          root=pathlib.Path.cwd()
+          with zipfile.ZipFile('/tmp/alter-patch.zip') as z:
+            manifest=json.loads(z.read('manifest.json'))
+            allowed={'lab/beauty.html','lab/beauty.js','lab/beauty-settings.js','lab/beauty-approved-20261029.js','lab/beauty-editorial-final.css','lab/BEAUTY-WORK-STATE.md','tests/lab-beauty-ui.mjs','tests/lab-beauty-atelier.test.mjs','.github/workflows/pv-lab-beauty.yml'}
+            for entry in manifest:
+              name=entry['path'];p=root/name
+              assert (name in allowed or name.startswith('lab/visuals/beauty/atelier/') and name.endswith('.webp')) and '..' not in pathlib.PurePosixPath(name).parts
+              assert hashlib.sha256(p.read_bytes()).hexdigest()==entry['baseline'] if p.exists() else entry['baseline'] is None, 'Changed baseline: '+name
+              data=z.read('files/'+name)
+              assert hashlib.sha256(data).hexdigest()==entry['sha256'], 'Unexpected bytes: '+name
+            for entry in manifest:
+              p=root/entry['path'];p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(z.read('files/'+entry['path']))
+            pathlib.Path('/tmp/alter-record.json').write_bytes(z.read('record.json'))
+            subprocess.run(['git','add','--']+[e['path'] for e in manifest],check=True)
+          PY
+          node scripts/owner-work-state.mjs upsert /tmp/alter-record.json
+          node scripts/owner-work-state.mjs validate
+          git add lab/owner-work-records.json
+      - name: Validate scoped contracts before saving
+        run: |
+          node --check lab/beauty.js
+          node --check lab/beauty-approved-20261029.js
+          node --check tests/lab-beauty-ui.mjs
+          node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-beauty.test.mjs tests/lab-beauty-atelier.test.mjs
+          node --test --test-name-pattern='Beauty Studio binds' tests/lab-worker.test.mjs
+          git diff --cached --check
+      - name: Save review branch only and remove temporary importer
+        run: |
+          test "$GITHUB_REF" = refs/heads/implement/alter-approved-20261106
+          git rm .github/workflows/alter-workbench.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Implement approved ALTER tabbed visual editor and continuous look archive'
+          git push origin HEAD:refs/heads/implement/alter-approved-20261106
