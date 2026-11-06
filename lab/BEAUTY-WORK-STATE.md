@@ -1,5 +1,16 @@
 # Beauty Studio and Studios navigation
 
+## 2026-11-06 | LIVE publication verified
+
+- PR #880 merged as ed1752ce3c8f06691fcb711d279fafec75a7fee4; reviewed application source 70b58d7c621c6976b4929aba73bb4f76e157f172.
+- Exact Cloudflare Pages pvlab-studio check 128181428708 succeeded.
+- Actual /beauty HTML serves 20261106-atelier2 and the existing ./branding/pv-mark.png favicon. 20 production asset hashes match source, including all approved image crops.
+- Real guest browser checks passed at 1440px and 390px: defaults Original/Original/Natural/50, independent tabs, reset, final archive card reachable by keyboard, no page overflow, no Worker mutations.
+- Complete intercepted Beauty/Studios tests and quote/idempotency tests passed in run 42299866022. The later date-format save issue and concurrent work-index conflict did not change tested application bytes.
+- Real signed-in generation and provider output quality were not tested. No paid generation or payment was performed.
+- Evidence and real production screenshots: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42301817916.
+- Work record alter-tabbed-editor upserted against current main, preserving other tasks. No frontend deployment remains pending.
+
 ## 2026-11-06 | Final review and existing PV LAB favicon
 
 - Reused the exact homepage favicon `./branding/pv-mark.png`; no branding regenerated.

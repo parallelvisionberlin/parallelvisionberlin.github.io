@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T22:01:47Z",
+  "updatedAt": "2026-11-06T22:05:18.886Z",
   "handoffs": [
     {
       "id": "owner",
@@ -938,6 +938,90 @@
         "Preserve existing pricing, providers, photo assets, quote/submit and approved credit offers."
       ],
       "updatedAt": "2026-11-06T21:57:56Z"
+    },
+    {
+      "id": "alter-tabbed-editor",
+      "title": "ALTER Studio tabbed editor",
+      "component": "ALTER Studio",
+      "status": "deployed",
+      "summary": "Approved ALTER tabbed editor, horizontal photographic archive and original PV LAB favicon published. Exact production assets and real guest desktop/mobile controls verified.",
+      "nextAction": "No frontend publication work remains. Real signed-in generation and quality of provider outputs are not part of this no-spend verification.",
+      "baselineSha": "674b340bcb7217ed4b4ca42344a8fde8c55c0be8",
+      "reviewedSha": "70b58d7c621c6976b4929aba73bb4f76e157f172",
+      "branch": "implement/alter-approved-20261106",
+      "files": [
+        "lab/beauty.html",
+        "lab/beauty-editorial-final.css",
+        "lab/beauty-approved-20261029.js",
+        "lab/beauty-settings.js",
+        "lab/beauty.js",
+        "lab/visuals/beauty/atelier",
+        "tests/lab-beauty-ui.mjs",
+        "tests/lab-beauty-atelier.test.mjs"
+      ],
+      "links": [
+        {
+          "label": "Scoped handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/BEAUTY-WORK-STATE.md"
+        },
+        {
+          "label": "Implementation PR #880",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/880"
+        }
+      ],
+      "tests": [
+        {
+          "label": "ALTER and original Beauty/Studios regression",
+          "result": "passed",
+          "scope": "12 unit contracts, Worker quote/idempotency integration and full original intercepted browser scenarios including public navigation, roles, guest isolation, comparisons, zoom, history races and favicon.",
+          "observedAt": "2026-11-06T21:57:43Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42299866022"
+        },
+        {
+          "label": "Actual public production controls",
+          "result": "passed",
+          "scope": "Real public production page; default values, original favicon, independent tabs, reset, keyboard archive and no page overflow. No login, upload, quote or generation.",
+          "observedAt": "2026-11-06T22:05:18.886Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42301817916"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "sourceSha": "ed1752ce3c8f06691fcb711d279fafec75a7fee4",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-06T22:05:18.886Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42301817916",
+        "limitations": [
+          "Public production interaction and exact asset publication verified. No real signed-in account or paid provider generation was exercised."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "deployment",
+          "summary": "PR #880 merged; exact merge Cloudflare app check 128181428708 succeeded.",
+          "scope": "Production frontend publication, not GitHub Pages.",
+          "observedAt": "2026-11-06T22:05:18.886Z",
+          "source": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/2b44ca55-9203-494c-a796-304ae2d96d97",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "HTML references atelier2; 20 production asset SHA-256 hashes match reviewed source, including PV LAB favicon. Desktop 1440px and mobile 390px controls verified.",
+          "scope": "Real public production page; defaults, tabs, reset, keyboard carousel and page overflow. Screenshots and hashes retained in run artifacts.",
+          "observedAt": "2026-11-06T22:05:18.886Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42301817916",
+          "limitations": [
+            "Public production interaction and exact asset publication verified. No real signed-in account or paid provider generation was exercised."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not regenerate approved photos.",
+        "Do not add providers or change billing.",
+        "Do not substitute the previous stacked tiny-choice layout."
+      ],
+      "updatedAt": "2026-11-06T22:05:18.886Z"
     }
   ]
 }
