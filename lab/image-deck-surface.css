@@ -217,3 +217,17 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul {
     & .composer-generate:not(.is-long-label):not(.is-submitting) .composer-generate-label {font-size:18px!important;font-weight:700!important;letter-spacing:-.025em!important;line-height:1.12!important}
   }
 }
+
+/* One Mood palette for every web Image model. Soul's generic settings-pill
+   background previously overrode the selected fill but left its dark text. */
+html:not(.pv-native-lab) #app.image-studio-active #image-composer
+  .composer-mood-control #image-composer-moods {
+  background:#242625!important;
+  border-color:#393d39!important;
+  color:#dcff00!important;
+  box-shadow:none!important;
+}
+html:not(.pv-native-lab) #app.image-studio-active #image-composer
+  .composer-mood-control #image-composer-moods-clear {
+  color:#dcff00!important;
+}

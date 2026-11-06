@@ -68,7 +68,11 @@ try{
       await page.waitForFunction(()=>window.__nightFlashReady===true);
       await page.locator('#image-composer-model').click();
       await page.locator('.composer-model-option[data-value="soulpro"]').click();
+      assert.equal(await page.locator('#image-composer-generate').isEnabled(),false,'Empty Soul needs a prompt or Base, not a mandatory Soul ID');
+      assert.match(await page.locator('#image-composer-generate').getAttribute('title'),/Add a Base image or describe/);
+      assert.equal(await page.locator('#composer-generation-block').isVisible(),false,'Missing-input help does not add a row to the deck');
       await page.locator('#image-composer-prompt').fill('A woman arriving at a club.');
+      assert.equal(await page.locator('#image-composer-generate').isEnabled(),true,'Text alone enables Soul with no Soul ID selected');
       await page.locator('#image-composer-moods').click();
       await page.getByRole('button',{name:'Select Night Flash',exact:true}).click();
       await page.locator('#composer-moods-intensity').press('End');
@@ -78,6 +82,15 @@ try{
       assert.equal(state.settings.moodIntensity,100);assert.equal(state.settings.moodOriginalPrompt,'A woman arriving at a club.');
       assert.match(state.settings.prompt,/subject and setting described by the user/);
       assert.equal(generated,0,'Selecting a Mood never generates');
+      const palettes=await page.evaluate(()=>{
+        const deck=document.getElementById('image-composer'),mood=document.getElementById('image-composer-moods'),clear=document.getElementById('image-composer-moods-clear');
+        const read=()=>{const s=getComputedStyle(mood);return {color:s.color,background:s.backgroundColor,border:s.borderColor,clear:getComputedStyle(clear).color};};
+        const soul=read();deck.classList.remove('is-pv-soul');const standard=read();deck.classList.add('is-pv-soul');return {soul,standard};
+      });
+      assert.deepEqual(palettes.soul,palettes.standard,'Soul and standard Image share the same Mood palette');
+      assert.equal(palettes.soul.color,'rgb(220, 255, 0)','Mood text remains legible on the dark control');
+      assert.equal(palettes.soul.clear,palettes.soul.color,'Clear action remains legible too');
+
       if(role==='customer'){
         assert.equal(await page.locator('#image-composer-generate').isEnabled(),false,'Night Flash customer gate defaults closed');
         assert.equal(requests.filter(r=>r.path==='/api/higgsfield/quote'&&r.data.settings?.moodId==='night-flash').length,0,'Closed gate does not request a Mood quote');

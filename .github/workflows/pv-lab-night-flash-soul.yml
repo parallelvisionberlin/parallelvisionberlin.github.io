@@ -6,6 +6,7 @@ on:
       - 'lab/won-kar-night.js'
       - 'tests/lab-won-kar-night.test.mjs'
       - 'lab/moods.js'
+      - 'lab/image-deck-surface.css'
       - 'lab/lab.js'
       - 'lab-worker/higgsfield.mjs'
       - 'tests/lab-night-flash-soul*'
