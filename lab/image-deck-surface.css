@@ -1,8 +1,8 @@
 /* One standard desktop Image instrument, based on the Owner History deck.
    The entrance and photo-free History share these slots and controls.
-   Photo trays, character pickers, PV Soul and native/mobile keep their rules. */
+   Reference trays grow above the toolbar. Pickers, PV Soul and mobile keep their rules. */
 @media(min-width:1180px) and (min-height:680px){
-  html:not(.pv-native-lab) #main :is(#app.image-studio-active #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.has-character-picker):not(:has(#image-composer-references:not([hidden]) .composer-reference-tile)),#gate.pv-guest-image #pv-guest-composer){
+  html:not(.pv-native-lab) #main :is(#app.image-studio-active #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.has-character-picker),#gate.pv-guest-image #pv-guest-composer){
     display:grid!important;box-sizing:border-box!important;
     width:min(1120px,calc(100vw - 52px))!important;
     grid-template-columns:minmax(0,1fr) 144px!important;
@@ -19,6 +19,9 @@
       grid-area:1 / 1!important;display:flex!important;align-items:center!important;
       width:100%!important;min-width:0!important;height:auto!important;min-height:64px!important;
       max-height:none!important;padding:0!important;margin:0!important;
+    }
+    &:has(#image-composer-references:not([hidden]) .composer-reference-tile) [data-deck-slot="prompt"]{
+      flex-direction:column!important;align-items:stretch!important;
     }
     & :is(#image-composer-prompt,#pv-guest-prompt){
       display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;
@@ -71,6 +74,8 @@
     & [data-deck-control="moods"]{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;color:#dcff00!important;font-size:13px!important;font-weight:700!important}
     & :is(.composer-mood-copy,.composer-mood-label,.pv-guest-chevron,.composer-chevron){font:inherit!important;letter-spacing:inherit!important}
     & [data-deck-control="base"]{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 96px!important;width:96px!important;min-width:96px!important}
+    & #image-composer-ratio{width:60px!important;min-width:60px!important}
+    & #composer-reference-intent-toggle:not([hidden]){flex:0 0 120px!important;width:120px!important;min-width:120px!important}
     & .composer-select-pill:has([data-deck-control]){display:flex!important;align-items:center!important;min-width:0!important;padding:0!important;border:0!important;background:transparent!important}
     & [data-deck-control="ratio"]{display:inline-flex!important;align-items:center!important;justify-content:space-between!important;width:85px!important;min-width:85px!important}
     & [data-deck-control="resolution"]{display:inline-flex!important;align-items:center!important;justify-content:space-between!important;width:46px!important;min-width:46px!important}
