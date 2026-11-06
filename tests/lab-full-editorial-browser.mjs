@@ -63,7 +63,7 @@ try{
     const info=selector=>{
      const el=document.querySelector(selector),s=getComputedStyle(el);
      const range=document.createRange();range.selectNodeContents(el);
-     return {weight:s.fontWeight,spacing:parseFloat(s.letterSpacing),
+     return {weight:s.fontWeight,family:s.fontFamily,spacing:parseFloat(s.letterSpacing),
       transform:s.transform,textWidth:range.getBoundingClientRect().width,
       available:el.parentElement.getBoundingClientRect().width};
     };
@@ -71,7 +71,8 @@ try{
       composition:info('#editorial-composition-title')};
    });
    for(const [name,heading] of Object.entries(typography)){
-    assert.equal(heading.weight,'400',name+' uses natural display weight without fake 900');
+    assert.equal(heading.weight,'700',name+' uses bundled bold fallback without synthesized Impact');
+    assert.ok(heading.family.includes('DM'),name+' has reliable bundled font fallback');
     assert.ok(heading.spacing>0,name+' keeps letters separated: '+JSON.stringify(heading));
     assert.ok(heading.textWidth<=heading.available+2,name+' stays within its heading area: '+JSON.stringify(heading));
    }

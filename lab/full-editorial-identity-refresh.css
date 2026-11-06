@@ -345,8 +345,8 @@ body.editorial-web .flow-main > #editorial-casting-controls .editorial-compositi
  margin:0!important;gap:7px;max-width:100%;min-width:0;
 }
 body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-heading h4{
- margin:0!important;font-family:Impact,'Arial Narrow','Helvetica Neue',sans-serif!important;
- font-size:clamp(35px,2.8vw,47px)!important;font-weight:400!important;
+ margin:0!important;font-family:Impact,'Arial Narrow',DM,Arial,sans-serif!important;
+ font-size:clamp(35px,2.8vw,47px)!important;font-weight:700!important;
  font-synthesis:none!important;letter-spacing:.01em!important;
  line-height:.94!important;text-transform:uppercase;
  color:#f4f2ef!important;
@@ -459,9 +459,10 @@ body.editorial-web #panel-model #editorial-saved-rail .editorial-cast-arrow{z-in
   left:clamp(19px,3.6vw,64px)!important;bottom:clamp(40px,7svh,76px)!important;z-index:4;
  }
  body.editorial-web #panel-model .stage-copy h2{
-  font-family:Impact,'Arial Narrow','Helvetica Neue',sans-serif!important;
-  /* Impact is intrinsically bold: avoid synthetic 900 weight and colliding glyphs. */
-  font-weight:400!important;font-synthesis:none!important;
+  font-family:Impact,'Arial Narrow',DM,Arial,sans-serif!important;
+  /* Impact is intrinsically bold (synthesis disabled); DM 700 is bundled as a
+     consistent, readable fallback on machines without Impact. */
+  font-weight:700!important;font-synthesis:none!important;
   font-size:clamp(72px,6.4vw,100px)!important;
   letter-spacing:.02em!important;line-height:.9!important;text-transform:uppercase;
   margin:7px 0 11px!important;
