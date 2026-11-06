@@ -71,8 +71,13 @@ try{
   assert.equal(await page.locator('#mode-transform').getAttribute('aria-selected'),'true');
   assert.equal(await page.locator('#app').evaluate(el=>el.classList.contains('video-transform-active')),true);
   assert.equal(await page.locator('#transform-help').count(),0);
-  assert.equal(await page.locator('#pv-transform-source-settings').isVisible(),true);
+  assert.equal(await page.locator('#duration-control').isVisible(),true,'Original duration field is retained');
+  assert.equal(await page.locator('#pv-transform-source-duration').isVisible(),true,'Source duration is read-only');
+  assert.equal(await page.locator('#duration').isVisible(),false,'Duration cannot be independently changed in an edit');
   assert.equal(await page.locator('#resolution-control').isVisible(),true);
+  assert.equal((await page.locator('#generate').innerText()).trim(),'Generate');
+  assert.equal(await page.locator('#generate').isDisabled(),true);
+  assert.equal(await page.locator('#generate').evaluate(el=>el.classList.contains('is-input-action')),false);
   assert.deepEqual(await page.locator('#resolution option').evaluateAll(nodes=>nodes.map(n=>n.value)),['480p','720p','1080p']);
   assert.equal(await page.locator('#reference-media').isVisible(),true,'one source-video picker visible');
   assert.equal(await page.locator('#reference-drop').isVisible(),true,'replacement identity uploader visible');
@@ -88,6 +93,9 @@ try{
   assert.equal(await page.locator('#history').evaluate(el=>!!el.closest('.video-feed-center')),true,'the existing History remains in its center feed');
   await page.locator('#video-references').setInputFiles({name:'original.mp4',mimeType:'video/mp4',buffer:motion});
   await page.waitForFunction(()=>document.querySelector('#video-reference-list').children.length===1);
+  await page.waitForFunction(()=>document.querySelector('#pv-transform-source-duration')?.textContent?.includes('6'));
+  assert.equal((await page.locator('#generate').innerText()).trim(),'Generate');
+  assert.equal(await page.locator('#generate').isDisabled(),true,'Identity references are still required');
   await page.click('#scene-video-open');
   await page.locator('#scene-grid .scene-card-select').first().click();
   await page.locator('.scene-feature-attach').click();

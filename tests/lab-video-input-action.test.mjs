@@ -10,3 +10,8 @@ test('preparation action cannot override account access, busy state, other tools
  for(const patch of [{video:false},{allowed:false},{busy:true},{hasPrompt:false},{hasInput:true},{mode:'text'}])
   assert.equal(videoInputAction({...ready,...patch}),null);
 });
+
+test('Transform never substitutes media actions for the original Generate button',()=>{
+  for(const hasSourceVideo of [false,true])
+    assert.equal(videoInputAction({...ready,mode:'transform',hasPrompt:false,hasSourceVideo}),null);
+});

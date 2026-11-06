@@ -1036,8 +1036,15 @@ function missingVideoInputAction(){
 }
 function applyVideoInputAction(){
   const action=missingVideoInputAction(),button=$('generate');
+  const previousAction=button.classList.contains('is-input-action');
   button.classList.toggle('is-input-action',!!action);
-  if(!action)return;
+  if(!action){
+    if(previousAction&&tool==='video'&&mode==='transform'){
+      button.removeAttribute('aria-label');
+      button.removeAttribute('title');
+    }
+    return;
+  }
   button.textContent=action.label;button.disabled=false;
   button.setAttribute('aria-label',action.label);
   button.title='Attach the required media, or choose Text to generate from a prompt alone.';
@@ -3440,7 +3447,7 @@ function configureVideoControls(){
   $('mode-transform').title=$('mode-transform').disabled?'Transform is in early access. No paid customer generations are available yet.':'Replace a character in an original video.';
   $('mode-extend').setAttribute('aria-selected',String(mode==='extend'));
   $('video-modes').hidden=!isVideo||['extend','transform'].includes(mode);
-  $('pv-transform-source-settings').hidden=!isVideo||mode!=='transform';
+  $('pv-transform-source-duration').hidden=!isVideo||mode!=='transform';
   $('pv-transform-reference-strip').hidden=!(isVideo&&mode==='transform'&&references.length);
   $('video-reference-heading').textContent=mode==='transform'?'Replacement character':'Reference images';
   $('pv-mode-reference-label').textContent=isVideo?'Reference set':'References';
@@ -3458,7 +3465,8 @@ function configureVideoControls(){
   $('reference-media').hidden=!isVideo||!sd||!['reference','extend','transform'].includes(mode);
   $('start-frame-maker').hidden=!isVideo||mode!=='reference'||!['wan','wanprime','h3','omni'].includes(engine);
   if(isVideo){
-    $('duration-control').hidden=mode==='transform';
+    $('duration-control').hidden=false;
+    $('duration').hidden=mode==='transform';
     const ratio=$('ratio').value,duration=Number($('duration').value)||15;
     const ratios=['extend','transform'].includes(mode)?['auto']:klingHf?(mode==='start'?['auto']:['16:9','9:16','1:1']):omni?model.ratios:(sd||sd4k||minimax)&&mode==='start'?['auto']:(!sd&&!minimax&&mode==='start'?[...model.ratios,'21:9']:model.ratios);
     const defaultRatio=omni?'16:9':sd&&mode==='start'?'auto':ratios.includes(ratio)?ratio:(ratios.includes('auto')?'auto':ratios[0]);
