@@ -1,5 +1,17 @@
 # Beauty Studio and Studios navigation
 
+## 2026-11-06T23:20:47.783Z | Three-row refinement LIVE verified
+
+- PR #887, reviewed 1b361a956f4cb04fe4dca376b223ca47bc3a6ce2, merged as 46054b88b991656eeb19affd7ed7e2bd6c6f8acf.
+- Exact Cloudflare pvlab-studio check 128212836863 succeeded; /beauty references 20261106-flow1. 24 live asset hashes match reviewed source.
+- Original hero, complete original composition stylesheet, mixed-case ALTER Studio. title and existing PV LAB favicon are retained. No background replacement, recropping or recolouring.
+- Nine working choices per tab, a taller right editor, taller photographic archive and no carousel arrows. Wheel over heading/cards moves both ways; native trackpad/touch, mouse drag/momentum and keyboard retained. Browsing does not apply looks or generate.
+- Complete intercepted Beauty/Studios role, quote, history and responsive suite plus 13 focused contracts and Worker quote/idempotency integration passed before merge.
+- Real public guest production checks passed at 1440/390: nine choices per tab, original defaults/reset, stable Generate, wheel reversal, reachable last card, no page overflow and no Worker mutations.
+- Evidence and screenshots: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42310995580.
+- No real signed-in generation, payment, paid provider job or physical iPhone Safari verification. New preset output fidelity is not claimed.
+- This is the current verified release. The pending notes below describe earlier stages only; no frontend publication remains pending.
+
 ## Three-row refinement CI passed
 
 - Complete original Beauty/Studios role, quote, history and responsive checks passed, including the new 45-choice grid, wheel reversal, drag and real emulated touch swipe.
