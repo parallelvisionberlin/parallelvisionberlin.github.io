@@ -1,16 +1,65 @@
 # Beauty Studio and Studios navigation
 
-## 2026-11-07 | Approved three-row refinement
+## 2026-11-07 | Category instruction and Original preview follow-up
 
-- Original mixed-case heading, hero, existing PV LAB favicon, backend, quote/submission, model, billing, comparison and History retained.
-- Three columns x three rows in all five tabs; 45 labelled choices from one label/instruction catalogue. Taller panel rises into unused breadcrumb-side space rather than pushing the look archive down.
-- Larger lower photo cards, reduced gap, no carousel arrow buttons; wheel/trackpad, mouse drag, keyboard and native touch inertia retained.
-- Original preview now uses the user's local photo and clears on sign-out. Other images are illustrative crops/tonal samples, not live generated previews.
-- Mood presets set the actual category fields; manual edits discard only auto-inserted preset direction, never user-authored text.
-- Monochrome no longer conflicts with a chromatic skin-tone instruction. Strength zero suppresses lighting, colour and optional extra edits.
-- Scoped unit/browser tests and publication evidence must be recorded after execution. No real provider generation or payment is authorized for this work.
-- Files: beauty-look-catalog.js, beauty-controls-refined.css, beauty.html, beauty-settings.js, beauty.js (import version only), beauty-approved-20261029.js, scoped Beauty tests.
+- Preserves the published PR #887 three-row layout, original hero/title/favicon, all 45 option IDs, approved photographic crops and arrow-free wheel/touch/keyboard/drag behavior. No second geometry redesign.
+- One catalogue binds the existing visible labels to their exact instructions. Labels stay visible; Original uses the local uploaded photo rather than an unrelated example and clears on sign-out.
+- Mood recipes set the actual category fields. Manual choices clear only unchanged automatically inserted mood text, never the user's written direction.
+- Light/Color intensity follows the same strength control; strength zero excludes optional edits; monochrome uses relative skin luminance rather than a contradictory chromatic lock.
+- Default prompt remains byte-identical. Source upload, model/resolution/ratio, price/quote validation, explicit generation, backend, private history, comparison and zoom remain untouched.
+- Publication and current-main regression results must be recorded after verification. No paid generation or real payment performed.
 
+
+
+## 2026-11-06T23:28:36.397Z | Three-row refinement LIVE verified
+
+- PR #889, reviewed 7f7e5e6bfbd0dcedfc23fc524619463c9d0e0ff9, merged as a2d45d0793343a9575f4d83cbae0f912e37d2387.
+- Exact Cloudflare pvlab-studio check 128215858001 succeeded; /beauty references the flow1 layout and flow2 presentation JS. 24 live asset hashes match reviewed source.
+- Original hero, complete original composition stylesheet, mixed-case ALTER Studio. title and existing PV LAB favicon are retained. No background replacement, recropping or recolouring.
+- Nine working choices per tab, a taller right editor, taller photographic archive and no carousel arrows. Wheel over heading/cards moves both ways; native trackpad/touch, mouse drag/momentum and keyboard retained. Browsing does not apply looks or generate.
+- Complete intercepted Beauty/Studios role, quote, history and responsive suite plus 14 focused contracts and Worker quote/idempotency integration passed before merge.
+- Real public guest production checks passed at 1440/390: nine choices per tab, original defaults/reset, stable Generate, wheel reversal and zero idle animation callbacks, reachable last card, no page overflow and no Worker mutations.
+- Evidence and screenshots: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42311975833.
+- No real signed-in generation, payment, paid provider job or physical iPhone Safari verification. New preset output fidelity is not claimed.
+- This is the current verified release. The pending notes below describe earlier stages only; no frontend publication remains pending.
+
+## Scroll-settling follow-up
+
+- Final normal-motion QA found a 1px rounding tail could keep requestAnimationFrame running after the archive stopped moving. The only interaction change is a 1.5px settle tolerance instead of 0.8px. No layout, imagery, defaults, backend or generation behavior changed.
+- New regression executes the actual animation function against integer and fractional scroll positions in both directions and requires an empty frame queue. All 14 focused contracts pass. Actual isolated Chromium observation changed from 42 idle callbacks over 700ms to zero.
+- Presentation JS cache key is 20261106-flow2; other refinement assets retain flow1. Production verification follows merge.
+
+## 2026-11-06T23:20:47.783Z | Three-row refinement LIVE verified
+
+- PR #887, reviewed 1b361a956f4cb04fe4dca376b223ca47bc3a6ce2, merged as 46054b88b991656eeb19affd7ed7e2bd6c6f8acf.
+- Exact Cloudflare pvlab-studio check 128212836863 succeeded; /beauty references 20261106-flow1. 24 live asset hashes match reviewed source.
+- Original hero, complete original composition stylesheet, mixed-case ALTER Studio. title and existing PV LAB favicon are retained. No background replacement, recropping or recolouring.
+- Nine working choices per tab, a taller right editor, taller photographic archive and no carousel arrows. Wheel over heading/cards moves both ways; native trackpad/touch, mouse drag/momentum and keyboard retained. Browsing does not apply looks or generate.
+- Complete intercepted Beauty/Studios role, quote, history and responsive suite plus 13 focused contracts and Worker quote/idempotency integration passed before merge.
+- Real public guest production checks passed at 1440/390: nine choices per tab, original defaults/reset, stable Generate, wheel reversal, reachable last card, no page overflow and no Worker mutations.
+- Evidence and screenshots: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42310995580.
+- No real signed-in generation, payment, paid provider job or physical iPhone Safari verification. New preset output fidelity is not claimed.
+- This is the current verified release. The pending notes below describe earlier stages only; no frontend publication remains pending.
+
+## Three-row refinement CI passed
+
+- Complete original Beauty/Studios role, quote, history and responsive checks passed, including the new 45-choice grid, wheel reversal, drag and real emulated touch swipe.
+- Evidence: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42309882483. All APIs intercepted; no provider job or payment. Merge and custom-domain publication remain separate.
+
+## 2026-11-06 | Approved three-row editor and arrow-free scroll refinement
+
+- Owner approved the latest mixed-case ALTER layout, larger Edit Look, three columns/three rows and a taller photographic archive. Do not replace the published background again.
+- Baseline source: c714d7ec533da9807bb3f0f03e5c571463d2a4e4. Branch: fix/alter-three-row-scroll-20261106. Version: 20261106-flow1.
+- The published hero.webp and the entire beauty-editorial-final.css composition stylesheet remain byte-identical. Regression checks lock both SHA-256 hashes; the original H1 and PV LAB favicon are retained.
+- New scoped beauty-flow-refinement.css adjusts only panel/overlay/archive geometry, control typography and card height. It does not restyle the hero or the left title.
+- Every tab has nine independently selectable, validated options. The three new makeup thumbnails are crops from the approved proposal, not new generations. Other additional presets reuse illustrative existing photography.
+- Defaults remain Makeup Original / Hair Original / Skin Natural / strength 50. Light and Color start Original. Existing source/model/resolution/ratio/Generate/quote/history/comparison/zoom behavior remains intact.
+- Removed the two archive arrow buttons. Wheel over the section heading OR photographs moves the strip in both directions; horizontal trackpad input, mouse dragging/momentum, native touch swipes and keyboard navigation are supported. Browser zoom gestures and page scrolling at strip boundaries are not trapped.
+- Browsing never applies a preset, reprices, or submits a generation. Reduced-motion preference disables scripted animation.
+- Local: 13 focused Image/Beauty/ALTER unit contracts and the Worker quote/idempotency integration passed. Isolated rendered layout and wheel/independent tab checks passed at 320/390/768/1024/1280/1366/1440/1920 px.
+- Full local browser navigation is environment-blocked. Full intercepted-account browser regression runs in GitHub CI; isolated HTML evidence is not signed-in production verification.
+- Pending for this new refinement: full CI, reviewed merge, exact Cloudflare deployment and custom-domain byte/guest-interaction verification. The previous #880 release below remains the historical production baseline.
+- No paid generation, customer payment, provider integration or backend change.
 
 ## 2026-11-06 | LIVE publication verified
 

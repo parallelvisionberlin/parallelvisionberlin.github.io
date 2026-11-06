@@ -1,4 +1,4 @@
-import {beautyLookPresets} from './beauty-look-catalog.js?v=20261107-controls1';
+import {beautyLookPresets} from './beauty-look-catalog.js?v=20261107-controls2';
 /* Beauty Studio visual controls and actual source/result comparison.
    Native select and textarea values remain the only generation settings. */
 (() => {
@@ -157,19 +157,42 @@ import {beautyLookPresets} from './beauty-look-catalog.js?v=20261107-controls1';
  new MutationObserver(showComparison).observe(source,observed);
  new MutationObserver(showComparison).observe(resultImage,observed);
 
- // Native touch/trackpad scrolling, wheel/drag inertia and keyboard browsing; no arrow buttons.
- // No browse interaction applies presets, changes a quote, or triggers generation.
+ // Continuous archive: wheel over the heading OR cards, trackpad, mouse drag,
+ // native touch momentum and keyboard. Browsing never selects or generates.
  const track=$('beauty-looks-list'),section=document.querySelector('.beauty-looks');
  if(track&&section&&cards.length){
-  let index=0,drag=null,blockClick=false,momentum=0;
+  let index=0,drag=null,wheelFrame=0,inertiaFrame=0,target=track.scrollLeft,lastDirection=0,suppressClickUntil=0;
   const reduced=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  const stopMomentum=()=>{cancelAnimationFrame(momentum);momentum=0;};
+  const limit=()=>Math.max(0,track.scrollWidth-track.clientWidth);
+  const clamp=value=>Math.max(0,Math.min(limit(),value));
+  const stop=()=>{cancelAnimationFrame(wheelFrame);cancelAnimationFrame(inertiaFrame);wheelFrame=inertiaFrame=0;target=track.scrollLeft;};
+  const animateWheel=()=>{
+   const distance=target-track.scrollLeft;
+   if(Math.abs(distance)<1.5){track.scrollLeft=target;wheelFrame=0;return;}
+   track.scrollLeft=clamp(track.scrollLeft+distance*.34);
+   wheelFrame=requestAnimationFrame(animateWheel);
+  };
+  section.addEventListener('wheel',event=>{
+   if(event.ctrlKey||event.metaKey||limit()<2)return;
+   const primary=Math.abs(event.deltaX)>Math.abs(event.deltaY)?event.deltaX:event.deltaY;
+   const delta=primary*(event.deltaMode===1?20:event.deltaMode===2?track.clientWidth:1);
+   if(!delta)return;
+   const direction=Math.sign(delta);
+   if(!wheelFrame||direction!==lastDirection)target=track.scrollLeft;
+   const next=clamp(target+delta);
+   // At a boundary the normal page scroll remains available.
+   if(Math.abs(next-target)<.5)return;
+   event.preventDefault();cancelAnimationFrame(inertiaFrame);inertiaFrame=0;
+   target=next;lastDirection=direction;
+   if(reduced()){cancelAnimationFrame(wheelFrame);wheelFrame=0;track.scrollLeft=target;}
+   else if(!wheelFrame)wheelFrame=requestAnimationFrame(animateWheel);
+  },{passive:false});
   const browse=nextIndex=>{
-   stopMomentum();index=Math.max(0,Math.min(cards.length-1,nextIndex));
-   cards[index].focus({preventScroll:true});
-   const card=cards[index],left=card.offsetLeft-track.offsetLeft;
-   if(left<track.scrollLeft)track.scrollTo({left,behavior:reduced()?'auto':'smooth'});
-   else if(left+card.offsetWidth>track.scrollLeft+track.clientWidth)track.scrollTo({left:left+card.offsetWidth-track.clientWidth,behavior:reduced()?'auto':'smooth'});
+   stop();index=Math.max(0,Math.min(cards.length-1,nextIndex));
+   const card=cards[index];card.focus({preventScroll:true});
+   const a=card.getBoundingClientRect(),b=track.getBoundingClientRect();
+   const left=a.left<b.left?track.scrollLeft+a.left-b.left:a.right>b.right?track.scrollLeft+a.right-b.right:track.scrollLeft;
+   track.scrollTo({left:clamp(left),behavior:reduced()?'auto':'smooth'});
   };
   cards.forEach((card,i)=>card.addEventListener('focus',()=>{index=i;}));
   section.addEventListener('keydown',event=>{
@@ -177,16 +200,10 @@ import {beautyLookPresets} from './beauty-look-catalog.js?v=20261107-controls1';
    if(event.target.closest('input,textarea,select,[role="slider"],[contenteditable="true"]'))return;
    event.preventDefault();browse(event.key==='Home'?0:event.key==='End'?cards.length-1:index+(event.key==='ArrowRight'?1:-1));
   });
-  track.addEventListener('wheel',event=>{
-   if(event.ctrlKey||event.metaKey||Math.abs(event.deltaX)>Math.abs(event.deltaY)||track.scrollWidth<=track.clientWidth+2)return;
-   const delta=event.deltaY*(event.deltaMode===1?20:event.deltaMode===2?track.clientWidth:1);
-   if((delta>0&&track.scrollLeft<track.scrollWidth-track.clientWidth-2)||(delta<0&&track.scrollLeft>2)){
-    event.preventDefault();stopMomentum();track.scrollLeft+=delta;
-   }
-  },{passive:false});
   track.addEventListener('pointerdown',event=>{
-   if(event.pointerType!=='mouse'||event.button!==0||track.scrollWidth<=track.clientWidth+2)return;
-   stopMomentum();blockClick=false;drag={id:event.pointerId,x:event.clientX,left:track.scrollLeft,lastX:event.clientX,lastTime:performance.now(),velocity:0,moved:false};
+   stop();
+   if(event.pointerType!=='mouse'||event.button!==0||limit()<2)return;
+   suppressClickUntil=0;drag={id:event.pointerId,x:event.clientX,left:track.scrollLeft,lastX:event.clientX,lastTime:performance.now(),velocity:0,moved:false};
   });
   track.addEventListener('pointermove',event=>{
    if(!drag||drag.id!==event.pointerId)return;
@@ -195,24 +212,31 @@ import {beautyLookPresets} from './beauty-look-catalog.js?v=20261107-controls1';
    if(!drag.moved){drag.moved=true;track.setPointerCapture(event.pointerId);track.classList.add('is-dragging');}
    const now=performance.now(),dt=Math.max(8,now-drag.lastTime);
    drag.velocity=(drag.lastX-event.clientX)/dt;drag.lastX=event.clientX;drag.lastTime=now;
-   track.scrollLeft=drag.left-distance;event.preventDefault();
+   track.scrollLeft=clamp(drag.left-distance);event.preventDefault();
   });
   const endDrag=event=>{
    if(!drag||drag.id!==event.pointerId)return;
    const d=drag;drag=null;track.classList.remove('is-dragging');
    if(track.hasPointerCapture(event.pointerId))track.releasePointerCapture(event.pointerId);
    if(!d.moved)return;
-   blockClick=true;setTimeout(()=>{blockClick=false},0);
+   suppressClickUntil=performance.now()+250;
    if(reduced()||event.type==='pointercancel'||performance.now()-d.lastTime>100)return;
-   let velocity=Math.max(-2.5,Math.min(2.5,d.velocity))*16;
-   const tick=()=>{if(Math.abs(velocity)<.4){momentum=0;return;}const before=track.scrollLeft;track.scrollLeft+=velocity;velocity*=.9;if(track.scrollLeft===before){momentum=0;return;}momentum=requestAnimationFrame(tick);};
-   momentum=requestAnimationFrame(tick);
+   let velocity=Math.max(-2.5,Math.min(2.5,d.velocity)),last=performance.now();
+   const tick=now=>{
+    const dt=Math.min(32,Math.max(1,now-last));last=now;
+    if(Math.abs(velocity)<.025){inertiaFrame=0;return;}
+    const before=track.scrollLeft;track.scrollLeft=clamp(before+velocity*dt);velocity*=Math.pow(.9,dt/16);
+    if(Math.abs(track.scrollLeft-before)<.1){inertiaFrame=0;return;}
+    inertiaFrame=requestAnimationFrame(tick);
+   };
+   inertiaFrame=requestAnimationFrame(tick);
   };
   track.addEventListener('pointerup',endDrag);track.addEventListener('pointercancel',endDrag);
-  track.addEventListener('pointerleave',event=>{if(drag&&!drag.moved)drag=null;});
-  track.addEventListener('click',event=>{if(blockClick){event.preventDefault();event.stopImmediatePropagation();}},{capture:true});
+  track.addEventListener('lostpointercapture',event=>{if(drag?.id===event.pointerId){drag=null;track.classList.remove('is-dragging');}});
+  track.addEventListener('pointerleave',()=>{if(drag&&!drag.moved)drag=null;});
+  track.addEventListener('click',event=>{if(event.detail!==0&&performance.now()<suppressClickUntil){event.preventDefault();event.stopImmediatePropagation();}},{capture:true});
   track.addEventListener('dragstart',event=>event.preventDefault());
-  window.addEventListener('pagehide',stopMomentum);
+  window.addEventListener('pagehide',stop);
  }
 
  syncChoices();

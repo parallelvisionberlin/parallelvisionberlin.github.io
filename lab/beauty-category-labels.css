@@ -1,0 +1,5 @@
+/* ALTER category clarity only. Preserve the published layout and photographic samples. */
+.beauty-choice-name{opacity:1}
+.beauty-choice-photo[data-beauty-original]{display:grid;place-items:center;background-image:none;background-color:#171919;background-size:cover;background-position:center;filter:none!important}
+.beauty-original-symbol{font-size:29px;line-height:1;color:#aaa;transform:translateY(-5px)}
+.beauty-choice-photo.has-source .beauty-original-symbol{display:none}

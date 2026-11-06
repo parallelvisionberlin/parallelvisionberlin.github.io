@@ -1,71 +1,379 @@
-/* ALTER: one reviewed source for visible labels, descriptions and generation instructions.
-   Preview images are illustrative, never inputs to generation. Original uses the user's photo. */
-const option=(id,label,instruction,image,preview='')=>({id,label,instruction,image,preview});
-const A='./visuals/beauty/atelier/';
-const B='./visuals/beauty/';
+/* Canonical labels/instructions from the published 45 choices. Preserve their IDs and images. */
 export const beautyLookCatalog={
- makeup:[
-  option('keep','Original','Keep the original makeup.',null),
-  option('natural','Natural','Subtle natural makeup.',A+'makeup-4.webp'),
-  option('editorial','Editorial','Editorial makeup with a considered, photographic finish.',A+'makeup-2.webp'),
-  option('soft-glam','Soft glam','Soft glam makeup, softly defined eyes and restrained gloss.',A+'makeup-3.webp'),
-  option('bold','Bold','Bold fashion makeup with intentional colour and definition.',A+'makeup-5.webp'),
-  option('metallic','Metallic','Reflective metallic fashion eyeshadow, precise edges and a believable photographed finish.',A+'makeup-0.webp'),
-  option('smoky','Smoky eye','Apply a diffused charcoal smoky eye with softly blended edges; preserve the original eye shape and iris colour.',A+'makeup-5.webp'),
-  option('copper','Copper','Apply warm copper eyeshadow to the eyelids only; preserve the original skin complexion and iris colour.',A+'makeup-1.webp'),
-  option('rose','Rose','Apply soft rose-toned eyeshadow to the eyelids only, with restrained saturation and the original eye shape.',A+'makeup-3.webp','rose')
- ],
- hair:[
-  option('keep','Original','Keep the original hairstyle and hair colour.',null),
-  option('sleek','Sleek','Style the hair into a sleek finish without changing its colour.',B+'look-high-fashion-20261029.jpg','hair-crop'),
-  option('waves','Soft waves','Style the hair into soft waves without changing its colour.',B+'look-editorial-20261029.jpg','hair-crop'),
-  option('wet','Wet look','Give the existing hair a wet-look finish.',A+'hair-wet.webp'),
-  option('updo','Updo','Style the existing hair into an elegant updo.',A+'fashion.webp','updo-crop'),
-  option('textured','Textured','Give the existing hair an editorial textured finish, preserving length and colour.',A+'hair-wet.webp','dry-texture'),
-  option('straight','Straight','Straighten the existing hair while preserving its length, hairline and colour; do not add extensions.',B+'look-high-fashion-20261029.jpg','hair-crop'),
-  option('volume','Volume','Add natural root lift and controlled volume to the existing hair; preserve its colour, length and hairline.',B+'look-editorial-20261029.jpg','hair-crop'),
-  option('slick-back','Slicked back','Comb the existing hair smoothly away from the forehead with a dry slicked-back finish; preserve its colour and hairline.',B+'look-natural-20261029.jpg','hair-crop')
- ],
- skin:[
-  option('keep','Original','Keep the original skin finish and texture.',null),
-  option('natural','Natural','Preserve natural skin texture, pores, freckles and distinctive marks.',A+'skin-natural.webp'),
-  option('dewy','Dewy','Give the skin a subtle dewy finish while preserving pores and natural texture.',A+'skin-natural.webp','dewy'),
-  option('matte','Matte','Give the skin a soft matte finish while preserving pores and natural texture.',A+'skin-natural.webp','matte'),
-  option('satin','Satin','A subtle satin skin finish; retain pores, freckles and natural complexion.',A+'skin-natural.webp','satin'),
-  option('refined','Refined','Gently refine temporary skin blemishes without smoothing pores, changing identity or removing distinctive marks.',A+'skin-natural.webp'),
-  option('shine-control','Shine control','Reduce excess oily shine on the skin without flattening the existing light or erasing pores, freckles or natural texture.',A+'skin-natural.webp','matte'),
-  option('even-tone','Even tone','Gently balance temporary patchy skin redness while preserving the original complexion, freckles, moles and natural skin texture.',A+'skin-natural.webp'),
-  option('under-eye','Under-eye','Subtly soften temporary under-eye darkness without changing eye shape, removing natural creases or altering age.',A+'beauty.webp')
- ],
- light:[
-  option('keep','Original','',null),
-  option('daylight','Daylight','Soft natural daylight with believable falloff.',A+'hero.webp','daylight'),
-  option('softbox','Soft studio','Large soft studio lighting with gentle shadows.',A+'hero.webp','softbox'),
-  option('flash','Direct flash','Direct on-camera flash with hard falloff and natural photographic contrast.',A+'hero.webp','flash'),
-  option('side','Side light','Directional side lighting, sculpted shadows and controlled highlights.',A+'hero.webp','side'),
-  option('low-key','Low key','Low-key editorial lighting, deep shadows and restrained highlights.',A+'hero.webp','low-key'),
-  option('rim','Rim light','Place a controlled rim light behind the subject to outline hair and shoulders; preserve the existing scene and objects.',A+'hero.webp','rim'),
-  option('high-key','High key','Bright, diffuse high-key portrait illumination with low shadow contrast and retained highlight detail; do not replace the background.',A+'hero.webp','high-key'),
-  option('overhead','Overhead','Directional overhead portrait lighting with believable shadows under the brow, nose and chin; preserve facial structure.',A+'hero.webp','overhead')
- ],
- color:[
-  option('keep','Original','',null),
-  option('neutral','Neutral','Neutral photographic colour balance and faithful skin tones.',A+'hero.webp','neutral'),
-  option('warm','Warm','Restrained warm colour grading, keeping skin colour believable.',A+'hero.webp','warm'),
-  option('cool','Cool','Restrained cool colour grading, preserving natural skin tone.',A+'hero.webp','cool'),
-  option('mono','Monochrome','Photographic black-and-white tonal treatment with nuanced skin texture.',A+'hero.webp','mono'),
-  option('film','Film tone','Subtle analog film colour and fine organic grain; no synthetic glow.',A+'hero.webp','film'),
-  option('muted','Muted','Reduce overall colour saturation while retaining subtle colour separation and realistic skin tones.',A+'hero.webp','muted'),
-  option('rich','Rich colour','Increase colour depth and controlled saturation without oversaturating skin or clipping colour detail.',A+'hero.webp','rich'),
-  option('faded','Faded','Gently faded photographic colour with lifted blacks and restrained contrast; retain pores and fine detail.',A+'hero.webp','faded')
- ]
+  "makeup": [
+    {
+      "id": "keep",
+      "label": "Original",
+      "instruction": "Keep the original makeup.",
+      "image": null,
+      "preview": ""
+    },
+    {
+      "id": "natural",
+      "label": "Natural",
+      "instruction": "Subtle natural makeup.",
+      "image": "./visuals/beauty/atelier/makeup-1.webp",
+      "preview": ""
+    },
+    {
+      "id": "editorial",
+      "label": "Editorial",
+      "instruction": "Editorial makeup with a considered, photographic finish.",
+      "image": "./visuals/beauty/atelier/makeup-2.webp",
+      "preview": ""
+    },
+    {
+      "id": "soft-glam",
+      "label": "Soft glam",
+      "instruction": "Soft glam makeup, softly defined eyes and restrained gloss.",
+      "image": "./visuals/beauty/atelier/makeup-3.webp",
+      "preview": ""
+    },
+    {
+      "id": "bold",
+      "label": "Bold",
+      "instruction": "Bold fashion makeup with intentional colour and definition.",
+      "image": "./visuals/beauty/atelier/makeup-4.webp",
+      "preview": ""
+    },
+    {
+      "id": "metallic",
+      "label": "Metallic",
+      "instruction": "Reflective metallic fashion eyeshadow, precise edges and a believable photographed finish.",
+      "image": "./visuals/beauty/atelier/makeup-5.webp",
+      "preview": ""
+    },
+    {
+      "id": "smoky",
+      "label": "Smoky",
+      "instruction": "Smoky charcoal eye makeup with softly diffused edges and realistic photographic texture.",
+      "image": "./visuals/beauty/atelier/makeup-smoky.webp",
+      "preview": ""
+    },
+    {
+      "id": "shimmer",
+      "label": "Shimmer",
+      "instruction": "Fine reflective shimmer on the eyelids, precise highlights and a restrained editorial finish.",
+      "image": "./visuals/beauty/atelier/makeup-shimmer.webp",
+      "preview": ""
+    },
+    {
+      "id": "rose",
+      "label": "Rose gloss",
+      "instruction": "Muted rose-toned eye makeup with a subtle glossy finish, preserving realistic skin texture.",
+      "image": "./visuals/beauty/atelier/makeup-rose.webp",
+      "preview": ""
+    }
+  ],
+  "hair": [
+    {
+      "id": "keep",
+      "label": "Original",
+      "instruction": "Keep the original hairstyle and hair colour.",
+      "image": null,
+      "preview": ""
+    },
+    {
+      "id": "sleek",
+      "label": "Sleek",
+      "instruction": "Style the hair into a sleek finish without changing its colour.",
+      "image": "./visuals/beauty/look-high-fashion-20261029.jpg",
+      "preview": ""
+    },
+    {
+      "id": "waves",
+      "label": "Soft waves",
+      "instruction": "Style the hair into soft waves without changing its colour.",
+      "image": "./visuals/beauty/look-editorial-20261029.jpg",
+      "preview": ""
+    },
+    {
+      "id": "wet",
+      "label": "Wet look",
+      "instruction": "Give the existing hair a wet-look finish.",
+      "image": "./visuals/beauty/atelier/hair-wet.webp",
+      "preview": ""
+    },
+    {
+      "id": "updo",
+      "label": "Updo",
+      "instruction": "Style the existing hair into an elegant updo.",
+      "image": "./visuals/beauty/atelier/fashion.webp",
+      "preview": ""
+    },
+    {
+      "id": "textured",
+      "label": "Textured",
+      "instruction": "Give the existing hair an editorial textured finish, preserving length and colour.",
+      "image": "./visuals/beauty/atelier/hair-wet.webp",
+      "preview": ""
+    },
+    {
+      "id": "tousled",
+      "label": "Tousled",
+      "instruction": "Loosely tousled hair with natural separation; preserve the original length and colour.",
+      "image": "./visuals/beauty/atelier/hair-wet.webp",
+      "preview": ""
+    },
+    {
+      "id": "back",
+      "label": "Brushed back",
+      "instruction": "Brush the existing hair away from the face, preserving its length, hairline and colour.",
+      "image": "./visuals/beauty/look-high-fashion-20261029.jpg",
+      "preview": ""
+    },
+    {
+      "id": "volume",
+      "label": "Soft volume",
+      "instruction": "Add gentle natural volume to the existing hairstyle without changing its length or colour.",
+      "image": "./visuals/beauty/look-editorial-20261029.jpg",
+      "preview": ""
+    }
+  ],
+  "skin": [
+    {
+      "id": "keep",
+      "label": "Original",
+      "instruction": "Keep the original skin finish and texture.",
+      "image": null,
+      "preview": ""
+    },
+    {
+      "id": "natural",
+      "label": "Natural",
+      "instruction": "Preserve natural skin texture, pores, freckles and distinctive marks.",
+      "image": "./visuals/beauty/atelier/skin-natural.webp",
+      "preview": ""
+    },
+    {
+      "id": "dewy",
+      "label": "Dewy",
+      "instruction": "Give the skin a subtle dewy finish while preserving pores and natural texture.",
+      "image": "./visuals/beauty/atelier/beauty.webp",
+      "preview": ""
+    },
+    {
+      "id": "matte",
+      "label": "Matte",
+      "instruction": "Give the skin a soft matte finish while preserving pores and natural texture.",
+      "image": "./visuals/beauty/atelier/skin-natural.webp",
+      "preview": ""
+    },
+    {
+      "id": "satin",
+      "label": "Satin",
+      "instruction": "A subtle satin skin finish; retain pores, freckles and natural complexion.",
+      "image": "./visuals/beauty/atelier/skin-natural.webp",
+      "preview": ""
+    },
+    {
+      "id": "refined",
+      "label": "Refined",
+      "instruction": "Gently refine temporary skin blemishes without smoothing pores, changing identity or removing distinctive marks.",
+      "image": "./visuals/beauty/atelier/beauty.webp",
+      "preview": ""
+    },
+    {
+      "id": "luminous",
+      "label": "Luminous",
+      "instruction": "Gently luminous skin highlights with visible pores and natural marks; no whitening or plastic smoothing.",
+      "image": "./visuals/beauty/atelier/skin-natural.webp",
+      "preview": ""
+    },
+    {
+      "id": "soft-matte",
+      "label": "Soft matte",
+      "instruction": "Softly balanced matte skin, retaining pores, freckles and the original complexion.",
+      "image": "./visuals/beauty/atelier/beauty.webp",
+      "preview": ""
+    },
+    {
+      "id": "fresh",
+      "label": "Fresh",
+      "instruction": "A lightly refreshed natural skin finish, retaining all distinctive marks, pores and skin tone.",
+      "image": "./visuals/beauty/atelier/skin-natural.webp",
+      "preview": ""
+    }
+  ],
+  "light": [
+    {
+      "id": "keep",
+      "label": "Original",
+      "instruction": "",
+      "image": null,
+      "preview": ""
+    },
+    {
+      "id": "daylight",
+      "label": "Daylight",
+      "instruction": "Soft natural daylight with believable falloff.",
+      "image": "./visuals/beauty/atelier/editorial.webp",
+      "preview": ""
+    },
+    {
+      "id": "softbox",
+      "label": "Soft studio",
+      "instruction": "Large soft studio lighting with gentle shadows.",
+      "image": "./visuals/beauty/atelier/hero.webp",
+      "preview": ""
+    },
+    {
+      "id": "flash",
+      "label": "Direct flash",
+      "instruction": "Direct on-camera flash with hard falloff and natural photographic contrast.",
+      "image": "./visuals/beauty/atelier/beauty.webp",
+      "preview": ""
+    },
+    {
+      "id": "side",
+      "label": "Side light",
+      "instruction": "Directional side lighting, sculpted shadows and controlled highlights.",
+      "image": "./visuals/beauty/atelier/hero.webp",
+      "preview": ""
+    },
+    {
+      "id": "low-key",
+      "label": "Low key",
+      "instruction": "Low-key editorial lighting, deep shadows and restrained highlights.",
+      "image": "./visuals/beauty/atelier/night.webp",
+      "preview": ""
+    },
+    {
+      "id": "window",
+      "label": "Window",
+      "instruction": "Directional window light with soft falloff and believable shadows.",
+      "image": "./visuals/beauty/atelier/beauty.webp",
+      "preview": ""
+    },
+    {
+      "id": "rim",
+      "label": "Rim light",
+      "instruction": "A restrained rim light defining the subject against the existing background; retain natural facial detail.",
+      "image": "./visuals/beauty/atelier/night.webp",
+      "preview": ""
+    },
+    {
+      "id": "high-key",
+      "label": "High key",
+      "instruction": "Bright high-key editorial lighting with retained highlight detail, natural skin tone and realistic texture.",
+      "image": "./visuals/beauty/atelier/editorial.webp",
+      "preview": ""
+    }
+  ],
+  "color": [
+    {
+      "id": "keep",
+      "label": "Original",
+      "instruction": "",
+      "image": null,
+      "preview": ""
+    },
+    {
+      "id": "neutral",
+      "label": "Neutral",
+      "instruction": "Neutral photographic colour balance and faithful skin tones.",
+      "image": "./visuals/beauty/atelier/hero.webp",
+      "preview": ""
+    },
+    {
+      "id": "warm",
+      "label": "Warm",
+      "instruction": "Restrained warm colour grading, keeping skin colour believable.",
+      "image": "./visuals/beauty/atelier/hero.webp",
+      "preview": ""
+    },
+    {
+      "id": "cool",
+      "label": "Cool",
+      "instruction": "Restrained cool colour grading, preserving natural skin tone.",
+      "image": "./visuals/beauty/atelier/hero.webp",
+      "preview": ""
+    },
+    {
+      "id": "mono",
+      "label": "Monochrome",
+      "instruction": "Photographic black-and-white tonal treatment with nuanced skin texture.",
+      "image": "./visuals/beauty/atelier/film.webp",
+      "preview": ""
+    },
+    {
+      "id": "film",
+      "label": "Film tone",
+      "instruction": "Subtle analog film colour and fine organic grain; no synthetic glow.",
+      "image": "./visuals/beauty/atelier/editorial.webp",
+      "preview": ""
+    },
+    {
+      "id": "muted",
+      "label": "Muted",
+      "instruction": "Muted editorial colour, restrained saturation and faithful skin tones.",
+      "image": "./visuals/beauty/atelier/fashion.webp",
+      "preview": ""
+    },
+    {
+      "id": "contrast",
+      "label": "Rich contrast",
+      "instruction": "A rich photographic contrast treatment with preserved skin detail and controlled highlights.",
+      "image": "./visuals/beauty/atelier/night.webp",
+      "preview": ""
+    },
+    {
+      "id": "soft-film",
+      "label": "Soft film",
+      "instruction": "Soft colour-negative film tonality with gentle contrast and fine organic grain; no artificial glow.",
+      "image": "./visuals/beauty/atelier/editorial.webp",
+      "preview": ""
+    }
+  ]
 };
 export const beautyLookPresets={
- editorial:{makeup:'editorial',hair:'keep',skin:'natural',light:'softbox',color:'neutral',text:'Refined editorial portrait lighting, realistic skin detail and controlled contrast. Preserve identity and natural anatomy.'},
- natural:{makeup:'natural',hair:'keep',skin:'natural',light:'daylight',color:'neutral',text:'Gentle natural light, subtle refinement, authentic skin texture. Keep the original person and background.'},
- night:{makeup:'keep',hair:'keep',skin:'natural',light:'low-key',color:'keep',text:'Atmospheric low-key evening portrait, controlled highlights and natural skin tones. Keep original identity.'},
- avant:{makeup:'metallic',hair:'textured',skin:'natural',light:'side',color:'keep',text:'Experimental editorial beauty. Preserve the person, clothing and background; do not add accessories.'},
- fashion:{makeup:'editorial',hair:'sleek',skin:'satin',light:'softbox',color:'neutral',text:'High-fashion editorial portrait with believable photographic texture. Preserve the original clothing and background.'},
- film:{makeup:'keep',hair:'keep',skin:'natural',light:'keep',color:'film',text:'Subtle analog grain, realistic film tonality and natural texture, understated contrast.'}
+  "editorial": {
+    "makeup": "editorial",
+    "hair": "keep",
+    "skin": "natural",
+    "light": "softbox",
+    "color": "neutral",
+    "text": "Refined editorial portrait lighting, realistic skin detail and controlled contrast. Preserve identity and natural anatomy."
+  },
+  "natural": {
+    "makeup": "natural",
+    "hair": "keep",
+    "skin": "natural",
+    "light": "daylight",
+    "color": "neutral",
+    "text": "Gentle natural light, subtle refinement, authentic skin texture. Keep the original person and background."
+  },
+  "night": {
+    "makeup": "keep",
+    "hair": "keep",
+    "skin": "natural",
+    "light": "low-key",
+    "color": "keep",
+    "text": "Atmospheric low-key evening portrait, controlled highlights and natural skin tones. Keep original identity."
+  },
+  "avant": {
+    "makeup": "metallic",
+    "hair": "textured",
+    "skin": "natural",
+    "light": "side",
+    "color": "keep",
+    "text": "Experimental editorial beauty. Preserve the person, clothing and background; do not add accessories."
+  },
+  "fashion": {
+    "makeup": "editorial",
+    "hair": "sleek",
+    "skin": "satin",
+    "light": "softbox",
+    "color": "neutral",
+    "text": "High-fashion editorial portrait with believable photographic texture. Preserve the original clothing and background."
+  },
+  "film": {
+    "makeup": "keep",
+    "hair": "keep",
+    "skin": "natural",
+    "light": "keep",
+    "color": "film",
+    "text": "Subtle analog grain, realistic film tonality and natural texture, understated contrast."
+  }
 };
 export const beautyChoiceMap=category=>Object.fromEntries(beautyLookCatalog[category].map(o=>[o.id,o.instruction]));

@@ -92,6 +92,16 @@ h1,h2,h3,.archive h2,.empty-title,.image-gallery-empty h2{
   background:#292d33;color:#fff;z-index:4;
 }
 #image-composer .composer-reference-remove:hover {background:#454950}
+/* Keep mouse-equipped decks quiet; focus and touch retain removal access. */
+@media (hover:hover) and (pointer:fine) {
+  html:not(.pv-native-lab) #image-composer .composer-reference-remove {
+    top:-4px;right:-4px;width:16px;height:16px;min-height:16px;
+    font-size:13px;opacity:0;pointer-events:none;
+  }
+  html:not(.pv-native-lab) #image-composer .composer-reference-tile:is(:hover,:has(:focus-visible)) .composer-reference-remove {
+    opacity:1;pointer-events:auto;
+  }
+}
 #image-composer .composer-add-tile {
   flex:0 0 48px;width:48px;height:56px;
   background:#25282f;border-color:#545862;border-radius:10px;

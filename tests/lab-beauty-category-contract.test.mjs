@@ -9,7 +9,7 @@ for(const [category,options] of Object.entries(catalog))test('ALTER '+category+'
  assert.equal(options.length,9);assert.equal(new Set(options.map(o=>o.id)).size,9);
  for(const o of options){
   assert.ok(html.includes(`data-beauty-choice="beauty-${category}" data-value="${o.id}"`));
-  assert.ok(html.includes(`aria-label="${category[0].toUpperCase()+category.slice(1)}: ${o.label}"`));
+  assert.ok(html.includes(`aria-label="${category[0].toUpperCase()+category.slice(1)}: ${o.label.replaceAll('&','&amp;').replaceAll('"','&quot;')}"`));
   const selected=beautySettings({...defaults,[category]:o.id});
   if(o.instruction)assert.ok(selected.prompt.includes(o.instruction),'Missing exact '+category+'/'+o.id+' direction');
   for(const other of options)if(other.id!==o.id&&other.instruction)assert.equal(selected.prompt.includes(other.instruction),false,'No stale competing '+other.id);
@@ -27,7 +27,7 @@ test('Zero intensity cannot carry hidden optional changes; monochrome retains id
  const zero=beautySettings({...defaults,makeup:'metallic',hair:'wet',skin:'dewy',light:'flash',color:'mono',strength:0,direction:'Make the hair bright green.'});
  assert.doesNotMatch(zero.prompt,/metallic|wet-look|dewy finish|on-camera flash|black-and-white|bright green/);
  const mono=beautySettings({...defaults,color:'mono'});
- assert.match(mono.prompt,/black-and-white/);assert.doesNotMatch(mono.prompt,/age, skin tone,/);assert.match(mono.prompt,/Preserve their identity/);
+ assert.match(mono.prompt,/black-and-white/);assert.doesNotMatch(mono.prompt,/age, skin tone,/);assert.doesNotMatch(mono.prompt,/Keep the original hairstyle and hair colour/);assert.match(mono.prompt,/Preserve their identity/);
 });
 test('Arrow-free archive, PV LAB favicon and original typography remain in the delivered page',()=>{
  assert.doesNotMatch(html,/class="beauty-looks-arrow/);
