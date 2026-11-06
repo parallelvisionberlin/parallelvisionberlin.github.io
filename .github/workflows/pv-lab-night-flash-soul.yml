@@ -3,7 +3,10 @@ on:
   pull_request:
     paths:
       - 'lab/night-flash-soul.js'
+      - 'lab/won-kar-night.js'
+      - 'tests/lab-won-kar-night.test.mjs'
       - 'lab/moods.js'
+      - 'lab/image-deck-surface.css'
       - 'lab/lab.js'
       - 'lab-worker/higgsfield.mjs'
       - 'tests/lab-night-flash-soul*'
@@ -21,7 +24,7 @@ jobs:
         with:
           node-version: '22.16.0'
       - name: Test Soul API, pricing, Mood and approved Image contracts
-        run: node --test tests/lab-night-flash-soul.test.mjs tests/lab-higgsfield.test.mjs tests/lab-soul-commercial-pricing.test.mjs tests/lab-moods.test.mjs tests/lab-approved-image-ui-contract.test.mjs tests/lab-image-replacement-intent.test.mjs tests/lab-image-replacement-backend.test.mjs tests/lab-image-replacement-composite.test.mjs tests/lab-image-replacement-draft.test.mjs tests/lab-precision-edit.test.mjs
+        run: node --test tests/lab-won-kar-night.test.mjs tests/lab-night-flash-soul.test.mjs tests/lab-higgsfield.test.mjs tests/lab-soul-commercial-pricing.test.mjs tests/lab-moods.test.mjs tests/lab-approved-image-ui-contract.test.mjs tests/lab-image-replacement-intent.test.mjs tests/lab-image-replacement-backend.test.mjs tests/lab-image-replacement-composite.test.mjs tests/lab-image-replacement-draft.test.mjs tests/lab-precision-edit.test.mjs
       - name: Use the hosted runner Chrome without downloading browser dependencies
         run: |
           npm install --prefix /tmp/pv-night-flash-soul --no-save --no-audit --no-fund playwright@1.57.0

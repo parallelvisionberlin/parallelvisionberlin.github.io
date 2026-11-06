@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T20:20:54Z",
+  "updatedAt": "2026-11-06T20:55:35.186Z",
   "handoffs": [
     {
       "id": "owner",
@@ -417,11 +417,11 @@
       "title": "Night Flash with Higgsfield Soul",
       "component": "Image Moods / Soul 2",
       "status": "needs_verification",
-      "summary": "PR #874 merged and gated code deployed. Production frontend and Worker bytes verified; mocked owner/customer and replacement flows pass at 390px/1440px. Customer Night Flash remains disabled pending provider/account and real-image validation.",
-      "nextAction": "Retain LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED closed until commercial permission, the real API account quote and an explicitly authorized real-image quality/identity review are recorded. No paid test is authorized.",
-      "baselineSha": "24d2b96d4c1b171edfd431f840aa73bcc1f366eb",
-      "reviewedSha": "c1119d687d487e8a324189cdf0037194f1ae1d86",
-      "branch": "feat/night-flash-soul-20261106",
+      "summary": "Night Flash / Soul 2 and owner-only Won Kar Night are deployed with exact frontend/Worker bytes verified. Won Kar Night uses the unchanged road-couple cover and selects PV Soul; public catalogue and customer Night Flash gate remain unchanged.",
+      "nextAction": "Owner: open Image Studio Moods and select Won Kar Night for explicit price-reviewed testing. Do not run a paid generation without authorization. Retain the customer Night Flash gate until its commercial/account and real-image quality conditions are recorded.",
+      "baselineSha": "674b340bcb7217ed4b4ca42344a8fde8c55c0be8",
+      "reviewedSha": "ce0264e839aaccc7a00c8e088e47fccb5d2f01d8",
+      "branch": "feat/won-kar-night-owner-20261106",
       "files": [
         "lab/night-flash-soul.js",
         "lab/moods.js",
@@ -434,7 +434,10 @@
         "tests/lab-night-flash-soul-ui.mjs",
         ".github/workflows/pv-lab-night-flash-soul.yml",
         "lab-worker/worker.mjs",
-        "lab-worker/wrangler.toml"
+        "lab-worker/wrangler.toml",
+        "lab/won-kar-night.js",
+        "lab/mood-previews/won-kar-night.png",
+        "tests/lab-won-kar-night.test.mjs"
       ],
       "links": [
         {
@@ -443,45 +446,49 @@
         },
         {
           "label": "Scoped handoff",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/feat/night-flash-soul-20261106/lab/NIGHT-FLASH-SOUL-WORK-STATE.md"
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/NIGHT-FLASH-SOUL-WORK-STATE.md"
+        },
+        {
+          "label": "Won Kar Night owner card PR #877",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/877"
         }
       ],
       "tests": [
         {
           "label": "Focused CI contracts and replacement compatibility",
           "result": "passed",
-          "scope": "112 tests on Node 22.16.0, including the approved Image contract. Hosted Chrome replaces the timed-out apt browser dependency installation.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42286485840"
+          "scope": "115 focused Node 22.16.0 cases, including owner-only Won Kar Night, unchanged public catalogue/cover, bound Soul recipe, pricing, customer rejection and the approved Image contract.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42290239663"
         },
         {
           "label": "Owner/customer browser integration and #870",
           "result": "passed",
-          "scope": "Actual Studio with synthetic sessions at 1440x900 and 390x844. Model, Mood, intensity, Base, ready/pending Soul IDs, identity strength, credit quote, cancel, explicit confirmation, Reuse, default closed customer gate and replacement selection/full flow. All external provider boundaries mocked.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42286485840"
+          "scope": "Owner/customer 390x844 and 1440x900 flows include Won Kar Night visibility/absence, PV Soul model selection with no automatic generation, plus existing Night Flash, quote, identity, Reuse and replacement flows. Synthetic accounts and mocked provider boundaries.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42290239663"
         },
         {
           "label": "Worker, customer lifecycle, pricing, prompt safety and submission",
           "result": "passed",
-          "scope": "139 local tests on Node 24.22.1. No paid provider calls.",
+          "scope": "Initial Night Flash release: 139 local tests on Node 24.22.1, before the Won Kar Night addition. No paid provider calls.",
           "source": "tests/lab-worker.test.mjs"
         },
         {
           "label": "General Node suite and main baseline",
           "result": "failed",
-          "scope": "1096/1102 pass locally. The same six failures reproduce on main 24d2b96 in the four affected files (20 cases: 14 pass, 6 fail); existing assertions untouched. Node 24 also exposes the existing Dream Blur scheduling failure.",
+          "scope": "Prior Night Flash release broad baseline: 1096/1102 passed; same six failures reproduced on main 24d2b96. No broad rerun claimed for Won Kar Night; its focused CI passes.",
           "source": "lab/NIGHT-FLASH-SOUL-WORK-STATE.md"
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "454c5ab51f9a2417e0977e791705450699a9e3f4",
-        "environment": "Cloudflare Pages pvlab.studio frontend and Cloudflare Worker; customer Night Flash activation disabled",
+        "sourceSha": "64c57859046816f6b01b7023965fd5319b42e884",
+        "environment": "Cloudflare Pages pvlab.studio and Cloudflare Worker; Won Kar Night owner only and customer Night Flash disabled",
         "limitations": [
           "Customer Night Flash flag is absent and therefore false by default.",
           "No real signed-in production journey, live provider estimate or generated image was verified."
         ],
         "evidenceUrl": "https://pvlab.studio/studio",
-        "observedAt": "2026-11-06T20:20:54Z"
+        "observedAt": "2026-11-06T20:46:57Z"
       },
       "evidence": [
         {
@@ -519,6 +526,33 @@
           "limitations": [
             "Not a real signed-in production journey or paid image quality result."
           ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "Won Kar Night Worker content-only deployment 546e7a0200594653940d85353c3d369d at 2026-11-06T20:40:40Z. Downloaded SHA-256 53244c59058136c5b3a60d96a8a8a26c893bfd18b962310671bc2f86720fc955 matches tested bundle; bindings and compatibility unchanged.",
+          "scope": "Owner-only addition; existing customer Night Flash gate stays closed.",
+          "source": "https://parallel-vision-lab.parallelvision.workers.dev/health",
+          "limitations": [
+            "No real signed-in production journey or paid image quality result."
+          ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "Won Kar Night is present for owner and absent from customer DOM; selection chooses PV Soul with no automatic generation at 390/1440px. Existing Night Flash and replacement tests pass.",
+          "scope": "Synthetic owner/customer sessions and mocked providers.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42290239663/artifacts/13538434373",
+          "limitations": [
+            "Fixture screenshots do not establish real generated quality."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Won Kar Night merge 64c57859046816f6b01b7023965fd5319b42e884: scoped verifier LIVE_VERIFIED; Cloudflare app check 128143935832 successful. lab.js SHA-256 91f169e126d73f4abf74d705bd22c1a8b065b5639192efbc2028880b8bd351b6. Moods, recipe, quote helper and original cover all match production; cover SHA-256 81c5f8eb66a51753360c6fb2f9c9f4f7c483d8d5a1f1a8632a828fa343cd6374.",
+          "scope": "Exact published custom-domain assets, original cover and gated Worker.",
+          "source": "https://pvlab.studio/studio",
+          "limitations": [
+            "No real signed-in owner/customer journey or paid generated quality result."
+          ]
         }
       ],
       "blockers": [
@@ -531,7 +565,108 @@
         "Do not fabricate a native style UUID or convert Qwen LoRAs/Character photos to Soul IDs.",
         "Preserve the merged #870 replacement flow and existing quote, credit, idempotency and budget safeguards."
       ],
-      "updatedAt": "2026-11-06T20:20:54Z"
+      "updatedAt": "2026-11-06T20:46:57Z"
+    },
+    {
+      "id": "image-prompt-deck-clearance",
+      "title": "Compact Image prompt and visible Inspiration card names",
+      "component": "Image prompt deck",
+      "status": "deployed",
+      "summary": "Published: 13px desktop prompt text, 136px writing cap and measured 16px Inspiration-card clearance. History reserves the actual deck height; existing images and controls are retained.",
+      "nextAction": "No prompt-layout work remains. Preserve the measured gap, compact sizing and existing phone behavior in subsequent Studio changes.",
+      "baselineSha": "24d2b96d4c1b171edfd431f840aa73bcc1f366eb",
+      "reviewedSha": "4b24116921698ef352ce3259bda77e37ef544c7a",
+      "branch": "fix/image-prompt-deck-clearance-20261106",
+      "files": [
+        "lab/image-editorial-deck.js",
+        "lab/image-editorial-deck.css",
+        "lab/image-deck-surface.css",
+        "lab/lab.js",
+        "lab/studio.html",
+        "tests/lab-image-prompt-paste-ui.mjs"
+      ],
+      "links": [
+        {
+          "label": "Scoped checkpoint",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image contract",
+          "result": "passed",
+          "scope": "All 5 existing invariants passed locally and in CI at the reviewed source.",
+          "source": "tests/lab-approved-image-ui-contract.test.mjs"
+        },
+        {
+          "label": "Prompt paste and measured card clearance",
+          "result": "passed",
+          "scope": "Final CI: desktop/phone paste, shrink, preserved text/internal scrolling, controls and 36 public/signed-in/History geometry cases. Independent browser fixtures also passed those 36 plus 12 Soul layouts.",
+          "source": "tests/lab-image-prompt-paste-ui.mjs"
+        },
+        {
+          "label": "Existing broader checks",
+          "result": "failed",
+          "scope": "First-image role check has the exact same 120px/96px Base-width failure at baseline 24d2b96 and 454c5ab. Compact check runs with hosted Chrome but expects a Generate label >=17px while unchanged approved production uses 15px. Original assertions retained. Studio preflight has an unchanged Clerk assertion; broad suite has five existing failures.",
+          "source": "lab/IMAGE-PROMPT-WORK-STATE.md"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "sourceSha": "d442a70730dedec9ff76bf13258d2400e4f5e995",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-06T20:55:35.186Z",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=image",
+        "limitations": [
+          "Public production layout and exact assets verified. Real signed-in Inspiration/History were validated with fixtures, not a live private account.",
+          "Existing unrelated Base-width, Generate-label and broad-suite assertions remain documented; no assertions were weakened."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Measured deck/card clearance replaces the unchanging desktop spacing allowance.",
+          "scope": "Source diagnosis and implementation.",
+          "source": "lab/IMAGE-PROMPT-WORK-STATE.md",
+          "limitations": [
+            "Browser checks pending."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "PR #876 merged as d442a70730dedec9ff76bf13258d2400e4f5e995. Exact Cloudflare Pages app check 128147866508 completed successfully.",
+          "scope": "Production Pages publication; no Worker deployment in this task.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/876",
+          "observedAt": "2026-11-06T20:55:35.186Z",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Read-only verifier returned LIVE_VERIFIED for all four changed assets. SHA-256: image-editorial-deck.js d7aa9a72a25cb18e032c1de28a2ed7cede60ea1c61cd53228d0969a059de6565; image-editorial-deck.css ccb90836e118e4e5e50c1f344bf7e8a67f1d6041ddd2bda2df5b0aa7f8a6b62b; image-deck-surface.css 19691864b0d115ef1019e946f9d40102ce7f5f2482d944a8daddf13c59e6875b; lab.js 8f9021ae9bfae066e3071f4ab9e5644ac61cd8744ce9ba6ff42a539feb0bc0d9.",
+          "scope": "Exact custom-domain HTML references and reviewed source bytes at the production merge.",
+          "source": "lab/RELEASE-PROTOCOL.md",
+          "observedAt": "2026-11-06T20:55:35.186Z",
+          "limitations": [
+            "Asset verification does not establish real signed-in journeys or provider quality."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Actual public Chrome Couture selection at 1363×936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
+          "scope": "Rendered public production layout after reload; no Generate click.",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "observedAt": "2026-11-06T20:55:35.186Z",
+          "limitations": [
+            "No real signed-in or paid generation observation."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "No paid generation is needed for this layout fix.",
+        "Preserve approved phone viewport, card images and generation controls."
+      ],
+      "updatedAt": "2026-11-06T20:55:35.186Z"
     },
     {
       "id": "alter-tabbed-editor",

@@ -1,4 +1,5 @@
 import {creditsForUsd} from './customer-billing.mjs';
+import {prepareWonKarNight} from '../lab/won-kar-night.js';
 import {prepareSoulNightFlash} from '../lab/night-flash-soul.js';
 // Official Soul 2 / Soul ID API. Credentials stay in the Worker secret HF_CREDENTIALS.
 export const SOUL2_MODEL='higgsfield-ai/soul/v2/image-to-image';
@@ -20,10 +21,11 @@ export function soul2Parameters(value,fail,{hasBase=true}={}){
   const strength=Number(value.identityStrength??1),resolution=value.resolution||'1080p';
   let mood={};
   if(value.moodId){
-    if(value.moodId!=='night-flash')fail(400,'Soul supports Night Flash here. Choose another image model for this Mood.');
+    if(!['night-flash','won-kar-night'].includes(value.moodId))fail(400,'Soul supports Night Flash here. Choose another image model for this Mood.');
     if(typeof value.moodOriginalPrompt!=='string'||!Number.isInteger(value.moodIntensity)||value.moodIntensity<1||value.moodIntensity>100)fail(400,'Choose a valid Night Flash direction and intensity.');
     // Rebuild from authored direction; never trust a client-supplied recipe.
-    const prepared=prepareSoulNightFlash(value.moodOriginalPrompt,value.moodIntensity,{hasBase});
+    const prepare=value.moodId==='won-kar-night'?prepareWonKarNight:prepareSoulNightFlash;
+    const prepared=prepare(value.moodOriginalPrompt,value.moodIntensity,{hasBase});
     if(prepared.error)fail(400,prepared.error);
     prompt=prepared.prompt;mood=prepared.metadata;
   }
@@ -39,7 +41,7 @@ export function soul2Input(p,imageUrl,referenceId){
   if(referenceId&&!ID.test(referenceId))throw new Error('Choose a valid Soul ID.');
   if(!imageUrl&&!p.prompt)throw new Error('Write a prompt or add a photograph.');
   return {...(imageUrl?{image_url:imageUrl}:{}),...(referenceId?{custom_reference_id:referenceId,custom_reference_strength:p.identityStrength}:{}),
-    prompt:p.moodId==='night-flash'?p.prompt:imageUrl?((referenceId?'Reinterpret the supplied photograph with the selected character identity. Preserve the source outfit, accessories, body pose, framing, camera angle, background and lighting. Change the person’s identity to the trained character. Natural photographic skin and fabric texture.':'Reinterpret the supplied photograph with natural photographic detail. Preserve its subject, outfit, pose, composition, background and lighting unless directed otherwise. Natural skin and fabric texture.')+(p.prompt?' Additional direction: '+p.prompt:'')):p.prompt,
+    prompt:['night-flash','won-kar-night'].includes(p.moodId)?p.prompt:imageUrl?((referenceId?'Reinterpret the supplied photograph with the selected character identity. Preserve the source outfit, accessories, body pose, framing, camera angle, background and lighting. Change the person’s identity to the trained character. Natural photographic skin and fabric texture.':'Reinterpret the supplied photograph with natural photographic detail. Preserve its subject, outfit, pose, composition, background and lighting unless directed otherwise. Natural skin and fabric texture.')+(p.prompt?' Additional direction: '+p.prompt:'')):p.prompt,
     resolution:p.resolution,aspect_ratio:p.aspectRatio==='source'?'16:9':p.aspectRatio,batch_size:1,enhance_prompt:true,...(p.seed===null?{}:{seed:p.seed})};
 }
 export function higgsfieldApiUrl(path){
@@ -115,6 +117,8 @@ export async function refreshHiggsfield(env,j,p,d){
 export async function higgsfieldRoute(request,env,owner,url,d){
   const {fail,body,rows,first,source,sources,signedInput,jobView}=d,path=url.pathname;
   async function checkNightFlashAccess(p){
+    if(p.moodId==='won-kar-night'&&d.isLabCustomer&&await d.isLabCustomer(env,owner))
+      fail(403,'Won Kar Night is available to the owner only. No request submitted or credits charged.');
     if(p.moodId==='night-flash'&&env.LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED!=='true'&&d.isLabCustomer&&await d.isLabCustomer(env,owner))
       fail(403,'Night Flash with PV Soul is awaiting provider validation. No request submitted or credits charged.');
   }

@@ -1,4 +1,4 @@
-import {soulNightFlashQuoteMatches} from './night-flash-soul.js?v=20261106v1';
+import {soulNightFlashQuoteMatches} from './night-flash-soul.js?v=20261106v1&wonKarNight=20261106v1';
 import {replacementIntent,replacementIntentIssue} from './image-replacement-intent.js?v=20261106-replacement1';
 import {createImageReplacement} from './image-replacement.js?v=20261106-replacement1';
 import {videoInputAction} from './video-input-action.js?v=20261030-1';
@@ -31,7 +31,7 @@ import {videoCustomerQuoteLabels,videoCreditPreview} from './video-euro-pricing.
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,AUTO_IMAGE_REINTERPRET_PROMPT,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?characterAllViews=20261103v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1&fisheye=20261020v1&hkRefs=20261023two1&photoOnlyAuto=20261022v3&hkCinema=20261025v1';
 import {createInspirationRotation,INSPIRATION_VARIATIONS,CHROME_COUTURE_DEFAULTS} from './inspiration-looks.js?v=20261019-chrome1&fisheyeCover=20261021v1&fisheyeY2K=20261024v1&chromeQwen20=20261031v1&dreamBlurExposure=20261102v2&sunFadeInspiration=20261104v1';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261018-girard-originals2&20261011-midnight-reverie1&flashStyle=20261018-inspiration1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261024default80&filmCapture=20261016-preserve1&moodDefault2k=20261017v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&kreaMoods=20261020v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&fisheyeCover=20261021v1&hkRefs=20261023two1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&dreamBlurCover=20261024v1&hkCinema=20261025v1&dreamBlurExposure=20261102v2&nightFlashSoul=20261106v1';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261018-girard-originals2&20261011-midnight-reverie1&flashStyle=20261018-inspiration1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261024default80&filmCapture=20261016-preserve1&moodDefault2k=20261017v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&kreaMoods=20261020v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&fisheyeCover=20261021v1&hkRefs=20261023two1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&dreamBlurCover=20261024v1&hkCinema=20261025v1&dreamBlurExposure=20261102v2&nightFlashSoul=20261106v1&wonKarNight=20261106v1';
 import {HONG_KONG_VARIANTS} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2&hkRefs=20261023two1&hkCinema=20261025v1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&fisheye=20261020v1&fisheyeCover=20261021v1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&dreamBlurExposure=20261102v2';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
@@ -441,8 +441,8 @@ let myMoods=null;
 let inspirationMoodId=null;
 // Inspiration keeps other presets at 60% while Dream Blur uses its canonical Mood default.
 function inspirationMoodDefaultIntensity(id){return id==='dream-blur'?moodById(id).defaultIntensity:id==='fisheye-2000'?75:60;}
-const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-composer-moods'),getEngine:()=>isSoul2()?'soul2':imageEngine,
-  chooseEngine:engine=>{if(busy)return;$('image-engine').value=engine;$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));},
+const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-composer-moods'),getEngine:()=>isSoul2()?'soul2':imageEngine,getOwner:()=>ownerAccount,
+  chooseEngine:engine=>{if(busy)return;if(engine==='soul2'){if(!ownerAccount)return;soulProModel='soul2';$('soul-pro-model').value='soul2';engine='soulpro';}$('image-engine').value=engine;$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));},
   onOpen:()=>{
     closeReferenceIntent();closeImageModelMenu();closeComposerLibrary();closeComposerAddMenu();toggleImageSettings(false);
     if(myMoods)void myMoods.refresh().catch(()=>{/* Curated Moods remain usable while personal boards are unavailable. */});
@@ -1964,7 +1964,7 @@ function fitImageComposerPrompt(){
   const viewport=window.visualViewport?.height||window.innerHeight;
   // Expand pasted direction until the bounded scroll height. Seedream must not
   // collapse to a single 56px line on desktop.
-  const maximum=Math.max(minimum,Math.min(narrow?122:176,Math.floor(viewport*(short ? 0.21 : narrow ? 0.22 : 0.25))));
+  const maximum=Math.max(minimum,Math.min(narrow?122:136,Math.floor(viewport*(short ? 0.21 : narrow ? 0.22 : 0.25))));
   const previousScroll=textbox.scrollTop;
   const top=imageComposer.querySelector('.image-composer-top');
   top.style.removeProperty('min-height');
@@ -2112,9 +2112,10 @@ function syncImageComposer(){
     else if(queueBlocked)message=activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===currentProvider())?'A previous request has an unknown status. Review it before generating again.':'The active generation limit has been reached. Wait for a job to finish.';
     else if(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))message='Request started. You can generate another variation in a moment.';
     else if(soulNightFlashUnavailable())message='Night Flash with PV Soul is awaiting provider validation.';
-    else if(imageEngine==='soulpro'&&!file)message=isSoul2()?'':'Add a base image.';
     else if(isSoul2()&&!config.higgsfieldEnabled)message='Connect your Higgsfield API credential in Cloudflare. Open Identity strength for setup details.';
     else if(isSoul2()&&!hf.ready())message='Choose or create a completed Soul ID using the identity photo tile.';
+    else if(isSoul2()&&!file&&!$('prompt').value.trim())message='Add a Base image or describe what you want to create.';
+    else if(imageEngine==='soulpro'&&!isSoul2()&&!file)message='Add a base image.';
     else if(imageEngine==='soulpro'&&!isSoul2()&&!soulProIdentity.configured)message='Choose and save the identity reference photos.';
     else if(imageEngine==='soul'&&!soul.ready())message='Choose a trained LoRA.';
     else if(imageEngine==='soul'&&isReinterpret()&&!soul.reinterpretReady())message='This character needs a trained Reinterpret identity.';
@@ -2130,7 +2131,7 @@ function syncImageComposer(){
   const exactPreparing=tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey());
   // A selected look without a prompt or photo already has a disabled Generate
   // button and a tooltip. Repeating the hint inline adds an unwanted third row.
-  const idleMoodNeedsInput=moodUI.active()&&!imageInputReferences().length&&!$('prompt').value.trim();
+  const idleMoodNeedsInput=moodUI.active()&&!imageInputReferences().length&&!$('prompt').value.trim()||(isSoul2()&&!file&&!$('prompt').value.trim());
   // Controlled Pose instructions belong to accessible hover guidance, not a
   // third row that changes the approved Image deck geometry.
   const inlineMessage=imageEngine==='fal'||queueBlocked||exactPreparing||idleMoodNeedsInput?'':message;
