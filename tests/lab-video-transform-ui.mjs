@@ -79,6 +79,7 @@ try{
   await page.locator('#scene-grid .scene-card-select').first().click();
   await page.locator('.scene-feature-attach').click();
   await page.waitForFunction(()=>document.querySelector('#reference-list .reference-element-item')?.textContent.includes('Alma'));
+  await page.waitForFunction(()=>Number(document.querySelector('#ref-count')?.textContent?.split('/')[0]?.trim())===8);
   await page.waitForFunction(()=>document.querySelectorAll('#pv-transform-reference-strip img').length===4);
   assert.match(await page.locator('#pv-transform-inspector-original').innerText(),/original\.mp4/);
   assert.equal(await page.locator('#pv-transform-inspector-count').innerText(),'8 photographs');

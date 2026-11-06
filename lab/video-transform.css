@@ -137,7 +137,6 @@ html body #app.video-studio-active.video-transform-active #reference-mode #refer
   border-bottom:1px solid #2d3035!important;
   padding:0 0 12px!important;margin-bottom:4px!important;
 }
-html body #app.video-studio-active.video-transform-active #video-reference-list:not(:empty)+*{display:initial;}
 html body #app.video-studio-active.video-transform-active .pv-media-ref-group-video:has(#video-reference-list .reference-media-item) #video-media-drop{
   display:none!important;
 }

@@ -57,3 +57,5 @@ Status: implementation committed to **draft PR only**, not merged or deployed.
 - Visual implementation limited to Transform-specific left controls and an inspector draft section; no second workflow strip below preview (would displace History); no invented generation or fake result.
 - Corrected saved Character library allowlist to include Transform, fixing the blocked attachment reported by the synthetic browser test.
 - No modifications to video-history-cards.css, center stage dimensions, source image, History renderer, Create or Extend mode layouts.
+
+- Test hardening: wait until all eight saved Character photographs finish preparation before asserting the inspector count; preserve existing Character remove test with a focused DOM fixture; update the verified Character allowlist contract to include Transform.

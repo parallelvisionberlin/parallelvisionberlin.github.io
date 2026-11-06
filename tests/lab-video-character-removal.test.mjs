@@ -25,7 +25,7 @@ test('a character inserted during loading becomes removable when loading finishe
     ${sync}\n${render}
     renderReferences();
     return {references,finish(){busy=false;syncReferenceRemovalState();}};
-  `)(document,id=>id==='reference-list'?box:count,released);
+  `)(document,id=>id==='reference-list'?box:id==='pv-transform-reference-strip'?null:count,released);
   assert.equal(box.children.length,2);
   assert.equal(box.children[0].children[2].children[0].disabled,true);
   fixture.finish();
