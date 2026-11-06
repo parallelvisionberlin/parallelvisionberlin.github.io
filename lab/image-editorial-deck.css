@@ -700,7 +700,7 @@ html:not(.pv-native-lab) #app.image-studio-active
 
 /* The welcome cards clear the measured, upward-growing Image deck. */
 @media(min-width:1180px) and (min-height:680px){
-  html:not(.pv-native-lab) #gate.pv-guest-image .pv-guest-content,
+  html:not(.pv-native-lab) #gate.pv-guest-image .pv-guest-content > :is(.pv-guest-kicker,h1,.pv-guest-subtitle,.pv-guest-credit-note,.pv-guest-carousel),
   html:not(.pv-native-lab) #app.image-studio-active #lab-welcome-start{
     translate:0 calc(-1 * var(--pv-welcome-deck-lift,0px));
   }
