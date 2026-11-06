@@ -1,0 +1,31 @@
+name: ALTER refinement workbench
+on:
+  push:
+    branches: [fix/alter-three-row-scroll-20261106]
+    paths: [.github/workflows/alter-refinement-workbench.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Export scoped source
+        run: |
+          python3 - <<'PY'
+          import subprocess,zipfile
+          with zipfile.ZipFile('/tmp/alter-current.zip','w',zipfile.ZIP_DEFLATED) as z:
+            for p in subprocess.check_output(['git','ls-files'],text=True).splitlines():
+              if not (p.startswith(('lab/','lab-worker/','tests/','.github/','scripts/')) or p in ('AGENTS.md','package.json','package-lock.json')): continue
+              ext=p.rsplit('.',1)[-1].lower()
+              if ext in ('mp4','mov','wav','mp3','glb','psd','pdf'):continue
+              if ext in ('jpg','jpeg','png','webp','avif','gif') and not p.startswith(('lab/visuals/beauty/','lab/branding/')):continue
+              z.write(p)
+            z.writestr('SOURCE_SHA.txt',subprocess.check_output(['git','rev-parse','HEAD'],text=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alter-current
+          path: /tmp/alter-current.zip
+          retention-days: 2
