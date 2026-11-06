@@ -61,10 +61,9 @@ export function createOwnerCustomersUI({call,ownerReady,revision,openActivity,op
       ['Archived finance records',metric('archivedJobs')],['Archived provider exposure',u?money(u.archivedExposureUsd,'$'):absent],
       ['Checkout starts',metric('checkoutStarts')],['Recorded gross receipts',u?money(u.revenueCents,'€',.01):absent],
       ['Lifetime activity',u?customerLifetimeState(u):absent],['Review flag',u?(u.reviewFlag||'None recorded'):absent],
-      ['Promotional hold',u?(u.promoHeld===true?'Free generation paused':'No active hold recorded'):absent],
-      ['Total jobs',metric('totalJobs')],['Failed jobs',metric('failedJobs')],['Reconstructed historical records',metric('reconstructedCompleted')],
-      ['Welcome credits recorded',metric('welcomeCredits')]
+      ['Promotional hold',u?(u.promoHeld===true?'Free generation paused':'No active hold recorded'):absent]
     ])detailField(fields,label,value);
+    for(const [label,key] of [['Total jobs','totalJobs'],['Failed jobs','failedJobs'],['Reconstructed historical records','reconstructedCompleted'],['Welcome credits recorded','welcomeCredits']])if(u&&number(u[key])!==null)detailField(fields,label,numeric(u[key]));
     root.append(fields);
     if(u?.promoHeld===true&&typeof openReview==='function'){
       const button=el('button','Review generations','owner-customer-review-action');button.type='button';

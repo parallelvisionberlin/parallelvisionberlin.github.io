@@ -76,7 +76,7 @@ try{
               balanceCredits:200,verifiedPayments:0,subscription:'none',plan:''},
             {id:'user_active_creator',email:'editorial@example.com',joinedAt:Date.UTC(2026,9,13),
               balanceCredits:280,verifiedPayments:1,subscription:'active',plan:'Studio'},
-            {id:'user_earlier_creator',email:'model@example.com',joinedAt:Date.UTC(2026,9,12),
+            {id:'user_earlierCreator',email:'model@example.com',joinedAt:Date.UTC(2026,9,12),
               balanceCredits:100,verifiedPayments:0,subscription:'none',plan:''}
           ],
           payments:[{customerId:'user_active_creator',email:'editorial@example.com',
@@ -236,7 +236,7 @@ try{
               joinedAt:Date.UTC(2026,9,14),completedJobs:2,creditsSpent:100,
               providerExposureUsd:.15,archivedJobs:1,archivedExposureUsd:.15,
               reconstructedCompleted:1,checkoutStarts:1,revenueCents:1000,reviewFlag:''},
-            {id:'user_earlier_creator',email:'model@example.com',joinedAt:Date.UTC(2026,9,15),
+            {id:'user_earlierCreator',email:'model@example.com',joinedAt:Date.UTC(2026,9,15),
               completedJobs:1,creditsSpent:20,providerExposureUsd:.04,
               checkoutStarts:0,revenueCents:0,reviewFlag:'disposable-email',promoHeld:true}
           ],notes:{checkout:'Tracking begins with this release.',cost:'Provider costs are estimates.'}};
