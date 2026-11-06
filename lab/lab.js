@@ -1,3 +1,5 @@
+import {replacementIntent,replacementIntentIssue} from './image-replacement-intent.js?v=20261106-replacement1';
+import {createImageReplacement} from './image-replacement.js?v=20261106-replacement1';
 import {videoInputAction} from './video-input-action.js?v=20261030-1';
 import {styleVideoHistoryCard} from './video-history-cards.js?v=20261104-refined1';
 import {createStudioPublicPreview} from './studio-public-preview.js?v=20261023-1&upscaleModelCards=pr486final1';
@@ -50,6 +52,7 @@ const $=id=>document.getElementById(id), activeStates=new Set(['submitting','que
 let customerVideoProfile={},customerCreditBalance=0;
 let clerk, owner=false, ownerAccount=false, customerMode=false, customerGenerationReady=false, customerTrialGenerationPaused=false, customerBillingReady=false, customerImagePricing=null, videoPricing=null, videoPriceClickPending=false, imageRatioExplicit=false, soulRatioExplicit=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
 let imageSubmissionPending=false,imageSubmissionStage='Sending…',customerPriceIntentPending=false;
+let imageReplacement=null,replacementReviewPending=false;
 let frameMaker=null;
 const fastImageHandoff=createImageSubmitHandoff();
 const moodReferences=createMoodReferenceLoader({upload:uploadAsset});
@@ -72,7 +75,7 @@ async function saveImageForMoods({returnReason='moods'}={}){
     ratio:$('ratio').value,resolution:$('resolution').value,
     count:$('image-count').value,outputFormat:$('output-format').value,
     exactPrompt:$('composer-exact-prompt').checked,source:studioReturnPhoto(file?{file,id:sourceId}:null),
-    references:references.map(studioReturnPhoto),
+    references:references.map(studioReturnPhoto),replacement:reviewedReplacement()?imageReplacement.snapshot():null,
     mood:{selected:moodUI.selected(),intensity:moodUI.intensity(),variant:moodUI.variant()},
     soulCharacter:$('soul-character').value,
     poseStrength:$('pose-strength').value,identityStrength:$('identity-strength').value,
@@ -132,6 +135,11 @@ async function restoreStudioFromMoods({checkoutOnly=false}={}){
   imageRatioExplicit=state.imageRatioExplicit===true;
   soulRatioExplicit=state.soulRatioExplicit===true;
   $('prompt').value=state.prompt;
+  if(state.replacement&&JSON.stringify(state.settings?.replacement)===JSON.stringify(state.replacement.replacement)&&
+      currentReplacementIntent()?.scope===state.replacement.replacement.scope&&
+      references[0]?.id===state.replacement.replacement.originalSourceId&&
+      state.replacement.replacement.referenceSourceIds.every(id=>references.slice(1).some(ref=>ref.id===id)))
+    imageReplacement?.restore({...state.replacement,key:replacementDraftKey()});
   update();
   await clearStudioReturnDraft();
   if(!checkoutOnly)notify('Your Image workspace is restored. No generation was started.');
@@ -692,7 +700,7 @@ function imageInputReferences(){return tool==='image'&&imageEngine==='zspicy'?[]
 function usesReferenceGuidance(){return tool==='image'&&['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3','krea3'].includes(imageEngine);}
 function imageGuidance(){
   const labels=referenceRoles(),mood=moodUI.enrich(effectiveImagePrompt(),{engine:imageEngine,referenceCount:references.length,referenceMode:imageReferenceMode});
-  const current={type:'image',mode:'image',engine:imageEngine,referenceMode:imageReferenceMode,exactPrompt:$('composer-exact-prompt').checked,...mood.metadata};
+  const current={type:'image',mode:'image',engine:imageEngine,referenceMode:imageReferenceMode,exactPrompt:$('composer-exact-prompt').checked,...mood.metadata,...(reviewedReplacement()?{replacement:reviewedReplacement()}: {})};
   try{
     // Dream Blur Inspiration also uses its four curated optical Style photographs.
     const planned=shouldOmitAutomaticMoodReferencesForInspiration(inspirationMoodId,current.moodId)
@@ -816,7 +824,33 @@ function validateUpscaleQuote(q,selected){
   if(wrong||customerMode&&(!Number.isSafeInteger(q.creditCost)||q.creditCost<1)||fal&&(q.priceIsEstimate!==true||q.requiresPriceReview!==true||p.scale!==selected.scale||(which!=='seedvr2'&&p.topazModel!==selected.topazModel)||![p.sourceWidth,p.sourceHeight,p.targetWidth,p.targetHeight].every(n=>Number.isSafeInteger(n)&&n>0)||p.targetWidth!==p.sourceWidth*selected.scale||p.targetHeight!==p.sourceHeight*selected.scale)||!fal&&p.resolution!==selected.resolution)throw new Error('No usable upscale quote was returned for these settings. Nothing was submitted.');
 }
 function effectiveImagePrompt(){const typed=$('prompt').value.trim();if(typed)return typed;const base=tool==='image'&&imageReferenceMode==='base'&&imageInputReferences().length>0&&['seedream','seedreamlite','flash','kling','qwen3','gemini','gemini21','krea3'].includes(imageEngine);if(!base)return '';if(moodUI.active())return moodUI.selected()==='80s-film'&&moodUI.intensity()===100?'':'Create a natural photographic variation of the base image, preserving its subject and overall composition.';if(referenceRoles().filter(ref=>ref.elementCategory==='characters').length>=3)return 'Apply the assigned reference properties to the base image; preserve everything else.';return AUTO_IMAGE_REINTERPRET_PROMPT;}
-function settings(){if(tool==='upscale')return isFalUpscale()?{type:'image',mode:'upscale',upscaleEngine,scale:Number($('upscale-scale').value),...(upscaleEngine==='topaz-precision'?{topazModel:$('upscale-topaz-model').value}:upscaleEngine==='topaz-wonder'?{topazModel:'Wonder 3.5'}:{}),prompt:'',resolution:$('upscale-scale').value+'x',aspectRatio:'source',outputFormat:$('output-format').value,referenceRoles:[]}:{type:'image',mode:'upscale',upscaleEngine:'spicy',prompt:'',resolution:$('resolution').value,aspectRatio:'auto',outputFormat:$('output-format').value,referenceRoles:[]};if(isSoul2())return {type:'image',provider:'higgsfield',engine:'soulpro',soulProModel:'soul2',mode:'identity-edit',prompt:$('prompt').value.trim(),...hf.parameters(),seed:$('soul-pro-seed').value,aspectRatio:$('hf-bar-ratio').value,outputFormat:'png',referenceRoles:[]};if(tool==='image'&&imageEngine==='soulpro')return {type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',soulProModel,soulProQuality,prompt:$('prompt').value.trim(),sourceWidth,sourceHeight,seed:$('soul-pro-seed').value,resolution:'source',aspectRatio:'source',outputFormat:'png',referenceRoles:[]};if(tool==='image'&&imageEngine==='fal')return {type:'image',provider:'fal',engine:'fal',mode:'controlled-pose',prompt:$('prompt').value.trim(),resolution:'1k',aspectRatio:$('ratio').value,outputFormat:'png',poseStrength:Number($('pose-strength').value),identityStrength:Number($('identity-strength').value),seed:$('controlled-pose-seed').value,referenceRoles:referenceRoles()};if(tool==='image'){const mood=moodUI.enrich(effectiveImagePrompt(),{engine:imageEngine,referenceCount:imageInputReferences().length,referenceMode:imageEngine==='zspicy'?'base':imageReferenceMode});const base={type:'image',engine:imageEngine,processing:imageProcessing,referenceMode:imageEngine==='zspicy'?'base':imageReferenceMode,mode:'image',prompt:mood.prompt,...mood.metadata,...(mood.metadata?.moodId?{moodOriginalPrompt:$('prompt').value.trim()}:{}),resolution:imageEngine==='soul'?'native':$('resolution').value,aspectRatio:$('ratio').value,outputFormat:['seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy'].includes(imageEngine)?'png':$('output-format').value,referenceRoles:['soul','zspicy'].includes(imageEngine)?[]:referenceRoles(),exactPrompt:$('composer-exact-prompt').checked===true};return imageEngine==='soul'?{...base,provider:soul.isKrea()?'fal':'spicy',trainer:soul.isKrea()?'krea2':'qwen2512',characterId:soul.selectedId(),identityStrength:soul.strength(),...(isReinterpret()?{...soul.reinterpretSettings(),resolution:$('resolution').value,aspectRatio:'source'}:{})}:base;}return {type:'video',engine,mode,...(mode==='transform'?{transformType:'replace-character'}:{}),...(['extend','transform'].includes(mode)||engine==='klinghf'?{provider:'higgsfield'}:{}),referenceVideos:['reference','extend','transform'].includes(mode)?mediaRefs.labels('video'):[],referenceAudio:mode==='reference'?mediaRefs.labels('audio'):[],prompt:mode==='transform'?($('prompt').value.trim()||'Replace the person in the source video using the attached character identity. Preserve the original motion, setting and camera.'): $('prompt').value.trim(),duration:mode==='transform'?Math.max(4,Math.min(30,Math.round(mediaRefs.firstVideo()?.seconds||5))):Number($('duration').value),resolution:$('resolution').value,aspectRatio:['extend','transform'].includes(mode)?'auto':$('ratio').value,seed:['extend','transform'].includes(mode)||engine==='klinghf'?null:$('seed').value,audio:$('audio').checked,cameraFixed:engine==='seedance15'&&$('video-camera-lock').checked,referenceRoles:referenceRoles(),referencePixels:engine==='h3maxfal'?references.map(r=>r.width*r.height):[]};}
+function replacementDraftKey(){
+  if(tool!=='image')return '';
+  return JSON.stringify([epoch,imageRevision,imageEngine,imageProcessing,imageReferenceMode,
+    $('prompt').value,$('ratio').value,$('resolution').value,$('image-count').value,$('output-format').value,
+    $('composer-exact-prompt').checked,moodUI.selected(),moodUI.intensity(),moodUI.variant(),
+    references.map(ref=>[ref.file?.name,ref.file?.size,ref.file?.lastModified,ref.role,ref.note,
+      ref.target,ref.elementId,ref.elementName,ref.elementCategory])]);
+}
+function currentReplacementIntent(){
+  if(!imageReplacement||tool!=='image'||fashionActive||imageReferenceMode!=='base')return null;
+  return replacementIntent($('prompt').value,referenceRoles());
+}
+function reviewedReplacement(){
+  return imageReplacement?.settings(replacementDraftKey())||null;
+}
+function replacementPending(job){
+  return job?.status==='completed'&&job.settings?.replacement&&!job.settings.replacementFinalized;
+}
+function preserveReplacementRatio(){
+  const choices=[...$('ratio').options].map(option=>option.value);
+  if(choices.includes('auto')){$('ratio').value='auto';imageRatioExplicit=false;return;}
+  const base=references[0],ratio=base?.width/base?.height;
+  const matching=choices.find(value=>{const [width,height]=value.split(':').map(Number);return width>0&&height>0&&Math.abs((width/height)/ratio-1)<=.01;});
+  if(!matching)throw Error('This model cannot keep the Base photo crop. Choose a model with Auto aspect ratio.');
+  $('ratio').value=matching;imageRatioExplicit=true;
+}
+function settings(){if(tool==='upscale')return isFalUpscale()?{type:'image',mode:'upscale',upscaleEngine,scale:Number($('upscale-scale').value),...(upscaleEngine==='topaz-precision'?{topazModel:$('upscale-topaz-model').value}:upscaleEngine==='topaz-wonder'?{topazModel:'Wonder 3.5'}:{}),prompt:'',resolution:$('upscale-scale').value+'x',aspectRatio:'source',outputFormat:$('output-format').value,referenceRoles:[]}:{type:'image',mode:'upscale',upscaleEngine:'spicy',prompt:'',resolution:$('resolution').value,aspectRatio:'auto',outputFormat:$('output-format').value,referenceRoles:[]};if(isSoul2())return {type:'image',provider:'higgsfield',engine:'soulpro',soulProModel:'soul2',mode:'identity-edit',prompt:$('prompt').value.trim(),...hf.parameters(),seed:$('soul-pro-seed').value,aspectRatio:$('hf-bar-ratio').value,outputFormat:'png',referenceRoles:[]};if(tool==='image'&&imageEngine==='soulpro')return {type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',soulProModel,soulProQuality,prompt:$('prompt').value.trim(),sourceWidth,sourceHeight,seed:$('soul-pro-seed').value,resolution:'source',aspectRatio:'source',outputFormat:'png',referenceRoles:[]};if(tool==='image'&&imageEngine==='fal')return {type:'image',provider:'fal',engine:'fal',mode:'controlled-pose',prompt:$('prompt').value.trim(),resolution:'1k',aspectRatio:$('ratio').value,outputFormat:'png',poseStrength:Number($('pose-strength').value),identityStrength:Number($('identity-strength').value),seed:$('controlled-pose-seed').value,referenceRoles:referenceRoles()};if(tool==='image'){const mood=moodUI.enrich(effectiveImagePrompt(),{engine:imageEngine,referenceCount:imageInputReferences().length,referenceMode:imageEngine==='zspicy'?'base':imageReferenceMode});const base={type:'image',engine:imageEngine,processing:imageProcessing,referenceMode:imageEngine==='zspicy'?'base':imageReferenceMode,mode:'image',prompt:mood.prompt,...mood.metadata,...(mood.metadata?.moodId?{moodOriginalPrompt:$('prompt').value.trim()}:{}),resolution:imageEngine==='soul'?'native':$('resolution').value,aspectRatio:$('ratio').value,outputFormat:['seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy'].includes(imageEngine)?'png':$('output-format').value,referenceRoles:['soul','zspicy'].includes(imageEngine)?[]:referenceRoles(),exactPrompt:$('composer-exact-prompt').checked===true,...(reviewedReplacement()?{replacement:reviewedReplacement(),outputFormat:'png'}: {})};return imageEngine==='soul'?{...base,provider:soul.isKrea()?'fal':'spicy',trainer:soul.isKrea()?'krea2':'qwen2512',characterId:soul.selectedId(),identityStrength:soul.strength(),...(isReinterpret()?{...soul.reinterpretSettings(),resolution:$('resolution').value,aspectRatio:'source'}:{})}:base;}return {type:'video',engine,mode,...(mode==='transform'?{transformType:'replace-character'}:{}),...(['extend','transform'].includes(mode)||engine==='klinghf'?{provider:'higgsfield'}:{}),referenceVideos:['reference','extend','transform'].includes(mode)?mediaRefs.labels('video'):[],referenceAudio:mode==='reference'?mediaRefs.labels('audio'):[],prompt:mode==='transform'?($('prompt').value.trim()||'Replace the person in the source video using the attached character identity. Preserve the original motion, setting and camera.'): $('prompt').value.trim(),duration:mode==='transform'?Math.max(4,Math.min(30,Math.round(mediaRefs.firstVideo()?.seconds||5))):Number($('duration').value),resolution:$('resolution').value,aspectRatio:['extend','transform'].includes(mode)?'auto':$('ratio').value,seed:['extend','transform'].includes(mode)||engine==='klinghf'?null:$('seed').value,audio:$('audio').checked,cameraFixed:engine==='seedance15'&&$('video-camera-lock').checked,referenceRoles:referenceRoles(),referencePixels:engine==='h3maxfal'?references.map(r=>r.width*r.height):[]};}
 function hasInput(){if(tool==='video'&&mode==='extend')return mediaRefs.labels('video').length===1&&!!$('prompt').value.trim();if(tool==='video'&&mode==='transform')return mediaRefs.labels('video').length===1&&references.length>=1;if(tool==='upscale')return !!file;if(tool==='image'&&imageEngine==='soulpro')return isSoul2()?hf.ready()&&(!!file||!!$('prompt').value.trim()):!!file&&soulProIdentity.configured;if(tool==='image'&&imageEngine==='fal'){const roles=referenceRoles(),poses=roles.filter(r=>r.role==='pose').length,identities=roles.filter(r=>r.role==='identity').length;return !!$('prompt').value.trim()&&references.length>=2&&references.length<=5&&poses===1&&identities>=1&&identities<=4&&poses+identities===references.length;}if(tool==='image'&&imageEngine==='soul')return isReinterpret()?soul.reinterpretReady()&&!!file:soul.ready()&&!!$('prompt').value.trim();if(tool==='image'&&imageEngine==='zspicy')return !!$('prompt').value.trim();if(usesReferenceGuidance())return !imageGuidance().error&&(!!effectiveImagePrompt()||references.length>0);return tool==='image'||mode==='text'?(tool==='image'?!!effectiveImagePrompt():!!$('prompt').value.trim()):mode==='start'?!!file:references.length>0||(engine==='seedance'&&mediaRefs.count()>0);}
 function syncVideoFrameCards(){
   for(const [id,buttonId,url] of [['video-start-thumb','remove-start-frame',sourceUrl],['video-end-thumb','remove-end-frame',lastUrl]]){
@@ -1205,6 +1239,8 @@ function setTool(value){
    authoritative for pricing, authentication, model limits and provider calls. */
 const imageStudio = $('image-studio');
 const imageComposer = $('image-composer');
+imageReplacement=createImageReplacement({host:$('app'),api,assetBlob,uploadAsset,notify,
+  ensureReferences:()=>ensureReferences(),onChange:()=>{customerImagePricing?.reset();update();}});
 const precisionEditor=createPrecisionEditor({host:$('app'),api,assetBlob,uploadAsset,notify,
   owner:()=>owner,customer:()=>!ownerAccount,falReady:()=>!!config.falEnabled&&(!customerMode||customerGenerationReady),magicReady:()=>!!config.falEnabled&&(!customerMode||customerGenerationReady),
   onExit:()=>returnToImageFromRetouch(),
@@ -2024,8 +2060,9 @@ function syncImageComposer(){
   $('composer-add-saved-toggle').title=savedLabel;
   $('composer-character').setAttribute('aria-label','Choose trained character');
   const generate=$('image-composer-generate');
-  const generateActionLabel=$('generate').textContent;
-  const creditCost=$('generate').dataset.credits||'';
+  const needsReplacementReview=!!currentReplacementIntent()&&!reviewedReplacement();
+  const generateActionLabel=replacementReviewPending?'Reviewing selection':needsReplacementReview?'Review selection':$('generate').textContent;
+  const creditCost=needsReplacementReview?'':$('generate').dataset.credits||'';
   const priceState=customerMode?customerImagePricing?.current():null;
   const awaitingCreditPrice=customerMode&&customerGenerationReady&&
     (customerPriceIntentPending||priceState?.status==='checking')&&!creditCost;
@@ -2035,10 +2072,10 @@ function syncImageComposer(){
   generate.dataset.credits=creditCost||(priceUnavailable?'Retry credit check':'');
   generate.classList.toggle('has-credit-cost',!!creditCost);
   generate.classList.toggle('has-price-pending',!creditCost&&(awaitingCreditPrice||priceUnavailable));
-  generate.setAttribute('aria-label',creditCost?'Generate · '+creditCost:'Generate');
+  generate.setAttribute('aria-label',creditCost?'Generate · '+creditCost:generateActionLabel);
   generate.classList.remove('is-submitting');
   generate.classList.toggle('is-long-label',generateActionLabel.length>16);
-  generate.disabled=$('generate').disabled;
+  generate.disabled=$('generate').disabled||replacementReviewPending;
   generate.setAttribute('aria-busy',String(imageSubmissionPending));
   generate.querySelector('.composer-generate-label').textContent=generateActionLabel;
   const generateSparkle=generate.querySelector('.composer-generate-sparkle');
@@ -3533,7 +3570,7 @@ const mediaRefs=createMediaReferences({element:$,owner:()=>owner,busy:()=>busy,e
   videoMax:()=>tool==='video'&&['extend','transform'].includes(mode)?1:10,
    videoMin:()=>tool==='video'&&mode==='transform'?4:2,
    upload:async snapshot=>(await api('/api/reference-uploads',{method:'POST',headers:{'Content-Type':snapshot.type,'X-Filename':encodeURIComponent(snapshot.name||'reference')},body:snapshot})).id,assetFile});
-async function uploadAsset(snapshot){const data=await api('/api/uploads',{method:'POST',headers:{'Content-Type':snapshot.type,'X-Filename':encodeURIComponent(snapshot.name||'source.png')},body:snapshot});return data.id;}
+async function uploadAsset(snapshot,{replacementJobId=null}={}){const data=await api('/api/uploads',{method:'POST',headers:{'Content-Type':snapshot.type,'X-Filename':encodeURIComponent(snapshot.name||'source.png'),...(replacementJobId?{'X-Replacement-Job-Id':replacementJobId}:{})},body:snapshot});return data.id;}
 async function ensureSource(){if(sourceId)return sourceId;const snapshot=file,rev=imageRevision,session=epoch,selectedTool=tool;if(!snapshot)throw new Error(tool==='upscale'?'Choose an image to upscale first.':'Choose a start frame first.');const id=await uploadAsset(snapshot);if(!owner||epoch!==session||tool!==selectedTool||file!==snapshot||rev!==imageRevision)throw new Error('Image or Studio changed during upload. Please try again.');sourceId=id;return id;}
 async function ensureLast(){
   if(!lastFile)return null;
@@ -4505,6 +4542,7 @@ $('image-lightbox').addEventListener('close',()=>{
 });
 
 async function openVideo(job,{scroll=true,detail=false,justFinished=false}={}){
+  if(replacementPending(job))job=await imageReplacement.finalize(job);
   if(job?.settings?.precisionEdit&&!job.settings.precisionFinalized&&job.status==='completed'){
     try{job=await precisionEditor.finalize(job);}catch(error){notify('The raw edit is saved, but preserving original pixels needs attention: '+error.message,true);}
   }
@@ -4578,6 +4616,14 @@ async function openVideo(job,{scroll=true,detail=false,justFinished=false}={}){
 function saveDownload(url,id,ext){const a=document.createElement('a');a.href=url;a.download='parallel-vision-'+id+'.'+ext;document.body.append(a);a.click();a.remove();}
 function downloadResult(){if(!owner||!resultUrl||!resultId)return;saveDownload(resultUrl,resultId,resultExt);}
 async function downloadJob(job){
+  if(replacementPending(job))job=await imageReplacement.finalize(job);
+  return downloadSavedOutput(job);
+}
+async function downloadRawReplacement(job){
+  if(!replacementPending(job))throw new Error('This job does not need a raw replacement download.');
+  return downloadSavedOutput(job);
+}
+async function downloadSavedOutput(job){
   if(!hasResult(job))throw new Error('No output file exists for this job. The reference is not a generated result.');
   if(resultUrl&&resultId===job.outputId){downloadResult();return;}
   const blob=await assetBlob(job.outputId);if(!owner)return;
@@ -5003,7 +5049,7 @@ function renderCards(jobs,{upsert=false}={}){
       card.addEventListener('click',event=>{if(!historySelectMode)return;if(event.target.closest('.history-select-box'))return;event.preventDefault();event.stopImmediatePropagation();toggleSelection();},true);
       card.addEventListener('keydown',event=>{if(event.target!==card||!historySelectMode||!['Enter',' '].includes(event.key))return;event.preventDefault();toggleSelection();});
     }
-    const image=j.settings.type==='image',ready=hasResult(j),previews=[];
+    const image=j.settings.type==='image',finishingReplacement=replacementPending(j),ready=hasResult(j)&&!finishingReplacement,previews=[];
     const contentRestricted=j.status==='failed'&&isContentRestriction(j.error);
     if(ready&&image){
       const {figure,img}=historyImage(j.outputId,'Generated image',true);previews.push(img);card.append(figure);
@@ -5045,8 +5091,8 @@ function renderCards(jobs,{upsert=false}={}){
         empty.append(kicker,title,detail,edit,foot);
       }else{
         const title=document.createElement('strong'),detail=document.createElement('span');
-        title.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Soul ID ready':j.status==='draft'?'Saved draft':j.status==='failed'?imageFailureHeading(j.error):j.status==='uncertain'?'Status unknown':activeStates.has(j.status)?({submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving'}[j.status]||'Result pending'):ready?'Video saved':j.status==='completed'?'Output unavailable':'No result';
-        detail.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Choose this identity from the Soul ID photo tile to generate.':j.status==='draft'?'No generation submitted.':j.status==='failed'?(j.error||'The provider ended this request without a generated file.'):j.status==='uncertain'?'PV Lab could not confirm the provider state. Check the provider before retrying; nothing will be resubmitted automatically.':activeStates.has(j.status)?'The finished output will appear here.':ready?'Select this record to load and play the saved video.':'No generated file is available to view or download.';
+        title.textContent=finishingReplacement?'Finish replacement':j.settings.mode==='soul-id-training'&&j.status==='completed'?'Soul ID ready':j.status==='draft'?'Saved draft':j.status==='failed'?imageFailureHeading(j.error):j.status==='uncertain'?'Status unknown':activeStates.has(j.status)?({submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving'}[j.status]||'Result pending'):ready?'Video saved':j.status==='completed'?'Output unavailable':'No result';
+        detail.textContent=finishingReplacement?'Your generated edit is saved. Finish preserving the original photo, or download the raw image if finishing cannot complete.':j.settings.mode==='soul-id-training'&&j.status==='completed'?'Choose this identity from the Soul ID photo tile to generate.':j.status==='draft'?'No generation submitted.':j.status==='failed'?(j.error||'The provider ended this request without a generated file.'):j.status==='uncertain'?'PV Lab could not confirm the provider state. Check the provider before retrying; nothing will be resubmitted automatically.':activeStates.has(j.status)?'The finished output will appear here.':ready?'Select this record to load and play the saved video.':'No generated file is available to view or download.';
         if(jobCreditNotice(j)){const creditNotice=document.createElement('small');creditNotice.className='content-restriction-credits';creditNotice.textContent=jobCreditNotice(j);empty.append(creditNotice);}
         empty.append(title,detail);
       }
@@ -5066,10 +5112,14 @@ function renderCards(jobs,{upsert=false}={}){
     const modelLabel=image?galleryImageModelName(j).toUpperCase():null;
     const resolutionLabel=j.settings.mode==='upscale'?upscaleSize(j.settings):j.settings.resolution;
     meta.textContent=[j.status.toUpperCase(),imageLabel,modelLabel,resolutionLabel,new Date(j.createdAt).toLocaleDateString()].filter(Boolean).join(' / ');
+    if(finishingReplacement)meta.textContent=meta.textContent.replace(/^COMPLETED/,'FINISHING REPLACEMENT');
     meta.title=image?'Model: '+galleryImageModelName(j):'Video model: '+videoLabel(j.settings);
     const p=document.createElement('p');p.textContent=image?imageHistoryCaption(j.settings):(j.settings.prompt||'No direction saved.');
     const actions=document.createElement('div');actions.className='cardactions';
-    if(ready){
+    if(finishingReplacement){
+      actions.append(button('Finish replacement',async()=>{const finished=await imageReplacement.finalize(j);surfaceHistoryJob(finished);await openImageRecord(finished);},viewMedia));
+      actions.append(button('Download raw image',()=>downloadRawReplacement(j),viewMedia));
+    }else if(ready){
       const download=button(image?'Download image':'Download video',()=>downloadJob(j));download.classList.add('result-download');actions.append(download);
       actions.append(button(image?'View image':'View video',()=>image?openImageRecord(j):tool==='upscale'&&j.settings.engine==='video-upscale'?videoUpscaler.openJob(j):openVideo(j),viewMedia));
     }else{
@@ -5169,6 +5219,16 @@ async function loadHistory(append=false,incremental=false){
     if(!owner||rev!==historyRevision||loadId!==historyLoadId)return;
     if(!append&&!incremental&&!assetLibrary?.active())syncImagePreviewAccount((data.jobs||[]).length>0);
     renderCards(data.jobs,{upsert:incremental});
+    void (async()=>{
+      for(const job of data.jobs||[]){
+        if(!owner||rev!==historyRevision||loadId!==historyLoadId)return;
+        if(!replacementPending(job))continue;
+        try{
+          const finished=await imageReplacement.finalize(job);
+          if(owner&&rev===historyRevision&&loadId===historyLoadId)surfaceHistoryJob(finished);
+        }catch(error){if(owner&&rev===historyRevision)console.warn('Replacement finishing pending:',error.message);}
+      }
+    })();
     // A completed provider result may need local pixel-preserving compositing after a reload.
     for(const job of data.jobs||[])if(job?.status==='completed'&&job.settings?.precisionEdit&&!job.settings?.precisionFinalized)
       void precisionEditor.finalize(job).then(updated=>surfaceHistoryJob(updated)).catch(error=>{
@@ -5219,7 +5279,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();document.documentElement.classList.remove('pv-studio-route-pending');}
-function lock(){videoUpscaler?.reset();videoPricing?.reset();$('app').removeAttribute('data-guest-preview');const pvStrip=$('pv-video-detail-reference-strip');if(pvStrip){pvStrip.replaceChildren();pvStrip.dataset.key='';}const pvRefPanel=$('pv-video-detail-references');if(pvRefPanel)pvRefPanel.hidden=true;sceneLibrary?.reset();setMoodDiscoveryOpen(false);customerPriceIntentPending=false;customerImagePricing?.reset();packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerVideoProfile={};customerCreditBalance=0;customerGenerationReady=false;customerTrialGenerationPaused=false;customerBillingReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';syncImagePreviewAccount();soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();clearStoredToolSources();clearStoredToolReferences();mediaRefs.clear();frameMaker?.clear();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;videoHistoryAutoSuppressed=false;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();$('pv-guest-closed-state').hidden=true;finishLabBoot();}
+function lock(){imageReplacement?.reset();replacementReviewPending=false;videoUpscaler?.reset();videoPricing?.reset();$('app').removeAttribute('data-guest-preview');const pvStrip=$('pv-video-detail-reference-strip');if(pvStrip){pvStrip.replaceChildren();pvStrip.dataset.key='';}const pvRefPanel=$('pv-video-detail-references');if(pvRefPanel)pvRefPanel.hidden=true;sceneLibrary?.reset();setMoodDiscoveryOpen(false);customerPriceIntentPending=false;customerImagePricing?.reset();packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerVideoProfile={};customerCreditBalance=0;customerGenerationReady=false;customerTrialGenerationPaused=false;customerBillingReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';syncImagePreviewAccount();soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();clearStoredToolSources();clearStoredToolReferences();mediaRefs.clear();frameMaker?.clear();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;videoHistoryAutoSuppressed=false;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();$('pv-guest-closed-state').hidden=true;finishLabBoot();}
 const pricingOverlay=createPricingOverlay({
   buy:(sku,report)=>wallet.buyPlan(sku,report),
   getAccount:()=>({signedIn:owner,customer:customerMode}),
@@ -5419,6 +5479,29 @@ async function submitImageSnapshot(){
   if(customerMode&&customerBillingReady&&window.__PV_LAB_NATIVE__!==1&&
      (customerCreditBalance<=0||customerTrialGenerationPaused&&!customerGenerationReady)){
     void pricingOverlay.open();return;
+  }
+  const replacementIssue=tool==='image'&&imageReferenceMode==='base'?replacementIntentIssue($('prompt').value,referenceRoles()):'';
+  if(replacementIssue){notify(replacementIssue,true);return;}
+  const replacementProposal=currentReplacementIntent();
+  if(replacementProposal&&!config.imageReplacementEnabled){notify('Replacement is being updated. Refresh Image before preparing this selection.',true);return;}
+  if(replacementProposal&&!reviewedReplacement()){
+    if(replacementReviewPending)return;
+    const reviewEpoch=epoch;
+    replacementReviewPending=true;update();
+    try{
+      if(!['seedream','seedreamlite','flash','gemini','gemini21','qwen3','krea3'].includes(imageEngine))
+        throw Error('Choose Seedream, Nano Banana, Qwen or Krea for replacement references.');
+      preserveReplacementRatio();
+      const key=replacementDraftKey();
+      const accepted=await imageReplacement.review({key,prompt:$('prompt').value,
+        labels:referenceRoles(),references:[...references],intent:replacementProposal,autoSelect:true});
+      if(accepted&&owner&&epoch===reviewEpoch){
+        if(key!==replacementDraftKey())throw Error('The Image draft changed. Review the area again before generating.');
+        notify('Selection saved. Press Generate to create the replacement.');
+      }
+    }catch(error){if(owner&&epoch===reviewEpoch)notify(error.message,true);}
+    finally{if(epoch===reviewEpoch){replacementReviewPending=false;customerImagePricing?.reset();update();}}
+    return;
   }
   if(usesReferenceGuidance()){
     const advisories=referenceRoleAdvisories(referenceRoles());

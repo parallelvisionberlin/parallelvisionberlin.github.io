@@ -67,7 +67,9 @@ try{
    return send({});
   });
   await page.goto(base+'/lab/studio.html?tool=image');
-  await page.waitForFunction(()=>window.__creditFlowReady);await page.locator('#lab-boot').waitFor({state:'hidden'});
+  await page.waitForFunction(()=>window.__creditFlowReady).catch(error=>{
+   throw new Error('Studio credit fixture did not finish booting. Page errors: '+JSON.stringify(errors),{cause:error});
+  });await page.locator('#lab-boot').waitFor({state:'hidden'});
   const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=300;c.height=400;c.getContext('2d').fillRect(0,0,300,400);return c.toDataURL().split(',')[1];}),'base64');
   await page.locator('#reference-images').setInputFiles({name:'private-reference.png',mimeType:'image/png',buffer:png});
   await page.locator('#image-composer-prompt').fill('Preserve this person in a quiet editorial portrait.');
