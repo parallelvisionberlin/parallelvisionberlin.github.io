@@ -159,6 +159,8 @@ Deployment requires the additive `lab-worker/migrations/0004-pv-soul.sql` migrat
 
 ## PV Soul / Reinterpret
 
+Night Flash with Higgsfield Soul 2 preparation is tracked in [NIGHT-FLASH-SOUL-WORK-STATE.md](NIGHT-FLASH-SOUL-WORK-STATE.md). This is a separate integration from the Qwen/Z-Image Reinterpret workflow below; production activation and visual quality are not yet verified.
+
 Inside Image > PV Soul, Text keeps the existing Qwen Image 2512 identity. Reinterpret accepts one base photograph, an optional direction, eight photographic presets, image fidelity, identity strength, composition/styling guidance, source aspect ratio and PNG/JPEG output. History keeps the original source and all settings for Reuse; completed results retain Repair, Upscale, Use in Video and Download.
 
 ### Compatibility and activation

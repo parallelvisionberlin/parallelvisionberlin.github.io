@@ -1,4 +1,5 @@
 import {creditsForUsd} from './customer-billing.mjs';
+import {prepareSoulNightFlash} from '../lab/night-flash-soul.js';
 // Official Soul 2 / Soul ID API. Credentials stay in the Worker secret HF_CREDENTIALS.
 export const SOUL2_MODEL='higgsfield-ai/soul/v2/image-to-image';
 export const SOUL2_TEXT_MODEL='higgsfield-ai/soul/v2/standard';
@@ -13,22 +14,32 @@ export function soul2Ratio(width,height){
   if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)return '16:9';
   return RATIOS.reduce((best,r)=>{const value=x=>{const [w,h]=x.split(':').map(Number);return Math.abs(Math.log((w/h)/(width/height)));};return value(r)<value(best)?r:best;},RATIOS[0]);
 }
-export function soul2Parameters(value,fail){
+export function soul2Parameters(value,fail,{hasBase=true}={}){
   if(!value||value.type!=='image')fail(400,'Choose an image generation.');
-  const prompt=String(value.prompt||'').trim(),strength=Number(value.identityStrength??1),resolution=value.resolution||'1080p';
+  let prompt=String(value.prompt||'').trim();
+  const strength=Number(value.identityStrength??1),resolution=value.resolution||'1080p';
+  let mood={};
+  if(value.moodId){
+    if(value.moodId!=='night-flash')fail(400,'Soul supports Night Flash here. Choose another image model for this Mood.');
+    if(typeof value.moodOriginalPrompt!=='string'||!Number.isInteger(value.moodIntensity)||value.moodIntensity<1||value.moodIntensity>100)fail(400,'Choose a valid Night Flash direction and intensity.');
+    // Rebuild from authored direction; never trust a client-supplied recipe.
+    const prepared=prepareSoulNightFlash(value.moodOriginalPrompt,value.moodIntensity,{hasBase});
+    if(prepared.error)fail(400,prepared.error);
+    prompt=prepared.prompt;mood=prepared.metadata;
+  }
   if(prompt.length>3500)fail(400,'Use an instruction of up to 3,500 characters.');
   if(!Number.isFinite(strength)||strength<0||strength>1)fail(400,'Soul 2 identity strength must be between 0 and 1.');
   if(!['720p','1080p'].includes(resolution))fail(400,'Choose 720p or 1080p.');
   if(value.characterId&&!ID.test(value.characterId))fail(400,'Choose a completed Higgsfield Soul ID.');
   const seed=value.seed===''||value.seed==null?null:Number(value.seed);
   if(seed!==null&&(!Number.isInteger(seed)||seed<1||seed>1000000))fail(400,'Soul 2 seed must be between 1 and 1,000,000.');
-  return {type:'image',provider:'higgsfield',engine:'soulpro',soulProModel:'soul2',mode:'identity-edit',model:SOUL2_MODEL,prompt,identityStrength:strength,characterId:value.characterId,resolution,aspectRatio:RATIOS.includes(value.aspectRatio)?value.aspectRatio:'source',outputFormat:'png',seed,referenceRoles:[]};
+  return {type:'image',provider:'higgsfield',engine:'soulpro',soulProModel:'soul2',mode:'identity-edit',model:SOUL2_MODEL,prompt,...mood,identityStrength:strength,characterId:value.characterId,resolution,aspectRatio:RATIOS.includes(value.aspectRatio)?value.aspectRatio:'source',outputFormat:'png',seed,referenceRoles:[]};
 }
 export function soul2Input(p,imageUrl,referenceId){
   if(referenceId&&!ID.test(referenceId))throw new Error('Choose a valid Soul ID.');
   if(!imageUrl&&!p.prompt)throw new Error('Write a prompt or add a photograph.');
   return {...(imageUrl?{image_url:imageUrl}:{}),...(referenceId?{custom_reference_id:referenceId,custom_reference_strength:p.identityStrength}:{}),
-    prompt:imageUrl?((referenceId?'Reinterpret the supplied photograph with the selected character identity. Preserve the source outfit, accessories, body pose, framing, camera angle, background and lighting. Change the person’s identity to the trained character. Natural photographic skin and fabric texture.':'Reinterpret the supplied photograph with natural photographic detail. Preserve its subject, outfit, pose, composition, background and lighting unless directed otherwise. Natural skin and fabric texture.')+(p.prompt?' Additional direction: '+p.prompt:'')):p.prompt,
+    prompt:p.moodId==='night-flash'?p.prompt:imageUrl?((referenceId?'Reinterpret the supplied photograph with the selected character identity. Preserve the source outfit, accessories, body pose, framing, camera angle, background and lighting. Change the person’s identity to the trained character. Natural photographic skin and fabric texture.':'Reinterpret the supplied photograph with natural photographic detail. Preserve its subject, outfit, pose, composition, background and lighting unless directed otherwise. Natural skin and fabric texture.')+(p.prompt?' Additional direction: '+p.prompt:'')):p.prompt,
     resolution:p.resolution,aspect_ratio:p.aspectRatio==='source'?'16:9':p.aspectRatio,batch_size:1,enhance_prompt:true,...(p.seed===null?{}:{seed:p.seed})};
 }
 export function higgsfieldApiUrl(path){
@@ -103,6 +114,10 @@ export async function refreshHiggsfield(env,j,p,d){
 }
 export async function higgsfieldRoute(request,env,owner,url,d){
   const {fail,body,rows,first,source,sources,signedInput,jobView}=d,path=url.pathname;
+  async function checkNightFlashAccess(p){
+    if(p.moodId==='night-flash'&&env.LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED!=='true'&&d.isLabCustomer&&await d.isLabCustomer(env,owner))
+      fail(403,'Night Flash with PV Soul is awaiting provider validation. No request submitted or credits charged.');
+  }
   if(path==='/api/higgsfield/characters'&&request.method==='GET'){
     const list=await rows(env,"SELECT * FROM jobs WHERE owner_id=? AND json_extract(params,'$.provider')='higgsfield' AND json_extract(params,'$.mode')=? ORDER BY created_at DESC",owner,TRAIN);
     for(const j of list.filter(j=>['queued','running'].includes(j.state)).slice(0,3))await refreshHiggsfield(env,j,JSON.parse(j.params),d);
@@ -123,7 +138,8 @@ export async function higgsfieldRoute(request,env,owner,url,d){
   }
   // A Soul 2 price check is read-only with respect to generation and spending.
   if(path==='/api/higgsfield/quote'&&request.method==='POST'){
-    const data=await body(request),p=soul2Parameters(data.settings,fail);
+    const data=await body(request),p=soul2Parameters(data.settings,fail,{hasBase:!!data.sourceId});
+    await checkNightFlashAccess(p);
     if(data.referenceSourceIds?.length)fail(400,'PV Soul accepts one base image plus a trained Soul ID, not multiple identity photos. Use Seedream for multi-reference editing.');
     const character=p.characterId?await first(env,"SELECT * FROM jobs WHERE id=? AND owner_id=? AND state='completed' AND json_extract(params,'$.provider')='higgsfield' AND json_extract(params,'$.mode')=?",p.characterId,owner,TRAIN):null;
     if(p.characterId&&!character?.provider_id)fail(409,'Choose a completed Soul 2 identity created in this Lab.');
@@ -167,6 +183,7 @@ export async function higgsfieldRoute(request,env,owner,url,d){
     if(!quote||quote.vendor_quote_id!=='higgsfield-soul2-quote-v1')fail(409,'Review a new Higgsfield price. No generation submitted.');
     if(quote.expires_at<=d.now())fail(409,'Higgsfield price review expired. No generation submitted; review again.');
     const p=JSON.parse(quote.params),payload=JSON.parse(quote.payload||'{}');
+    await checkNightFlashAccess(p);
     if(p.provider!=='higgsfield'||p.soulProModel!=='soul2'||payload.model!==p.model||!payload.input||quote.estimate_microusd<=0||quote.estimate_microusd>SOUL2_MAX_QUOTE_MICROS)fail(409,'Invalid Higgsfield quote; review the price again.');
     if(quote.source_id)await source(env,owner,quote.source_id);
     let j;
