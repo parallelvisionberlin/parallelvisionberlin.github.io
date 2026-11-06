@@ -1,5 +1,17 @@
 # Beauty Studio and Studios navigation
 
+## 2026-11-06T23:28:36.397Z | Three-row refinement LIVE verified
+
+- PR #889, reviewed 7f7e5e6bfbd0dcedfc23fc524619463c9d0e0ff9, merged as a2d45d0793343a9575f4d83cbae0f912e37d2387.
+- Exact Cloudflare pvlab-studio check 128215858001 succeeded; /beauty references the flow1 layout and flow2 presentation JS. 24 live asset hashes match reviewed source.
+- Original hero, complete original composition stylesheet, mixed-case ALTER Studio. title and existing PV LAB favicon are retained. No background replacement, recropping or recolouring.
+- Nine working choices per tab, a taller right editor, taller photographic archive and no carousel arrows. Wheel over heading/cards moves both ways; native trackpad/touch, mouse drag/momentum and keyboard retained. Browsing does not apply looks or generate.
+- Complete intercepted Beauty/Studios role, quote, history and responsive suite plus 14 focused contracts and Worker quote/idempotency integration passed before merge.
+- Real public guest production checks passed at 1440/390: nine choices per tab, original defaults/reset, stable Generate, wheel reversal and zero idle animation callbacks, reachable last card, no page overflow and no Worker mutations.
+- Evidence and screenshots: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42311975833.
+- No real signed-in generation, payment, paid provider job or physical iPhone Safari verification. New preset output fidelity is not claimed.
+- This is the current verified release. The pending notes below describe earlier stages only; no frontend publication remains pending.
+
 ## Scroll-settling follow-up
 
 - Final normal-motion QA found a 1px rounding tail could keep requestAnimationFrame running after the archive stopped moving. The only interaction change is a 1.5px settle tolerance instead of 0.8px. No layout, imagery, defaults, backend or generation behavior changed.

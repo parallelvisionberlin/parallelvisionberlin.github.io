@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T23:20:47.783Z",
+  "updatedAt": "2026-11-06T23:28:36.397Z",
   "handoffs": [
     {
       "id": "owner",
@@ -945,10 +945,10 @@
       "component": "ALTER Studio",
       "status": "deployed",
       "summary": "Published and verified: 3-by-3 Edit Look choices, taller editor and photographs, arrow-free bidirectional wheel/trackpad/drag/swipe archive. Original background composition, mixed-case heading, favicon, defaults and backend retained.",
-      "nextAction": "No frontend publication remains pending. Provider output fidelity and actual signed-in paid generation remain untested; no paid request was performed.",
+      "nextAction": "No frontend publication remains pending. Pixel-quantized scroll settling also verified with zero idle animation callbacks. Provider output fidelity and actual signed-in paid generation remain untested; no paid request was performed.",
       "baselineSha": "c714d7ec533da9807bb3f0f03e5c571463d2a4e4",
-      "reviewedSha": "1b361a956f4cb04fe4dca376b223ca47bc3a6ce2",
-      "branch": "fix/alter-three-row-scroll-20261106",
+      "reviewedSha": "7f7e5e6bfbd0dcedfc23fc524619463c9d0e0ff9",
+      "branch": "fix/alter-scroll-settle-20261106",
       "files": [
         "lab/beauty-approved-20261029.js",
         "lab/beauty-editorial-final.css",
@@ -970,12 +970,16 @@
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/880"
         },
         {
+          "label": "Current production evidence",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42310995580"
+        },
+        {
           "label": "Refinement PR",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/887"
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/889"
         },
         {
           "label": "Current production evidence",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42310995580"
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42311975833"
         }
       ],
       "tests": [
@@ -1004,14 +1008,28 @@
           "scope": "1440px and 390px: all five tabs have nine choices in three rows, defaults/reset, stable Generate geometry, bidirectional wheel, keyboard reachability, original favicon, no horizontal overflow or Worker mutations. Source and all production asset hashes match.",
           "observedAt": "2026-11-06T23:20:47.783Z",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42310995580"
+        },
+        {
+          "label": "Scroll-settling regression",
+          "result": "passed",
+          "scope": "14 focused Image/Beauty/ALTER contracts, including execution of the actual wheel function against integer and fractional scroll positions in both directions. Complete existing Beauty browser suite also passed.",
+          "observedAt": "2026-11-06T23:28:36.397Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42311672012"
+        },
+        {
+          "label": "Public production guest verification",
+          "result": "passed",
+          "scope": "1440px and 390px: all five tabs have nine choices in three rows, defaults/reset, stable Generate geometry, bidirectional wheel, zero idle wheel-animation callbacks, keyboard reachability, original favicon, no horizontal overflow or Worker mutations. Source and all production asset hashes match.",
+          "observedAt": "2026-11-06T23:28:36.397Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42311975833"
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "46054b88b991656eeb19affd7ed7e2bd6c6f8acf",
+        "sourceSha": "a2d45d0793343a9575f4d83cbae0f912e37d2387",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-06T23:20:47.783Z",
-        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/9ad0a3b4-26c0-4da5-81e6-32c9ae6d8481",
+        "observedAt": "2026-11-06T23:28:36.397Z",
+        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/9c9130b3-bfe1-48db-9540-bd7f9a312460",
         "limitations": [
           "Public guest production behavior only. No real signed-in generation, provider fidelity or payment test.",
           "Mobile viewport checked in Chromium, not physical iPhone Safari."
@@ -1020,10 +1038,10 @@
       "evidence": [
         {
           "kind": "deployment",
-          "summary": "Exact merge Cloudflare Pages check 128212836863 passed.",
+          "summary": "Exact merge Cloudflare Pages check 128215858001 passed.",
           "scope": "Frontend publication, not signed-in provider testing.",
-          "observedAt": "2026-11-06T23:20:47.783Z",
-          "source": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/9ad0a3b4-26c0-4da5-81e6-32c9ae6d8481",
+          "observedAt": "2026-11-06T23:28:36.397Z",
+          "source": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/9c9130b3-bfe1-48db-9540-bd7f9a312460",
           "limitations": [
             "Public guest production behavior only. No real signed-in generation, provider fidelity or payment test.",
             "Mobile viewport checked in Chromium, not physical iPhone Safari."
@@ -1033,8 +1051,8 @@
           "kind": "production_asset",
           "summary": "24 live assets match reviewed source. Original hero SHA256 ecaa0cb86a6af9cf1cf1975a2d3fe59a265ffe66085a1e1e0e6e52b2ecd38bb1; original composition CSS SHA256 8fb8d32b81006996a9667f5449d55f069b605eaaecfbd482c35a8508c83ef665.",
           "scope": "Background unchanged and exact custom-domain publication.",
-          "observedAt": "2026-11-06T23:20:47.783Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42310995580",
+          "observedAt": "2026-11-06T23:28:36.397Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42311975833",
           "limitations": []
         }
       ],
@@ -1046,7 +1064,7 @@
         "Do not restore archive navigation arrows or let browsing change selections.",
         "Do not add providers or change billing."
       ],
-      "updatedAt": "2026-11-06T23:20:47.783Z"
+      "updatedAt": "2026-11-06T23:28:36.397Z"
     },
     {
       "id": "shared-image-soul-deck",
