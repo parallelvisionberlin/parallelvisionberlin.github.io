@@ -136,7 +136,7 @@ test('Composition remains visible for zero, one and several selected models',()=
  assert.match(js,/count===1\?kind==='alternating'/);
  assert.match(js,/button\.disabled=!ready/);
  assert.match(js,/button\.setAttribute\('aria-pressed',String\(active\)\)/);
- assert.match(js,/footer\.after\(composition\)/);
+ assert.match(js,/actionDock\.after\(composition\)/);
  assert.match(js,/workspace\.append\(composition\)/);
  const c=read('lab/full-editorial-identity-refresh.css');
  assert.match(c,/data-cast-state="empty"/);
