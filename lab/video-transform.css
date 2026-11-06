@@ -7,19 +7,6 @@
   display:flex!important;flex-direction:column!important;gap:9px!important;
   border:0!important;padding:0!important;margin:0!important;background:transparent!important;
 }
-#app.video-studio-active.video-transform-active #reference-mode #transform-help:not([hidden]){
-  order:-3;display:flex!important;flex-direction:column;gap:3px;min-height:0;
-  padding:1px 2px 7px;border-bottom:1px solid #303339;
-}
-#app.video-studio-active.video-transform-active #transform-help span{
-  color:#92999f;font:550 10px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.12em;
-}
-#app.video-studio-active.video-transform-active #transform-help strong{
-  color:#fafaf7;font:650 21px/1.15 'DM Sans',Arial,sans-serif;letter-spacing:-.035em;
-}
-#app.video-studio-active.video-transform-active #transform-help p{
-  color:#a8aaad;font:450 11px/1.45 'DM Sans',Arial,sans-serif;margin:3px 0 0;
-}
 #app.video-studio-active.video-transform-active #reference-mode #reference-media:not([hidden]){
   display:flex!important;order:-2;flex-direction:column!important;gap:6px!important;
   padding:0!important;margin:0!important;border:0!important;background:transparent!important;
@@ -120,18 +107,6 @@ html body #app.video-studio-active.video-transform-active #mode-transform[aria-s
   background:#eeeeed!important;border-color:#eee!important;
   color:#141516!important;box-shadow:0 1px 8px #ffffff0f!important;
 }
-html body #app.video-studio-active.video-transform-active #transform-help{
-  padding:4px 1px 12px!important;border-bottom:1px solid #282b30!important;
-}
-html body #app.video-studio-active.video-transform-active #transform-help strong{
-  font-size:17px!important;letter-spacing:-.03em!important;font-weight:650!important;
-}
-html body #app.video-studio-active.video-transform-active #transform-help span{
-  color:#9ea3a7!important;font-size:9px!important;letter-spacing:.17em!important;
-}
-html body #app.video-studio-active.video-transform-active #transform-help p{
-  max-width:37ch;font-size:11px!important;color:#a3a7ab!important;
-}
 html body #app.video-studio-active.video-transform-active #reference-mode #reference-media>.pv-media-ref-group-video{
   display:flex!important;flex-direction:column!important;gap:6px!important;
   border-bottom:1px solid #2d3035!important;
@@ -217,9 +192,6 @@ html body #app.video-studio-active.video-transform-active #reference-mode #refer
 html body #app.video-studio-active.video-transform-active #reference-mode #pv-video-ref-title{order:5!important;}
 html body #app.video-studio-active.video-transform-active #reference-mode #reference-list{order:6!important;}
 html body #app.video-studio-active.video-transform-active #reference-mode>.fine{order:7!important;}
-html body #app.video-studio-active.video-transform-active #pv-video-prompt-box textarea#prompt{
-  min-height:88px!important;height:100px!important;
-}
 html body #app.video-studio-active .canvas>.video-transform-compare:not([hidden]){
   left:50%!important;top:58px!important;transform:translateX(-50%);
   background:#151719dc!important;border-color:#42464b!important;
@@ -274,4 +246,39 @@ html body #app.video-studio-active.video-transform-active .pv-transform-inspecto
    provider edit until its separate backend enable flag is explicitly set. */
 #app.video-studio-active #mode-transform:disabled{
   cursor:not-allowed!important;opacity:.58!important;
+}
+
+/* Transform uses source video properties and the actual selectable resolution.
+   Scoped below the original three-column layout; History is untouched. */
+html body #app.video-studio-active.video-transform-active .controls-body>.parameter-grid{
+ display:grid!important;grid-template-columns:minmax(0,1.6fr) minmax(106px,1fr)!important;
+ gap:7px!important;align-items:stretch!important;
+}
+html body #app.video-studio-active.video-transform-active #pv-transform-source-settings:not([hidden]){
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important;min-width:0!important;
+}
+html body #app.video-studio-active.video-transform-active #pv-transform-source-settings>div{
+ box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;min-width:0;
+ min-height:47px;padding:7px 8px;border:1px solid #393d43;background:#202329;border-radius:8px;
+}
+html body #app.video-studio-active.video-transform-active #pv-transform-source-settings span,
+html body #app.video-studio-active.video-transform-active #resolution-control>.label{
+ display:block!important;font:500 10px/1.2 'DM Sans',Arial,sans-serif!important;color:#abb0b7!important;margin-bottom:5px!important;
+}
+html body #app.video-studio-active.video-transform-active #pv-transform-source-settings strong{
+ font:600 12px/1.3 'DM Sans',Arial,sans-serif!important;color:#f0f0ee!important;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+html body #app.video-studio-active.video-transform-active #resolution-control:not([hidden]){
+ display:flex!important;flex-direction:column!important;justify-content:center!important;
+ min-width:0!important;min-height:47px!important;height:auto!important;
+ flex:none!important;padding:7px 8px!important;
+}
+html body #app.video-studio-active.video-transform-active #resolution-control select{
+ width:100%!important;min-width:0!important;cursor:pointer!important;
+}
+@media(max-width:390px){
+ html body #app.video-studio-active.video-transform-active .controls-body>.parameter-grid{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
 }

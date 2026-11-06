@@ -91,10 +91,12 @@ function mountVideoSceneStates(){
       const count=Number(byId('ref-count')?.textContent?.split('/')?.[0]?.trim()||0);
       const element=referenceList.querySelector('.reference-element-item[data-element-category="characters"]');
       const character=element?.dataset.elementName||'Uploaded photographs';
+      const sourceDuration=item?.textContent?.split(' / ').at(-1)?.trim()||'From source';
+      byId('pv-transform-source-duration').textContent=sourceDuration;
       byId('pv-transform-inspector-original').textContent=source;
       byId('pv-transform-inspector-count').textContent=count?count+' photograph'+(count===1?'':'s'):'No photographs';
       byId('pv-transform-inspector-character').textContent=element?character:(count?'Individual references':'Not selected');
-      byId('pv-video-current-duration').textContent=item?(item.textContent.split(' / ').at(-1)||'Source duration'):'Source duration';
+      byId('pv-video-current-duration').textContent=sourceDuration;
     }
     renderLiveReferences(mode);
     // The editor owns readiness, including Gallery-to-Start-Frame handoffs.

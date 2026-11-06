@@ -146,11 +146,13 @@ test('a mismatched Transform job quote is rejected without provider submission',
 test('Video Transform has its own entry and keeps the existing source-only film artwork',()=>{
   const read=path=>readFileSync(new URL('../lab/'+path,import.meta.url),'utf8');
   const html=read('studio.html'),app=read('lab.js'),css=read('video-transform.css'),scene=read('video-scene-states.js');
-  for(const id of ['mode-transform','transform-help','video-reference-heading','video-transform-compare',
+  for(const id of ['mode-transform','pv-transform-source-settings','video-reference-heading','video-transform-compare',
     'video-transform-original','video-transform-result']){
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id+' exists only once');
   }
-  assert.match(html,/video-transform\.css\?v=20261105-v1/);
+  assert.match(html,/video-transform\.css\?v=20261106-real-editor1/);
+  assert.doesNotMatch(html,/VIDEO TRANSFORM \/ 01|Bring a video and your character references|id="transform-help"/);
+  assert.match(app,/\$\('pv-transform-source-settings'\)\.hidden=!isVideo\|\|mode!=='transform'/);
   assert.match(app,/mode==='transform'/);
   assert.match(app,/quote\.settings\.mode==='transform'|q\.settings\.mode==='transform'/);
   assert.match(app,/showTransformComparison\(job\)/);

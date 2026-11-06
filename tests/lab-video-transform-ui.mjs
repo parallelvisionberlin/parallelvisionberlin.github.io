@@ -70,6 +70,10 @@ try{
   await choose(x,'transform');
   assert.equal(await page.locator('#mode-transform').getAttribute('aria-selected'),'true');
   assert.equal(await page.locator('#app').evaluate(el=>el.classList.contains('video-transform-active')),true);
+  assert.equal(await page.locator('#transform-help').count(),0);
+  assert.equal(await page.locator('#pv-transform-source-settings').isVisible(),true);
+  assert.equal(await page.locator('#resolution-control').isVisible(),true);
+  assert.deepEqual(await page.locator('#resolution option').evaluateAll(nodes=>nodes.map(n=>n.value)),['480p','720p','1080p']);
   assert.equal(await page.locator('#reference-media').isVisible(),true,'one source-video picker visible');
   assert.equal(await page.locator('#reference-drop').isVisible(),true,'replacement identity uploader visible');
   assert.equal(await page.locator('#scene-video-open').isVisible(),true,'saved Characters available');
