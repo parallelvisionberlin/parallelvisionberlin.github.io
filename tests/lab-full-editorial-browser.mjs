@@ -67,6 +67,10 @@ try{
    assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true);
    assert.equal(await page.locator('[data-cast-composition="together"]').isDisabled(),true);
    assert.equal(await page.locator('#step-next').isDisabled(),true);
+   if(width>800){
+    const fold=await page.locator('#editorial-composition-choices').evaluate(el=>({bottom:el.getBoundingClientRect().bottom,viewport:innerHeight}));
+    assert.ok(fold.bottom<=fold.viewport-8,'Composition fully visible on initial 1440×900 viewport: '+JSON.stringify(fold));
+   }
   for(const label of ['Bronze portrait','Copper portrait'])assert.equal(await page.locator('[data-sample-label="'+label+'"]').getAttribute('aria-pressed'),'false');
   const castTrack=page.locator('#editorial-cast-track');
   assert.equal(await page.locator('.editorial-cast-pinned').count(),1,'One pinned Create Character and upload card');
@@ -97,7 +101,7 @@ try{
    });
    assert.equal(layout.heroBelowHeader,true,'Sticky header does not cover hero controls');
    assert.ok(layout.topGap<=13,'Hero begins immediately below the header');
-   assert.ok(layout.heroHeight>=249&&layout.heroHeight<=295,'Hero is the approved large portrait');
+   assert.ok(layout.heroHeight>=205&&layout.heroHeight<=235,'Short desktop displays hero and full Composition');
    for(const key of ['railHidden','backInside','cardsVisible'])assert.equal(layout[key],true,key);
    const emptyBounds=await page.evaluate(()=>{
     const r=selector=>document.querySelector(selector).getBoundingClientRect();
@@ -106,7 +110,7 @@ try{
      buttonBackground:getComputedStyle(document.getElementById('step-next')).backgroundColor};
    });
    assert.ok(emptyBounds.footerBottom<=emptyBounds.viewportHeight-8,'Empty Identity action and cast all fit on the initial desktop screen: '+JSON.stringify(emptyBounds));
-   assert.ok(emptyBounds.cardHeight>=271&&emptyBounds.cardHeight<=296,'Portraits use the restored taller editorial format');
+   assert.ok(emptyBounds.cardHeight>=245&&emptyBounds.cardHeight<=272,'Casting images retain editorial proportions');
    const textClearance=await page.evaluate(()=>{
     const box=selector=>document.querySelector(selector).getBoundingClientRect();
     const button=document.getElementById('step-next');
@@ -195,6 +199,14 @@ try{
    assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Composition stays visible with one model');
    assert.equal(await page.locator('#editorial-casting-controls').getAttribute('data-cast-state'),'solo');
    assert.equal(await page.locator('[data-cast-composition="alternating"]').getAttribute('aria-pressed'),'true','Solo only is automatic');
+   if(width<=800){
+    await page.waitForFunction(()=>{
+     const track=document.getElementById('editorial-composition-choices'),item=track?.querySelector('[data-cast-composition="alternating"]');
+     if(!track||!item)return false;
+     const t=track.getBoundingClientRect(),r=item.getBoundingClientRect();
+     return r.left>=t.left-3&&r.right<=t.right+3;
+    });
+   }
    assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true,'One model is not multi-cast');
    assert.equal(await page.locator('#step-next').isDisabled(),false,'One model can continue');
    if(width>800){
@@ -287,6 +299,9 @@ try{
    assert.equal(await page.locator('#editorial-casting-controls').getAttribute('data-cast-state'),'solo');
    assert.equal(await page.locator('[data-cast-composition="alternating"]').getAttribute('aria-pressed'),'true');
    assert.equal(await page.locator('[data-cast-composition="alternating"]').isDisabled(),true);
+   const remainingCover=await page.locator('#model-thumbs .editorial-model-cover img').first().getAttribute('src');
+   const compositionImages=await page.locator('.editorial-composition-art img').evaluateAll(els=>els.map(img=>img.getAttribute('src')));
+   assert.ok(compositionImages.every(src=>src===remainingCover),'Removed model is not retained in disabled Composition photos');
    // Saved Characters is a real source tab; one saved pack produces one person.
   await page.locator('#saved-character').click();
   await page.locator('#saved-character-gallery .editorial-saved-cast').first().waitFor();
