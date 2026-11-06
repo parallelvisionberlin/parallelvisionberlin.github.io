@@ -346,8 +346,9 @@ body.editorial-web .flow-main > #editorial-casting-controls .editorial-compositi
 }
 body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-heading h4{
  margin:0!important;font-family:Impact,'Arial Narrow','Helvetica Neue',sans-serif!important;
- font-size:clamp(39px,3.3vw,57px)!important;font-weight:900!important;
- letter-spacing:-.035em!important;line-height:.94!important;text-transform:uppercase;
+ font-size:clamp(35px,2.8vw,47px)!important;font-weight:400!important;
+ font-synthesis:none!important;letter-spacing:.01em!important;
+ line-height:.94!important;text-transform:uppercase;
  color:#f4f2ef!important;
 }
 body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-heading p{
@@ -459,8 +460,10 @@ body.editorial-web #panel-model #editorial-saved-rail .editorial-cast-arrow{z-in
  }
  body.editorial-web #panel-model .stage-copy h2{
   font-family:Impact,'Arial Narrow','Helvetica Neue',sans-serif!important;
-  font-weight:900!important;font-size:clamp(72px,6.8vw,112px)!important;
-  letter-spacing:-.06em!important;line-height:.9!important;text-transform:uppercase;
+  /* Impact is intrinsically bold: avoid synthetic 900 weight and colliding glyphs. */
+  font-weight:400!important;font-synthesis:none!important;
+  font-size:clamp(72px,6.4vw,100px)!important;
+  letter-spacing:.02em!important;line-height:.9!important;text-transform:uppercase;
   margin:7px 0 11px!important;
  }
  body.editorial-web #panel-model .stage-copy p{
@@ -559,7 +562,7 @@ body.editorial-web .flow-main > #editorial-casting-controls:not([hidden]){
 }
 body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-heading{min-width:0}
 body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-heading h4{
- font-size:clamp(35px,3vw,51px)!important;
+ font-size:clamp(35px,2.8vw,47px)!important;
 }
 body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-option{
  display:block!important;position:relative!important;min-width:0!important;
@@ -601,7 +604,7 @@ body.editorial-web .flow-main > #editorial-casting-controls .editorial-compositi
 }
 @media(min-width:801px){
  body.editorial-web #panel-model .stage-copy h2{
-  transform:scaleX(.84);transform-origin:left center;
+  transform:scaleX(.90);transform-origin:left center;
  }
  body.editorial-web #editorial-footer-cast .editorial-model-card.thumb .editorial-add-view{
   opacity:0!important;
@@ -623,7 +626,7 @@ body.editorial-web .flow-main > #editorial-casting-controls .editorial-compositi
  body.editorial-web #panel-model .stage-visual{height:clamp(248px,31svh,285px)!important}
  body.editorial-web #panel-model .stage-copy{bottom:clamp(57px,7svh,78px)!important}
  body.editorial-web #panel-model .stage-copy h2{
-  font-size:clamp(80px,6.8vw,108px)!important;margin:6px 0 10px!important
+  font-size:clamp(72px,6.4vw,100px)!important;margin:6px 0 10px!important
  }
  body.editorial-web #panel-model .editorial-cast-pinned,
  body.editorial-web #panel-model .editorial-cast-rail{height:clamp(258px,31svh,294px)!important}
