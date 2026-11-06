@@ -119,7 +119,10 @@ try{
         };
       });
       assert.equal(result.value,longPrompt,'Pasted text is preserved');
-      if(viewport.width>=741)assert.equal(result.fontSize,15.5,'Desktop Image prompt is reduced to 15.5px');
+      // The later editorial deck (promptType=20261101-14px1) supersedes
+      // image-composer-stable.css's older 15.5px desktop typography.
+      if(viewport.width>=900)assert.equal(result.fontSize,14,'Desktop Image prompt keeps the approved editorial 14px type');
+      else if(viewport.width>=741)assert.equal(result.fontSize,15.5,'Tablet Image prompt retains the existing 15.5px type');
       else assert.equal(result.fontSize,16,'Phone prompt uses readable text to avoid iOS focus zoom');
       assert.equal(result.overflow,'auto','Long prompt scrolls in its own field');
       assert.ok(result.scrollMax>140,'The input must contain hidden text beyond the visible area');

@@ -17,7 +17,7 @@ clerk={isSignedIn:true,user:{id:'replacement-flow-customer',fullName:'Synthetic 
 owner=true;ownerAccount=false;customerMode=true;userId='replacement-flow-customer';customerGenerationReady=true;customerBillingReady=true;
 const replacementProfile={customer:true,balanceCredits:100,billingReady:true,generationReady:true,products:[]};
 wallet.connect(replacementProfile);studioAccount.update({signed:true,user:clerk.user,profile:replacementProfile});
-applyConfig({enabled:true,falEnabled:true,geminiEnabled:true,concurrency:{image:4,video:3},videoEngines:['seedance']});
+applyConfig({enabled:true,falEnabled:true,geminiEnabled:true,imageReplacementEnabled:true,concurrency:{image:4,video:3},videoEngines:['seedance']});
 $('app').hidden=false;$('gate').hidden=true;imageEngine='seedream';$('image-engine').value='seedream';setTool('image');moodUI.clear(true);
 await loadHistory();update();finishLabBoot();
 window.__replacementFlow={
@@ -117,7 +117,9 @@ try {
       return send({});
     });
     await page.goto(base + '/lab/studio.html?tool=image');
-    await page.waitForFunction(() => window.__replacementFlowReady);
+    await page.waitForFunction(() => window.__replacementFlowReady).catch(error => {
+      throw new Error('Studio replacement fixture did not finish booting. Page errors: ' + JSON.stringify(errors), {cause:error});
+    });
     await page.locator('#lab-boot').waitFor({state:'hidden'});
     const fixtures = await page.evaluate(() => {
       const make = (color, selection = false) => {

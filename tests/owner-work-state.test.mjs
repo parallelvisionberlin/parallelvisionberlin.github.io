@@ -68,13 +68,13 @@ test('CLI read is deterministic and scoped; upsert keeps unrelated records and r
     assert.equal(one.stdout,two.stdout);assert.equal(JSON.parse(one.stdout).id,'owner-partners');
     await assert.rejects(exec(process.execPath,[cli,'read','not-a-record','--file',file]),/Unknown work record/);
     const before=await readWorkState(file);const record=copy(before.records.find(v=>v.id==='owner-operational-workspace'));
-    record.updatedAt='2026-11-07T12:00:00Z';record.nextAction='Publish the tested candidate.';
+    record.updatedAt=new Date(Date.parse(record.updatedAt)+86400000).toISOString();record.nextAction='Publish the tested candidate.';
     const input=path.join(directory,'input.json');await writeFile(input,JSON.stringify(record));
     await exec(process.execPath,[cli,'upsert',input,'--file',file]);
     const after=await readWorkState(file);
     assert.deepEqual(after.records.filter(v=>v.id!==record.id),before.records.filter(v=>v.id!==record.id));
     assert.equal(after.records.find(v=>v.id===record.id).nextAction,record.nextAction);
-    record.updatedAt='2026-11-06T12:00:00Z';await writeFile(input,JSON.stringify(record));
+    record.updatedAt=new Date(Date.parse(before.records.find(v=>v.id===record.id).updatedAt)-1000).toISOString();await writeFile(input,JSON.stringify(record));
     await assert.rejects(exec(process.execPath,[cli,'upsert',input,'--file',file]),/newer work record/);
     assert.equal((await readWorkState(file)).updatedAt,after.updatedAt);
   }finally{await rm(directory,{recursive:true,force:true});}

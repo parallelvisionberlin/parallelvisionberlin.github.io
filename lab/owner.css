@@ -974,3 +974,254 @@ button.owner-inspect-media{cursor:pointer}
 .owner-mobile-settings{display:block;padding:10px 0;font-size:12px;color:#aaa}
 @media(max-width:880px){.owner-ops-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.owner-local-nav{gap:3px 20px;margin-top:12px}.owner-local-nav a{font-size:12px;min-height:44px;padding-top:13px}.owner-home-attention{grid-template-columns:1fr;gap:17px;margin:18px 0;padding:19px 0}.owner-hero h1{font-size:42px}.owner-work-record>summary{gap:12px;flex-wrap:wrap;padding:19px 0}.owner-work-heading strong{font-size:16px}.owner-work-heading small{font-size:12px}.owner-work-body{padding:16px}.owner-work-fields{grid-template-columns:1fr}.owner-ops-list li{align-items:start;flex-wrap:wrap;gap:10px}.owner-ops-list button{min-height:44px}.owner-ops-metrics{gap:20px 16px}.owner-ops-metrics dd{font-size:28px}.owner-work-filters{gap:4px 16px}.owner-work-filters button{min-height:44px}.owner-traffic-actions{flex-wrap:wrap}}
+
+/* Direct Owner navigation: readable reports, quiet chrome and details on demand. */
+body{font-size:16px;line-height:1.5}
+.owner-shell{padding-top:24px;padding-bottom:30px}
+.owner-header{min-height:62px}
+.owner-header nav a,.owner-header nav .owner-studio{font-size:14px}
+.owner-header nav .owner-studio{padding:9px 16px}
+.owner-sidebar-brand{padding-bottom:24px}
+.owner-sidebar-brand>span,.owner-header-label{font-size:12px;letter-spacing:.08em}
+.owner-side-nav{gap:3px}
+.owner-side-nav a{min-height:46px;padding:11px 15px;font-size:15px;line-height:1.5}
+.owner-side-bottom a,.owner-partners>summary{font-size:14px}
+.owner-side-bottom .owner-partners-links a{font-size:14px;min-height:40px}
+.owner-hero{display:block;padding:0 0 18px;gap:0}
+.owner-hero h1{margin:0;font-size:44px;line-height:1.1;font-weight:400;letter-spacing:-.055em}
+.owner-hero .owner-eyebrow,.owner-hero .owner-intro{display:none}
+.owner-status{font-size:14px;margin:0 0 12px;line-height:1.5}
+.owner-status:empty{margin:0}
+.owner-section,.owner-local-nav~.owner-section{padding:18px 0 28px}
+.owner-section-head{margin-bottom:18px;align-items:center;gap:16px}
+.owner-section h2{margin:0;font-size:26px;font-weight:400;line-height:1.2;letter-spacing:-.035em}
+.owner-section-head .owner-index,.owner-activity-head .owner-index{display:none}
+.owner-index,.owner-eyebrow{font-size:12px;letter-spacing:.06em}
+.owner-section-description,.owner-section-aside,.owner-small,.owner-toolbar p,
+.owner-form-grid label,.owner-voucher-form label,.owner-voucher-result p,.owner-voucher-result label,
+.owner-setup-guide ol,.owner-setup-guide p:last-child{font-size:14px;line-height:1.6}
+.owner-section-description{margin-top:8px}
+.owner-search{gap:10px;margin:0;flex-wrap:wrap;min-width:0}
+.owner-search label{font-size:14px}
+.owner-search input,.owner-voucher-form input,.owner-result-copy input{font-size:15px;min-height:42px}
+.owner-search button,.owner-toolbar button,.owner-result-copy button,.owner-primary,
+.owner-vouchers-table button,.owner-credit-presets button,.owner-provider-controls button,.owner-provider-controls a,
+.owner-provider-detail-refresh,.owner-integration button,.owner-integration-actions button,
+.owner-pagination-button,.owner-work-filters button,.owner-ops-list button,
+.owner-local-nav a,.owner-local-subnav a{font-size:14px;line-height:1.4}
+.owner-toolbar{gap:12px;align-items:center}
+.owner-toolbar p{margin:0}
+.owner-voucher-estimate,.owner-setup-guide code,.owner-email-status,.owner-section-preview-head p{font-size:14px;line-height:1.5}
+.owner-local-nav{margin:8px 0 12px;gap:8px 24px}
+.owner-optional,.owner-footer,.owner-pagination-summary{font-size:12px}
+.owner-footer{padding:24px 0;letter-spacing:0}
+
+/* Main reports keep their existing data, with table labels as readable as their values. */
+.owner-table-wrap table,.owner-acquisition-table table{font-size:14px}
+.owner-table-wrap th,.owner-acquisition-table th{font-size:14px;font-weight:500;letter-spacing:0;text-transform:none}
+.owner-table-wrap td,.owner-acquisition-table td{font-size:14px}
+.owner-table-wrap td small,.owner-acquisition-subid{font-size:12px;line-height:1.5}
+.owner-table-wrap th,.owner-table-wrap td{padding-top:14px;padding-bottom:14px}
+.owner-customer-open,.owner-acquisition-open,.owner-acquisition-review-button{font-size:14px;line-height:1.5}
+.owner-customer-row-details{min-width:0;max-width:100%}
+.owner-customer-row-details>summary{width:fit-content;max-width:100%;font-size:14px;line-height:1.5;cursor:pointer;overflow-wrap:anywhere}
+.owner-customer-usage-details{min-width:0;max-width:100%;margin:12px 0 0;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.owner-customer-usage-details dl{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin:0}
+.owner-customer-usage-details dt{margin:0;color:#a6a6a1;font-size:14px}
+.owner-customer-usage-details dd{margin:3px 0 0;font-size:14px}
+.owner-customer-usage-details :is(p,small){font-size:12px;line-height:1.5}
+.owner-table-wrap tbody tr.owner-customer-usage-row>td{max-width:none}
+.owner-customer-usage-row .owner-customer-usage-details{margin:0;padding:4px 0 12px}
+.owner-customer-usage-details dl.owner-customer-detail-fields{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 24px}
+.owner-customer-usage-status{margin:0 0 12px;color:#a6a6a1;font-size:12px;line-height:1.5}
+.owner-customer-review-action{margin-top:14px;padding:8px 0;border:0;background:transparent;color:#e7e7e3;font-size:14px;text-decoration:underline;text-underline-offset:4px}
+
+/* The overview is a short summary; it does not reserve a screenful of empty card height. */
+.owner-metrics{border-left:0;border-right:0}
+.owner-metrics>.owner-metric,.owner-metrics>.owner-metrics-actions{min-height:108px}
+.owner-metrics>.owner-metric{gap:12px;padding:18px 14px}
+.owner-metrics .owner-metric-copy>span{margin-bottom:0;font-size:14px}
+.owner-metric-copy>strong{font-size:34px;margin-top:7px}
+.owner-metric-copy>small{font-size:12px;white-space:normal;line-height:1.5}
+.owner-metrics-actions>span,.owner-metrics-actions>p{font-size:12px;white-space:normal}
+.owner-metrics-actions>button{font-size:14px;padding:9px 12px}
+.owner-activity{min-height:0;margin-top:22px;gap:28px}
+.owner-activity-panel,.owner-purchases-panel,.owner-signups-panel{min-height:0;padding:0;background:transparent;border:0}
+.owner-purchases-panel{flex:initial}
+.owner-activity-head h2,.owner-purchases-panel .owner-activity-head h2{margin:0;font-size:25px;line-height:1.2;font-weight:400;letter-spacing:-.035em}
+.owner-activity-head a,.owner-activity-subtitle,.owner-recent-filters button{font-size:14px;line-height:1.5}
+.owner-activity-subtitle{margin-top:7px}
+.owner-recent-head,.owner-recent-status{font-size:14px;letter-spacing:0}
+.owner-recent-list>.owner-recent-item{padding:14px 0}
+.owner-recent-person strong{font-size:14px}
+.owner-recent-person small,.owner-recent-number,.owner-recent-date,
+.owner-payment-list>.owner-recent-item .owner-recent-date,.owner-recent-date small,
+.owner-recent-note,.owner-recent-trailing time{font-size:12px;line-height:1.5}
+.owner-recent-trailing strong,.owner-recent-empty{font-size:14px}
+.owner-recent-filters{margin:16px 0 12px}
+.owner-recent-filters button{padding:8px 14px}
+.owner-integration-label,.owner-integration-connected,.owner-provider-controls>span{font-size:12px;letter-spacing:0}
+.owner-integration-top>strong{font-size:20px}
+.owner-activity-side .owner-integration p,.owner-activity-side .owner-integration #owner-sync-copy,
+.owner-activity-side .owner-integration-label,.owner-integration-message p,
+.owner-activity-side .owner-integration-message p{font-size:14px}
+.owner-quick-actions a,.owner-quick-actions small,.owner-home-shortcuts{font-size:14px}
+.owner-quick-actions{min-height:0}
+
+/* Traffic, sales and costs use the same type scale rather than microcopy grids. */
+.owner-traffic-lead,.owner-traffic-status,.owner-traffic-actions button,.owner-audience-metric,
+.owner-traffic-card-heading h3,.owner-audience h4,.owner-traffic-source-top,
+.owner-audience-row .owner-traffic-source-top,.owner-traffic-no-data,
+.owner-traffic-disclaimer,.owner-audience-coverage,.owner-audience-more summary,
+.owner-audience-technical>summary,.owner-audience-sample-toggle,.owner-audience-sample-toggle>span:last-child,
+.owner-audience-empty,.owner-acquisition-explain,.owner-finance-note,.owner-provider-name,
+.owner-provider-detail-identity small,.owner-provider-stat>span,.owner-provider-stat>strong,
+.owner-provider-detail-action a,.owner-provider-detail-action .owner-provider-status,
+.owner-provider-key-usage,.owner-provider-key-usage>p,.owner-provider-key-usage li,
+.owner-provider-detail-note,.owner-finance-separate small,.owner-finance-separate p,.owner-providers-loading{font-size:14px;line-height:1.5}
+.owner-traffic-metrics span,.owner-acquisition-metrics span{font-size:14px;letter-spacing:0;text-transform:none}
+.owner-traffic-metrics small,.owner-acquisition-metrics small,.owner-traffic-card-heading>span,
+.owner-traffic-chart-day,.owner-audience-numbers small,.owner-audience-technical>summary span,
+.owner-acquisition-table-head span,.owner-provider-stat>small,.owner-provider-preview-foot{font-size:12px}
+.owner-provider-detail{grid-template-columns:minmax(150px,1.2fr) repeat(3,minmax(90px,.8fr)) minmax(105px,.8fr) minmax(90px,.7fr)}
+.owner-provider-detail-identity h3{font-size:17px}
+.owner-provider-mark{font-size:12px}
+.owner-acquisition-table-head{margin-top:24px}
+.owner-audience-heading h3{font-size:25px}
+
+/* Private customer review remains within its existing permission and media boundaries. */
+.owner-customer-dialog-head p,.owner-customer-activity-caption,.owner-customer-activity-section-head span,
+.owner-customer-activity-table td small,.owner-inspect-info small,.owner-generation-review-caption{font-size:12px;line-height:1.5}
+.owner-customer-activity-stat span,.owner-customer-activity-table th,.owner-customer-activity-table td,
+.owner-customer-activity-table td strong,.owner-customer-job-state,.owner-inspect-filter-label,
+.owner-inspect-key,.owner-inspect-prompt,.owner-inspect-settings,.owner-inspect-model,
+.owner-inspect-finance,.owner-inspect-status,.owner-inspect-pagination,.owner-inspect-action,
+.owner-inspect-media,.owner-inspect-expand,.owner-inspect-large,
+.owner-generation-review-disclosure,.owner-generation-review-status,
+.owner-generation-review-placeholder,.owner-generation-review-empty,
+#owner-customer-dialog-close,#owner-generation-review-close{font-size:14px;line-height:1.5}
+.owner-customer-activity-stat span,.owner-inspect-key{letter-spacing:0;text-transform:none}
+.owner-customer-dialog .owner-customer-dialog-head h2{font-size:30px;margin-top:0}
+.owner-inspect-info strong{font-size:16px}
+.owner-voucher-inline-list,.owner-voucher-inline-person strong,.owner-voucher-inline-person small{font-size:14px}
+.owner-voucher-inline-person .owner-voucher-inline-date{font-size:12px}
+
+/* Notifications and reference material are native dialogs, not permanent dashboard blocks. */
+#owner-home-attention{display:none}
+#owner-notifications-toggle{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;
+  padding:8px 4px;background:transparent;color:#e7e7e3;border:0;font-size:14px;line-height:1.4}
+#owner-notifications-toggle svg{width:19px;height:19px;flex:none}
+#owner-notifications-count{font-size:14px;line-height:1.2;font-variant-numeric:tabular-nums;color:#eee}
+#owner-notifications-dialog,#owner-reference-dialog,#owner-system-dialog{position:fixed;inset:0;margin:auto;
+  width:min(560px,calc(100vw - 32px));max-width:none;max-height:calc(100dvh - 48px);overflow:auto;
+  overscroll-behavior:contain;padding:24px;background:#141414;color:#eeede9;
+  border:1px solid #454545;border-radius:3px;box-shadow:0 18px 70px rgba(0,0,0,.5);font-size:14px;line-height:1.6}
+#owner-reference-dialog,#owner-system-dialog{width:min(860px,calc(100vw - 32px))}
+#owner-notifications-dialog::backdrop,#owner-reference-dialog::backdrop,#owner-system-dialog::backdrop{background:rgba(0,0,0,.78)}
+.owner-utility-dialog-head{display:flex;align-items:start;justify-content:space-between;gap:16px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid #383838}
+.owner-utility-dialog-head h2{margin:0;font-size:25px;line-height:1.2;font-weight:400;letter-spacing:-.035em}
+.owner-utility-dialog-close{flex:none;padding:8px 12px;background:transparent;color:#e7e7e3;border:1px solid #555;border-radius:3px;font-size:14px}
+#owner-notifications-dialog .owner-home-attention{display:block;margin:0;padding:0;border:0}
+#owner-home-attention-items{font-size:14px;gap:14px}
+#owner-home-attention-items small{font-size:12px;line-height:1.5}
+#owner-notifications-dialog a{font-size:14px}
+#owner-reference-dialog .owner-section,#owner-system-dialog .owner-section{padding:0;border:0}
+#owner-reference-dialog .owner-section-head,#owner-system-dialog .owner-section-head{margin-bottom:16px}
+.owner-check-detail>summary,.owner-check-body,.owner-check-links a,.owner-check-source,
+.owner-work-filters button,.owner-work-heading small,.owner-work-body,.owner-work-fields dt,
+.owner-work-fields dd,.owner-work-body h4,.owner-work-body li a,#owner-work-handoffs p,
+.owner-ops-health p,.owner-ops-metrics dt,.owner-ops-list strong,.owner-ops-list button{font-size:14px;line-height:1.6}
+.owner-check-detail>summary>small,.owner-work-state,.owner-work-body li small,
+#owner-work-handoffs small,.owner-ops-health small,.owner-ops-list small{font-size:12px;line-height:1.5}
+.owner-check-detail>summary{padding:16px 0}
+.owner-work-record>summary{padding:18px 0}
+.owner-work-heading{gap:5px}
+.owner-work-heading strong{font-size:18px}
+.owner-work-body{padding:18px;margin-bottom:18px}
+.owner-work-filters{margin-top:12px}
+.owner-ops-health{padding-top:8px}
+.owner-ops-group{padding-top:18px;margin-top:18px}
+.owner-ops-list{overflow-wrap:anywhere}
+
+@media(min-width:1261px){
+  .owner-activity{min-height:0}
+  .owner-signups-panel,.owner-purchases-panel{min-height:0;padding:0}
+}
+@media(max-width:1260px){
+  .owner-provider-detail{grid-template-columns:minmax(160px,1.35fr) repeat(3,minmax(82px,1fr))}
+}
+@media(max-width:920px){
+  .owner-shell{padding-top:20px}
+  .owner-mobile-access{margin-bottom:16px}
+  .owner-mobile-access>summary{font-size:15px;min-height:44px}
+  .owner-mobile-access>summary>span{font-size:12px}
+  .owner-mobile-access .owner-jumpbar{gap:0 10px}
+  .owner-mobile-access .owner-jumpbar a{font-size:14px;line-height:1.4;padding:11px 4px;min-height:44px;border:0;text-align:left;justify-items:start}
+  .owner-mobile-partners,.owner-mobile-settings{font-size:14px}
+  .owner-metrics>.owner-metric{min-height:96px}
+}
+@media(max-width:600px){
+  .owner-header{padding:10px 16px;gap:10px;flex-wrap:wrap}
+  .owner-header nav{gap:8px;min-width:0;max-width:100%;flex-wrap:wrap}
+  .owner-header nav a,.owner-header nav .owner-studio{font-size:14px}
+  .owner-header nav .owner-studio{padding:8px 10px}
+  .owner-notifications-label{display:none}
+  #owner-notifications-toggle{min-width:38px;padding-inline:3px}
+  .owner-hero{padding-bottom:16px}
+  .owner-hero h1{font-size:40px}
+  .owner-section,.owner-local-nav~.owner-section{padding-top:14px;padding-bottom:24px}
+  .owner-section h2{font-size:24px}
+  .owner-section-head{gap:12px}
+  .owner-search{margin-top:12px;width:100%}
+  .owner-search input,.owner-voucher-form input,.owner-result-copy input,.owner-inspect-filter{font-size:16px;min-height:44px}
+  .owner-search button,.owner-toolbar button,.owner-result-copy button,.owner-primary,
+  .owner-vouchers-table button,.owner-credit-presets button,.owner-provider-detail-refresh,.owner-integration button,
+  .owner-pagination-button,.owner-work-filters button,.owner-ops-list button,.owner-customer-open,
+  .owner-acquisition-open,.owner-acquisition-review-button,.owner-utility-dialog-close,
+  #owner-customer-dialog-close,#owner-generation-review-close{min-height:44px;font-size:14px}
+  .owner-table-wrap tbody td{font-size:14px;grid-template-columns:minmax(0,96px) minmax(0,1fr)}
+  .owner-table-wrap tbody td[data-label]::before{font-size:14px;letter-spacing:0;text-transform:none;padding-top:0}
+  .owner-table-wrap tbody td small{font-size:12px}
+  .owner-table-wrap tbody tr.owner-customer-usage-row>td{display:block}
+  .owner-customer-usage-row>td::before{display:none!important}
+  .owner-customer-row-details>summary{min-height:44px;padding-block:10px}
+  .owner-customer-usage-details dl.owner-customer-detail-fields{grid-template-columns:minmax(0,1fr);gap:14px}
+  .owner-customer-review-action{min-height:44px}
+  .owner-metrics>.owner-metric{gap:8px;padding:15px 10px}
+  .owner-metric-icon{display:none!important}
+  .owner-metric-copy>strong{font-size:32px}
+  .owner-metrics .owner-metric-copy>span{font-size:14px}
+  .owner-metric-copy>small,.owner-metrics-actions>span,.owner-metrics-actions>p{font-size:12px}
+  .owner-metrics-actions>button{font-size:14px;min-height:44px}
+  .owner-activity{gap:24px;margin-top:20px}
+  .owner-activity-panel,.owner-purchases-panel,.owner-signups-panel{padding:0;min-height:0}
+  .owner-activity-head{gap:12px;flex-wrap:wrap;align-items:baseline}
+  .owner-activity-head h2,.owner-purchases-panel .owner-activity-head h2{font-size:24px}
+  .owner-recent-person strong{font-size:14px}
+  .owner-recent-person small,.owner-recent-date,.owner-recent-date small,
+  .owner-payment-list>.owner-recent-item .owner-recent-date{font-size:12px}
+  .owner-recent-list>.owner-recent-item{grid-template-columns:16px minmax(0,1fr) 80px;gap:8px}
+  .owner-recent-person{gap:8px}
+  .owner-recent-avatar{display:none}
+  .owner-recent-filters button{font-size:14px;min-height:44px}
+  .owner-activity-side{display:flex;gap:24px}
+  .owner-traffic-card-heading h3,.owner-audience h4{font-size:16px}
+  .owner-provider-detail{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 14px;padding:16px}
+  .owner-provider-detail-identity{grid-column:1/-1}
+  .owner-provider-stat>span,.owner-provider-stat>strong{font-size:14px}
+  #owner-notifications-dialog,#owner-reference-dialog,#owner-system-dialog{width:calc(100vw - 20px);max-height:calc(100dvh - 28px);padding:20px 16px}
+  .owner-utility-dialog-head{gap:12px;margin-bottom:16px;padding-bottom:16px}
+  .owner-utility-dialog-head h2{font-size:24px}
+  .owner-work-fields{grid-template-columns:1fr}
+  .owner-work-heading small{font-size:14px}
+  .owner-work-heading strong{font-size:18px}
+  .owner-ops-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+.owner-visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
+#owner-reference-dialog .owner-release-checks>.owner-section-head>div,#owner-system-dialog .owner-section-head .owner-index{display:none}
+.owner-metric-notes .owner-small{font-size:14px;line-height:1.6}
+.owner-work-tools,.owner-notification-actions{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;margin:10px 0 16px}
+.owner-work-tools button,.owner-notification-actions button{font:inherit;font-size:14px;line-height:1.5;min-height:40px;padding:8px 0;color:#e7e7e3;background:transparent;border:0;border-bottom:1px solid #555;cursor:pointer}
+.owner-work-tools button:hover,.owner-notification-actions button:hover{border-bottom-color:#eee}
+@media(max-width:600px){.owner-work-tools button,.owner-notification-actions button{min-height:44px}}

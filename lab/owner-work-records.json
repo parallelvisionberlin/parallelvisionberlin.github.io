@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T13:31:13.683Z",
+  "updatedAt": "2026-11-06T14:10:15.106Z",
   "handoffs": [
     {
       "id": "owner",
@@ -146,7 +146,7 @@
       "title": "Use one Owner workspace",
       "component": "Owner access",
       "status": "deployed",
-      "summary": "Historical consolidation made /owner the single entry and redirected duplicate operational Sites. The subsequent four-view flow and live operations are recorded under owner-operational-workspace.",
+      "summary": "Historical consolidation made /owner the single entry and redirected duplicate operational Sites. Current presentation and continuity are tracked in owner-operational-workspace.",
       "nextAction": "Keep /owner as the single entry. Continue from owner-operational-workspace; do not rebuild the retired auxiliary Sites.",
       "baselineSha": null,
       "reviewedSha": "13304a12b8611138632bfa74a06520914211270a",
@@ -212,14 +212,14 @@
     },
     {
       "id": "owner-operational-workspace",
-      "title": "Make Owner useful for business and operational continuity",
+      "title": "Owner dashboard",
       "component": "Owner workspace",
-      "status": "needs_verification",
-      "summary": "Published four-view Owner workspace: Home, Business, Customers and System. The operational read model and shared source-controlled memory are live. Real signed-in Owner behavior remains unobserved.",
-      "nextAction": "Observe authenticated Home/Business/Customers/System navigation, private customer drilldown and live attention using an existing owner session. Reuse passing source/fixture evidence unless the relevant input changes.",
-      "baselineSha": "0cb72cbce8a5da018537bbb4cad818cbe0ecf020",
-      "reviewedSha": "b8d5a03ec7e505d90d9524fd36894668dbef5217",
-      "branch": "feat/owner-operational-workspace-20261106",
+      "status": "deployed",
+      "summary": "Published: direct menu, notifications in the header, one searchable customer list with expandable full activity, readable text and checklists available only on request.",
+      "nextAction": "Continue from this record and compare its reviewed source with current main before changing Owner again. Reuse passing checks when inputs are unchanged.",
+      "baselineSha": "aea3dcd040e688150de576e09f6a001e2232c1d6",
+      "reviewedSha": "86d8adff7bd3073b5dfe49570fba71cf8378e70e",
+      "branch": "fix/owner-clear-navigation-20261106",
       "files": [
         "lab/owner.html",
         "lab/owner.css",
@@ -227,11 +227,9 @@
         "lab/owner-workspace-ui.js",
         "lab/owner-operations-ui.js",
         "lab/owner-acquisition-ui.js",
-        "lab/owner-work-records.json",
-        "lab-worker/owner-operations.mjs",
-        "lab-worker/worker.mjs",
-        "scripts/owner-work-state.mjs",
-        "tests/lab-owner-mobile-browser.mjs"
+        "lab/owner-customers-ui.js",
+        "tests/lab-owner-mobile-browser.mjs",
+        "tests/lab-owner-customers-ui.test.mjs"
       ],
       "links": [
         {
@@ -241,114 +239,86 @@
         {
           "label": "Release protocol",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/RELEASE-PROTOCOL.md"
+        },
+        {
+          "label": "Previous release receipts",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/8a652b4234a5ce2e618b2114e3d6969858d0eaae/lab/owner-work-records.json"
         }
       ],
       "tests": [
         {
-          "label": "Final-source Owner CI",
+          "label": "Final Owner CI",
           "result": "passed",
-          "scope": "37 Node tests and seven browser widths 320/375/390/430/768/1280/1792, including private review, routing/back, periods, memory, safe text, unknown data and no overflow.",
-          "observedAt": "2026-11-06T13:31:13.683Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42225028929"
+          "scope": "Scoped Node checks plus seven browser widths320/375/390/430/768/1280/1792: private QA, auth, exact-ID customer joins, search/page/session guards, notifications, dialogs, independent periods and no overflow.",
+          "observedAt": "2026-11-06T14:10:15.106Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42230610717"
         },
         {
-          "label": "Worker, promotions and generation finance",
+          "label": "Local affected checks",
           "result": "passed",
-          "scope": "139 isolated tests preserve existing models, image tools, private History/archive, reusable references, explicit confirmation, concurrency and idempotent billing; no paid production requests.",
-          "observedAt": "2026-11-06",
-          "source": "tests/lab-worker.test.mjs"
-        },
-        {
-          "label": "Existing Owner/privacy/provider/traffic checks",
-          "result": "passed",
-          "scope": "22 isolated tests; existing private media and promotional review permissions retained.",
-          "observedAt": "2026-11-06",
-          "source": "tests/lab-owner-quality-review.test.mjs"
+          "scope": "47 routing/customer/auth/private-QA/provider/memory/Image-contract/UI checks. Final utility style follow-up passed UI tests and full CI.",
+          "observedAt": "2026-11-06T14:10:15.106Z"
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "8a1b1b69e0cfb8b3713f6f8f33a562441ef55e38",
-        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio and Cloudflare Worker parallel-vision-lab",
-        "observedAt": "2026-11-06T13:31:13.683Z",
-        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/6bbc3c1c-a201-446d-a861-d73be8cfcdd1",
+        "sourceSha": "8a652b4234a5ce2e618b2114e3d6969858d0eaae",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-06T14:10:15.106Z",
+        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/ecf5fdef-6b52-4dc9-a3f5-62a38450d8a6",
         "limitations": [
-          "Publication verified; real signed-in Owner behavior is not independently observed.",
-          "GitHub Pages is a separate destination and is not used as pvlab.studio evidence."
+          "Publication and fixture behavior are verified; current real signed-in interactions were not independently observed.",
+          "Frontend-only revision. Existing Worker and manual-only Actions policy were not changed."
         ]
       },
       "evidence": [
         {
-          "kind": "source",
-          "summary": "Source audit found anchor-scroll navigation, a Revenue period coupled to Traffic, misleading acquisition labels, and static release documentation.",
-          "scope": "Source review at baseline main.",
-          "observedAt": "2026-11-06",
-          "source": "lab/owner.html",
-          "limitations": [
-            "Not an audit of private live account data."
-          ]
-        },
-        {
           "kind": "deployment",
-          "summary": "PR #867 merge8a1b1b6; exact-merge Cloudflare Pages app check127918404711 succeeded. Deployment6bbc3c1c-a201-446d-a861-d73be8cfcdd1.",
-          "scope": "Production frontend publication, not a signed-in customer journey.",
-          "observedAt": "2026-11-06T13:31:13.683Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/867",
+          "summary": "PR #869 merged to8a652b4234a5ce2e618b2114e3d6969858d0eaae. Exact Cloudflare app check127936799892 and deploymentecf5fdef-6b52-4dc9-a3f5-62a38450d8a6 succeeded.",
+          "scope": "Production frontend publication.",
+          "observedAt": "2026-11-06T14:10:15.106Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/869",
           "limitations": []
         },
         {
           "kind": "production_asset",
-          "summary": "Owner HTML references operations1. Exact JS/CSS hashes6c90d0508df882df1e07db6e492402c3cfaab4b28dbd21c0ee7f1cea815d0728 and e63ba38afe8a2133ab19a308ff7b6cbf3c546e8851a08dbcce643cefa9f7962f matched source; all three imported UI modules and work JSON also matched.",
-          "scope": "Independent custom-domain asset-byte verification using exact Cloudflare app/project/commit evidence.",
-          "observedAt": "2026-11-06T13:31:13.683Z",
+          "summary": "Custom-domain /owner references clear2. JS hash e630034c2124d08a5414f7dfa3bcffdf13ab7517ef0c71efd710d8ae30759947 and CSS hash8f2dd4ce68932cff36214f5d35bd28509ab3d0432ee1ebe080c4a8f6a881f3aa matched reviewed source. All four imported UI modules and work JSON also matched.",
+          "scope": "Independent live-byte verification with exact Cloudflare app/project/commit evidence.",
+          "observedAt": "2026-11-06T14:10:15.106Z",
           "source": "https://pvlab.studio/owner",
           "limitations": [
-            "No authenticated production session was available for this observation."
+            "No paid generation, real payment or campaign action was performed."
           ]
         },
         {
-          "kind": "deployment",
-          "summary": "Direct Worker versiona9d78a2f-8d1c-4cc0-b174-2ead4704aaf7 / deployment85929d4d-2f64-47e1-a0f6-6b5add2017a0. All79 deployed modules matched reviewed transport hashes and all33 bindings were inherited.",
-          "scope": "Worker source parity and binding-name/type preservation. Version metadata records source150ea88d; backend code is unchanged at final reviewed source.",
-          "observedAt": "2026-11-06T13:23:56.094Z",
-          "source": "lab-worker/worker.mjs",
-          "limitations": [
-            "Two browser cache-query import markers were normalized for unbundled ES-module transport; original source bodies otherwise retained.",
-            "No migration or script-level schedule/observability change."
-          ]
-        },
-        {
-          "kind": "production_health",
-          "summary": "Public health returned200 and operations owner-operations-v1; unauthenticated operations returned401. All four read-model queries succeeded against live LAB_DB with zero writes.",
-          "scope": "Liveness, unauthenticated rejection and live schema/read compatibility through Cloudflare admin API. No private identifiers or counts are copied here.",
-          "observedAt": "2026-11-06",
-          "source": "https://parallel-vision-lab.parallelvision.workers.dev/health",
-          "limitations": [
-            "Direct database reads are not an authenticated HTTP Owner observation.",
-            "Does not prove provider availability, cron execution or a paid generation."
-          ]
+          "kind": "fixture",
+          "summary": "Actual desktop and phone CI screenshots inspected; an observed default-style utility control was corrected and final seven-width CI passed.",
+          "scope": "Real renderer with synthetic private data. This is not a real signed-in production account observation.",
+          "observedAt": "2026-11-06T14:10:15.106Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42230610717",
+          "limitations": []
         },
         {
           "kind": "documented",
-          "summary": "Broad Node CI has exactly the same five failures as baseline0cb72cb. Gallery, Trial and Partner failures are unchanged fixtures/source expectations; no gate disabled.",
-          "scope": "Baseline comparison and source parity, separate from passing scoped Owner and Worker checks.",
-          "observedAt": "2026-11-06",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42225028969",
+          "summary": "Previous consolidation, Worker, health, D1 and asset receipts are retained in the detailed checkpoint and immutable earlier index snapshot.",
+          "scope": "Historical release evidence; do not reconstruct completed investigations.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/8a652b4234a5ce2e618b2114e3d6969858d0eaae/lab/owner-work-records.json",
           "limitations": [
-            "Gallery baseline job was cancelled; classification uses unchanged inputs and prior checkpoint, not a fresh baseline execution."
+            "Those receipts describe their recorded revisions, not a fresh current production observation."
           ]
         }
       ],
-      "blockers": [
-        "Independent signed-in production observation remains to be recorded."
-      ],
+      "blockers": [],
       "doNotRepeat": [
         "Read this record and compare the baseline/current main delta before investigating again.",
         "Reuse existing authenticated APIs and ledgers; no imported duplicate event database.",
         "No paid generations, real payments or campaign changes.",
-        "A deployed frontend asset is not proof of signed-in behavior or Worker readiness."
+        "A deployed frontend asset is not proof of signed-in behavior or Worker readiness.",
+        "No Business parent page, no Overview attention block, no separate Directory/Lifetime usage screens, and no checklists laid out in the main deck.",
+        "Use direct destinations and one customer list. Keep detailed finance and IDs expandable, notifications in the header, and body text at least14px.",
+        "No Worker or billing change is needed for this presentation revision."
       ],
-      "updatedAt": "2026-11-06T13:31:13.683Z"
+      "updatedAt": "2026-11-06T14:10:15.106Z"
     },
     {
       "id": "worker-release-policy",

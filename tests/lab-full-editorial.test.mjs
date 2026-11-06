@@ -110,7 +110,7 @@ test('Identity casting uses the approved photographic layout rather than standal
  const identityCss=read('lab/full-editorial-identity-refresh.css');
  assert.match(identityCss,/scroll-snap-type:x mandatory/,'Casting supports a horizontal snap carousel');
  assert.match(identityCss,/position:sticky!important/,'Selection dock follows the active viewport');
- assert.match(html,/full-editorial-identity-refresh\.css\?v=20261106-gallery1/);
+ assert.match(html,/full-editorial-identity-refresh\.css\?v=20261106-composition-always2/);
 
  const atelierCss=read('lab/full-editorial-atelier.css');
  assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
@@ -119,21 +119,29 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.match(html,/full-editorial\.js\?v=20261106-gallery1/);
+ assert.match(html,/full-editorial\.js\?v=20261106-composition-always2/);
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);setIdentitySource\('casting'\);go\(directStart\?1:0\)/);
- assert.match(js,/region\.hidden=!ready/,'Composition only appears with two selected models');
+ assert.match(js,/region\.hidden=step!==1/,'Composition remains visible throughout Identity');
  assert.match(js,/button\.disabled=!ready/,'Composition requires at least two models');
  assert.match(js,/\$\('editorial-cast-empty'\)\.hidden=modelGroups\.length>0/,'Cast strip has explicit empty state');
  assert.match(js,/if\(modelPhoto\)\{/,'User-provided model photo still loads when supplied');
 });
 
-test('Multi-model composition is not a dead control for single-model users',()=>{
- assert.match(html,/id="editorial-casting-controls"[^>]*aria-labelledby="editorial-composition-title"[^>]*hidden/);
- assert.match(html,/id="editorial-cast-empty"/,'The selected-cast strip keeps the empty state');
- assert.match(js,/region\.hidden=!ready/);
+test('Composition remains visible for zero, one and several selected models',()=>{
+ assert.match(html,/id="editorial-composition-toggle"/);
+ assert.match(html,/id="editorial-composition-choices"/);
+ assert.match(js,/region\.hidden=step!==1/);
+ assert.match(js,/region\.dataset\.castState=count===0\?'empty':count===1\?'solo':'group'/);
+ assert.match(js,/count===1\?kind==='alternating'/);
  assert.match(js,/button\.disabled=!ready/);
  assert.match(js,/button\.setAttribute\('aria-pressed',String\(active\)\)/);
+ assert.match(js,/actionDock\.after\(composition\)/);
+ assert.match(js,/workspace\.append\(composition\)/);
+ const c=read('lab/full-editorial-identity-refresh.css');
+ assert.match(c,/data-cast-state="empty"/);
+ assert.match(c,/data-cast-state="solo"/);
+ assert.match(c,/font-family:Impact/);
 });
 
 test('Styling matches Identity rhythm while keeping real wardrobe references and direction',()=>{
@@ -214,6 +222,9 @@ test('Identity carousel retains saved character, uploading and multi-cast contro
  assert.match(html,/createCharacter=1/,'Create Character deep link remains genuine');
  assert.match(js,/function moveCastCarousel/);
  assert.match(js,/document\.addEventListener\('keydown'/);
+ assert.match(html,/id="editorial-saved-prev"/);
+ assert.match(html,/id="editorial-saved-next"/);
+ assert.match(js,/saved-character-gallery','editorial-saved-prev','editorial-saved-next'/);
  assert.match(js,/updateCastCarouselControls/);
  assert.match(js,/querySelectorAll\('\[data-cast-composition\]'\)/);
  assert.match(js,/covers=modelGroups\.map\(groupCover\)/,'Appearance previews use the chosen people');

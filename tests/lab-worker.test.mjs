@@ -351,6 +351,31 @@ test('A new customer with saved work cannot be silently relinked or lose their g
 });
 
 test('Public health works; every private operation rejects missing, non-owner and forged authentication',async()=>{const{env}=fixture();assert.equal((await req(env,'/health',{authToken:null})).status,200);for(const path of ['/api/session','/api/jobs','/api/assets/'+crypto.randomUUID()]){assert.equal((await req(env,path,{authToken:null})).status,401);assert.equal((await req(env,path,{authToken:guest})).status,403);}const bad=auth.slice(0,-5)+'aaaaa';assert.equal((await req(env,'/api/session',{authToken:bad})).status,401);assert.equal((await req(env,'/api/session',{authToken:await token('user_Owner',{exp:1})})).status,401);assert.equal((await req(env,'/api/session',{headers:{Origin:'https://evil.example'}})).status,403);});
+test('Replacement capability is advertised by health and every applied owner/customer configuration',async()=>{
+  const {env}=fixture();
+  const health=await req(env,'/health',{authToken:null});
+  assert.equal(health.status,200);
+  assert.equal((await health.json()).imageReplacement,'20261106-replacement1');
+  const disconnected=await(await req(env,'/api/session')).json();
+  assert.equal(disconnected.config.imageReplacementEnabled,true);
+  assert.equal(disconnected.config.enabled,false,'Capability is independent of connected provider settings');
+  const saved=await req(env,'/api/settings',{method:'POST',data:{apiKey:KEY,enabled:true,termsConfirmed:true,dailyLimitUsd:10}});
+  assert.equal(saved.status,200);
+  assert.equal((await saved.json()).config.imageReplacementEnabled,true);
+  assert.equal((await(await req(env,'/api/session')).json()).config.imageReplacementEnabled,true);
+  const removed=await req(env,'/api/settings',{method:'DELETE'});
+  assert.equal(removed.status,200);
+  assert.equal((await removed.json()).config.imageReplacementEnabled,true);
+  for(const migration of ['0006-customers-billing','0011-customer-lifecycle','0015-lab-promotional-credits','0023-welcome-guard'])
+    env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/'+migration+'.sql',import.meta.url),'utf8'));
+  Object.assign(env,{LAB_CUSTOMER_SIGNUPS_ENABLED:'true',LAB_WELCOME_CREDITS_ENABLED:'false'});
+  const customer=await req(env,'/api/session',{authToken:guest});
+  assert.equal(customer.status,200);
+  const account=await customer.json();
+  assert.equal(account.customer,true);
+  assert.equal(account.config.imageReplacementEnabled,true);
+  assert.equal(account.config.enabled,false,'Capability does not claim an unfunded customer can generate');
+});
 test('API keys encrypted; drafts persist all settings; quotes are free, bounded and keep private input URLs',async()=>{calls=[];createCount=0;const{env}=fixture(),id=await setup(env);const dbKey=env.LAB_DB.db.prepare('SELECT encrypted_key FROM settings').get().encrypted_key;assert.ok(!dbKey.includes(KEY));const session=await(await req(env,'/api/session')).text();assert.ok(!session.includes(KEY));assert.ok(!session.includes(dbKey));await req(env,'/api/drafts',{method:'POST',data:{sourceId:id,settings:p}});const h=await(await req(env,'/api/jobs')).json();assert.equal(h.jobs[0].sourceId,id);assert.equal(h.jobs[0].settings.seed,42);assert.equal(h.jobs[0].settings.audio,true);const q=await quote(env,id);assert.equal(q.estimatedUsd,2.7);assert.equal(createCount,0);const input=new URL(quotedRequest.input.image_url);assert.equal((await req(env,input.pathname+input.search,{authToken:null,headers:{Origin:''}})).status,200);assert.equal((await req(env,input.pathname+'?expires=1&signature=no',{authToken:null})).status,403);assert.equal((await req(env,'/api/assets/'+id,{authToken:null})).status,401);});
 test('Wan 21:9 keeps the original source, uses a prepared working crop and sends adaptive upstream',async()=>{calls=[];createCount=0;const{env}=fixture(),id=await setup(env);const upload=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,0]),headers:{'Content-Type':'image/png','X-Filename':'wide-working.webp'}});assert.equal(upload.status,201);const copyId=(await upload.json()).id,settings={...p,aspectRatio:'21:9'};
   assert.equal((await req(env,'/api/quotes',{method:'POST',data:{sourceId:id,settings}})).status,400);

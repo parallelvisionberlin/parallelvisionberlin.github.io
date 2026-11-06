@@ -5104,7 +5104,8 @@ function renderCards(jobs,{upsert=false}={}){
     const imageLabel=image?(j.settings.mode==='upscale'?'UPSCALE':j.settings.mode==='soul-id-training'?'SOUL ID TRAINING':j.settings.mode==='reinterpret'?'IMAGE · REINTERPRET':'IMAGE'):j.settings.engine==='video-upscale'?'VIDEO UPSCALE / '+({bytedance:'ByteDance Standard',proteus:'Topaz Proteus',starlight:'Topaz Starlight'}[j.settings.videoUpscaleEngine]||'Video')+' / '+j.settings.duration+'s':videoLabel(j.settings)+' / '+j.settings.duration+'s';
     const modelLabel=image?galleryImageModelName(j).toUpperCase():null;
     const resolutionLabel=j.settings.mode==='upscale'?upscaleSize(j.settings):j.settings.resolution;
-    meta.textContent=[finishingReplacement?'FINISHING REPLACEMENT':j.status.toUpperCase(),imageLabel,modelLabel,resolutionLabel,new Date(j.createdAt).toLocaleDateString()].filter(Boolean).join(' / ');
+    meta.textContent=[j.status.toUpperCase(),imageLabel,modelLabel,resolutionLabel,new Date(j.createdAt).toLocaleDateString()].filter(Boolean).join(' / ');
+    if(finishingReplacement)meta.textContent=meta.textContent.replace(/^COMPLETED/,'FINISHING REPLACEMENT');
     meta.title=image?'Model: '+galleryImageModelName(j):'Video model: '+videoLabel(j.settings);
     const p=document.createElement('p');p.textContent=image?imageHistoryCaption(j.settings):(j.settings.prompt||'No direction saved.');
     const actions=document.createElement('div');actions.className='cardactions';
@@ -5474,6 +5475,7 @@ async function submitImageSnapshot(){
   const replacementIssue=tool==='image'&&imageReferenceMode==='base'?replacementIntentIssue($('prompt').value,referenceRoles()):'';
   if(replacementIssue){notify(replacementIssue,true);return;}
   const replacementProposal=currentReplacementIntent();
+  if(replacementProposal&&!config.imageReplacementEnabled){notify('Replacement is being updated. Refresh Image before preparing this selection.',true);return;}
   if(replacementProposal&&!reviewedReplacement()){
     if(replacementReviewPending)return;
     const reviewEpoch=epoch;

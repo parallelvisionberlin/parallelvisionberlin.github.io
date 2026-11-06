@@ -20,7 +20,7 @@ function fixture({balance=100,response='credit',explicit=true,intent=null,review
     owner:true,epoch:1,userId:'customer',customerMode:true,customerBillingReady:true,customerGenerationReady:true,customerTrialGenerationPaused:false,
     customerCreditBalance:balance,tool:'image',busy:false,imageSubmissionPending:explicit,customerPriceIntentPending:false,imageSubmissionStage:'Sending…',
     imageEngine:'seedream',imageProcessing:'normal',fashionActive:false,activeJobs:[],slotStates:new Set(['submitting','queued','running','uncertain']),
-    window:{__PV_LAB_NATIVE__:0},config:{enabled:true},sourceId:null,file:null,poseMapSourceId:null,references:[],inspirationMoodId:'',sourceWidth:900,sourceHeight:1200,
+    window:{__PV_LAB_NATIVE__:0},config:{enabled:true,imageReplacementEnabled:true},sourceId:null,file:null,poseMapSourceId:null,references:[],inspirationMoodId:'',sourceWidth:900,sourceHeight:1200,
     pendingImageCards:pending,requestControllers:new Set(),assetLibrary:{active:()=>false},
     $:id=>controls.get(id),notify:(...args)=>notices.push(args),
     sessionRequest:async(path,options)=>{

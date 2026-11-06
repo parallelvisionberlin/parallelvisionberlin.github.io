@@ -1,3 +1,18 @@
+## Owner clarity revision, 2026-11-06
+- User rejected the Business parent, tiny text, Overview attention block, duplicate customer screens and technical manuals in the main page. This supersedes the previous four-view presentation, without removing tools or information.
+- Baseline aea3dcd040e688150de576e09f6a001e2232c1d6; branch fix/owner-clear-navigation-20261106. Canonical active record remains owner-operational-workspace in lab/owner-work-records.json; no second ledger.
+- Direct menu: Overview, Customers, Sales, Traffic, Costs, Promotions, Work log. Old hashes still resolve. Sales combines conversion and verified payments.
+- Header Notifications contains the former attention summary; job details and release checklists open native dialogs, never reserve space on Overview. Work log preserves evidence and reference links.
+- One searchable/paginated customer list merges lifetime usage by exact account ID. Full account, finance, checkout, review and subscription fields expand below each row. Missing/search usage loads only on explicit expansion, caches bounded pages and never invents zero. Existing private activity/review dialogs and server permissions unchanged.
+- Main labels and data14–16px, secondary metadata12px minimum, compact headers and no forced empty card heights. Archive/cost methodology remains in collapsed notes.
+- Scope is frontend only. Existing deployed Worker, authorization, billing, provider behavior, private History, models and live campaigns unchanged. No paid requests or customer mutations.
+- Published PR #869; reviewed86d8adff7bd3073b5dfe49570fba71cf8378e70e, merge8a652b4234a5ce2e618b2114e3d6969858d0eaae. All Owner files matched the reviewed source after preserving concurrent Identity work from main5aa8220.
+- Final Owner CI127935227270/run42230610717 passed scoped Node checks and all seven widths. Actual CI desktop/mobile images inspected; an observed utility style defect was corrected before final pass. Local47 scoped checks also passed. Initial review-click failure was a synthetic ID incompatible with the existing guard; fixture fixed, production guard preserved.
+- Exact-merge Cloudflare Pages app check127936799892 and deploymentecf5fdef-6b52-4dc9-a3f5-62a38450d8a6 succeeded. Scoped /owner verifier returned LIVE_VERIFIED for JS/CSS at clear2; four imported UI modules and work JSON independently matched live bytes.
+- JS SHA256 e630034c2124d08a5414f7dfa3bcffdf13ab7517ef0c71efd710d8ae30759947; CSS8f2dd4ce68932cff36214f5d35bd28509ab3d0432ee1ebe080c4a8f6a881f3aa. Current signed-in production interactions were not independently retested; fixture/source/publication evidence stay separate.
+- Complete. Only the shared status record is being updated after the verified application publication; no additional application code or Worker deployment.
+- Prior publication evidence below is historical and retained. Latest status is in the shared structured record.
+
 ## Operational Owner workspace, 2026-11-06
 - Status: frontend and Worker published; source/asset evidence verified. Real signed-in Owner behavior remains needs-verification in the shared task record.
 - PR #867. Reviewed head b8d5a03ec7e505d90d9524fd36894668dbef5217, merge8a1b1b69e0cfb8b3713f6f8f33a562441ef55e38. Baseline main0cb72cbce8a5da018537bbb4cad818cbe0ecf020; no unrelated product files changed.
