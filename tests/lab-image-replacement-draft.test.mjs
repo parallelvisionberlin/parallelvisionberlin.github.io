@@ -99,3 +99,34 @@ for (const changed of ['payload', 'base', 'destination']) {
     assert.equal(f.env.reviewedReplacement(), null);
   });
 }
+
+
+test('a paid unfinished replacement keeps a direct raw download even when finalization fails', async () => {
+  const start = app.indexOf('async function downloadJob(');
+  const end = app.indexOf("\n$('asset-video-download')", start);
+  assert.ok(start >= 0 && end > start, 'Download implementation must remain directly testable');
+  const calls = [];
+  const env = {
+    owner: true, resultUrl: null, resultId: null, downloadUrls: new Set(),
+    replacementPending: job => job.status === 'completed' && !!job.settings?.replacement && !job.settings.replacementFinalized,
+    imageReplacement: {finalize: async () => {calls.push('finalize'); throw Error('PNG exceeds 20 MB');}},
+    hasResult: job => job.status === 'completed' && !!job.outputId,
+    assetBlob: async id => {calls.push('read:' + id); return {type: 'image/png'};},
+    resultFormat: () => ['image', 'png'],
+    URL: {createObjectURL: () => 'blob:raw'},
+    saveDownload: (url, id, ext) => calls.push('download:' + id + '.' + ext),
+    release: () => {}, setTimeout: () => {},
+    downloadResult: () => {throw Error('Must not reuse another preview');}
+  };
+  new Script(app.slice(start, end) + '\nthis.downloadJob = downloadJob;').runInNewContext(env);
+  const job = {id: 'paid-one', status: 'completed', outputId: 'raw-paid-image',
+    settings: {replacement: {version: 1}, replacementFinalized: false}};
+  await env.downloadJob(job, {rawReplacement: true});
+  assert.deepEqual(calls, ['read:raw-paid-image', 'download:raw-paid-image.png'],
+    'Raw download never attempts finishing, another generation or a credit request');
+  await assert.rejects(env.downloadJob(job), /PNG exceeds 20 MB/,
+    'The normal final result path still refuses to disguise a failed composite');
+  assert.ok(calls.includes('finalize'));
+  assert.match(app, /actions\.append\(button\('Download raw image',\(\)=>downloadJob\(j,\{rawReplacement:true\}\),viewMedia\)\)/,
+    'History must expose the raw rescue action while finishing is pending');
+});
