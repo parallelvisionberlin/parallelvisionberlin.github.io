@@ -41,3 +41,10 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pvlab-paste-check/node_modules/playwright/index.mjs
         run: node tests/lab-image-prompt-paste-ui.mjs
+      - name: Retain prompt deck screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-prompt-deck
+          path: test-artifacts/prompt-deck/
+          if-no-files-found: ignore

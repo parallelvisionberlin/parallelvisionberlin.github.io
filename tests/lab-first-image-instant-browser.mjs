@@ -589,7 +589,6 @@ try{
   assert.equal(await eye.getAttribute('aria-pressed'),'false',
     'Customer can return to the same eight-look welcome');
   assert.equal(await page.locator('#history-select').isVisible(),false);
-  const cardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   await field.click();
   await page.keyboard.press('ArrowRight');
   assert.ok(await page.locator('#lab-welcome-presets').evaluate(track=>track.scrollLeft)<4,
@@ -640,10 +639,16 @@ try{
   const bottomAfterMood=await deck.boundingBox();
   assert.ok(Math.abs(864-bottomAfterMood.y-bottomAfterMood.height-30)<2,
     'Long text retains the original History bottom clearance while the empty deck opens downward');
-  const newCardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
-  assert.ok(Math.abs(newCardY-cardY)<8,
-    'Opening the docked deck must keep the six Mood cards stable in document coordinates: '+
-      JSON.stringify({cardY,newCardY,delta:newCardY-cardY,scrollY:await page.evaluate(()=>scrollY)}));
+  const cardClearance=await page.evaluate(()=>({
+    bottom:document.getElementById('lab-welcome-presets').getBoundingClientRect().bottom,
+    deckTop:document.getElementById('image-composer').getBoundingClientRect().top,
+    titleTop:document.querySelector('#lab-welcome-start h2').getBoundingClientRect().top,
+    headerBottom:document.getElementById('studio-header').getBoundingClientRect().bottom
+  }));
+  assert.ok(cardClearance.bottom<=cardClearance.deckTop-15,
+    'Expanded prompt keeps whole Mood cards and names above the deck: '+JSON.stringify(cardClearance));
+  assert.ok(cardClearance.titleTop>=cardClearance.headerBottom+14,
+    'Moving the cards to clear the prompt preserves the navigation: '+JSON.stringify(cardClearance));
   assert.equal((await field.inputValue()).trimEnd(),enteredText.trimEnd(),'Selecting a Mood preserves the user text');
   assert.equal(await page.locator('#image-composer-resolution').inputValue(),'1k',
     'Applying a Mood to existing customer text does not override image resolution');

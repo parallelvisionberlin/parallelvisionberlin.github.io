@@ -45,6 +45,27 @@
     if(guestVisible)fitWelcomeCards(guestContent,guestCards,guestContent.getBoundingClientRect().height);
     else guestContent.style.removeProperty('--pv-welcome-card-height');
   }
+  function clearWelcomeDeck(surface,grid,deck,visible){
+    surface?.style.removeProperty('--pv-welcome-deck-lift');
+    if(!surface||!grid||!visible||!welcomeWidth.matches)return;
+    // The fixed deck grows upward. Keep the entire photo and its name above
+    // its measured top, first using spare heading space, then only the height
+    // that cannot fit in a short window. Never change card widths or imagery.
+    const title=surface.querySelector('h1,h2');
+    const header=document.getElementById('studio-header');
+    const top=(header?.getBoundingClientRect().bottom||0)+16;
+    const overlap=Math.max(0,grid.getBoundingClientRect().bottom-deck.getBoundingClientRect().top+16);
+    const lift=Math.min(overlap,Math.max(0,title.getBoundingClientRect().top-top));
+    if(overlap>lift){
+      const height=parseFloat(surface.style.getPropertyValue('--pv-welcome-card-height'));
+      surface.style.setProperty('--pv-welcome-card-height',Math.max(100,Math.floor(height-overlap+lift))+'px');
+    }
+    // Shorter cards recenter the content. Measure the final position before
+    // lifting, so that re-centering cannot consume the recovered clearance.
+    const finalOverlap=Math.max(0,grid.getBoundingClientRect().bottom-deck.getBoundingClientRect().top+16);
+    const finalLift=Math.min(finalOverlap,Math.max(0,title.getBoundingClientRect().top-top));
+    if(finalLift)surface.style.setProperty('--pv-welcome-deck-lift',Math.ceil(finalLift)+'px');
+  }
   function fitDeckOrigin(surface,visible){
     if(!welcomeWidth.matches||!visible){surface.style.removeProperty('--pv-image-deck-top');return;}
     // Original History is 142px tall and 30px above the viewport edge.
@@ -104,7 +125,7 @@
       guestField.style.height='';
       return;
     }
-    const minimum=small.matches?104:50,maximum=small.matches?132:176;
+    const minimum=small.matches?104:50,maximum=small.matches?132:136;
     // Measure from a known minimum, never the previous long height.
     guestField.style.height=minimum+'px';
     guestField.style.height=Math.min(maximum,Math.max(minimum,guestField.scrollHeight))+'px';
@@ -118,6 +139,12 @@
     update(real,realField,'real');
     fitDeckOrigin(real,real.classList.contains('pv-welcome-deck'));
     fitDeckOrigin(guest,!document.getElementById('gate').hidden);
+    clearWelcomeDeck(welcome,cards,real,real.classList.contains('pv-welcome-deck'));
+    clearWelcomeDeck(guestContent,guestCards,guest,!gate.hidden&&gate.dataset.guestTool==='image'&&
+      !gate.querySelector('#pv-guest-closed-state:not([hidden])'));
+    if(welcomeWidth.matches&&!app.hidden&&app.classList.contains('image-studio-active'))
+      app.style.setProperty('--pv-image-deck-reserve',Math.ceil(real.getBoundingClientRect().height+46)+'px');
+    else app?.style.removeProperty('--pv-image-deck-reserve');
   }
   const deferSync=()=>queueMicrotask(sync);
   for(const [field,kind] of [[guestField,'guest'],[realField,'real']]){
@@ -191,7 +218,7 @@
   }
   if(welcome&&empty&&typeof ResizeObserver!=='undefined'){
     const layout=new ResizeObserver(deferSync);
-    layout.observe(empty);layout.observe(welcome);
+    layout.observe(empty);layout.observe(welcome);layout.observe(real);layout.observe(guest);
   }
   window.addEventListener('pv-guest-photos-changed',sync);
   window.addEventListener('resize',sync,{passive:true});

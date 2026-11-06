@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T20:46:57Z",
+  "updatedAt": "2026-11-06T20:51:00Z",
   "handoffs": [
     {
       "id": "owner",
@@ -566,6 +566,76 @@
         "Preserve the merged #870 replacement flow and existing quote, credit, idempotency and budget safeguards."
       ],
       "updatedAt": "2026-11-06T20:46:57Z"
+    },
+    {
+      "id": "image-prompt-deck-clearance",
+      "title": "Compact Image prompt and visible Inspiration card names",
+      "component": "Image prompt deck",
+      "status": "needs_verification",
+      "summary": "Desktop prompt uses 13px type and a 136px cap. Public/signed-in Inspiration clears the measured deck by 16px; History reserves its actual height.",
+      "nextAction": "Verify the normal Cloudflare Pages production release and exact live assets after the resolved merge.",
+      "baselineSha": "24d2b96d4c1b171edfd431f840aa73bcc1f366eb",
+      "reviewedSha": "4b24116921698ef352ce3259bda77e37ef544c7a",
+      "branch": "fix/image-prompt-deck-clearance-20261106",
+      "files": [
+        "lab/image-editorial-deck.js",
+        "lab/image-editorial-deck.css",
+        "lab/image-deck-surface.css",
+        "lab/lab.js",
+        "lab/studio.html",
+        "tests/lab-image-prompt-paste-ui.mjs"
+      ],
+      "links": [
+        {
+          "label": "Scoped checkpoint",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image contract",
+          "result": "passed",
+          "scope": "All 5 existing invariants passed locally and in CI at the reviewed source.",
+          "source": "tests/lab-approved-image-ui-contract.test.mjs"
+        },
+        {
+          "label": "Prompt paste and measured card clearance",
+          "result": "passed",
+          "scope": "Final CI: desktop/phone paste, shrink, preserved text/internal scrolling, controls and 36 public/signed-in/History geometry cases. Independent browser fixtures also passed those 36 plus 12 Soul layouts.",
+          "source": "tests/lab-image-prompt-paste-ui.mjs"
+        },
+        {
+          "label": "Existing broader checks",
+          "result": "failed",
+          "scope": "First-image role check has the exact same 120px/96px Base-width failure at baseline 24d2b96 and 454c5ab. Compact check runs with hosted Chrome but expects a Generate label >=17px while unchanged approved production uses 15px. Original assertions retained. Studio preflight has an unchanged Clerk assertion; broad suite has five existing failures.",
+          "source": "lab/IMAGE-PROMPT-WORK-STATE.md"
+        }
+      ],
+      "deployment": {
+        "state": "pending",
+        "sourceSha": null,
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "Actual signed-in production behavior remains unobserved; role and History observations use fixtures."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Measured deck/card clearance replaces the unchanging desktop spacing allowance.",
+          "scope": "Source diagnosis and implementation.",
+          "source": "lab/IMAGE-PROMPT-WORK-STATE.md",
+          "limitations": [
+            "Browser checks pending."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "No paid generation is needed for this layout fix.",
+        "Preserve approved phone viewport, card images and generation controls."
+      ],
+      "updatedAt": "2026-11-06T20:51:00Z"
     }
   ]
 }
