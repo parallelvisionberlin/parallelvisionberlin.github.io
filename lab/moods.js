@@ -1,3 +1,4 @@
+import {WON_KAR_NIGHT,prepareWonKarNight} from './won-kar-night.js?v=20261106v1';
 import {prepareSoulNightFlash} from './night-flash-soul.js?v=20261106v1';
 import {EIGHTIES_TAPE_RECIPE} from './80s-film-recipe.js?v=20261024v3';
 import {prepareDreamBlurBasePrompt} from './dream-blur-base.js?v=20261024v1&dreamBlurExposure=20261102v2';
@@ -300,14 +301,15 @@ const ALL_MOODS=Object.freeze([
 ]);
 // Keep the public catalogue shared by Studio, My Moods and Mood Creator.
 export const MOODS=ALL_MOODS;
+export const OWNER_MOODS=Object.freeze([WON_KAR_NIGHT]);
 export function moodPreviewURL(mood,{detail=false}={}){
-  if(typeof window!=='undefined'&&window.__PV_LAB_NATIVE__===1&&mood.id!=='fisheye-2000')
+  if(!mood.ownerOnly&&typeof window!=='undefined'&&window.__PV_LAB_NATIVE__===1&&mood.id!=='fisheye-2000')
     return '/lab/mood-previews/mobile/v1/'+mood.id+(detail?'-detail':'')+'.jpg';
   return detail?(mood.previewFull||mood.preview):mood.preview;
 }
 
 export const MOOD_MODELS=Object.freeze(['seedream','seedreamlite','krea3','gemini','gemini21','qwen3','zspicy']);
-export const moodById=id=>ALL_MOODS.find(m=>m.id===id)||null;
+export const moodById=id=>ALL_MOODS.find(m=>m.id===id)||OWNER_MOODS.find(m=>m.id===id)||null;
 // This is intentionally presentation-only. Jobs retain the full provider prompt for
 // reproduction, but the viewer and History show only user-authored text.
 export function userFacingImagePrompt(settings={}){
@@ -337,6 +339,11 @@ export function imageHistoryCaption(settings={}){
 export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',filmFinish=undefined,moodVariant='original'}={}){
   const original=String(input||'').trim(),mood=moodById(id);
   if(!mood)return {prompt:original,metadata:{},error:''};
+  if(mood.ownerOnly){
+    if(engine!=='soul2')return {prompt:original,metadata:{},error:'Choose PV Soul to test Won Kar Night.'};
+    if(referenceCount>1||referenceMode==='references')return {prompt:original,metadata:{},error:'Won Kar Night accepts one Base photograph and an optional trained Soul ID.'};
+    return prepareWonKarNight(original,amount,{hasBase:referenceCount===1});
+  }
   if(engine==='soul2'){
     if(mood.id!=='night-flash')return {prompt:original,metadata:{},error:'Soul supports Night Flash here. Choose another image model for this Mood.'};
     if(referenceCount>1||referenceMode==='references')return {prompt:original,metadata:{},error:'Soul Night Flash accepts one base photograph and an optional trained Soul ID.'};
@@ -608,7 +615,7 @@ export function preparePersonalMoodPrompt(input='',mood,intensity=60,options={})
     error:nonBudgetError||(over>0?'Direction and saved Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction or edit your saved Mood.':base.error||(!original&&!referenceCount?'Describe a subject or add an image before using this Mood.':''))};
 }
 
-export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange,onOpen,onCreatePersonal=()=>{},onEditPersonal=()=>{}}){
+export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,chooseEngine,onChange,onOpen,onCreatePersonal=()=>{},onEditPersonal=()=>{}}){
   const grid=panel.querySelector('#composer-moods-grid');
   const createMoodButton=panel.querySelector('#composer-moods-create');
   const filters=panel.querySelector('#composer-moods-filters');
@@ -620,6 +627,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const selectedLabel=panel.querySelector('#composer-moods-current-label');
   const hint=panel.querySelector('#composer-moods-compat');
   const switcher=panel.querySelector('#composer-moods-switch');
+  const publicSwitcherText=switcher.textContent;
   const done=panel.querySelector('#composer-moods-done');
   const clearButton=panel.querySelector('#composer-moods-none');
   const aboutButton=panel.querySelector('#composer-moods-about');
@@ -690,7 +698,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const startPersonalMood=()=>{close();onCreatePersonal();};
   createButton.onclick=startPersonalMood;
   emptyPersonal.append(emptyTitle,emptyNote,createButton);grid.append(emptyPersonal);
-  for(const mood of MOODS){
+  function appendMoodCard(mood){
     const card=document.createElement('button');card.type='button';card.className='moods-card';
     card.setAttribute('aria-label','Select '+mood.name);card.setAttribute('aria-pressed','false');
     card.title=mood.description;card.setAttribute('aria-description',mood.description);
@@ -698,14 +706,23 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     const image=document.createElement('img');image.src=moodPreviewURL(mood);image.onerror=()=>{image.onerror=null;image.src=mood.preview;};image.alt='';image.loading='lazy';image.decoding='async';media.append(image);
     const info=document.createElement('span');info.className='moods-card-copy';
     const title=document.createElement('strong');title.textContent=mood.name;
-    const subtitle=document.createElement('small');subtitle.textContent=captions[mood.id]||mood.description;info.append(title,subtitle);
+    const subtitle=document.createElement('small');subtitle.textContent=mood.ownerOnly?'PV Soul · Owner test':captions[mood.id]||mood.description;info.append(title,subtitle);
     card.append(media,info);
-    card.onclick=()=>{selected=selected===mood.id?null:mood.id;if(selected==='hong-kong-nights'){hkVariation='original';finishControls.set(HONG_KONG_FILM_FINISH);}if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;render();fitPanelViewport();onChange({selectedMood:true});};
+    card.onclick=()=>{selected=selected===mood.id?null:mood.id;if(mood.ownerOnly&&!getOwner()){selected=null;render();return;}if(selected==='hong-kong-nights'){hkVariation='original';finishControls.set(HONG_KONG_FILM_FINISH);}if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;if(selected&&mood.ownerOnly)chooseEngine('soul2');render();fitPanelViewport();onChange({selectedMood:true});};
     grid.append(card);cards.set(mood.id,card);
   }
+  for(const mood of MOODS)appendMoodCard(mood);
+  function syncOwnerCards(){
+    for(const mood of OWNER_MOODS){
+      const card=cards.get(mood.id);
+      if(getOwner()){if(!card)appendMoodCard(mood);}
+      else{card?.remove();cards.delete(mood.id);if(selected===mood.id)selected=null;}
+    }
+  }
   function render(){
+    syncOwnerCards();
     for(const [name,tab] of tabs){tab.classList.toggle('is-selected',category===name);tab.setAttribute('aria-pressed',String(category===name));}
-    for(const mood of [...MOODS,...personalMoods]){
+    for(const mood of [...MOODS,...(getOwner()?OWNER_MOODS:[]),...personalMoods]){
       const key=mood.category==='My Moods'?'custom:'+mood.id:mood.id,card=cards.get(key);
       if(!card)continue;
       const hidden=category!=='All'&&category!==mood.category;
@@ -725,8 +742,10 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     selection.hidden=!chosen;
     selectedLabel.hidden=!chosen;
     const soulNightFlash=getEngine()==='soul2';
-    const compatible=MOOD_MODELS.includes(getEngine())||(soulNightFlash&&(!selected||selected==='night-flash'));
-    hint.textContent=compatible?'':soulNightFlash?'Soul supports Night Flash here. Choose another image model for this Mood.':'This image model does not support Moods. Try Seedream Pro or Lite, Krea 3, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.';
+    const privateMood=chosen?.ownerOnly===true;
+    const compatible=privateMood?soulNightFlash:MOOD_MODELS.includes(getEngine())||(soulNightFlash&&(!selected||selected==='night-flash'));
+    hint.textContent=compatible?'':privateMood?'Choose PV Soul to test Won Kar Night.':soulNightFlash?'Soul supports Night Flash here. Choose another image model for this Mood.':'This image model does not support Moods. Try Seedream Pro or Lite, Krea 3, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.';
+    switcher.textContent=privateMood?'Use PV Soul':publicSwitcherText;
     hint.hidden=compatible;
     switcher.hidden=compatible;
     switcher.disabled=!chosen;
@@ -849,6 +868,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     close();render();if(!silent)onChange();
   }
   function enrich(prompt,options={}){
+    if(moodById(selected)?.ownerOnly&&!getOwner())return {prompt:String(prompt||'').trim(),metadata:{},error:'This Mood is available to the owner only.'};
     if(selected?.startsWith('custom:')){
       if(options.engine==='soul2')return {prompt:String(prompt||'').trim(),metadata:{},error:'Soul supports the built-in Night Flash Mood here. Choose another image model for saved Moods.'};
       const mood=boardById(selected);
@@ -898,7 +918,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
       }
     }
   });
-  switcher.onclick=()=>{chooseEngine('seedream');render();onChange({selectedMood:true});};
+  switcher.onclick=()=>{chooseEngine(moodById(selected)?.ownerOnly?'soul2':'seedream');render();onChange({selectedMood:true});};
   grid.setAttribute('aria-label','Available moods; scroll down to explore more looks');
   function refreshViewport(){
     if(panel.hidden||document.documentElement.classList.contains('pv-native-lab'))return;

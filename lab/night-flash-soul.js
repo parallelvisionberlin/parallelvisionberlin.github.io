@@ -3,7 +3,7 @@ export const SOUL_NIGHT_FLASH_ID='night-flash';
 export const SOUL_NIGHT_FLASH_LIMIT=3500;
 
 export function soulNightFlashQuoteMatches(expected={},actual={}){
-  if(expected.moodId!=='night-flash'&&actual.moodId!=='night-flash')return true;
+  if(!['night-flash','won-kar-night'].includes(expected.moodId)&&!['night-flash','won-kar-night'].includes(actual.moodId))return true;
   return expected.moodId===actual.moodId&&expected.moodIntensity===actual.moodIntensity&&expected.moodOriginalPrompt===actual.moodOriginalPrompt;
 }
 
