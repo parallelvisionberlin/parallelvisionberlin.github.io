@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T20:55:35.186Z",
+  "updatedAt": "2026-11-06T21:08:44Z",
   "handoffs": [
     {
       "id": "owner",
@@ -417,11 +417,11 @@
       "title": "Night Flash with Higgsfield Soul",
       "component": "Image Moods / Soul 2",
       "status": "needs_verification",
-      "summary": "Night Flash / Soul 2 and owner-only Won Kar Night are deployed with exact frontend/Worker bytes verified. Won Kar Night uses the unchanged road-couple cover and selects PV Soul; public catalogue and customer Night Flash gate remain unchanged.",
-      "nextAction": "Owner: open Image Studio Moods and select Won Kar Night for explicit price-reviewed testing. Do not run a paid generation without authorization. Retain the customer Night Flash gate until its commercial/account and real-image quality conditions are recorded.",
-      "baselineSha": "674b340bcb7217ed4b4ca42344a8fde8c55c0be8",
-      "reviewedSha": "ce0264e839aaccc7a00c8e088e47fccb5d2f01d8",
-      "branch": "feat/won-kar-night-owner-20261106",
+      "summary": "Night Flash / Soul 2 and owner-only Won Kar Night integrated. Soul Mood palette and missing-input tooltip are now deployed and verified; an empty form needs a Base or prompt, with Soul ID optional. Any separate provider error after input is unverified.",
+      "nextAction": "Owner: add a Base photo or an authored prompt; a Soul ID is optional. Any separate error after input requires its exact error response before changing provider behavior. Retain customer Night Flash gating and obtain explicit authorization before paid generation.",
+      "baselineSha": "5bd91d73a1af1e9c3eae40ed82b5efcad3680589",
+      "reviewedSha": "86a00a39806dc1aac172a1229ba9d1b4d782b8a3",
+      "branch": "fix/soul-mood-feedback-20261106",
       "files": [
         "lab/night-flash-soul.js",
         "lab/moods.js",
@@ -437,7 +437,8 @@
         "lab-worker/wrangler.toml",
         "lab/won-kar-night.js",
         "lab/mood-previews/won-kar-night.png",
-        "tests/lab-won-kar-night.test.mjs"
+        "tests/lab-won-kar-night.test.mjs",
+        "lab/image-deck-surface.css"
       ],
       "links": [
         {
@@ -451,20 +452,24 @@
         {
           "label": "Won Kar Night owner card PR #877",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/877"
+        },
+        {
+          "label": "Soul Mood contrast/input guidance PR #879",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/879"
         }
       ],
       "tests": [
         {
           "label": "Focused CI contracts and replacement compatibility",
           "result": "passed",
-          "scope": "115 focused Node 22.16.0 cases, including owner-only Won Kar Night, unchanged public catalogue/cover, bound Soul recipe, pricing, customer rejection and the approved Image contract.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42290239663"
+          "scope": "115 focused Node 22.16.0 tests pass for the current merged UI candidate, including approved Image copy, Moods and quote/billing/replacement safeguards.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42293137011"
         },
         {
           "label": "Owner/customer browser integration and #870",
           "result": "passed",
-          "scope": "Owner/customer 390x844 and 1440x900 flows include Won Kar Night visibility/absence, PV Soul model selection with no automatic generation, plus existing Night Flash, quote, identity, Reuse and replacement flows. Synthetic accounts and mocked provider boundaries.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42290239663"
+          "scope": "Owner/customer 390x844 and 1440x900 fixtures verify empty Soul disabled with tooltip, text-only Soul without an ID, no extra deck row, equal readable Soul/standard Mood computed colors, plus Night Flash, Won Kar Night, quote/confirm, Reuse and replacement flows.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42293137011"
         },
         {
           "label": "Worker, customer lifecycle, pricing, prompt safety and submission",
@@ -481,14 +486,14 @@
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "64c57859046816f6b01b7023965fd5319b42e884",
-        "environment": "Cloudflare Pages pvlab.studio and Cloudflare Worker; Won Kar Night owner only and customer Night Flash disabled",
+        "sourceSha": "a8b44c3f52b382e6032a2f8bd8de16d6036d5054",
+        "environment": "Soul Mood palette and missing-input frontend help verified on pvlab.studio; Worker unchanged",
         "limitations": [
           "Customer Night Flash flag is absent and therefore false by default.",
           "No real signed-in production journey, live provider estimate or generated image was verified."
         ],
         "evidenceUrl": "https://pvlab.studio/studio",
-        "observedAt": "2026-11-06T20:46:57Z"
+        "observedAt": "2026-11-06T21:08:44Z"
       },
       "evidence": [
         {
@@ -553,6 +558,24 @@
           "limitations": [
             "No real signed-in owner/customer journey or paid generated quality result."
           ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "Current controller fixtures show missing input is the empty Soul block; adding only text enables generation without a Soul ID. Soul/standard Mood palettes match with readable text, and existing flows pass.",
+          "scope": "Synthetic owner/customer sessions and mocked providers at 390/1440px.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42293137011",
+          "limitations": [
+            "No real current provider-account transaction or paid generation verified."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "PR #879 merge a8b44c3f52b382e6032a2f8bd8de16d6036d5054 is LIVE_VERIFIED: Cloudflare check 128154416758 successful; Mood palette CSS SHA-256 41f5718ce606fdfa64cc44bfe375b306e63e39a7737f6cc1fb3d86e21f7475b1. Current production lab.js matches reviewed source SHA-256 ff276e921874bba59c96a012aea77e4dbfa0390fcd98989e62cd8bfbc711c69b with versioned input help.",
+          "scope": "Exact deployed CSS/JS; unrelated later Identity commit ae95a928d0c17c07ca03d074c18eed2c2da5dd7c retains these file bytes.",
+          "source": "https://pvlab.studio/studio",
+          "limitations": [
+            "No new real provider generation, account transaction or paid quality test."
+          ]
         }
       ],
       "blockers": [
@@ -565,7 +588,7 @@
         "Do not fabricate a native style UUID or convert Qwen LoRAs/Character photos to Soul IDs.",
         "Preserve the merged #870 replacement flow and existing quote, credit, idempotency and budget safeguards."
       ],
-      "updatedAt": "2026-11-06T20:46:57Z"
+      "updatedAt": "2026-11-06T21:08:44Z"
     },
     {
       "id": "image-prompt-deck-clearance",

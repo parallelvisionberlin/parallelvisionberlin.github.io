@@ -3,8 +3,8 @@
 ## Current state, 2026-11-06
 
 - PR #874 merged: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/874
-- Tested application source: `ce0264e839aaccc7a00c8e088e47fccb5d2f01d8`.
-- Current source: owner-card PR #877 merge `64c57859046816f6b01b7023965fd5319b42e884`; baseline `674b340bcb7217ed4b4ca42344a8fde8c55c0be8` includes #874 and #870.
+- Tested application source: `86a00a39806dc1aac172a1229ba9d1b4d782b8a3`.
+- Current frontend source: #879 merge `a8b44c3f52b382e6032a2f8bd8de16d6036d5054`; baseline `5bd91d73a1af1e9c3eae40ed82b5efcad3680589` preserves compact prompts, Identity typography, #874/#877 and #870.
 - Night Flash remains the existing Mood/card; users explicitly choose PV Soul. No automatic model switch or new native style UUID.
 - One Base or an authored text subject; optional completed, owned Soul 2 ID. Character photographs and Qwen LoRAs are not Soul IDs.
 - Recipe keeps direct frontal flash, deep readable blacks, organic 35mm grain, natural skin/fabric and restrained practical lights; no invented neon.
@@ -58,3 +58,8 @@
 - Three new Node cases and owner/customer 390px/1440px browser checks pass in the CI above; existing replacement suites also pass. No paid generation/training.
 - Files: `lab/won-kar-night.js`, `lab/moods.js`, `lab/night-flash-soul.js`, `lab/lab.js`, `lab-worker/higgsfield.mjs`, `tests/lab-won-kar-night.test.mjs`.
 - Owner-card frontend `64c57859046816f6b01b7023965fd5319b42e884`: `LIVE_VERIFIED`, successful Cloudflare check `128143935832`; lab.js SHA-256 `91f169e126d73f4abf74d705bd22c1a8b065b5639192efbc2028880b8bd351b6`. Moods, recipe, quote helper and original cover bytes also match production.
+
+## Soul Mood/input feedback, PR #879
+- Shared Image Mood colors fix Soul's dark-on-dark label. An empty Soul form requires a Base or prompt; a Soul ID stays optional. Useful disabled-button tooltip, no extra deck row, no provider/billing changes.
+- Current CI: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42293137011 (115 Node cases and owner/customer 390/1440px browser flows, including palette equality and text-only/no-ID, pass).
+- A separate error after supplying input is unverified; obtain its exact error response. No paid generation performed. Frontend is `LIVE_VERIFIED` for #879 merge `a8b44c3f52b382e6032a2f8bd8de16d6036d5054`; Cloudflare check `128154416758` successful, exact CSS/JS verified. Worker unchanged.
