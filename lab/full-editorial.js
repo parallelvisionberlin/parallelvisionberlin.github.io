@@ -47,9 +47,7 @@ const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
 function effectiveCastMode(){return modelGroups.length>1?'cast':'one';}
 function renderCastingControls(){
  const count=modelGroups.length,ready=count>=2;
- const region=$('editorial-casting-controls');
- // The Composition shelf occupies the same place for zero, one, or multiple models.
- // It only disappears when the user leaves Identity.
+ const region=$('editorial-casting-controls'),wasHidden=region.hidden;
  region.hidden=step!==1;
  region.dataset.castState=count===0?'empty':count===1?'solo':'group';
  region.classList.toggle('is-awaiting-cast',!ready);
@@ -61,17 +59,33 @@ function renderCastingControls(){
   button.classList.toggle('is-selected',active);
   button.setAttribute('aria-pressed',String(active));
   button.setAttribute('aria-disabled',String(!ready));
-  // Photos describe the chosen identities, not invented combined outputs.
-  if(covers.length){
-   const images=button.querySelectorAll('.editorial-composition-art img');
-   const photos=kind==='alternating'?covers.slice(0,1):covers.slice(0,2);
-   images.forEach((img,i)=>{if(photos[i])img.src=photos[i]});
-  }
+  // Restore example photographs after clearing a cast, not revoked private blob URLs.
+  const images=button.querySelectorAll('.editorial-composition-art img');
+  const photos=kind==='alternating'?covers.slice(0,1):covers.slice(0,2);
+  images.forEach((img,i)=>{
+   if(!img.dataset.originalSrc)img.dataset.originalSrc=img.getAttribute('src')||'';
+   const next=count===0?img.dataset.originalSrc:(photos[i]||covers[0]||img.dataset.originalSrc);
+   if(next&&img.getAttribute('src')!==next)img.src=next;
+  });
  }
  $('editorial-cast-summary').textContent=count===0?'Select a model to begin. Composition options become available when you select two or more.':
   count===1?'One model selected. Solo only is automatic. Add another model to choose group compositions.':
   count+' models selected · '+({mixed:'Solo + group',alternating:'Solo only',together:'Group only'}[castComposition]);
  if(step===1)$('step-next').disabled=count===0;
+ // Solo Only is the second card: make that selected state visible on phones.
+ const scrollKey=region.dataset.castState+(ready?'/'+castComposition:'');
+ if(step===1&&(wasHidden||region.dataset.scrollKey!==scrollKey)){
+  region.dataset.scrollKey=scrollKey;
+  requestAnimationFrame(()=>{
+   if(step!==1||innerWidth>800)return;
+   const track=$('editorial-composition-choices');
+   const chosen=count===1?'alternating':ready?castComposition:'mixed';
+   const item=track?.querySelector('[data-cast-composition="'+chosen+'"]');
+   if(!track||!item||track.clientWidth===0)return;
+   const left=item.getBoundingClientRect().left-track.getBoundingClientRect().left+track.scrollLeft;
+   track.scrollTo({left:Math.max(0,left),behavior:'instant'});
+  });
+ }
 }
 function renderIdentityFooter(){
  const footer=$('editorial-footer-cast'),selection=$('editorial-cast-selection');

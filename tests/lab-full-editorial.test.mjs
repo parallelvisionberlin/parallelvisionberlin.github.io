@@ -110,7 +110,7 @@ test('Identity casting uses the approved photographic layout rather than standal
  const identityCss=read('lab/full-editorial-identity-refresh.css');
  assert.match(identityCss,/scroll-snap-type:x mandatory/,'Casting supports a horizontal snap carousel');
  assert.match(identityCss,/position:sticky!important/,'Selection dock follows the active viewport');
- assert.match(html,/full-editorial-identity-refresh\.css\?v=20261106-composition-always2/);
+ assert.match(html,/full-editorial-identity-refresh\.css\?v=20261106-qa-fold3/);
 
  const atelierCss=read('lab/full-editorial-atelier.css');
  assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
@@ -119,7 +119,7 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.match(html,/full-editorial\.js\?v=20261106-composition-always2/);
+ assert.match(html,/full-editorial\.js\?v=20261106-qa-fold3/);
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);setIdentitySource\('casting'\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=step!==1/,'Composition remains visible throughout Identity');
@@ -229,4 +229,13 @@ test('Identity carousel retains saved character, uploading and multi-cast contro
  assert.match(js,/querySelectorAll\('\[data-cast-composition\]'\)/);
  assert.match(js,/covers=modelGroups\.map\(groupCover\)/,'Appearance previews use the chosen people');
  assert.match(js,/group\.files\.push\(\.\.\.accepted\)/,'Extra identity references remain attached');
+});
+
+test('Identity restores Composition illustrations and aligns the active mobile choice',()=>{
+ const ui=read('lab/full-editorial-identity-refresh.css');
+ assert.match(ui,/max-height:950px/);
+ assert.match(js,/img\.dataset\.originalSrc/);
+ assert.match(js,/count===0\?img\.dataset\.originalSrc/);
+ assert.match(js,/region\.dataset\.scrollKey/);
+ assert.match(js,/track\.scrollTo\(\{left:Math\.max\(0,left\),behavior:'instant'\}\)/);
 });
