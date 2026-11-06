@@ -1,0 +1,73 @@
+name: ALTER approved controls verification
+on:
+  push:
+    branches: [fix/alter-three-row-controls-20261107]
+    paths: [.github/workflows/alter-controls-review.yml]
+concurrency:
+  group: alter-approved-controls-20261107
+  cancel-in-progress: true
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Apply reviewed scoped patch
+        run: |
+          curl --fail --location --silent --show-error 'https://at.adobe.com/Fqsphczq2fS7USu4' -o /tmp/alter-refinement.zip
+          echo 'a66207fe7023c6e922b13c77a4003372ef3fb3909b5c5a636c11997df9925cb6  /tmp/alter-refinement.zip' | sha256sum --check
+          mkdir -p /tmp/alter-refinement
+          unzip -q /tmp/alter-refinement.zip -d /tmp/alter-refinement
+          node /tmp/alter-refinement/apply-alter-refinement.mjs
+          node --check lab/beauty-approved-20261029.js
+          node --check lab/beauty-settings.js
+          node --check lab/beauty.js
+          node --check tests/lab-beauty-ui.mjs
+          git diff --check
+      - name: Preserve Image contracts and verify all category instructions
+        run: |
+          node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-beauty.test.mjs tests/lab-beauty-atelier.test.mjs tests/lab-beauty-category-contract.test.mjs
+          node --test --test-name-pattern='Beauty Studio binds' tests/lab-worker.test.mjs
+      - name: Install pinned browser
+        timeout-minutes: 3
+        run: |
+          npm install --prefix /tmp/pv-beauty --no-audit --no-fund playwright@1.57.0
+          node /tmp/pv-beauty/node_modules/playwright/cli.js install chromium
+      - name: Full Beauty role, quote, generation and visual regression
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-beauty/node_modules/playwright/index.mjs
+        run: |
+          node tests/lab-studios-menu-ui.mjs
+          node tests/lab-beauty-ui.mjs
+      - name: Commit tested application changes on review branch only
+        run: |
+          test "$GITHUB_REF" = refs/heads/fix/alter-three-row-controls-20261107
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/beauty.html lab/beauty.js lab/beauty-settings.js lab/beauty-approved-20261029.js lab/beauty-look-catalog.js lab/beauty-controls-refined.css lab/BEAUTY-WORK-STATE.md tests/lab-beauty-ui.mjs tests/lab-beauty-atelier.test.mjs tests/lab-beauty-category-contract.test.mjs
+          git diff --cached --check
+          git commit -m 'Refine ALTER to three rows with coherent independent category controls'
+          git push origin HEAD:refs/heads/fix/alter-three-row-controls-20261107
+          git rev-parse HEAD
+      - name: Preserve actual source and visual evidence
+        if: always()
+        run: |
+          mkdir -p test-results/alter-source
+          cp lab/beauty*.js lab/beauty*.html lab/beauty*.css tests/lab-beauty*.mjs lab/BEAUTY-WORK-STATE.md test-results/alter-source/
+          git diff > test-results/alter-working.diff
+          git rev-parse HEAD > test-results/alter-source-sha.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: alter-approved-controls-evidence
+          path: |
+            test-results/beauty-*.png
+            test-results/alter-source/
+            test-results/alter-working.diff
+            test-results/alter-source-sha.txt
+          retention-days: 3
