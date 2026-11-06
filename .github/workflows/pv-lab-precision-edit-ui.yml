@@ -46,6 +46,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
+      - name: Verify production Worker supports Image replacement
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --connect-timeout 5 --max-time 20 \
+            https://parallel-vision-lab.parallelvision.workers.dev/health \
+            | node -e "let raw=''; process.stdin.on('data',chunk=>raw+=chunk); process.stdin.on('end',()=>{ const health=JSON.parse(raw); if(health.ok!==true || health.imageReplacement!=='20261106-replacement1') { console.error('Production Worker is missing the reviewed replacement API'); process.exit(1); } console.log('Production Worker replacement marker verified'); });"
       - name: Verify Retouch signed pricing, JPEG consent and owner-only access
         run: node --test tests/lab-precision-edit.test.mjs tests/lab-image-replacement-intent.test.mjs tests/lab-image-replacement-composite.test.mjs tests/lab-image-replacement-backend.test.mjs tests/lab-image-replacement-draft.test.mjs
       - name: Install Chromium for mocked UI verification
