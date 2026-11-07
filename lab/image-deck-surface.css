@@ -200,6 +200,36 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer
   color:#dcff00!important;
 }
 
+/* The selected Mood shares a fixed 104px desktop toolbar slot with its clear action.
+   Keep the name and star entirely before the clear X. All other layouts stay put. */
+@media(min-width:1180px) and (min-height:680px){
+  html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.pv-editorial-deck
+  .composer-mood-control #image-composer-moods.is-mood-selected{
+    box-sizing:border-box!important;padding:6px 24px 6px 5px!important;
+    font-size:11px!important;font-weight:700!important;letter-spacing:-.015em!important;
+  }
+  html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.pv-editorial-deck
+  .composer-mood-control #image-composer-moods.is-mood-selected .composer-mood-copy{
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;
+    gap:3px!important;margin:0 auto!important;min-width:0!important;max-width:100%!important;
+    overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+  }
+  html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.pv-editorial-deck
+  .composer-mood-control #image-composer-moods.is-mood-selected .composer-mood-icon{
+    font-size:11px!important;flex:0 0 auto!important;
+  }
+  html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.pv-editorial-deck
+  .composer-mood-control #image-composer-moods.is-mood-selected .composer-mood-label{
+    display:block!important;min-width:0!important;overflow:hidden!important;
+    text-overflow:ellipsis!important;white-space:nowrap!important;
+  }
+  html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.pv-editorial-deck
+  .composer-mood-control #image-composer-moods-clear:not([hidden]){
+    right:4px!important;width:17px!important;height:19px!important;
+    min-height:19px!important;font-size:16px!important;
+  }
+}
+
 /* Mood/model choices stay outside the floating composer and never submit. */
 #soul-mood-dialog {
   width:calc(100% - 32px);max-width:420px;padding:28px;border:1px solid #454845;
