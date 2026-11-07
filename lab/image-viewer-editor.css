@@ -9,49 +9,84 @@
 #image-lightbox .image-detail-edit-actions button:focus-visible{outline:2px solid #aaa;outline-offset:3px}
 /* Keep legacy route hooks mounted, but remove the retired deck action in all roles. */
 #image-composer-edit-area,#pv-guest-retouch{display:none!important}
-#image-lightbox.is-viewer-editing>.image-detail-layout{display:none!important}
-#image-lightbox.is-viewer-editing>#image-lightbox-close{display:none!important}
-#image-lightbox.is-viewer-editing>#precision-workspace{display:grid!important;grid-template-columns:minmax(0,1fr) 300px;grid-template-rows:auto auto minmax(0,1fr);gap:12px;min-height:0;height:100%;max-width:none;padding:14px;overflow:hidden;--pe-accent:#edede6}
-#image-lightbox.is-viewer-editing .precision-head{grid-column:1/-1;grid-row:1;padding:0 0 10px;min-width:0}
-#image-lightbox.is-viewer-editing .precision-head h2{font-size:24px;letter-spacing:-.03em}
-#image-lightbox.is-viewer-editing .precision-method,#image-lightbox.is-viewer-editing .precision-access-note{display:none!important}
-#image-lightbox.is-viewer-editing .precision-tools{grid-column:1;grid-row:2;margin:0;flex-wrap:wrap;gap:8px;min-width:0}
-#image-lightbox.is-viewer-editing .precision-board{grid-column:1;grid-row:3;display:flex;min-height:0;height:100%;margin:0}
-#image-lightbox.is-viewer-editing .precision-panel{width:100%;min-height:0}
-#image-lightbox.is-viewer-editing .precision-board>.precision-panel:not(.precision-input-panel){display:none}
-#image-lightbox.is-viewer-editing .has-viewer-result .precision-input-panel{display:none}
-#image-lightbox.is-viewer-editing .has-viewer-result .precision-board>.precision-panel:not(.precision-input-panel){display:flex}
-#image-lightbox.is-viewer-editing .precision-deck{grid-column:2;grid-row:2/4;display:flex;flex-direction:column;align-self:stretch;gap:16px;min-width:0;max-width:none;width:100%;height:100%;margin:0;padding:16px;overflow-y:auto;border:1px solid #363838;border-radius:12px;background:#191b1b}
+/* The image viewer remains the shell, including its existing metadata sidebar. */
+#image-lightbox.is-viewer-editing .image-detail-media{display:flex!important;flex-direction:column;min-width:0;min-height:0;overflow:hidden;background:#101112}
+#image-lightbox.is-viewer-editing .image-detail-media>:not(#precision-workspace){display:none!important}
+#image-lightbox.is-viewer-editing .image-detail-actions{display:none!important}
+#image-lightbox.is-viewer-editing #precision-workspace{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(220px,28%);grid-template-rows:auto minmax(0,1fr);gap:0;flex:1;min-width:0;min-height:0;width:100%;height:100%;padding:0;margin:0;overflow:hidden;--pe-accent:#eeeee8}
+#image-lightbox.is-viewer-editing .precision-head,
+#image-lightbox.is-viewer-editing .precision-access-note,
+#image-lightbox.is-viewer-editing .precision-panel-label,
+#image-lightbox.is-viewer-editing .precision-input-footer,
+#image-lightbox.is-viewer-editing .precision-status{display:none!important}
+#image-lightbox.is-viewer-editing .precision-tools{grid-column:1/-1;grid-row:1;display:flex;align-items:center;gap:14px;min-width:0;min-height:62px;margin:0;padding:12px 16px;border:0;border-bottom:1px solid #2b2c2d;border-radius:0;background:transparent;box-shadow:none;flex-wrap:wrap}
+#image-lightbox .viewer-editor-title{font:650 16px/1.3 'DM Sans',sans-serif;letter-spacing:-.02em;margin:0 auto 0 0;color:#eee}
+#image-lightbox.is-viewer-editing .precision-tool-buttons{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#image-lightbox.is-viewer-editing .precision-tools button{min-height:34px;padding:8px 12px;border:1px solid #353638;border-radius:8px;background:#18191a;color:#ddd;font:550 12px/1.2 'DM Sans',sans-serif;box-shadow:none;white-space:nowrap}
+#image-lightbox.is-viewer-editing .precision-tools button.is-selected{background:#eeeee8;color:#141516;border-color:#eeeee8}
+#image-lightbox.is-viewer-editing .precision-tools #precision-undo,#image-lightbox.is-viewer-editing .precision-tools #precision-clear-mask{padding-inline:8px;border-color:transparent;background:transparent;font-size:11px}
+#image-lightbox.is-viewer-editing #precision-return{min-width:32px;width:32px;min-height:34px;padding:4px;border:0;background:transparent;color:#ddd;font-size:23px;font-weight:400;line-height:1;margin-left:2px}
+#image-lightbox.is-viewer-editing .precision-board{grid-column:1;grid-row:2;display:flex;min-width:0;min-height:0;height:100%;margin:0;gap:0}
+#image-lightbox.is-viewer-editing .precision-input-panel{width:100%;border:0;border-radius:0;background:#101112}
+#image-lightbox.is-viewer-editing .precision-board>.precision-panel:not(.precision-input-panel){display:none!important}
+#image-lightbox.is-viewer-editing .precision-source-holder{padding:10px;min-height:0;background:#101112}
+#image-lightbox.is-viewer-editing .precision-stage{width:auto;max-width:100%;max-height:100%}
+#image-lightbox.is-viewer-editing .precision-deck{grid-column:2;grid-row:2;display:flex;flex-direction:column;gap:16px;align-self:stretch;min-width:0;width:100%;height:100%;margin:0;padding:22px 16px;overflow-y:auto;border:0;border-left:1px solid #2b2c2d;border-radius:0;background:#121314;box-shadow:none}
 #image-lightbox.is-viewer-editing .precision-deck-copy{width:100%;min-width:0}
-#image-lightbox.is-viewer-editing #precision-prompt{width:100%;min-height:130px;max-height:230px;box-sizing:border-box;resize:vertical}
-#image-lightbox.is-viewer-editing .precision-bottom{display:flex;flex-direction:column;gap:18px}
-#image-lightbox.is-viewer-editing .precision-strength{flex-wrap:wrap;justify-content:space-between;min-width:0}
-#image-lightbox.is-viewer-editing .precision-strength input{max-width:100%}
-#image-lightbox.is-viewer-editing #precision-generate{width:100%;margin:0}
-#image-lightbox.is-viewer-editing .precision-deck-meta{display:flex;flex-direction:column;align-items:stretch;gap:10px}
-#image-lightbox.is-viewer-editing .precision-status-text{max-width:100%;overflow-wrap:anywhere}
-#image-lightbox.is-viewer-editing .is-viewer-replace .precision-bottom,#image-lightbox.is-viewer-editing .is-viewer-replace .precision-deck-meta{display:none!important}
-.viewer-replacement-fields[hidden]{display:none!important}
-.viewer-replacement-fields{display:flex;flex-direction:column;gap:12px;font-size:12px}
-.viewer-replacement-fields select{min-height:40px;border:1px solid #484a4a;border-radius:6px;background:#262828;color:#eee;padding:8px;font:inherit}
-.viewer-reference-picker{display:flex;flex-direction:column;align-items:center;gap:10px;position:relative;border:1px dashed #686a6a;padding:16px 10px;border-radius:8px;cursor:pointer;min-width:0}
-.viewer-reference-picker img{max-width:100%;height:110px;object-fit:contain}
-.viewer-reference-picker span{max-width:100%;overflow-wrap:anywhere;text-align:center}
+#image-lightbox.is-viewer-editing .precision-deck-copy>label{display:block;margin:0 0 12px;font-size:13px;font-weight:650;line-height:1.4;letter-spacing:0;text-transform:none;color:#eee}
+#image-lightbox.is-viewer-editing #precision-prompt{width:100%;min-height:118px;max-height:220px;padding:13px;box-sizing:border-box;resize:vertical;border:1px solid #3b3c3e;border-radius:10px;background:#1c1d1e;color:#eee;font:400 13px/1.5 'DM Sans',sans-serif;outline:none}
+#image-lightbox.is-viewer-editing #precision-prompt:focus{border-color:#737578}
+#image-lightbox.is-viewer-editing .precision-bottom{display:block;margin:0;padding:0;border:0}
+#image-lightbox.is-viewer-editing #precision-generate,#image-lightbox #viewer-replacement-continue{display:block;min-height:46px;width:100%;margin:0;padding:12px 8px;border:1px solid #eeeee8;border-radius:9px;background:#eeeee8;color:#131415;font:650 13px/1.3 'DM Sans',sans-serif;box-shadow:none}
+#image-lightbox.is-viewer-editing #precision-generate:disabled,#image-lightbox #viewer-replacement-continue:disabled{background:#393b3c3c;border-color:#393b3c;color:#a4a6a8;opacity:1}
+#image-lightbox.is-viewer-editing .has-viewer-reference .precision-bottom{display:none!important}
+#image-lightbox.is-viewer-editing .has-viewer-reference .precision-deck-meta{display:none!important}
+#image-lightbox.is-viewer-editing .precision-deck-meta{margin:0;padding:0;border:0;display:flex;flex-direction:column;align-items:stretch;gap:10px}
+#image-lightbox.is-viewer-editing .precision-status-text{margin:0;max-width:100%;font-size:11px;color:#a8aaac;line-height:1.5;overflow-wrap:anywhere}
+#image-lightbox.is-viewer-editing .precision-status-text:empty{display:none}
+#image-lightbox.is-viewer-editing .precision-zoom-controls{left:14px;bottom:14px;padding:3px;border-color:#37393a;border-radius:8px;background:#161718c9;box-shadow:none}
+#image-lightbox.is-viewer-editing #precision-zoom-value{display:none}
+#image-lightbox.is-viewer-editing .precision-zoom-controls button{font-size:10px;min-height:27px;min-width:27px;padding:4px 6px}
+.viewer-replacement-fields[hidden],.viewer-edit-options[hidden],#viewer-replacement-continue[hidden],.viewer-reference-preview[hidden],.viewer-reference-remove[hidden],.viewer-reference-kind[hidden]{display:none!important}
+.viewer-replacement-fields{display:flex;flex-direction:column;gap:14px;font-size:12px}
+.viewer-reference-row{display:flex;align-items:stretch;gap:8px;position:relative;min-width:0}
+.viewer-reference-preview{width:62px;height:76px;object-fit:cover;border:1px solid #3b3c3d;border-radius:9px;flex:none}
+.viewer-reference-picker{display:flex;align-items:center;justify-content:center;flex:1;position:relative;min-width:0;min-height:62px;padding:12px 8px;border:1px solid #363839;border-radius:9px;background:#171819;color:#e8e8e5;cursor:pointer}
 .viewer-reference-picker input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
-.viewer-reference-picker:focus-within{outline:2px solid #ccc;outline-offset:2px}
-#viewer-replacement-continue{min-height:46px;background:#edede6;border:1px solid #edede6;border-radius:8px;color:#161717;font:inherit;font-weight:650}
-.viewer-replacement-fields p{margin:0;color:#aeb2b0;font-size:12px;line-height:1.5}
-.viewer-replacement-fields .viewer-replacement-status{color:#f2c1b8;overflow-wrap:anywhere}
+.viewer-reference-picker:focus-within{outline:2px solid #aaa;outline-offset:2px}
+.viewer-reference-picker span{font-size:12px;text-align:center}
+#image-lightbox .viewer-reference-remove{position:absolute;left:44px;top:-5px;width:23px;height:23px;min-width:0;min-height:0;padding:0;border:1px solid #555;border-radius:50%;background:#191b1c;color:#fff;font:16px/1 sans-serif;z-index:2}
+.viewer-reference-kind{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#aaa;font-size:11px}
+.viewer-reference-kind select{min-width:0;max-width:130px;padding:6px 9px;border:1px solid #3b3d3e;border-radius:6px;background:#1c1d1e;color:#ddd;font:inherit}
+.viewer-replacement-status{margin:0;color:#c9b5b2;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.viewer-replacement-status:empty{display:none}
+.viewer-edit-options{margin-top:auto;padding-top:14px;border-top:1px solid #292b2c;color:#a9abad;font-size:11px}
+.viewer-edit-options summary{cursor:pointer;line-height:1.5;list-style-position:inside}
+.viewer-edit-options-body{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+#image-lightbox.is-viewer-editing .viewer-edit-options .precision-strength{display:flex;flex-wrap:wrap;gap:8px;min-width:0}
+#image-lightbox.is-viewer-editing .viewer-edit-options input[type=range]{min-width:0;max-width:100%;accent-color:#ddd}
+#image-lightbox.is-viewer-editing .viewer-edit-options button{min-height:30px;border:1px solid #3b3d3e;border-radius:6px;background:#1b1d1e;color:#ddd;font-size:11px}
+@media(max-width:1100px){
+ #image-lightbox.is-viewer-editing #precision-workspace{grid-template-columns:minmax(0,1fr) 220px}
+ #image-lightbox.is-viewer-editing .precision-tools{gap:6px;padding:9px}
+ #image-lightbox.is-viewer-editing .precision-tools button{padding:8px}
+}
 @media(max-width:760px){
- #image-lightbox.is-viewer-editing>#precision-workspace{display:flex!important;flex-direction:column;height:100%;padding:12px;overflow-y:auto;gap:12px}
- #image-lightbox.is-viewer-editing .precision-head{flex:none;align-items:flex-start;gap:8px}
- #image-lightbox.is-viewer-editing .precision-head p{display:none}
- #image-lightbox.is-viewer-editing #precision-return{min-width:0;padding:10px;font-size:12px}
- #image-lightbox.is-viewer-editing .precision-tools{order:1;flex:none}
- #image-lightbox.is-viewer-editing .precision-tool-buttons{flex-wrap:wrap;gap:5px}
- #image-lightbox.is-viewer-editing .precision-tools button{font-size:11px;padding:8px}
- #image-lightbox.is-viewer-editing .precision-board{order:2;flex:none;height:340px;min-height:260px}
- #image-lightbox.is-viewer-editing .precision-deck{order:3;flex:none;height:auto;overflow:visible;padding:14px}
- #image-lightbox.is-viewer-editing #precision-source-canvas{max-height:260px}
- #image-lightbox.is-viewer-editing #precision-prompt{min-height:90px}
+ #image-lightbox.is-viewer-editing .image-detail-layout{display:flex!important;flex-direction:column;overflow-y:auto;height:100%;min-height:0}
+ #image-lightbox.is-viewer-editing .image-detail-media{flex:none;overflow:visible;height:auto;min-height:0}
+ #image-lightbox.is-viewer-editing #precision-workspace{display:flex!important;flex-direction:column;height:auto;min-height:0;overflow:visible}
+ #image-lightbox.is-viewer-editing .precision-tools{order:0;min-height:52px;gap:5px;flex-wrap:wrap;padding:9px}
+ #image-lightbox.is-viewer-editing .viewer-editor-title{font-size:14px}
+ #image-lightbox.is-viewer-editing .precision-tool-buttons{gap:3px;flex-wrap:nowrap}
+ #image-lightbox.is-viewer-editing .precision-tools button{font-size:10px;padding:7px;min-height:31px}
+ #image-lightbox.is-viewer-editing .precision-tools #precision-undo{display:none}
+ #image-lightbox.is-viewer-editing .precision-tools #precision-clear-mask{font-size:10px;padding:7px 3px}
+ #image-lightbox.is-viewer-editing #precision-return{font-size:21px;width:26px;min-width:26px;margin:0}
+ #image-lightbox.is-viewer-editing .precision-board{order:1;flex:none;height:clamp(220px,46dvh,480px);min-height:220px}
+ #image-lightbox.is-viewer-editing #precision-source-canvas{max-height:calc(46dvh - 20px)}
+ #image-lightbox.is-viewer-editing .precision-deck{order:2;flex:none;height:auto;overflow:visible;padding:16px;border-left:0;border-top:1px solid #2b2c2d;gap:12px}
+ #image-lightbox.is-viewer-editing #precision-prompt{min-height:88px}
+ #image-lightbox.is-viewer-editing .viewer-edit-options{margin-top:4px;padding-top:10px}
+ #image-lightbox.is-viewer-editing .image-detail-inspector{flex:none;max-height:none;height:auto;min-height:0}
+ #image-lightbox.is-viewer-editing .image-detail-inspector-scroll{max-height:180px}
 }
