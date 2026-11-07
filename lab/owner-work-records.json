@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T15:15:45.128Z",
+  "updatedAt": "2026-11-07T16:40:55.686Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1802,13 +1802,13 @@
       "id": "image-viewer-replace-edit-actions",
       "title": "Contextual image viewer Replace and Edit",
       "component": "PV LAB Image viewer",
-      "status": "deployed",
-      "updatedAt": "2026-11-07T15:15:45.128Z",
-      "baselineSha": "8dfcb934ffe44391fa41fdaec5736870ce08ac2b",
-      "reviewedSha": "a048cedf5f589b609d4bad7e36fde64e05859d47",
-      "branch": "fix/viewer-inline-edit-20261107",
-      "summary": "Correct the deployed Retouch-style workspace toward the approved inline viewer proposals. Keep the photo pane and metadata sidebar, compact Select/Brush/Erase tools, optional reference and inline Generate. Reference generation preserves the main Image draft and existing model/provider routes.",
-      "nextAction": "Compact inline editor is published and byte-verified. A real signed-in paid edit has not been tested; do not claim generation quality from the mocked checks.",
+      "status": "needs_verification",
+      "updatedAt": "2026-11-07T16:40:55.686Z",
+      "baselineSha": "904c5d8fb0cc96046dd5af5ccea2ca994032562a",
+      "reviewedSha": null,
+      "branch": "feat/viewer-guided-replace-20261107",
+      "summary": "Owner-approved guided Replace: click instruction and selection cursor; real purple selection; Character/Outfit/Object/Location type tiles; inline existing saved library and upload; replacement-specific wording; successful-completion guidance memory. Existing inline generation and main Image draft remain separate.",
+      "nextAction": "Inspect actual desktop/mobile screenshots and normal PR checks, publish through normal Cloudflare release and byte-verify. Saved location-reference swaps remain unsupported by the current server; do not claim that capability or disguise a location as an object.",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
@@ -1820,7 +1820,10 @@
         "tests/lab-image-oneclick-ui.mjs",
         "lab/IMAGE-REPLACEMENT-WORK-STATE.md",
         "tests/lab-viewer-inline.test.mjs",
-        ".github/workflows/pv-lab-precision-edit-ui.yml"
+        ".github/workflows/pv-lab-precision-edit-ui.yml",
+        "lab/viewer-guided-replace.css",
+        "lab/viewer-replacement-library.js",
+        "tests/lab-guided-replace.test.mjs"
       ],
       "links": [
         {
@@ -1850,34 +1853,37 @@
         {
           "label": "Inline editor correction PR",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/917"
+        },
+        {
+          "label": "Guided Replace verification",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42392380290"
         }
       ],
       "tests": [
         {
-          "label": "Viewer safety and existing Image/precision/replacement unit tests",
+          "label": "70 focused unit checks",
           "result": "passed",
-          "scope": "Stale masks, session/close invalidation, expired prices, wallet changes, quote mismatch, duplicate and uncertain submissions, model routes and Image draft isolation."
+          "scope": "Approved Image contract, all eight Character photos/order/notes, type validation, capacity before downloads, session invalidation, local completion memory, signed quote and duplicate guards."
         },
         {
-          "label": "Precision editor and complete inline viewer browser tests",
+          "label": "Guided Replace desktop/mobile browser flow",
           "result": "passed",
-          "scope": "Synthetic media and intercepted APIs only; 390px and 1440px layout, selection, price, one explicit generation, exterior composite and result in the same viewer."
+          "scope": "390px and 1440px, real application with synthetic media and intercepted APIs. Initial guidance, selected state, saved bundle, explicit Generate, exact exterior composition, same viewer and unchanged Image draft."
         },
         {
-          "label": "Standalone Retouch navigation",
+          "label": "Existing Precision and standalone Retouch",
           "result": "passed",
-          "scope": "Existing route and return controls remain functional."
+          "scope": "Selection, quote safety and navigation regression checks."
         }
       ],
       "deployment": {
-        "state": "verified",
-        "sourceSha": "a048cedf5f589b609d4bad7e36fde64e05859d47",
-        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-07T15:15:45.128Z",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42385474528",
+        "state": "not_started",
+        "sourceSha": null,
+        "environment": "Cloudflare Pages pvlab-studio",
         "limitations": [
-          "No real account or paid generation tested.",
-          "Public render used synthetic input and stubbed session callbacks with all API access disabled."
+          "Guided revision not yet published.",
+          "No paid or real-account generation tested.",
+          "Saved Location swaps need reviewed server scope support; only text-directed background editing is available."
         ]
       },
       "evidence": [
@@ -1953,9 +1959,20 @@
           "limitations": [
             "Session callbacks were stubbed. No actual account or inference."
           ]
+        },
+        {
+          "kind": "automated_test",
+          "summary": "Guided selection and saved references verified without provider calls.",
+          "scope": "Feature branch, synthetic fixtures only",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42392380290",
+          "limitations": [
+            "Not real-account or paid-generation evidence."
+          ]
         }
       ],
-      "blockers": [],
+      "blockers": [
+        "Saved Location reference swaps are not implemented because the current production replacement API rejects location scope. The UI explains this and keeps location reference upload/picking disabled."
+      ],
       "doNotRepeat": [
         "Do not recreate a separate editor or add buttons over the photograph.",
         "Do not change provider, model or billing when opening an action."

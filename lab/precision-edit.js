@@ -245,6 +245,14 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     maskChanged();
     setStatus('Selection expanded. You can refine the edges with Add or Erase.');
   }
+  function invertSelection(){
+    if(!base||!selected||taskBusy)return;
+    saveUndo();
+    const pixels=maskCtx.getImageData(0,0,mask.width,mask.height);
+    for(let i=0;i<pixels.data.length;i+=4){pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=255;pixels.data[i+3]=255-pixels.data[i+3];}
+    maskCtx.putImageData(pixels,0,0);maskChanged();
+    setStatus('Selection inverted. Only the purple area will change. Erase over anything else to keep.');
+  }
   function resetSelection(){
     editEpoch++;maskCtx.clearRect(0,0,mask.width,mask.height);
     undoStack.length=0;selected=false;pending=null;quoteFailure=false;clearTimeout(quoteTimer);quoteTimer=null;
@@ -798,7 +806,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   // No source is opened automatically in the normal gallery. This workspace is opt-in.
   reset();
-  return {open,close,isOpen,result:()=>resultJob,setMode:selectMode,setExternalMode,selectionSnapshot,hasSelection:()=>selected,isBusy:()=>taskBusy,preview:()=>{
+  return {open,close,isOpen,clearSelection:resetSelection,invertSelection,result:()=>resultJob,setMode:selectMode,setExternalMode,selectionSnapshot,hasSelection:()=>selected,isBusy:()=>taskBusy,preview:()=>{
     if(owner())return;
     host.classList.add('is-precision-active');view.hidden=false;
     refreshButtons();syncPreviewFit();settleRetouchScroll();

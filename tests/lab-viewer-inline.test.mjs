@@ -56,3 +56,18 @@ test('no main Image draft mutation remains in the viewer adapter',()=>{
  assert.doesNotMatch(adapter,/clearMedia\(|moodUI\.clear|references\s*=|imageRevision\+\+|renderReferences\(|imageReplacement\.restore/);
  assert.doesNotMatch(adapter,/\$\('prompt'\)\.value\s*=/);
 });
+test('saved Character references reuse owned IDs and keep all eight notes in the bound quote',async()=>{
+ const f=fixture();let priced;
+ const fetchPrice=f.state.fetchCustomerImagePrice;
+ f.state.fetchCustomerImagePrice=async(value,check)=>{priced=value;return fetchPrice(value,check);};
+ f.selection.references=Array.from({length:8},(_,i)=>({file:new File(['x'],'view-'+i+'.png',{type:'image/png'}),id:'saved-'+i,label:{role:i===7?'body':'identity',note:'Saved note '+i,elementId:'character',elementName:'Alma',elementCategory:'characters',elementView:i,elementCount:8}}));
+ await f.prepare();assert.equal(f.uploads.length,1,'Only the new mask is uploaded; saved photos keep their IDs');
+ assert.deepEqual(Array.from(priced.settings.replacement.referenceSourceIds),f.selection.references.map(ref=>ref.id));
+ assert.equal(priced.settings.referenceRoles.length,9);assert.equal(priced.settings.referenceRoles[8].role,'body');
+ for(let i=0;i<8;i++)assert.equal(priced.settings.referenceRoles[i+1].note,'Saved note '+i);
+ assert.equal(f.requests.length,0);
+});
+test('a reference-type mismatch is rejected before any upload or paid request',async()=>{
+ const f=fixture();f.selection.references=[{file:f.selection.reference,id:'room',label:{role:'room',elementCategory:'locations'}}];
+ await assert.rejects(f.prepare(),/does not match/);assert.equal(f.uploads.length,0);assert.equal(f.requests.length,0);
+});
