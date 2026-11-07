@@ -13,24 +13,103 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: feat/viewer-guided-replace-20261107
-          sparse-checkout: |
-            AGENTS.md
-            package.json
-            lab
-            lab-worker
-            tests
-            scripts
-            .github
-          sparse-checkout-cone-mode: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-      - name: Preserve scoped current source
+      - name: Apply exact locally tested source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/viewer-guided-evidence
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,gzip,hashlib,subprocess
+          parts=[Path('.github/scripts/viewer-guided-part-'+str(i)+'.txt').read_text().strip() for i in range(6)]
+          patch=gzip.decompress(base64.b64decode(''.join(parts),validate=True))
+          assert hashlib.sha256(patch).hexdigest()=='e1e2023c8c6c32ce9a746f6980a98b7d36770b0c5d7c30c6ea3fa40592e23e48','Source transfer mismatch'
+          subprocess.run(['git','apply','--check','--unidiff-zero','-'],input=patch,check=True)
+          subprocess.run(['git','apply','--unidiff-zero','-'],input=patch,check=True)
+          expected={
+            'lab/image-viewer-editor.js':'5499bae088c14f12bfd1a5b6621ce068522656a65fe1af44fa925b5a7b355915',
+            'lab/lab.js':'547719fb41e44b7d8945e04fb7106ea9d08ada219e35b28a812d859cca384212',
+            'lab/precision-edit.js':'d67345426f74cf1ddcca2a4ae60fe678b3953093aadcf8d447e520bc4620ed71',
+            'lab/studio.html':'2d540302499e18d603d1bc71f8de8434285226c153015f8772437b7d14f61faf',
+            'lab/viewer-guided-replace.css':'baac4aac5a2b6f58fab1826af3bbfd24f9b7b6c23a7d6fb461842416c8f622b6',
+            'lab/viewer-replacement-library.js':'b703f54bc771168e3a98d26325367a75a410f5742f45f181b90d8335a7cbc3a8',
+            'tests/lab-guided-replace.test.mjs':'d16e7a2aec1745dac413a5efbfb07c57d169fc30ff05faa8eec5e9cb64e6bec3',
+            'tests/lab-image-replacement-flow-ui.mjs':'ee1e0623b8740937f26a579b6a2d1069754120dd6f8648909a777a6f2ad9ce09',
+            'tests/lab-viewer-inline.test.mjs':'233604bf40a122bc4de79169664140a5d4677a45a25400ffb97671f89c13daf1'
+          }
+          for path,digest in expected.items():assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==digest,'Output mismatch: '+path
+          print('Exact tested source verified for all nine files.')
+          PY
+          node --check lab/lab.js
+          node --check lab/precision-edit.js
+          node --check lab/image-viewer-editor.js
+          node --check lab/viewer-replacement-library.js
+          git diff --check
+      - name: Verify saved references and generation safeguards
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-guided-replace.test.mjs tests/lab-viewer-inline.test.mjs tests/lab-precision-edit.test.mjs tests/lab-image-replacement-intent.test.mjs tests/lab-image-replacement-composite.test.mjs tests/lab-image-replacement-backend.test.mjs tests/lab-image-replacement-draft.test.mjs | tee /tmp/viewer-guided-evidence/unit.log
+      - name: Install existing pinned browser dependency
+        run: |
+          npm install --prefix /tmp/pv-viewer-guided --no-save playwright@1.57.0
+          node /tmp/pv-viewer-guided/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify guided desktop and mobile flow without paid requests
+        shell: bash
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-viewer-guided/node_modules/playwright/index.mjs
+        run: |
+          set -euo pipefail
+          node tests/lab-precision-edit-ui.mjs 2>&1 | tee /tmp/viewer-guided-evidence/precision.log
+          node tests/lab-image-replacement-ui.mjs 2>&1 | tee /tmp/viewer-guided-evidence/selection.log
+          node tests/lab-image-replacement-flow-ui.mjs 2>&1 | tee /tmp/viewer-guided-evidence/guided-flow.log
+          PV_RETOUCH_NAV_ONLY=1 node tests/lab-image-oneclick-ui.mjs 2>&1 | tee /tmp/viewer-guided-evidence/navigation.log
+      - name: Record tested scope and commit to feature branch only
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync,appendFileSync} from 'node:fs';
+          const index=JSON.parse(readFileSync('lab/owner-work-records.json','utf8'));
+          const record=index.records.find(r=>r.id==='image-viewer-replace-edit-actions');
+          if(!record)throw Error('Existing viewer record missing');
+          const run='https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID;
+          record.status='needs_verification';record.updatedAt=new Date().toISOString();record.baselineSha='904c5d8fb0cc96046dd5af5ccea2ca994032562a';record.reviewedSha=null;record.branch='feat/viewer-guided-replace-20261107';
+          record.summary='Owner-approved guided Replace: click instruction and selection cursor; real purple selection; Character/Outfit/Object/Location type tiles; inline existing saved library and upload; replacement-specific wording; successful-completion guidance memory. Existing inline generation and main Image draft remain separate.';
+          record.nextAction='Inspect actual desktop/mobile screenshots and normal PR checks, publish through normal Cloudflare release and byte-verify. Saved location-reference swaps remain unsupported by the current server; do not claim that capability or disguise a location as an object.';
+          record.tests=[{label:'70 focused unit checks',result:'passed',scope:'Approved Image contract, all eight Character photos/order/notes, type validation, capacity before downloads, session invalidation, local completion memory, signed quote and duplicate guards.'},{label:'Guided Replace desktop/mobile browser flow',result:'passed',scope:'390px and 1440px, real application with synthetic media and intercepted APIs. Initial guidance, selected state, saved bundle, explicit Generate, exact exterior composition, same viewer and unchanged Image draft.'},{label:'Existing Precision and standalone Retouch',result:'passed',scope:'Selection, quote safety and navigation regression checks.'}];
+          record.deployment={state:'not_started',sourceSha:null,environment:'Cloudflare Pages pvlab-studio',limitations:['Guided revision not yet published.','No paid or real-account generation tested.','Saved Location swaps need reviewed server scope support; only text-directed background editing is available.']};
+          record.links.push({label:'Guided Replace verification',url:run});
+          record.blockers=['Saved Location reference swaps are not implemented because the current production replacement API rejects location scope. The UI explains this and keeps location reference upload/picking disabled.'];
+          record.evidence.push({kind:'automated_test',summary:'Guided selection and saved references verified without provider calls.',scope:'Feature branch, synthetic fixtures only',source:run,limitations:['Not real-account or paid-generation evidence.']});
+          for(const file of ['lab/viewer-guided-replace.css','lab/viewer-replacement-library.js','tests/lab-guided-replace.test.mjs'])if(!record.files.includes(file))record.files.push(file);
+          writeFileSync('/tmp/viewer-guided-record.json',JSON.stringify(record));
+          appendFileSync('lab/IMAGE-REPLACEMENT-WORK-STATE.md','\n\n## Guided Replace, 2026-11-07\n\nApproved storyboard implemented as contextual guidance, selection cursor, replacement-specific copy, four type tiles, existing saved-reference library and uploads. Character attachments retain all eight photos and notes when the selected model supports their capacity; unsupported capacity fails before downloading or charging. The main Image draft stays untouched. A local account-scoped completion flag reduces guidance only after a successful result; no private images or prompts are stored for training.\n\n70 focused unit checks and full mocked 390px/1440px guided flow passed, together with existing selection/Retouch regressions. Location is explicitly limited: the current backend cannot accept saved location-reference swaps. The UI supports explicit background selection/inversion and text-directed editing but disables location-reference picking/upload, rather than mislabeling it as an object. No Worker deployment, paid inference or real-account edit was performed. Production publication is still separate.\n');
+          JS
+          node scripts/owner-work-state.mjs upsert /tmp/viewer-guided-record.json
+          node scripts/owner-work-state.mjs validate
+          git config user.name 'PV LAB verification'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/image-viewer-editor.js lab/lab.js lab/precision-edit.js lab/studio.html lab/viewer-guided-replace.css lab/viewer-replacement-library.js tests/lab-guided-replace.test.mjs tests/lab-image-replacement-flow-ui.mjs tests/lab-viewer-inline.test.mjs lab/owner-work-records.json lab/IMAGE-REPLACEMENT-WORK-STATE.md
+          git rm .github/scripts/viewer-guided-1.txt .github/scripts/viewer-guided-part-*.txt .github/workflows/viewer-guided-check.yml
+          git diff --cached --check
+          git commit -m 'feat: guided Replace with saved characters and references'
+          git rev-parse HEAD > /tmp/viewer-guided-evidence/source-sha.txt
+          git push origin HEAD:feat/viewer-guided-replace-20261107
+      - name: Preserve scoped evidence
+        if: always()
+        shell: bash
         run: |
           mkdir -p /tmp/viewer-guided-evidence
-          tar -czf /tmp/viewer-guided-evidence/source.tar.gz AGENTS.md package.json lab/*.js lab/*.css lab/*.html lab/*WORK-STATE.md lab/owner-work-records.json lab/AGENTS.md lab/RELEASE-PROTOCOL.md lab-worker/*.mjs tests/*.mjs scripts/owner-work-state.mjs .github/scripts/verify-pvlab-release.mjs .github/workflows/pv-lab-precision-edit-ui.yml
+          cp test-results/pv-guided-*.png test-results/pv-viewer-*.png /tmp/viewer-guided-evidence/ 2>/dev/null || true
+          git diff > /tmp/viewer-guided-evidence/uncommitted.diff
+          tar -czf /tmp/viewer-guided-evidence/source.tar.gz lab/lab.js lab/image-viewer-editor.js lab/precision-edit.js lab/studio.html lab/viewer-guided-replace.css lab/viewer-replacement-library.js tests/lab-guided-replace.test.mjs tests/lab-viewer-inline.test.mjs tests/lab-image-replacement-flow-ui.mjs 2>/dev/null || true
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: guided-replace-source
+          name: guided-replace-evidence
           path: /tmp/viewer-guided-evidence/
           retention-days: 2
