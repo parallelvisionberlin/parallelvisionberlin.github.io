@@ -2,7 +2,7 @@
 // provider availability, selection, price checks, and generation behavior.
 const GROUPS=[
   {title:'Best value',ids:['wan','seedance15']},
-  {title:'Creative & motion',ids:['seedance','klinghf']},
+  {title:'Creative & motion',ids:['seedance','kling3']},
   {title:'Advanced & high res',ids:['wanprime','seedance4k','omni']}
 ];
 // Keep experimental alternatives accessible, but out of the primary recommendations.
@@ -12,7 +12,7 @@ const META={
   // It is not a guarantee that the model accepts every request.
   seedance:{description:'Complex scenes · references & extend · 4–30s',brand:'bytedance',badge:'Premium',uncensored:true},
   wan:{description:'Realistic human motion · start frame or references',glyph:'W',badge:'Recommended',tone:'green',uncensored:true},
-  klinghf:{description:'Text or start frame · Higgsfield',glyph:'K',badge:'Pro'},
+  kling3:{description:'Text or start frame · SpicyAPI',glyph:'K',badge:'Pro'},
   seedance15:{description:'High-quality general motion · 4–12s · camera lock',brand:'bytedance',badge:'Low cost',tone:'green',uncensored:true},
   h3:{description:'Text, frame & references · up to 2K',glyph:'M',uncensored:true},
   h3max:{description:'Start frame or text · 768p',glyph:'M'},
