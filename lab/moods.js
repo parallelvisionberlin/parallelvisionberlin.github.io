@@ -2,8 +2,9 @@ import {WON_KAR_NIGHT,prepareWonKarNight} from './won-kar-night.js?v=20261106v1'
 import {prepareSoulNightFlash} from './night-flash-soul.js?v=20261106v1';
 import {EIGHTIES_TAPE_RECIPE} from './80s-film-recipe.js?v=20261024v3';
 import {prepareDreamBlurBasePrompt} from './dream-blur-base.js?v=20261024v1&dreamBlurExposure=20261102v2';
-import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10&hkCinema=20261025v1';
+import {HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10&hkCinema=20261025v1';
 import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2&hkCinema=20261025v1';
+import {HONG_KONG_BASE_RELIGHT,hongKongBaseRelightPrompt} from './hong-kong-reference-policy.js?hkBaseRelight=20261107v1';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
@@ -405,6 +406,14 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original},
       error:over>0?'Direction and Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
   }
+  // The owner trial is an explicit variant so established presets stay reproducible.
+  if(mood.id==='hong-kong-nights'&&moodVariant===HONG_KONG_BASE_RELIGHT){
+    if(engine!=='seedream'||referenceMode!=='base'||referenceCount!==1)
+      return {prompt:original,metadata:{},error:'Hong Kong Nights Base Relight needs one Base photo and Seedream 5 Pro.'};
+    const prompt=hongKongBaseRelightPrompt(original,intensity);
+    return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,moodVariant,filmFinish:FILM_FINISH_OFF},
+      error:prompt.length>5000?'Direction and Base Relight exceed 5,000 characters. Shorten your direction.':''};
+  }
   // Hong Kong Nights: restore the approved October 10 photographic recipe.
   // One short art direction and the user's own photograph; no scene rebuilding
   // instructions, automatic cinematography reference map, or extra AI pass.
@@ -634,6 +643,8 @@ export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,ch
   const aboutDetails=panel.querySelector('#composer-moods-explanation');
   const backdrop=panel.parentElement.querySelector('#composer-moods-backdrop');
   let selected=null,intensity=60,category='All',personalMoods=[],hkVariation='original';
+  const relightPreview=typeof window!=='undefined'&&new URLSearchParams(window.location.search).get('hkRelight')==='1';
+  const activeHongKongVariant=()=>relightPreview&&getOwner()&&getEngine()==='seedream'?HONG_KONG_BASE_RELIGHT:hkVariation;
   const finishPanel=document.createElement('div');finishPanel.hidden=true;
   const finishControls=createFilmFinishControls(finishPanel,{onChange:()=>onChange(),compact:true});
   const controlDeck=panel.querySelector('.moods-controls');
@@ -732,7 +743,7 @@ export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,ch
     }
     emptyPersonal.hidden=category!=='My Moods'||personalMoods.length>0;
     slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected;amount.textContent=intensity+'%';
-    finishPanel.hidden=selected!=='hong-kong-nights';
+    finishPanel.hidden=selected!=='hong-kong-nights'||activeHongKongVariant()===HONG_KONG_BASE_RELIGHT;
     variationBar.hidden=true; // New generations use a single Hong Kong Nights treatment.
     for(const [id,b] of variationButtons){b.classList.toggle('is-selected',hkVariation===id);b.setAttribute('aria-pressed',String(hkVariation===id));}
     controlDeck?.classList.toggle('has-film-finish',!finishPanel.hidden);
@@ -874,7 +885,7 @@ export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,ch
       const mood=boardById(selected);
       return mood?preparePersonalMoodPrompt(prompt,mood,intensity,options):{prompt:String(prompt||'').trim(),metadata:{},error:'This saved Mood is not available. Open My Moods and choose another.'};
     }
-    return prepareMoodPrompt(prompt,selected,intensity,{...options,moodVariant:hkVariation,filmFinish:finishControls.get()});
+    return prepareMoodPrompt(prompt,selected,intensity,{...options,moodVariant:activeHongKongVariant(),filmFinish:finishControls.get()});
   }
   function error(engine,prompt,count=0,referenceMode='base'){return enrich(prompt,{engine,referenceCount:count,referenceMode}).error;}
   function sync({visible=true,locked=false}={}){button.hidden=!visible;button.disabled=locked;finishControls.lock(locked);if(!visible||locked)close();if(visible)render();}
@@ -933,7 +944,7 @@ export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,ch
     observer.observe(panel.parentElement);
   }
   render();
-  return {active:()=>!!selected,selected:()=>selected,intensity:()=>intensity,variant:()=>selected==='hong-kong-nights'?hkVariation:null,enrich,error,setPersonalMoods,
+  return {active:()=>!!selected,selected:()=>selected,intensity:()=>intensity,variant:()=>selected==='hong-kong-nights'?activeHongKongVariant():null,enrich,error,setPersonalMoods,
     invalid:(engine,prompt,count=0,referenceMode='base')=>!!error(engine,prompt,count,referenceMode),
     sync,open,close,clear,restore};
 }

@@ -3,7 +3,7 @@ import {musicPublicRoute,musicAdminRoute,pruneMusicEvents,MUSIC_LINKS_VERSION} f
 import {refreshPartnerCostFx} from './partner-generation-costs.mjs';
 import {reconcileProviderSettlements} from './provider-settlement.mjs';
 import {agencyPublicRoute,agencyAdminRoute,processAgencyNotifications,pruneAgencyData} from './agency-enquiries.mjs';
-import {filmFinishSettings,HONG_KONG_FILM_FINISH,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish} from '../lab/film-finish.js';
+import {filmFinishSettings,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish} from '../lab/film-finish.js';
 import {checkCustomerPromptSafety} from './prompt-safety.mjs';
 import {verifySpicyCallback,spicyWakeToken,equalWakeToken} from './spicy-webhook.mjs';
 import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
@@ -60,7 +60,7 @@ import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError,builtInMoodReferenceCount} from '../lab/reference-guidance.js';
 import {BERLIN_RAVE_REFERENCES,BERLIN_RAVE_REFERENCE_VERSION} from './berlin-rave-references.mjs';
 import {HONG_KONG_REFERENCES,HONG_KONG_REFERENCE_VERSION} from './hong-kong-references.mjs';
-import {hongKongReferenceError,HONG_KONG_REFERENCE_MANIFEST} from '../lab/hong-kong-reference-policy.js';
+import {hongKongReferenceError,HONG_KONG_REFERENCE_MANIFEST,HONG_KONG_BASE_RELIGHT,hongKongBaseRelightPrompt} from '../lab/hong-kong-reference-policy.js';
 import {DREAMCORE_REFERENCES,DREAMCORE_REFERENCE_VERSION} from './dreamcore-references.mjs';
 import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from './synthetic-romance-references.mjs';
 import {moodBoardsRoute} from './moodboards.mjs';
@@ -278,9 +278,10 @@ function imageMoodMetadata(value){
   }
   let moodVariant=null;
   if(value.moodVariant!=null){
-    if(value.moodId!=='hong-kong-nights'||!['original','deep-green','slow-shutter'].includes(value.moodVariant))
+    if(value.moodId!=='hong-kong-nights'||!['original','deep-green','slow-shutter',HONG_KONG_BASE_RELIGHT].includes(value.moodVariant))
       fail(400,'Choose an available Hong Kong Nights photographic direction.');
     moodVariant=value.moodVariant;
+    if(moodVariant===HONG_KONG_BASE_RELIGHT)filmFinish=FILM_FINISH_OFF;
   }
   return {moodId:value.moodId,moodIntensity,moodOriginalPrompt,
     ...(moodVariant?{moodVariant}:{}),...(filmFinish?{filmFinish}:{})};
@@ -1898,6 +1899,12 @@ async function route(request,env,ctx) {
     const data=await body(request),p=parameters(data.settings);
     const quoteCount=data.count===undefined?1:Number(data.count);
     if(!Number.isInteger(quoteCount)||quoteCount<1||quoteCount>4)fail(400,'Choose 1 to 4 images for one price check.');
+    if(p.moodVariant===HONG_KONG_BASE_RELIGHT){
+      if(customer||env.LAB_HONG_KONG_BASE_RELIGHT_ENABLED!=='true')fail(403,'Hong Kong Nights Base Relight is a private trial.');
+      if(quoteCount!==1||!Array.isArray(data.referenceSourceIds)||data.referenceSourceIds.length!==1||p.referenceRoles[0]?.role!=='base')
+        fail(400,'Hong Kong Nights Base Relight needs one Base photo and one result.');
+      p.prompt=hongKongBaseRelightPrompt(p.moodOriginalPrompt,p.moodIntensity);
+    }
     if(quoteCount>1&&!(p.type==='image'&&['seedream','seedreamlite','flash','qwen3','zspicy'].includes(p.engine)&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for SpicyAPI image generation.');
     if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0))fail(400,'Add a prompt or at least one reference photograph.');
     if(p.provider==='higgsfield'&&p.mode==='transform')return json(await quoteCharacterTransform(env,owner,data,p,url,hfDeps()));
@@ -2041,6 +2048,11 @@ async function route(request,env,ctx) {
     const q=await first(env,'SELECT * FROM quotes WHERE id=? AND owner_id=? AND expires_at>?',quoteId,owner,now());
     if(!q)fail(409,'Quote expired. Review the cost again.');
     const params=JSON.parse(q.params||'{}'),savedPayload=JSON.parse(q.payload);
+    if(params.moodVariant===HONG_KONG_BASE_RELIGHT){
+      if(customer||env.LAB_HONG_KONG_BASE_RELIGHT_ENABLED!=='true')fail(403,'Hong Kong Nights Base Relight is a private trial.');
+      if(params.model!==STILL_EDIT||savedPayload.model!==STILL_EDIT||params.referenceSourceIds?.length!==1||savedPayload.input?.image_urls?.length!==1)
+        fail(409,'Refresh the Base Relight price to verify the original photo. Nothing was submitted.');
+    }
     // Recheck bound quotes at submission, including quotes made before rollout.
     if(customer&&env.LAB_MINOR_PROMPT_SAFETY_ENABLED==='true'){
       const checkRequest=new Request(request.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:params})});
@@ -2083,7 +2095,7 @@ async function route(request,env,ctx) {
       return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},202);
     }
     const {c,key}=await requireConfigured(env,owner);
-    if(params.type==='image'&&params.moodId==='hong-kong-nights'&&(params.moodReferenceVersion!==HONG_KONG_REFERENCE_VERSION||params.moodReferenceCount!==HONG_KONG_REFERENCES.length||savedPayload.input?.image_urls?.length!==(params.referenceSourceIds?.length||0)+HONG_KONG_REFERENCES.length))
+    if(params.type==='image'&&params.moodId==='hong-kong-nights'&&params.moodVariant!==HONG_KONG_BASE_RELIGHT&&(params.moodReferenceVersion!==HONG_KONG_REFERENCE_VERSION||params.moodReferenceCount!==HONG_KONG_REFERENCES.length||savedPayload.input?.image_urls?.length!==(params.referenceSourceIds?.length||0)+HONG_KONG_REFERENCES.length))
       fail(409,'Hong Kong Nights reference pack changed. Refresh the generation price to attach both original Style photos. Nothing was submitted.');
     if([STILL_EDIT,QWEN3_EDIT,SEEDREAM_LITE_EDIT,FLASH_EDIT].includes(savedPayload.model)&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
       fail(409,'This image quote uses the old reference transfer. Review a fresh price to verify your images before generating. Nothing was submitted.');
