@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T09:41:00+01:00",
+  "updatedAt": "2026-11-07T08:45:00Z",
   "handoffs": [
     {
       "id": "owner",
@@ -68,7 +68,7 @@
       "id": "image-quiet-progress",
       "title": "Quiet Image Generate progress",
       "component": "Image deck",
-      "status": "in_review",
+      "status": "needs_verification",
       "summary": "Hide only transient Checking price / Submitting progress below Generate, retaining visible image errors and existing billing/generation behavior.",
       "nextAction": "Review PR and required Image UI tests; merge if green, then verify Cloudflare Pages and production asset before claiming live.",
       "baselineSha": null,
@@ -89,12 +89,12 @@
       "tests": [
         {
           "label": "Approved Image UI contract",
-          "result": "pending",
+          "result": "not_run",
           "scope": "New assertions for quiet status and existing safety/busy cues."
         }
       ],
       "deployment": {
-        "state": "not_deployed",
+        "state": "not_started",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
         "limitations": [
           "No production or real-user check has been run."
