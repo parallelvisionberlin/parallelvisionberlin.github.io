@@ -65,6 +65,49 @@
   ],
   "records": [
     {
+      "id": "image-selected-mood-label-fit",
+      "title": "Selected Image Mood label clarity",
+      "component": "Image Mood control",
+      "status": "needs_verification",
+      "summary": "Desktop 104px selected Mood pill reserves room for clear ×; Night Flash lettering is bounded and cannot cover the clear button. Rest of Image toolbar untouched.",
+      "nextAction": "Run Night Flash geometry and Image UI checks, merge reviewed PR, confirm Cloudflare and production asset.",
+      "baselineSha": "a73fc4242a76802458facee8379d713654af9c15",
+      "reviewedSha": null,
+      "branch": "fix/image-selected-mood-label-clear-spacing-20261107",
+      "files": [
+        "lab/image-deck-surface.css",
+        "lab/studio.html",
+        "tests/lab-night-flash-soul-ui.mjs",
+        "lab/IMAGE-PROMPT-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Scoped checkpoint",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Selected Night Flash text clearance",
+          "result": "not_run",
+          "scope": "Desktop Night Flash name fits before clear X, no changes to fixed button width."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "Real signed-in Owner observation unverified."
+        ]
+      },
+      "evidence": [],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not alter Mood selection and provider logic or other toolbar controls."
+      ],
+      "updatedAt": "2026-11-07"
+    },
+    {
       "id": "image-base-clear-stability",
       "title": "Stable Image Base deck after deleting prompt",
       "component": "Image deck",
