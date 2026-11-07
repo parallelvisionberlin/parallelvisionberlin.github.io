@@ -1,6 +1,6 @@
 # Temporary transfer-integrity repair, removed with the branch workbench.
 from pathlib import Path
-import hashlib, re, gzip, base64
+import hashlib, re, gzip, base64, json
 p=Path('.github/scripts/image-viewer-edit-workbench.mjs')
 s=p.read_text()
 assert hashlib.sha256(s.encode()).hexdigest()=='c80867cb63d6bc500ea6ef0d657201b62e6ab6c83cadf63ca1e0374fd2a8fa58'
@@ -16,6 +16,47 @@ for old,new in repairs:
  s=s.replace(old,new)
 data=gzip.decompress(base64.b64decode(re.search("const encoded='([^']+)'",s).group(1)))
 assert hashlib.sha256(data).hexdigest()=='235913a41072c7d336e70258ef5da59f12b0004d0ff519613f4b0583420409f4'
+nav=''' // A completed-image action now enters the shared editor inside the viewer.
+ // Asset fetching must not turn the shortcut into a no-op or route to another page.
+ {
+  const completed={id:id(880),status:'completed',sourceId:id(881),outputId:id(882),
+    settings:{type:'image',provider:'spicy',engine:'seedream',mode:'image',prompt:'Editorial still.',
+      resolution:'1k',aspectRatio:'1:1',referenceSourceIds:[],referenceRoles:[]},
+    createdAt:Date.now(),estimatedUsd:.02};
+  x=await workspace({initial:[completed]});
+  await x.page.locator('#history .card[data-state="completed"]').first().click();
+  const viewerURL=x.page.url();
+  await x.page.locator('#image-detail-extra summary').click();
+  await x.page.locator('#image-detail-edit-area').click();
+  await x.page.waitForFunction(()=>document.getElementById('image-lightbox').classList.contains('is-viewer-editing')&&
+    !document.getElementById('precision-source-holder').hidden);
+  assert.equal(await x.page.locator('#image-lightbox > #precision-workspace').count(),1,'Reuse the existing editor inside the viewer');
+  assert.equal(await x.page.locator('#precision-tool-brush').getAttribute('aria-pressed'),'true');
+  assert.equal(x.page.url(),viewerURL,'Edit does not navigate away');
+  assert.match(await x.page.locator('#precision-source-meta').textContent(),/viewer-original/);
+  assert.equal(count(x,'/api/precision/submit'),0);
+  assert.equal(count(x,'/api/precision/quote'),0);
+  assert.equal(count(x,'/api/uploads'),0);
+  await x.page.click('#precision-return');
+  await x.page.waitForFunction(()=>document.getElementById('image-lightbox').open&&
+    !document.getElementById('image-lightbox').classList.contains('is-viewer-editing'));
+  assert.equal(await x.page.locator('#image-detail-edit').isVisible(),true,'Back restores the same viewer');
+  assert.equal(await x.page.locator('#image-lightbox > #precision-workspace').count(),0,'Restore the standalone editor on exit');
+  await x.page.click('#image-lightbox-close');
+  assert.equal(x.page.url(),viewerURL);
+  ok('Completed image opens the contextual editor and returns safely without uploading or paying');
+  assert.deepEqual(x.errors,[]);await x.context.close();
+ }
+'''
+fix="""
+const navPath='tests/lab-image-oneclick-ui.mjs';let navSource=readFileSync(navPath,'utf8');
+const navStart=navSource.indexOf(' // A completed-image viewer must open Retouch');
+const navEnd=navSource.indexOf(' if(!process.env.PV_RETOUCH_NAV_ONLY){',navStart);
+if(navStart<0||navEnd<navStart)throw Error('Unexpected navigation test baseline');
+writeFileSync(navPath,navSource.slice(0,navStart)+"""+json.dumps(nav)+"+navSource.slice(navEnd));\n"
+marker="const log='/tmp/image-viewer-verification.log';"
+assert s.count(marker)==1
+s=s.replace(marker,fix+'\n'+marker)
 s+='''
 const record={id:'image-viewer-replace-edit-actions',title:'Contextual image viewer Replace and Edit',component:'PV LAB Image viewer',status:'needs_verification',updatedAt:new Date().toISOString(),baselineSha:'d3f66d75791d022a6c482dbd2f069196f202dd32',reviewedSha:null,branch:'feat/image-viewer-replace-edit-20261107',summary:'Approved Replace and Edit sidebar cards above Turn into video; main Image deck Retouch action retired. Both cards reuse the existing precision canvas inside the viewer. Replace stages its reviewed mask and reference in the existing Image deck without a generation or model substitution.',nextAction:'Review the source PR and normal CI, then verify the exact Cloudflare Pages production assets. No live or paid generation claim.',files:['lab/lab.js','lab/studio.html','lab/precision-edit.js','lab/image-viewer-editor.js','lab/image-viewer-editor.css','tests/lab-image-replacement-flow-ui.mjs','tests/lab-first-image-instant-browser.mjs','tests/lab-image-oneclick-ui.mjs','lab/IMAGE-REPLACEMENT-WORK-STATE.md'],links:[],tests:[{label:'Approved Image UI, precision and replacement unit suites',result:'passed',scope:'Provider-free contract, mask, draft and backend regression tests'},{label:'Precision and replacement browser suites',result:'passed',scope:'Mocked existing flows plus contextual viewer Edit/Replace at 390 and 1440 pixels'},{label:'Image deck and standalone Retouch regression suites',result:'passed',scope:'Prompt paste, first Image, studio layout and Retouch route navigation'}],deployment:{state:'not_started',environment:'Cloudflare Pages pvlab-studio',sourceSha:null,limitations:['No production asset check yet.','No signed-in live paid generation was performed.']},evidence:[{kind:'automated_test',summary:'All scoped tests passed before the implementation commit.',scope:'Source branch, mocked network requests only',limitations:['Not live-provider evidence.']}],blockers:[],doNotRepeat:['Do not recreate a separate editor or add buttons over the photograph.','Do not change provider, model or billing when opening an action.']};
 writeFileSync('/tmp/viewer-owner-record.json',JSON.stringify(record));
