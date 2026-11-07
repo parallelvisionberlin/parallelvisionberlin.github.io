@@ -24,7 +24,24 @@ edit('lab/studio.html',source=>{
  const start=source.indexOf(needle),end=source.indexOf('"',start+needle.length);
  return source.slice(0,end)+'&inlineViewer=20261107-inline-editor2'+source.slice(end);
 });
-edit('lab/image-viewer-editor.css',source=>source.replace('#393b3c3c','#393b3c'));
+edit('lab/image-viewer-editor.css',source=>{
+ source=source.replace('#393b3c3c','#393b3c');
+ source=once(source,'flex-direction:column;gap:16px;align-self:stretch','flex-direction:column;align-items:stretch;gap:16px;align-self:stretch');
+ source=once(source,'.precision-bottom{display:block;margin:0;padding:0;border:0}', '.precision-bottom{display:block;margin:0;padding:0;border:0;width:100%;max-width:none}');
+ source=once(source,'min-height:46px;width:100%;','min-height:46px;width:100%;max-width:none;');
+ source=once(source,'.viewer-replacement-fields{display:flex;','.viewer-replacement-fields{width:100%;max-width:none;display:flex;');
+ source=once(source,'font-size:10px;padding:7px;min-height:31px','font-size:12px;padding:7px;min-height:34px');
+ source=once(source,'.precision-input-panel{width:100%;border:0;','.precision-input-panel{width:100%;min-height:0;border:0;');
+ source=once(source,'#image-lightbox.is-viewer-editing .precision-board{order:1;flex:none;height:clamp(220px,46dvh,480px);min-height:220px}','#image-lightbox.is-viewer-editing .precision-board{order:1;flex:none;height:auto;min-height:0;max-height:52dvh}');
+ return once(source,'@media(max-width:760px){','@media(max-width:760px){\n #image-lightbox.is-viewer-editing>#image-lightbox-close{display:none!important}');
+});
+edit('lab/image-viewer-editor.js',source=>{
+ source=once(source,'let lastResult=null;','let lastResult=null, referenceRevision=0;');
+ source=once(source,'function clearReference() {\n    reference=null;','function clearReference() {\n    ++referenceRevision;reference=null;');
+ source=once(source,'const candidate=input.files?.[0], ticket=revision;','const candidate=input.files?.[0], ticket=revision, load=++referenceRevision;');
+ source=once(source,'bitmap.close();\n      if(!active||ticket!==revision)return;','bitmap.close();\n      if(!active||ticket!==revision||load!==referenceRevision)return;');
+ return once(source,'if(ticket===revision)status.textContent=error.message;','if(ticket===revision&&load===referenceRevision)status.textContent=error.message;');
+});
 edit('tests/lab-image-oneclick-ui.mjs',source=>source.replaceAll('#image-lightbox > #precision-workspace','.image-detail-media > #precision-workspace'));
 edit('tests/lab-image-replacement-flow-ui.mjs',source=>{
  const first=source.indexOf("    page.once('dialog',dialog=>dialog.accept());",source.indexOf('// The approved sidebar actions'));
