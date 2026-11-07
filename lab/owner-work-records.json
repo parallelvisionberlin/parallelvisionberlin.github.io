@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T13:00:48.683Z",
+  "updatedAt": "2026-11-07T14:15:16.868Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1769,13 +1769,13 @@
       "id": "image-viewer-replace-edit-actions",
       "title": "Contextual image viewer Replace and Edit",
       "component": "PV LAB Image viewer",
-      "status": "needs_verification",
-      "updatedAt": "2026-11-07T13:00:48.683Z",
+      "status": "deployed",
+      "updatedAt": "2026-11-07T14:15:16.868Z",
       "baselineSha": "fa097ff9b1a776e70d097cdf585df204ac803a40",
-      "reviewedSha": "2e111c664e9f0cbf43c45b30c67554aca2cf0150",
+      "reviewedSha": "beb1f53e8fac4b42b52660a55c47241b573f7a92",
       "branch": "feat/image-viewer-replace-edit-20261107",
       "summary": "Approved Replace and Edit sidebar cards above Turn into video; main Image deck Retouch action retired. Both cards reuse the existing precision canvas inside the viewer. Replace stages its reviewed mask and reference in the existing Image deck without a generation or model substitution.",
-      "nextAction": "Review normal PR CI after reconciliation, merge PR #915 through the standard merge endpoint, then verify exact production assets. No paid or real-account claim.",
+      "nextAction": "Publication is verified. Any further check should exercise a real signed-in edit/replacement deliberately; no paid generation has been tested.",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
@@ -1833,12 +1833,14 @@
         }
       ],
       "deployment": {
-        "state": "not_started",
-        "environment": "Cloudflare Pages pvlab-studio",
-        "sourceSha": null,
+        "state": "verified",
+        "sourceSha": "beb1f53e8fac4b42b52660a55c47241b573f7a92",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-07T14:15:16.868Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42380694787",
         "limitations": [
-          "No production asset check yet.",
-          "No signed-in live paid generation was performed."
+          "Signed-in production generation is not verified.",
+          "Production style check used scripts blocked and a synthetic image; no account or paid provider calls."
         ]
       },
       "evidence": [
@@ -1865,6 +1867,26 @@
           "limitations": [
             "Production not deployed or verified yet.",
             "No paid generation performed."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Cloudflare exact merge check succeeded and all four viewer-related production assets matched source SHA-256 bytes.",
+          "scope": "lab/image-viewer-editor.css, lab/lab.js, lab/precision-edit.js, lab/image-viewer-editor.js",
+          "observedAt": "2026-11-07T14:15:16.868Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42380694787",
+          "limitations": [
+            "Not evidence of paid generation quality or a signed-in customer journey."
+          ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "Actual production HTML/CSS rendered at 390px and 1440px: Replace/Edit aligned above Turn into video; Retouch absent from deck; no horizontal overflow.",
+          "scope": "Production styles with scripts blocked and synthetic image",
+          "observedAt": "2026-11-07T14:15:16.868Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42380694787",
+          "limitations": [
+            "No authentication or generation performed."
           ]
         }
       ],

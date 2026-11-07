@@ -56,3 +56,11 @@ Added the approved sidebar cards above Turn into video and retired the main/gues
 - Compact prompt Generate-font assertion was separately reproduced on unchanged current main. Shared deck Base-width and Clerk-source assertions were already reproduced on unchanged source. No failing test was disabled or weakened.
 - Combined-source checks passed: 54 focused unit tests; precision editing; desktop/mobile viewer replacement flow; prompt paste; Soul deck parity; Retouch navigation. All provider-free.
 - Production publication remains a separate step. Review the standard PR checks, merge through the normal endpoint, verify the Cloudflare production commit and exact custom-domain asset bytes. No real signed-in or paid-generation verification claimed.
+
+## Published and byte-verified
+
+- PR #915 merged as beb1f53e8fac4b42b52660a55c47241b573f7a92.
+- Exact-commit Cloudflare Pages check succeeded. Production HTML references and SHA-256 bytes verified for lab/image-viewer-editor.css, lab/lab.js, lab/precision-edit.js, lab/image-viewer-editor.js.
+- Production HTML/CSS layout checked at 390px and 1440px with JavaScript blocked and a synthetic image. This is not a signed-in customer test.
+- Verification evidence: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42380694787
+- No paid provider generation or real-account edit was run. Existing unrelated CI failures remain documented; no assertions or gates were disabled.
