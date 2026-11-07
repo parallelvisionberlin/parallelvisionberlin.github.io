@@ -1,0 +1,172 @@
+name: Verify viewer production publication
+on:
+  push:
+    branches: [verify/viewer-915-production-20261107]
+    paths: ['.github/workflows/viewer-production-evidence.yml']
+permissions:
+  contents: write
+  checks: read
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      RELEASE_SHA: beb1f53e8fac4b42b52660a55c47241b573f7a92
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          sparse-checkout: |
+            .github/scripts/
+            scripts/owner-work-state.mjs
+            lab/studio.html
+            lab/lab.js
+            lab/precision-edit.js
+            lab/image-viewer-editor.js
+            lab/image-viewer-editor.css
+            lab/owner-work-records.json
+            lab/IMAGE-REPLACEMENT-WORK-STATE.md
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Verify the actual production commit and exact public asset bytes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          node --input-type=module <<'JS'
+          import {verifyRelease,productionUrl} from './.github/scripts/verify-pvlab-release.mjs';
+          import {execFileSync} from 'node:child_process';
+          import {createHash} from 'node:crypto';
+          import {writeFileSync} from 'node:fs';
+          const sha=process.env.RELEASE_SHA;
+          const source=asset=>execFileSync('git',['show',sha+':'+asset]);
+          const hash=b=>createHash('sha256').update(b).digest('hex');
+          const html=source('lab/studio.html').toString();
+          const refs=[...html.matchAll(/<(?:link|script)\b[^>]*\b(?:href|src)=["']([^"']+)["']/gi)].map(m=>new URL(m[1].replaceAll('&amp;','&'),productionUrl));
+          let results=[];
+          for(let attempt=0;attempt<4;attempt++){
+            results=[];
+            for(const asset of ['lab/image-viewer-editor.css','lab/lab.js']){
+              const ref=refs.find(url=>url.pathname==='/'+asset.slice(4));
+              if(!ref)throw Error('Source is missing '+asset);
+              results.push(await verifyRelease({sha,asset,version:ref.searchParams.get('v'),sourceBytes:source(asset)}));
+            }
+            writeFileSync('evidence/publication.json',JSON.stringify(results,null,2));
+            console.log(JSON.stringify(results));
+            if(results.every(r=>r.state==='LIVE_VERIFIED'))break;
+            if(attempt===3)throw Error('Production publication is not yet verified. No deployment was triggered by this check.');
+            await new Promise(resolve=>setTimeout(resolve,45000));
+          }
+          const lab=source('lab/lab.js').toString();
+          for(const name of ['precision-edit','image-viewer-editor']){
+            const pattern=new RegExp("from ['\"](\\./"+name+"\\.js\\?[^'\"]+)['\"]");
+            const ref=lab.match(pattern)?.[1];if(!ref)throw Error('Missing imported source '+name);
+            const url=new URL(ref,productionUrl);
+            const response=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(15000)});
+            if(!response.ok)throw Error('Production module unavailable: '+name);
+            const bytes=Buffer.from(await response.arrayBuffer());
+            if(hash(bytes)!==hash(source('lab/'+name+'.js')))throw Error('Production module differs from reviewed source: '+name);
+            results.push({state:'LIVE_VERIFIED',commit:sha,asset:'lab/'+name+'.js',url:url.href,sha256:hash(bytes)});
+          }
+          writeFileSync('evidence/publication.json',JSON.stringify(results,null,2));
+          console.log('ALL_VIEWER_ASSETS_LIVE_VERIFIED');
+          JS
+      - name: Render production HTML and CSS without signing in or calling APIs
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix /tmp/viewer-public-render --no-save playwright@1.57.0
+          node --input-type=module <<'JS'
+          import {chromium} from '/tmp/viewer-public-render/node_modules/playwright/index.mjs';
+          import {existsSync,writeFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          const executablePath=['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].find(existsSync);
+          if(!executablePath)throw Error('No system Chromium available; publication evidence remains separate from rendering.');
+          const browser=await chromium.launch({headless:true,executablePath});
+          const results=[];
+          try{
+            for(const width of [390,1440]){
+              const context=await browser.newContext({viewport:{width,height:900}});
+              const page=await context.newPage();
+              await page.route('**/*',route=>{
+                const request=route.request(),url=new URL(request.url());
+                if(url.origin!=='https://pvlab.studio'||request.resourceType()==='script'||url.pathname.startsWith('/api/'))return route.abort();
+                return route.continue();
+              });
+              await page.goto('https://pvlab.studio/studio',{waitUntil:'domcontentloaded'});
+              await page.evaluate(async()=>{
+                document.getElementById('lab-boot')?.remove();
+                document.documentElement.classList.remove('pv-studio-boot-lock','pv-studio-route-pending','pv-native-route-pending');
+                document.body.classList.remove('lab-booting');document.body.classList.add('lab-ready');
+                document.getElementById('gate').hidden=true;
+                const app=document.getElementById('app');app.hidden=false;app.classList.add('image-studio-active');
+                const image=document.getElementById('image-lightbox-img');image.hidden=false;
+                image.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480"><rect width="640" height="480" fill="#252929"/></svg>');
+                document.getElementById('image-lightbox').showModal();
+                await document.fonts.ready;
+              });
+              await page.locator('#image-detail-replace').scrollIntoViewIfNeeded();
+              const result=await page.evaluate(()=>{
+                const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};
+                return {replace:rect('image-detail-replace'),edit:rect('image-detail-edit'),video:rect('image-detail-video'),inspector:document.querySelector('.image-detail-inspector').getBoundingClientRect().x,retouchDisplay:getComputedStyle(document.getElementById('image-composer-edit-area')).display,overflow:document.documentElement.scrollWidth>innerWidth};
+              });
+              assert.ok(result.replace.width>70&&result.replace.height>=44);
+              assert.ok(result.edit.width>70&&result.edit.height>=44);
+              assert.ok(Math.abs(result.replace.y-result.edit.y)<2);
+              assert.ok(result.replace.y<result.video.y);
+              assert.equal(result.retouchDisplay,'none');assert.equal(result.overflow,false);
+              await page.screenshot({path:'evidence/production-viewer-style-'+width+'.png'});
+              results.push({width,...result,scope:'Production HTML/CSS rendered with scripts blocked and synthetic image; not a signed-in journey'});
+              await context.close();
+            }
+          }finally{await browser.close();}
+          writeFileSync('evidence/render.json',JSON.stringify(results,null,2));
+          console.log('PRODUCTION_VIEWER_STYLE_VERIFIED');
+          JS
+      - name: Record verified publication without changing application code
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main --depth=2
+          if [ "$(git rev-parse origin/main)" != "$RELEASE_SHA" ]; then
+            echo 'Main moved after publication verification; leaving work records unchanged rather than overwriting concurrent work.' | tee evidence/record-status.txt
+            exit 0
+          fi
+          git checkout --detach "$RELEASE_SHA"
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync,appendFileSync} from 'node:fs';
+          const state=JSON.parse(readFileSync('lab/owner-work-records.json','utf8'));
+          const record=state.records.find(r=>r.id==='image-viewer-replace-edit-actions');
+          if(!record)throw Error('Existing viewer work record missing');
+          const publication=JSON.parse(readFileSync('evidence/publication.json','utf8'));
+          if(publication.length!==4||publication.some(r=>r.state!=='LIVE_VERIFIED'))throw Error('Publication not verified');
+          const now=new Date().toISOString(),sha=process.env.RELEASE_SHA;
+          const run='https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID;
+          record.status='deployed';record.updatedAt=now;record.reviewedSha=sha;
+          record.nextAction='Publication is verified. Any further check should exercise a real signed-in edit/replacement deliberately; no paid generation has been tested.';
+          record.deployment={state:'verified',sourceSha:sha,environment:'Cloudflare Pages pvlab-studio / pvlab.studio',observedAt:now,evidenceUrl:run,limitations:['Signed-in production generation is not verified.','Production style check used scripts blocked and a synthetic image; no account or paid provider calls.']};
+          record.evidence.push({kind:'production_asset',summary:'Cloudflare exact merge check succeeded and all four viewer-related production assets matched source SHA-256 bytes.',scope:publication.map(r=>r.asset).join(', '),observedAt:now,source:run,limitations:['Not evidence of paid generation quality or a signed-in customer journey.']});
+          record.evidence.push({kind:'fixture',summary:'Actual production HTML/CSS rendered at 390px and 1440px: Replace/Edit aligned above Turn into video; Retouch absent from deck; no horizontal overflow.',scope:'Production styles with scripts blocked and synthetic image',observedAt:now,source:run,limitations:['No authentication or generation performed.']});
+          record.blockers=[];
+          writeFileSync('/tmp/viewer-production-record.json',JSON.stringify(record));
+          appendFileSync('lab/IMAGE-REPLACEMENT-WORK-STATE.md','\n## Published and byte-verified\n\n- PR #915 merged as '+sha+'.\n- Exact-commit Cloudflare Pages check succeeded. Production HTML references and SHA-256 bytes verified for '+publication.map(r=>r.asset).join(', ')+'.\n- Production HTML/CSS layout checked at 390px and 1440px with JavaScript blocked and a synthetic image. This is not a signed-in customer test.\n- Verification evidence: '+run+'\n- No paid provider generation or real-account edit was run. Existing unrelated CI failures remain documented; no assertions or gates were disabled.\n');
+          JS
+          node scripts/owner-work-state.mjs upsert /tmp/viewer-production-record.json
+          node scripts/owner-work-state.mjs validate
+          git config user.name 'PV LAB verification'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/owner-work-records.json lab/IMAGE-REPLACEMENT-WORK-STATE.md
+          git diff --cached --check
+          git commit -m '[CF-Pages-Skip] Record verified viewer Replace/Edit production release'
+          git push origin HEAD:main
+          git rev-parse HEAD > evidence/record-commit.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: viewer-production-evidence
+          path: evidence/
+          retention-days: 2
