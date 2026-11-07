@@ -1,0 +1,65 @@
+name: ALTER editorial archive review
+on:
+  push:
+    branches: [feature/alter-editorial-archive-20261107]
+    paths: [.github/workflows/alter-archive-review.yml]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Apply 13 approved-source editorial looks on latest baseline
+        run: |
+          curl --fail --location --silent --show-error 'https://at.adobe.com/9iLufJMxM53hZAqh' -o /tmp/alter-editorial-archive.zip
+          echo '344a9c12e89523a3cd9669547dc52fed0db53fe0af7cc3277593bc50d7ad348f  /tmp/alter-editorial-archive.zip' | sha256sum --check
+          mkdir -p /tmp/alter-editorial-archive
+          unzip -q /tmp/alter-editorial-archive.zip -d /tmp/alter-editorial-archive
+          python3 /tmp/alter-editorial-archive/apply.py
+          node --check lab/beauty-look-catalog.js
+          node --check tests/lab-beauty-ui.mjs
+          git diff --check
+      - name: Verify all 13 distinct preset mappings and original Image/Beauty contracts
+        run: |
+          node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-beauty.test.mjs tests/lab-beauty-atelier.test.mjs tests/lab-beauty-category-contract.test.mjs tests/lab-beauty-archive-curation.test.mjs
+          node --test --test-name-pattern='Beauty Studio binds' tests/lab-worker.test.mjs
+      - name: Browser dependencies
+        timeout-minutes: 3
+        run: |
+          npm install --prefix /tmp/pv-beauty --no-audit --no-fund playwright@1.57.0
+          node /tmp/pv-beauty/node_modules/playwright/cli.js install chromium
+      - name: Full Beauty and Studios browser regressions
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-beauty/node_modules/playwright/index.mjs
+        run: |
+          node tests/lab-studios-menu-ui.mjs
+          node tests/lab-beauty-ui.mjs
+      - name: Save only reviewed ALTER archive files on feature branch
+        run: |
+          test "$GITHUB_REF" = refs/heads/feature/alter-editorial-archive-20261107
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/beauty.html lab/beauty-look-catalog.js lab/beauty-archive-curation.css tests/lab-beauty-ui.mjs tests/lab-beauty-archive-curation.test.mjs lab/visuals/beauty/atelier/archive-*-20261107.webp
+          git diff --cached --check
+          python3 - <<'PY'
+          import subprocess
+          names=subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines()
+          assert len(names)==17,names
+          assert sum(n.endswith('.webp') for n in names)==12
+          assert set(n for n in names if not n.endswith('.webp'))=={
+            'lab/beauty.html','lab/beauty-look-catalog.js','lab/beauty-archive-curation.css',
+            'tests/lab-beauty-ui.mjs','tests/lab-beauty-archive-curation.test.mjs'}
+          PY
+          git commit -m 'Curate ALTER 13-look photographic editorial archive with real presets'
+          git push origin HEAD:refs/heads/feature/alter-editorial-archive-20261107
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: alter-archive-browser-evidence
+          path: test-results/beauty-*.png
+          retention-days: 3
