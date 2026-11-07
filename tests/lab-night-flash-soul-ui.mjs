@@ -132,6 +132,11 @@ try{
         const finishImage=finishDialog.locator('img');
         await page.waitForFunction(()=>document.querySelector('#owner-photo-finish-image').naturalWidth>0);
         const original=await finishImage.evaluate(img=>[img.src,img.naturalWidth,img.naturalHeight]);
+        const aim=finishDialog.getByRole('button',{name:'Aim flash at the subject'});
+        const box=await aim.boundingBox();
+        await aim.click({position:{x:box.width*.56,y:box.height*.27}});
+        const marker=finishDialog.locator('#owner-photo-finish-point');
+        assert.equal(await marker.isVisible(),true,'Clicking the source marks the flash point');
         await finishDialog.getByRole('button',{name:'Apply finish'}).click();
         await finishDialog.getByRole('link',{name:'Download'}).waitFor();
         await page.waitForFunction(src=>{
@@ -143,6 +148,10 @@ try{
         assert.equal(await finishDialog.evaluate(el=>el.getBoundingClientRect().width<innerWidth),true);
         await finishDialog.getByRole('button',{name:'View original'}).click();
         assert.equal(await finishImage.getAttribute('src'),original[0]);
+        assert.equal(await marker.isVisible(),true);
+        await aim.press('ArrowRight');
+        assert.equal(await finishDialog.getByRole('button',{name:'Apply finish'}).isEnabled(),true,'Re-aiming enables another pass');
+        assert.equal(await finishDialog.getByRole('link',{name:'Download'}).isVisible(),false,'An old render cannot be downloaded for a new point');
         await finishDialog.getByRole('button',{name:'Close',exact:true}).click();
         assert.equal(await finishDialog.isVisible(),false);
         assert.equal(requests.slice(beforeRequests).some(r=>r.method==='POST'),false,'No upload, quote or generation');
