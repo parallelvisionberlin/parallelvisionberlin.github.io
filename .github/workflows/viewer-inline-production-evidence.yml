@@ -1,0 +1,178 @@
+name: Verify compact viewer production publication
+on:
+  push:
+    branches: [verify/viewer-inline-917-production-20261107]
+    paths: ['.github/workflows/viewer-inline-production-evidence.yml']
+permissions:
+  contents: write
+  checks: read
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      RELEASE_SHA: a048cedf5f589b609d4bad7e36fde64e05859d47
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          sparse-checkout: |
+            .github/scripts/
+            scripts/owner-work-state.mjs
+            lab/studio.html
+            lab/lab.js
+            lab/precision-edit.js
+            lab/image-viewer-editor.js
+            lab/image-viewer-editor.css
+            lab/owner-work-records.json
+            lab/IMAGE-REPLACEMENT-WORK-STATE.md
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Check exact Cloudflare commit and custom-domain asset bytes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          node --input-type=module <<'JS'
+          import {verifyRelease,productionUrl} from './.github/scripts/verify-pvlab-release.mjs';
+          import {execFileSync} from 'node:child_process';
+          import {createHash} from 'node:crypto';
+          import {writeFileSync} from 'node:fs';
+          const sha=process.env.RELEASE_SHA,source=asset=>execFileSync('git',['show',sha+':'+asset]);
+          const hash=b=>createHash('sha256').update(b).digest('hex');
+          const html=source('lab/studio.html').toString();
+          const refs=[...html.matchAll(/<(?:link|script)\b[^>]*\b(?:href|src)=["']([^"']+)["']/gi)].map(m=>new URL(m[1].replaceAll('&amp;','&'),productionUrl));
+          let results=[];
+          for(let attempt=0;attempt<4;attempt++){
+            results=[];
+            for(const asset of ['lab/image-viewer-editor.css','lab/lab.js']){
+              const ref=refs.find(url=>url.pathname==='/'+asset.slice(4));if(!ref)throw Error('Missing source reference '+asset);
+              results.push(await verifyRelease({sha,asset,version:ref.searchParams.get('v'),sourceBytes:source(asset)}));
+            }
+            writeFileSync('evidence/publication.json',JSON.stringify(results,null,2));console.log(JSON.stringify(results));
+            if(results.every(r=>r.state==='LIVE_VERIFIED'))break;
+            if(attempt===3)throw Error('Publication is not verified. This check does not trigger a deployment.');
+            await new Promise(resolve=>setTimeout(resolve,45000));
+          }
+          const lab=source('lab/lab.js').toString();
+          for(const name of ['precision-edit','image-viewer-editor']){
+            const pattern=new RegExp("from ['\"](\\./"+name+"\\.js\\?[^'\"]+)['\"]");
+            const ref=lab.match(pattern)?.[1];if(!ref)throw Error('Missing module reference '+name);
+            const url=new URL(ref,productionUrl),response=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(15000)});
+            if(!response.ok)throw Error('Production module unavailable '+name);
+            const bytes=Buffer.from(await response.arrayBuffer());
+            if(hash(bytes)!==hash(source('lab/'+name+'.js')))throw Error('Module differs from reviewed source '+name);
+            results.push({state:'LIVE_VERIFIED',commit:sha,asset:'lab/'+name+'.js',url:url.href,sha256:hash(bytes)});
+          }
+          writeFileSync('evidence/publication.json',JSON.stringify(results,null,2));console.log('ALL_INLINE_VIEWER_ASSETS_LIVE_VERIFIED');
+          JS
+      - name: Render the actual public editor modules with synthetic input and no API access
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix /tmp/viewer-inline-public --no-save playwright@1.57.0
+          node --input-type=module <<'JS'
+          import {chromium} from '/tmp/viewer-inline-public/node_modules/playwright/index.mjs';
+          import {existsSync,readFileSync,writeFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          const publication=JSON.parse(readFileSync('evidence/publication.json','utf8'));
+          const urls={precision:publication.find(r=>r.asset==='lab/precision-edit.js').url,viewer:publication.find(r=>r.asset==='lab/image-viewer-editor.js').url};
+          const executablePath=['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].find(existsSync);
+          if(!executablePath)throw Error('No system Chromium available.');
+          const browser=await chromium.launch({headless:true,executablePath}),results=[];
+          try{
+            for(const width of [390,1440]){
+              const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
+              let blockedAPIs=0;
+              await page.route('**/*',route=>{
+                const request=route.request(),url=new URL(request.url());
+                if(url.pathname.startsWith('/api/')){blockedAPIs++;return route.abort();}
+                if(url.origin!=='https://pvlab.studio'||request.resourceType()==='script'&&!Object.values(urls).includes(url.href))return route.abort();
+                return route.continue();
+              });
+              await page.goto('https://pvlab.studio/studio',{waitUntil:'domcontentloaded'});
+              await page.evaluate(async urls=>{
+                document.getElementById('lab-boot')?.remove();
+                document.documentElement.classList.remove('pv-studio-boot-lock','pv-studio-route-pending','pv-native-route-pending');
+                document.body.classList.remove('lab-booting');document.body.classList.add('lab-ready');
+                document.getElementById('gate').hidden=true;
+                const app=document.getElementById('app');app.hidden=false;app.classList.add('image-studio-active');
+                const image=document.getElementById('image-lightbox-img'),canvas=document.createElement('canvas');
+                canvas.width=960;canvas.height=640;const ctx=canvas.getContext('2d');ctx.fillStyle='#292c2e';ctx.fillRect(0,0,960,640);ctx.fillStyle='#666a6b';ctx.fillRect(330,100,300,500);
+                const blob=await new Promise(resolve=>canvas.toBlob(resolve));
+                image.src=URL.createObjectURL(blob);image.hidden=false;
+                document.getElementById('image-lightbox').showModal();
+                const {createPrecisionEditor}=await import(urls.precision),{createImageViewerEditor}=await import(urls.viewer);
+                window.fixtureRequests=0;let controller;
+                const deny=async()=>{window.fixtureRequests++;throw Error('API access is disabled in this public layout fixture.');};
+                const editor=createPrecisionEditor({host:app,api:deny,assetBlob:deny,uploadAsset:deny,notify:()=>{},owner:()=>true,customer:()=>false,falReady:()=>true,magicReady:()=>true,onJob:()=>{},onExit:()=>controller.close()});
+                controller=createImageViewerEditor({editor,onPrepare:deny,onResult:()=>{},notify:()=>{}});
+                await controller.open({file:new File([blob],'synthetic-layout.png',{type:'image/png'}),id:'public-layout-fixture',action:'edit'});
+                await document.fonts.ready;
+              },urls);
+              await page.locator('#precision-source-canvas').waitFor({state:'visible'});
+              const result=await page.evaluate(()=>{
+                const rect=node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};
+                return {width:innerWidth,workspace:rect(document.getElementById('precision-workspace')),photo:rect(document.getElementById('precision-source-canvas')),
+                  inPhotoPane:!!document.querySelector('.image-detail-media > #precision-workspace'),detailsVisible:document.querySelector('.image-detail-inspector').getBoundingClientRect().height>0,
+                  labels:['precision-tool-magic','precision-tool-brush','precision-tool-erase'].map(id=>document.getElementById(id).textContent),
+                  promptLabel:document.querySelector('label[for="precision-prompt"]').textContent,advancedOpen:document.querySelector('.viewer-edit-options').open,
+                  technicalHeaderVisible:getComputedStyle(document.querySelector('.precision-panel-label')).display!=='none',
+                  overflow:document.documentElement.scrollWidth>innerWidth,fixtureRequests:window.fixtureRequests};
+              });
+              assert.equal(result.inPhotoPane,true);assert.equal(result.detailsVisible,true);assert.deepEqual(result.labels,['Select','Brush','Erase']);
+              assert.equal(result.promptLabel,'What do you want to change?');assert.equal(result.advancedOpen,false);assert.equal(result.technicalHeaderVisible,false);
+              assert.equal(result.overflow,false);assert.equal(result.fixtureRequests,0);assert.equal(blockedAPIs,0);assert.ok(result.photo.width>250&&result.photo.height>150);
+              await page.screenshot({path:'evidence/production-inline-editor-'+width+'.png'});
+              await page.locator('#precision-return').click();
+              assert.equal(await page.locator('#image-lightbox').evaluate(n=>n.open&&!n.classList.contains('is-viewer-editing')),true);
+              results.push({...result,scope:'Actual public HTML/CSS/editor modules with synthetic input and stubbed session; no authentication, API or paid generation.'});
+              await context.close();
+            }
+          }finally{await browser.close();}
+          writeFileSync('evidence/render.json',JSON.stringify(results,null,2));console.log('PUBLIC_INLINE_EDITOR_RENDER_VERIFIED');
+          JS
+      - name: Record verified publication only if main has not moved
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main --depth=2
+          if [ "$(git rev-parse origin/main)" != "$RELEASE_SHA" ]; then
+            echo 'Main moved; publication evidence retained without overwriting concurrent work.' | tee evidence/record-status.txt
+            exit 0
+          fi
+          git checkout --detach "$RELEASE_SHA"
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync,appendFileSync} from 'node:fs';
+          const index=JSON.parse(readFileSync('lab/owner-work-records.json','utf8')),record=index.records.find(r=>r.id==='image-viewer-replace-edit-actions');
+          if(!record)throw Error('Existing viewer work record missing');
+          const publication=JSON.parse(readFileSync('evidence/publication.json','utf8')),render=JSON.parse(readFileSync('evidence/render.json','utf8'));
+          if(publication.length!==4||publication.some(r=>r.state!=='LIVE_VERIFIED')||render.length!==2)throw Error('Verification evidence incomplete');
+          const now=new Date().toISOString(),sha=process.env.RELEASE_SHA,run='https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID;
+          record.status='deployed';record.updatedAt=now;record.reviewedSha=sha;
+          record.nextAction='Compact inline editor is published and byte-verified. A real signed-in paid edit has not been tested; do not claim generation quality from the mocked checks.';
+          record.deployment={state:'verified',sourceSha:sha,environment:'Cloudflare Pages pvlab-studio / pvlab.studio',observedAt:now,evidenceUrl:run,limitations:['No real account or paid generation tested.','Public render used synthetic input and stubbed session callbacks with all API access disabled.']};
+          record.links.push({label:'Inline production verification',url:run},{label:'Inline editor correction PR',url:'https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/917'});
+          record.evidence.push({kind:'production_asset',summary:'Exact Cloudflare merge deployment and all four viewer-related public asset hashes verified.',scope:publication.map(r=>r.asset).join(', '),observedAt:now,source:run,limitations:['Not evidence of signed-in paid generation.']},{kind:'fixture',summary:'Public editor modules rendered and closed correctly at 390px and 1440px: in-viewer photo, metadata, simple tools, collapsed options and no horizontal overflow.',scope:'Synthetic public-layout fixture; zero API calls',observedAt:now,source:run,limitations:['Session callbacks were stubbed. No actual account or inference.']});
+          record.blockers=[];writeFileSync('/tmp/viewer-inline-publication.json',JSON.stringify(record));
+          appendFileSync('lab/IMAGE-REPLACEMENT-WORK-STATE.md','\n## Compact inline editor published\n\n- PR #917 merged as '+sha+'.\n- Exact Cloudflare commit and all four custom-domain viewer asset hashes verified.\n- Actual public HTML/CSS/editor modules rendered at 390px and 1440px with synthetic input, stubbed session callbacks and zero API access. Editing stays inside the photo pane; metadata remains visible; Select/Brush/Erase, optional reference and Generate replace the old workspace. More options is collapsed.\n- Evidence: '+run+'\n- 62 provider-free unit tests and full mocked desktop/mobile inline-generation and standalone Retouch flows passed before merge. No real signed-in paid edit was run. Existing unrelated baseline CI failures remain documented.\n');
+          JS
+          node scripts/owner-work-state.mjs upsert /tmp/viewer-inline-publication.json
+          node scripts/owner-work-state.mjs validate
+          git config user.name 'PV LAB verification'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/owner-work-records.json lab/IMAGE-REPLACEMENT-WORK-STATE.md
+          git diff --cached --check
+          git commit -m '[CF-Pages-Skip] Record verified compact inline viewer publication'
+          git push origin HEAD:main
+          git rev-parse HEAD > evidence/record-commit.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: inline-viewer-production-evidence
+          path: evidence/
+          retention-days: 2
