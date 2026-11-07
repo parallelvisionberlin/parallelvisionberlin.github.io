@@ -80,8 +80,13 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
       falSubmitCount++;samRequestCounter++;
       const input=JSON.parse(options.body);
       if(input.prompt){
-        assert.equal(input.point_prompts.length,0);
         assert.ok(input.prompt.length<=300);
+        if(input.point_prompts.length){
+          assert.ok(['face','person','clothing'].includes(input.prompt),'Combined point and text is restricted to approved scope hints');
+          assert.equal(input.point_prompts.length,1);
+          assert.equal(input.point_prompts[0].label,1);
+          assert.equal(input.point_prompts[0].object_id,1);
+        }
       }else{
         assert.equal(input.point_prompts.length,1);
         assert.equal(input.point_prompts[0].label,1);
