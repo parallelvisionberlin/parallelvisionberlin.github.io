@@ -137,7 +137,7 @@ function installVideoEditorialDeck(){
       seedance:'Multimodal motion and cinematic direction',
       seedance15:'Motion from your opening image',
       seedance4k:'High-resolution video creation',
-      klinghf:'Directed scenes and cinematic motion',
+      kling3:'Directed scenes and cinematic motion',
       wan:'Create motion with reference images',
       wanprime:'Fast motion guided by your references',
       h3:'Cinematic image-to-video',
