@@ -176,6 +176,20 @@ test('only explicitly compatible image engines receive moods',()=>{
   assert.match(prepareMoodPrompt('portrait','night-flash',60,{engine:'soulpro'}).error,/does not support Moods/);
   assert.equal(moodById('fake'),null);
 });
+test('Night Flash uses the strong photographic recipe for new requests at any supplied amount',()=>{
+  const mood=moodById('night-flash');
+  assert.equal(mood.defaultIntensity,100);
+  assert.equal(mood.fixedIntensity,true);
+  for(const referenceCount of [0,1]){
+    const options={engine:'seedream',referenceCount};
+    const direction=referenceCount?'Keep the expression.':'A person at a piano.';
+    const preset=prepareMoodPrompt(direction,mood.id,100,options);
+    assert.equal(preset.error,'');
+    assert.ok(preset.prompt.includes(mood.intense));
+    assert.equal(preset.metadata.moodIntensity,100);
+    for(const amount of [1,50,82])assert.deepEqual(prepareMoodPrompt(direction,mood.id,amount,options),preset);
+  }
+});
 test('Krea 3 accepts curated and personal Moods, preserves source directions and stays within reference limits',()=>{
   const original='Editorial photograph of a woman in a studio.';
   const mood=prepareMoodPrompt(original,'night-flash',82,{engine:'krea3',referenceCount:1,referenceMode:'base'});
@@ -183,7 +197,7 @@ test('Krea 3 accepts curated and personal Moods, preserves source directions and
   assert.ok(mood.prompt.startsWith(original));
   assert.match(mood.prompt,/PV LAB MOOD \/ Night Flash/);
   assert.equal(mood.metadata.moodId,'night-flash');
-  assert.equal(mood.metadata.moodIntensity,82);
+  assert.equal(mood.metadata.moodIntensity,100);
   const refs=[{name:'source.png',role:'base'}];
   const compiled=compileImagePrompt(mood.prompt,refs,{type:'image',mode:'image',engine:'krea3',referenceMode:'base',...mood.metadata});
   assert.match(compiled,/Reference 1/);
@@ -194,7 +208,7 @@ test('Krea 3 accepts curated and personal Moods, preserves source directions and
   assert.match(custom.prompt,/PV LAB MY MOOD \/ My Flash/);
   assert.equal(custom.metadata.moodId,'custom');
   assert.equal(userFacingImagePrompt({...mood.metadata,prompt:mood.prompt}),original);
-  assert.match(imageHistoryCaption({...mood.metadata,prompt:mood.prompt}),/Night Flash · 82%/);
+  assert.match(imageHistoryCaption({...mood.metadata,prompt:mood.prompt}),/Night Flash · 100%/);
   assert.match(prepareMoodPrompt(original,'night-flash',82,{engine:'kling'}).error,/does not support Moods/);
   const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
   assert.match(worker,/engine==='krea3'\)return \{\.\.\.krea3Parameters\(\{\.\.\.value,referenceMode\},\{fail,referenceRoles\}\),\.\.\.imageMoodMetadata\(value\)\}/);

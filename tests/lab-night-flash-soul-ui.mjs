@@ -91,7 +91,9 @@ try{
       assert.equal(await page.locator('#image-composer-generate').isEnabled(),true,'Text alone enables Soul with no Soul ID selected');
       await page.locator('#image-composer-moods').click();
       await page.getByRole('button',{name:'Select Night Flash',exact:true}).click();
-      await page.locator('#composer-moods-intensity').press('End');
+      assert.equal(await page.locator('#composer-moods-intensity').isVisible(),false,'Night Flash has a single treatment');
+      assert.equal(await page.locator('#composer-moods-amount').isVisible(),false);
+      assert.equal(await page.locator('label[for="composer-moods-intensity"]').isVisible(),false);
       await page.locator('#composer-moods-done').click();
       let state=await page.evaluate(()=>window.__nightFlashRead());
       assert.equal(state.settings.provider,'higgsfield');assert.equal(state.settings.moodId,'night-flash');
@@ -137,6 +139,7 @@ try{
       }
       await page.locator('#image-composer-moods').click();
       await page.getByRole('button',{name:'Select Dreamcore',exact:true}).click();
+      assert.equal(await page.locator('#composer-moods-intensity').isVisible(),true,'Other Moods keep their slider');
       assert.equal(await page.locator('#image-composer-generate').isEnabled(),false,'Unsupported Soul Mood blocks generation');
       await page.getByRole('button',{name:'Select Night Flash',exact:true}).click();
       await page.locator('#composer-moods-done').click();
@@ -200,10 +203,11 @@ try{
       assert.equal(selectedQuote.settings.characterId,characterId);assert.equal(selectedQuote.settings.identityStrength,.05);
       assert.equal(requests.filter(r=>r.path==='/api/higgsfield/characters'&&r.method==='POST').length,0,'No training');
       const job=[...jobs.values()].at(-1);
-      await page.evaluate(job=>window.__nightFlashReuse(job),job);
+      const legacyJob={...job,settings:{...job.settings,moodIntensity:50}};
+      await page.evaluate(job=>window.__nightFlashReuse(job),legacyJob);
       state=await page.evaluate(()=>window.__nightFlashRead());
       assert.equal(state.settings.characterId,characterId);assert.equal(state.settings.identityStrength,.05);
-      assert.equal(state.settings.moodIntensity,selectedQuote.settings.moodIntensity,'Reuse restores the reviewed intensity');assert.equal(state.settings.moodOriginalPrompt,'Keep the expression.');
+      assert.equal(state.settings.moodIntensity,100,'Reuse adopts the preset for the next generation');assert.equal(state.settings.moodOriginalPrompt,'Keep the expression.');
       await page.locator('#image-composer-moods').click();
       const ownerCard=page.getByRole('button',{name:'Select Won Kar Night',exact:true});
       if(role==='customer')assert.equal(await ownerCard.count(),0,'Owner experiment never enters the customer catalogue DOM');
