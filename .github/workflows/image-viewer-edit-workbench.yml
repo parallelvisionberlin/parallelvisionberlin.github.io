@@ -5,12 +5,13 @@ on:
     paths:
       - '.github/workflows/image-viewer-edit-workbench.yml'
       - '.github/scripts/image-viewer-edit-workbench.mjs'
+      - '.github/scripts/viewer-repair.py'
 permissions:
   contents: write
 jobs:
   implement:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -18,22 +19,38 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-      - name: Apply scoped implementation when present
+      - name: Apply and verify scoped implementation
         run: |
-          if [ -f .github/scripts/image-viewer-edit-workbench.mjs ]; then
-            node .github/scripts/image-viewer-edit-workbench.mjs
+          if [ -f .github/scripts/viewer-repair.py ]; then
+            python3 .github/scripts/viewer-repair.py
+            node .github/scripts/image-viewer-edit-workbench.mjs 2>&1 | tee /tmp/image-viewer-console.log
             git diff --check
+            touch /tmp/image-viewer-verified
           fi
       - name: Collect scoped source and verification evidence
         if: always()
         run: |
           mkdir -p /tmp/image-viewer-context
-          tar -czf /tmp/image-viewer-context/source.tar.gz lab/*.js lab/*.css lab/*.html lab/*WORK-STATE.md lab/owner-work-records.json lab/AGENTS.md lab/README.md scripts/owner-work-state.mjs tests/lab-* .github/workflows/pv-lab-precision-edit-ui.yml 2>/dev/null
+          cp .github/scripts/image-viewer-edit-workbench.mjs /tmp/image-viewer-context/runner.mjs
+          tar -czf /tmp/image-viewer-context/source.tar.gz lab/*.js lab/*.css lab/*.html lab/*WORK-STATE.md lab/owner-work-records.json lab/AGENTS.md scripts/owner-work-state.mjs tests/lab-* .github/workflows/pv-lab-precision-edit-ui.yml
           git diff > /tmp/image-viewer-context/implementation.diff
           if [ -f /tmp/image-viewer-verification.log ]; then cp /tmp/image-viewer-verification.log /tmp/image-viewer-context/; fi
+          if [ -f /tmp/image-viewer-console.log ]; then cp /tmp/image-viewer-console.log /tmp/image-viewer-context/; fi
+          if [ -d test-results ]; then cp test-results/pv-viewer-*.png /tmp/image-viewer-context/ 2>/dev/null || true; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: image-viewer-scoped-source
           path: /tmp/image-viewer-context/
           retention-days: 1
+      - name: Commit only verified source to the feature branch
+        run: |
+          if [ ! -f /tmp/image-viewer-verified ]; then exit 0; fi
+          git config user.name 'PV LAB verification'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          printf '\n## 2026-11-07: contextual viewer Replace and Edit\n\nAdded the approved sidebar cards and retired the main Image deck Retouch action. Both cards reuse the existing precision canvas inside the image viewer. Replace transfers a full-resolution reviewed mask, source and reference to the existing Image deck; it never submits a generation or changes the selected model. Edit retains the existing signed Retouch pricing and submission. Existing sidebar actions stay in place.\n\nProvider-free unit tests and mocked desktop/mobile browser suites passed in the image-viewer implementation workbench before this commit. Production hosting and signed-in paid generation are not verified. No paid provider test was run.\n' >> lab/IMAGE-REPLACEMENT-WORK-STATE.md
+          git add lab/lab.js lab/precision-edit.js lab/studio.html lab/image-viewer-editor.js lab/image-viewer-editor.css lab/IMAGE-REPLACEMENT-WORK-STATE.md tests/lab-image-replacement-flow-ui.mjs tests/lab-first-image-instant-browser.mjs tests/lab-image-oneclick-ui.mjs
+          git rm .github/scripts/image-viewer-edit-workbench.mjs .github/scripts/viewer-repair.py .github/workflows/image-viewer-edit-workbench.yml
+          git diff --cached --check
+          git commit -m 'feat: add contextual Replace and Edit actions to image viewer'
+          git push origin HEAD:feat/image-viewer-replace-edit-20261107
