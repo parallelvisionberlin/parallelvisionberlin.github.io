@@ -71,3 +71,15 @@ test('a reference-type mismatch is rejected before any upload or paid request',a
  const f=fixture();f.selection.references=[{file:f.selection.reference,id:'room',label:{role:'room',elementCategory:'locations'}}];
  await assert.rejects(f.prepare(),/does not match/);assert.equal(f.uploads.length,0);assert.equal(f.requests.length,0);
 });
+
+test('Face scope quotes face-only metadata rather than full-person physique',async()=>{
+ const f=fixture(),priced=[];const original=f.state.fetchCustomerImagePrice;
+ f.state.fetchCustomerImagePrice=async (payload,check)=>{priced.push(payload);return original(payload,check);};
+ f.selection.scope='face';
+ const q=await f.prepare();
+ assert.equal(q.label,'35 credits');
+ assert.equal(priced[0].settings.replacement.scope,'face');
+ assert.match(priced[0].settings.prompt,/selected face/);
+ assert.equal(priced[0].settings.referenceRoles[1].role,'identity');
+ assert.equal(f.requests.length,0,'Pricing is not paid generation');
+});

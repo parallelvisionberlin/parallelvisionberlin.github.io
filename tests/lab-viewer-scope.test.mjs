@@ -1,0 +1,40 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {CHARACTER_SCOPES,replacementScope,selectionTarget,scopeInstruction,selectionAdvisory} from '../lab/viewer-selection-scope.js';
+import {loadViewerReference} from '../lab/viewer-replacement-library.js';
+test('Face and Whole person are explicit separate replacement scopes',()=>{
+  assert.deepEqual(CHARACTER_SCOPES.map(x=>x.id),['face','person']);
+  assert.equal(replacementScope('person','face'),'face');
+  assert.equal(replacementScope('person','person'),'person');
+  assert.equal(replacementScope('outfit','face'),'outfit');
+  assert.equal(selectionTarget('person','face'),'face');
+  assert.equal(selectionTarget('person','person'),'person');
+  assert.equal(selectionTarget('outfit'),'clothing');
+  assert.equal(selectionTarget('object'),'','Point selection remains the source of truth for an arbitrary object');
+  assert.equal(selectionTarget('location'),'');
+  assert.match(scopeInstruction('person','face'),/face/);
+  assert.match(scopeInstruction('person','person'),/torso/);
+});
+test('Selection geometry warns without claiming semantic detection',()=>{
+  const small={boxHeight:.25,boxWidth:.23},big={boxHeight:.78,boxWidth:.5};
+  assert.equal(selectionAdvisory('person','person',small).kind,'small');
+  assert.equal(selectionAdvisory('person','face',big).kind,'large');
+  assert.equal(selectionAdvisory('person','face',small),null);
+  assert.equal(selectionAdvisory('person','person',big),null);
+  assert.equal(selectionAdvisory('object','person',small),null);
+  assert.equal(selectionAdvisory('person','person',null),null);
+});
+test('Face mode reads only compatible identity references and preserves original view metadata',async()=>{
+  const refs=Array.from({length:8},(_,i)=>({id:'view'+i,role:i===7?'body':'identity',note:'note'+i}));
+  const item={id:'character',category:'characters',title:'Saved character',refs};
+  const reads=[];const read=async(id)=>{reads.push(id);return new File(['x'],id,{type:'image/png'});};
+  const face=await loadViewerReference(item,'face',{read,limit:3,isCurrent:()=>true});
+  assert.deepEqual(reads,['view0','view1']);
+  assert.equal(face.count,2);assert.equal(face.total,8);
+  assert.deepEqual(face.refs.map(x=>x.label.role),['identity','identity']);
+  assert.deepEqual(face.refs.map(x=>x.label.elementView),[0,1]);
+  const whole=await loadViewerReference(item,'person',{read,limit:10,isCurrent:()=>true});
+  assert.equal(whole.count,8);
+  assert.equal(whole.refs.at(-1).label.role,'body');
+  assert.equal(whole.refs.at(-1).label.note,'note7');
+});
