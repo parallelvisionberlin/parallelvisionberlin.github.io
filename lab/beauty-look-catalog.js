@@ -221,7 +221,7 @@ export const beautyLookCatalog={
       "id": "flash",
       "label": "Direct flash",
       "instruction": "Direct on-camera flash with hard falloff and natural photographic contrast.",
-      "image": "./visuals/beauty/atelier/alter-light-flash-20261107.webp",
+      "image": "./visuals/beauty/atelier/alter-light-flash-fixed-20261107.webp",
       "preview": ""
     },
     {
@@ -256,7 +256,7 @@ export const beautyLookCatalog={
       "id": "high-key",
       "label": "High key",
       "instruction": "Bright high-key editorial lighting with retained highlight detail, natural skin tone and realistic texture.",
-      "image": "./visuals/beauty/atelier/alter-light-high-key-20261107.webp",
+      "image": "./visuals/beauty/atelier/alter-light-high-key-fixed-20261107.webp",
       "preview": ""
     }
   ],
@@ -279,7 +279,7 @@ export const beautyLookCatalog={
       "id": "warm",
       "label": "Warm",
       "instruction": "Restrained warm colour grading, keeping skin colour believable.",
-      "image": "./visuals/beauty/atelier/alter-color-warm-20261107.webp",
+      "image": "./visuals/beauty/atelier/alter-color-warm-fixed-20261107.webp",
       "preview": ""
     },
     {
@@ -300,7 +300,7 @@ export const beautyLookCatalog={
       "id": "film",
       "label": "Film tone",
       "instruction": "Subtle analog film colour and fine organic grain; no synthetic glow.",
-      "image": "./visuals/beauty/atelier/alter-color-film-20261107.webp",
+      "image": "./visuals/beauty/atelier/alter-color-film-fixed-20261107.webp",
       "preview": ""
     },
     {
@@ -321,7 +321,7 @@ export const beautyLookCatalog={
       "id": "soft-film",
       "label": "Soft film",
       "instruction": "Soft colour-negative film tonality with gentle contrast and fine organic grain; no artificial glow.",
-      "image": "./visuals/beauty/atelier/alter-color-soft-film-20261107.webp",
+      "image": "./visuals/beauty/atelier/alter-color-soft-film-fixed-20261107.webp",
       "preview": ""
     }
   ]
