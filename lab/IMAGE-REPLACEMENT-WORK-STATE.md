@@ -79,3 +79,10 @@ Scoped quote-safety unit tests, prior precision/replacement tests, full mocked 3
 - Actual public HTML/CSS/editor modules rendered at 390px and 1440px with synthetic input, stubbed session callbacks and zero API access. Editing stays inside the photo pane; metadata remains visible; Select/Brush/Erase, optional reference and Generate replace the old workspace. More options is collapsed.
 - Evidence: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42385474528
 - 62 provider-free unit tests and full mocked desktop/mobile inline-generation and standalone Retouch flows passed before merge. No real signed-in paid edit was run. Existing unrelated baseline CI failures remain documented.
+
+
+## Guided Replace, 2026-11-07
+
+Approved storyboard implemented as contextual guidance, selection cursor, replacement-specific copy, four type tiles, existing saved-reference library and uploads. Character attachments retain all eight photos and notes when the selected model supports their capacity; unsupported capacity fails before downloading or charging. The main Image draft stays untouched. A local account-scoped completion flag reduces guidance only after a successful result; no private images or prompts are stored for training.
+
+70 focused unit checks and full mocked 390px/1440px guided flow passed, together with existing selection/Retouch regressions. Location is explicitly limited: the current backend cannot accept saved location-reference swaps. The UI supports explicit background selection/inversion and text-directed editing but disables location-reference picking/upload, rather than mislabeling it as an object. No Worker deployment, paid inference or real-account edit was performed. Production publication is still separate.

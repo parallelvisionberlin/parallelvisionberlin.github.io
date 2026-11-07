@@ -15,8 +15,8 @@ import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount,accountBootstrapMessage} from './native-account.js?v=20261103-browser-bootstrap1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
-import {createPrecisionEditor} from './precision-edit.js?v=20261107-inline-editor2';
-import {createImageViewerEditor} from './image-viewer-editor.js?v=20261107-inline-editor2';
+import {createPrecisionEditor} from './precision-edit.js?v=20261107-guided-replace1';
+import {createImageViewerEditor} from './image-viewer-editor.js?v=20261107-guided-replace1';
 import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261102-local-currency';
 import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&creditPurchaseFlow=20261104v1&partnerMenu=20261027-bellini1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1&cookies=20261101-v1&conversionFlow=20261102-1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1&creditPurchaseFlow=20261104v1';
@@ -1261,7 +1261,10 @@ const precisionEditor=createPrecisionEditor({host:$('app'),api,assetBlob,uploadA
   owner:()=>owner,customer:()=>!ownerAccount,falReady:()=>!!config.falEnabled&&(!customerMode||customerGenerationReady),magicReady:()=>!!config.falEnabled&&(!customerMode||customerGenerationReady),
   onExit:()=>{if(!imageViewerEditor.close())returnToImageFromRetouch();},
   onJob:job=>{surfaceHistoryJob(job);refreshHistorySoon();}});
-const imageViewerEditor=createImageViewerEditor({editor:precisionEditor,onPrepare:stageViewerReplacement,onResult:job=>openVideo(job,{scroll:false,detail:true}),notify});
+const imageViewerEditor=createImageViewerEditor({editor:precisionEditor,onPrepare:stageViewerReplacement,onResult:job=>openVideo(job,{scroll:false,detail:true}),notify,
+  getSavedReferences:async()=>{await loadPacks();return [...sceneLibrary.items(),...packs];},
+  readReference:assetFile,renderReference:composerAssetPhoto,
+  getReferenceLimit:()=>({qwen3:3,krea3:4,kling:1}[imageEngine]??10),account:()=>userId,session:()=>epoch});
 // Retouch remains available as a standalone route. Contextual actions stay in the viewer.
 let lastNativeStudioTab='';
 function syncStudioNav(){
@@ -4573,7 +4576,11 @@ async function stageViewerReplacement(selection){
   if(customerMode&&(!customerGenerationReady||customerCreditBalance<=0))throw Error('Add credits before generating. Your selection is saved.');
   const roles={person:'identity',outfit:'outfit',object:'object'};
   if(!roles[selection.scope])throw Error('Choose the reference type.');
-  const proposed=[{file:selection.file},{file:selection.reference}];
+  const destinations=selection.references?.length?selection.references:[{file:selection.reference}];
+  if(!destinations.length||destinations.length>9||destinations.some(ref=>!ref?.file))throw Error('Choose valid replacement photographs.');
+  if(destinations.some(ref=>ref.label?.elementCategory&&ref.label.elementCategory!==({person:'characters',outfit:'outfits',object:'props'}[selection.scope])))
+    throw Error('The saved reference does not match the selected replacement type.');
+  const proposed=[{file:selection.file},...destinations];
   const issue=modelImageInputIssue(model,proposed);if(issue)throw Error(issue);
   const ratio=selection.width/selection.height,choices=[...$('ratio').options].map(o=>o.value);
   const crop=choices.includes('auto')?'auto':choices.find(value=>{const [w,h]=value.split(':').map(Number);return w>0&&h>0&&Math.abs(w/h/ratio-1)<=.01;});
@@ -4583,14 +4590,17 @@ async function stageViewerReplacement(selection){
     for(const item of proposed){inspected.push(await inspectImage(item.file));check();}
     if(inspected[0].file!==selection.file)throw Error('The original must remain unchanged for lossless replacement.');
     const originalId=selection.id||await uploadAsset(selection.file);check();
-    const referenceId=await uploadAsset(inspected[1].file);check();
+    const referenceIds=[];
+    for(let i=0;i<destinations.length;i++){
+      referenceIds.push(destinations[i].id&&inspected[i+1].file===destinations[i].file?destinations[i].id:await uploadAsset(inspected[i+1].file));check();
+    }
     const maskSourceId=await uploadAsset(new File([selection.mask],'replacement-selection.png',{type:'image/png'}));check();
     const selected={type:'image',engine:model,processing:'normal',referenceMode:'base',mode:'image',
       prompt:'Replace the selected '+selection.scope+' using the provided reference.'+(selection.direction?' '+selection.direction:''),
       resolution,aspectRatio:crop,outputFormat:'png',exactPrompt:false,
-      referenceRoles:[{name:'Original image',role:'base',note:'',target:''},{name:'Replacement reference',role:roles[selection.scope],note:'',target:''}],
-      replacement:{version:1,originalSourceId:originalId,maskSourceId,scope:selection.scope,referenceSourceIds:[referenceId]}};
-    const inputs={sourceId:null,lastSourceId:null,referenceSourceIds:[originalId,referenceId]};
+      referenceRoles:[{name:'Original image',role:'base',note:'',target:''},...destinations.map(ref=>({...ref.label,name:ref.label?.name||'Replacement reference',role:selection.scope==='person'&&ref.label?.role==='body'?'body':roles[selection.scope],note:ref.label?.note||'',target:ref.label?.target||''}))],
+      replacement:{version:1,originalSourceId:originalId,maskSourceId,scope:selection.scope,referenceSourceIds:referenceIds}};
+    const inputs={sourceId:null,lastSourceId:null,referenceSourceIds:[originalId,...referenceIds]};
     const chosen=inspected.map((item,i)=>({file:item.file,id:inputs.referenceSourceIds[i],width:item.width,height:item.height}));
     const priced=await fetchCustomerImagePrice({settings:selected,count:1,chosen,sourceMode:false,provider,disableAutoMoodReferences:true},check);check();
     if(!Number.isSafeInteger(priced?.credits)||priced.credits<1||!Number.isFinite(priced.expiresAt)||priced.expiresAt<=Date.now()+15000)

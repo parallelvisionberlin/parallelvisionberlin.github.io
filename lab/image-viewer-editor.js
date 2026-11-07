@@ -1,5 +1,6 @@
+import {REPLACEMENT_KINDS,replacementKind,viewerLibraryEntries,loadViewerReference,guidanceLearned,rememberGuidance} from './viewer-replacement-library.js?v=20261107-guided-replace1';
 // Edit in the existing image viewer. Selection is local; only Generate may submit.
-export function createImageViewerEditor({editor, onPrepare, onResult, notify}) {
+export function createImageViewerEditor({editor, onPrepare, onResult, notify, getSavedReferences=async()=>[], readReference, renderReference, getReferenceLimit=()=>10, account=()=>null, session=()=>null}) {
   const $ = id => document.getElementById(id);
   const dialog = $('image-lightbox'), workspace = $('precision-workspace');
   const media = dialog.querySelector('.image-detail-media');
@@ -17,7 +18,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify}) {
     <label class="viewer-reference-picker" for="viewer-replacement-reference"><span>+ Add reference</span>
       <input id="viewer-replacement-reference" type="file" accept="image/jpeg,image/png,image/webp"></label>
     <button class="viewer-reference-remove" type="button" aria-label="Remove reference" hidden>×</button></div>
-    <label class="viewer-reference-kind" hidden>Reference for <select id="viewer-replacement-scope"><option value="person">Person</option><option value="outfit">Outfit</option><option value="object">Object</option></select></label>
+    <label class="viewer-reference-kind" hidden>Reference for <select id="viewer-replacement-scope"><option value="person">Person</option><option value="outfit">Outfit</option><option value="object">Object</option><option value="location">Location</option></select></label>
     <button id="viewer-replacement-continue" type="button" disabled hidden>Generate</button>
     <p class="viewer-replacement-status" role="status" aria-live="polite"></p>`;
   const input = fields.querySelector('input'), preview = fields.querySelector('img');
@@ -28,12 +29,84 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify}) {
   const moves = [], labels = new Map();
   let active=false, opening=false, reference=null, referenceURL=null, sourceId=null, revision=0;
   let quoteRevision=0, quote=null, quoteTimer=null, quoting=false, submitting=false, uncertain=false, returnFocus=null;
-  let lastResult=null, referenceRevision=0;
+  let lastResult=null, referenceRevision=0, actionMode='edit', savedReference=null, libraryItems=[], libraryTab='saved';
+  const localStorage=()=>{try{return window.localStorage;}catch{return null;}};
+  let libraryTicket=0, libraryOpen=false, loadingReference=false, learned=false, helpOpen=true, ownerSession=null;
+  const paths={person:'<circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/>',outfit:'<path d="m8 3-6 4 3 5 3-2v12h8V10l3 2 3-5-6-4c-1 3-7 3-8 0Z"/>',object:'<path d="m12 2 9 5v10l-9 5-9-5V7Zm0 10v10M3 7l9 5 9-5M8 4l9 5"/>',location:'<path d="m2 20 7-13 5 8 3-6 5 11H2Z"/>'};
+  const icon=name=>'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">'+paths[name]+'</svg>';
+  const guide=document.createElement('div');guide.className='viewer-selection-guide';guide.hidden=true;
+  guide.innerHTML='<span class="viewer-selection-symbol" aria-hidden="true">+</span><strong>Click what you want to replace.</strong><p>Select a person, outfit or object. Use Brush for a custom area.</p>';
+  $('precision-source-holder').append(guide);
+  const help=document.createElement('button');help.type='button';help.className='viewer-guide-toggle';help.textContent='?';help.title='Show selection guidance';help.setAttribute('aria-label','Show selection guidance');
+  const hint=document.createElement('p');hint.className='viewer-selection-hint';hint.setAttribute('role','status');hint.setAttribute('aria-live','polite');hint.hidden=true;
+  const kinds=document.createElement('div');kinds.className='viewer-replacement-kinds';kinds.setAttribute('role','group');kinds.setAttribute('aria-label','Replacement type');kinds.hidden=true;
+  for(const kind of REPLACEMENT_KINDS){const button=document.createElement('button');button.type='button';button.dataset.viewerKind=kind.id;button.innerHTML=icon(kind.icon)+'<span>'+kind.label+'</span>';button.addEventListener('click',()=>setKind(kind.id));kinds.append(button);}
+  const library=document.createElement('section');library.className='viewer-saved-library';library.hidden=true;
+  library.innerHTML='<div class="viewer-library-tabs" role="tablist" aria-label="Saved references"><button type="button" role="tab" data-viewer-tab="saved">My Characters</button><button type="button" role="tab" data-viewer-tab="library">Library</button></div><div class="viewer-library-grid" role="tabpanel"></div><p class="viewer-library-empty"></p>';
+  const selectedCard=document.createElement('div');selectedCard.className='viewer-selected-reference';selectedCard.hidden=true;
+  selectedCard.innerHTML='<div class="viewer-selected-cover"></div><div><strong></strong><small></small></div><button type="button" aria-label="Remove replacement reference">×</button>';
+  const locationNote=document.createElement('p');locationNote.className='viewer-location-note';locationNote.hidden=true;
+  locationNote.textContent='Select the background to change, or select the people to keep and invert the selection. Saved location references are not supported by the current server; describe the new setting below.';
+  const invert=document.createElement('button');invert.type='button';invert.className='viewer-invert';invert.textContent='Select background instead';invert.hidden=true;
+  invert.addEventListener('click',()=>{if(!submitting&&!editor.isBusy())editor.invertSelection?.();});
+  // The replacement panel follows the approved order: type, saved reference, prompt, Generate.
+  directionLabel.before(hint);directionLabel.after(kinds,library,selectedCard,locationNote,invert);
+  const uploadRow=fields.querySelector('.viewer-reference-row');
+  const uploadHome=document.createComment('viewer upload row home');uploadRow.before(uploadHome);
+  selectedCard.querySelector('button').addEventListener('click',()=>remove.click());
+  help.addEventListener('click',()=>{helpOpen=!helpOpen;refresh();});
+  for(const button of library.querySelectorAll('[data-viewer-tab]'))button.addEventListener('click',()=>{libraryTab=button.dataset.viewerTab;renderLibrary();});
+  function isReplace(){return actionMode==='replace';}
+  function setKind(next){
+    if(submitting||editor.isBusy()||loadingReference)return;
+    const changed=scope.value!==next;
+    scope.value=next;
+    if(changed){clearReference();editor.setExternalMode(false);editor.clearSelection?.();status.textContent='';invalidate();}
+    libraryOpen=true;library.hidden=false;renderLibrary();void fetchLibrary();refresh();
+  }
+  function renderLibrary(){
+    const currentKind=replacementKind(scope.value);
+    library.querySelector('[data-viewer-tab="saved"]').textContent='My '+currentKind.plural;
+    for(const tab of library.querySelectorAll('[data-viewer-tab]'))tab.setAttribute('aria-selected',String(libraryTab===tab.dataset.viewerTab));
+    const grid=library.querySelector('.viewer-library-grid');grid.replaceChildren();
+    const entries=viewerLibraryEntries(libraryItems,scope.value,libraryTab);
+    for(const item of entries){
+      const card=document.createElement('button');card.type='button';card.className='viewer-library-card';card.dataset.viewerSaved=item.id;card.setAttribute('aria-label',item.title+' · '+item.refs.length+' photos');
+      const photo=document.createElement('span');photo.className='viewer-library-cover';const name=document.createElement('span');name.textContent=item.title;card.append(photo,name);
+      card.disabled=submitting||loadingReference||scope.value==='location';
+      if(scope.value==='location')card.title='Saved location references require server support. You can describe a new setting instead.';
+      card.onclick=()=>void chooseSaved(item);grid.append(card);renderReference?.(photo,item.refs[0]?.id);
+    }
+    library.querySelector('.viewer-library-empty').textContent=entries.length?'':libraryTab==='saved'?'No saved '+currentKind.plural.toLowerCase()+' yet. Upload a reference below.':'No matching photo packs. Upload a reference below.';
+  }
+  async function fetchLibrary(){
+    const ticket=++libraryTicket,revisionAtOpen=revision,accountAtOpen=ownerSession;
+    try{const items=await getSavedReferences();if(!active||ticket!==libraryTicket||revision!==revisionAtOpen||session()!==accountAtOpen)return;libraryItems=items;renderLibrary();}
+    catch(error){if(active&&ticket===libraryTicket)library.querySelector('.viewer-library-empty').textContent='Could not load saved references. '+error.message;}
+  }
+  async function chooseSaved(item){
+    if(submitting||loadingReference||scope.value==='location')return;
+    const ticket=revision,load=++referenceRevision,selectedKind=scope.value;
+    const current=()=>active&&ticket===revision&&load===referenceRevision&&session()===ownerSession;
+    loadingReference=true;editor.setExternalMode(true);invalidate();status.textContent='Loading saved reference…';refresh();renderLibrary();
+    try{
+      const bundle=await loadViewerReference(item,selectedKind,{read:readReference,limit:getReferenceLimit(),isCurrent:current,direction:prompt.value.trim()});
+      if(!current())return;
+      clearReference();savedReference=bundle;reference=bundle.refs[0].file;
+      const cover=selectedCard.querySelector('.viewer-selected-cover');renderReference?.(cover,bundle.refs[0].id);
+      selectedCard.querySelector('strong').textContent=bundle.name;
+      selectedCard.querySelector('small').textContent=bundle.count+' photo'+(bundle.count===1?'':'s')+' · '+replacementKind(selectedKind).label;
+      libraryOpen=false;library.hidden=true;editor.setExternalMode(true);status.textContent='';invalidate();
+    }catch(error){if(active&&ticket===revision)status.textContent=error.message;}
+    finally{if(active&&ticket===revision){loadingReference=false;editor.setExternalMode(!!reference);if(reference)invalidate();refresh();}}
+  }
+  function markLearned(){if(isReplace()&&session()===ownerSession)rememberGuidance(localStorage(),account());}
+
   function move(node, parent) { const marker=document.createComment('viewer control home'); node.before(marker); moves.push([node,marker]); parent.append(node); }
   function rename(node,text) { labels.set(node,node.textContent); node.textContent=text; }
   function mount(action) {
     media.append(workspace); workspace.setAttribute('aria-label',action==='replace'?'Replace part of this image':'Edit this image');
-    title.textContent=action==='replace'?'Replace':'Edit'; tools.prepend(title);
+    title.textContent=action==='replace'?'Replace':'Edit'; tools.prepend(title);tools.append(help);help.hidden=action!=='replace';
     move(back,tools);
     move(workspace.querySelector('.precision-tool-size'),options.lastElementChild);
     move($('precision-expand'),options.lastElementChild);
@@ -41,21 +114,41 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify}) {
     rename($('precision-tool-magic'),'Select'); rename($('precision-tool-brush'),'Brush'); rename($('precision-tool-erase'),'Erase');
     back.textContent='×'; back.setAttribute('aria-label','Back to image viewer'); back.title='Back to image';
     directionLabel.textContent='What do you want to change?'; prompt.placeholder='Describe the change…';
-    fields.hidden=false; options.hidden=false;
+    fields.hidden=false; options.hidden=false;kinds.hidden=hint.hidden=!isReplace();
+    scope.querySelector('[value=location]').hidden=!isReplace();if(!isReplace()&&scope.value==='location')scope.value='person';
+    workspace.classList.toggle('is-guided-replace',isReplace());
+    if(!isReplace()){uploadHome.after(uploadRow);uploadRow.querySelector('.viewer-reference-picker span').textContent='+ Add reference';uploadRow.querySelector('label').classList.remove('is-unavailable');}else{prompt.before(uploadRow);uploadRow.querySelector('.viewer-reference-picker span')?.replaceChildren(document.createTextNode('+ Upload reference'));}
   }
   function refresh() {
     if(!active)return;
-    workspace.classList.toggle('has-viewer-reference',!!reference);
-    kind.hidden=remove.hidden=!reference; generate.hidden=!reference;
-    input.disabled=scope.disabled=remove.disabled=submitting;
-    generate.disabled=submitting||quoting||uncertain||!quote||!editor.hasSelection()||editor.isBusy();
+    workspace.classList.toggle('has-viewer-reference',!!reference||loadingReference);
+    kind.hidden=isReplace()||!reference;remove.hidden=!reference||!!savedReference;generate.hidden=!reference;
+    selectedCard.hidden=!savedReference;preview.hidden=!reference||!!savedReference;
+    const chosen=editor.hasSelection(),type=replacementKind(scope.value),mode=$('precision-tool-magic').getAttribute('aria-pressed')==='true'?'magic':$('precision-tool-brush').getAttribute('aria-pressed')==='true'?'brush':'other';
+    workspace.dataset.selectionTool=mode;workspace.classList.toggle('has-guided-selection',chosen);
+    guide.hidden=!isReplace()||chosen||!helpOpen;guide.classList.toggle('is-compact',learned);
+    guide.querySelector('strong').textContent=scope.value==='location'?'Select the background to replace.':mode==='brush'?'Brush over what you want to replace.':'Click what you want to replace.';
+    guide.querySelector('p').textContent=scope.value==='location'?'Keep people outside the purple selection.':'Select a person, outfit or object. Use Brush for a custom area.';
+    help.setAttribute('aria-expanded',String(!guide.hidden));
+    if(isReplace()){
+      hint.textContent=editor.isBusy()?'Selecting…':chosen?'✓ Selection ready.':'1 · Select what to replace';hint.classList.toggle('is-ready',chosen);
+      directionLabel.textContent=chosen?'Replace selected '+type.target+' with…':'Replace with…';
+      prompt.placeholder=type.placeholder;
+      for(const button of kinds.children){button.setAttribute('aria-pressed',String(button.dataset.viewerKind===scope.value));button.disabled=submitting||editor.isBusy()||loadingReference;}
+    }
+    locationNote.hidden=invert.hidden=!isReplace()||scope.value!=='location';invert.disabled=!chosen||submitting||editor.isBusy();
+    input.disabled=submitting||loadingReference||isReplace()&&scope.value==='location';
+    if(isReplace())uploadRow.querySelector('label').classList.toggle('is-unavailable',scope.value==='location');
+    scope.disabled=remove.disabled=submitting;
+    if(!isReplace())input.disabled=submitting;
+    generate.disabled=submitting||loadingReference||quoting||uncertain||!quote||!editor.hasSelection()||editor.isBusy();
     generate.textContent=submitting?'Generating…':quote?'Generate · '+quote.label:'Generate';
   }
   function invalidate() {
     ++quoteRevision; quote=null; quoting=false; clearTimeout(quoteTimer); quoteTimer=null;
     if(!active)return;
     status.textContent=''; refresh();
-    if(reference&&editor.hasSelection()&&!editor.isBusy()&&!submitting&&!uncertain)
+    if(reference&&!loadingReference&&editor.hasSelection()&&!editor.isBusy()&&!submitting&&!uncertain)
       quoteTimer=setTimeout(()=>void prepare(),700);
   }
   async function prepare() {
@@ -66,7 +159,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify}) {
     quoting=true; refresh();
     try {
       const selection=await editor.selectionSnapshot(); if(!current())return;
-      const prepared=await onPrepare({...selection,reference:destination,scope:selectedScope,direction,isCurrent:current});
+      const prepared=await onPrepare({...selection,reference:destination,scope:selectedScope,direction,references:savedReference?.refs,isCurrent:current});
       if(!current()||!selection.selectionCurrent())return;
       quote=prepared;
       clearTimeout(quoteTimer);
@@ -75,12 +168,12 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify}) {
     finally { if(current()){quoting=false;refresh();} }
   }
   function clearReference() {
-    ++referenceRevision;reference=null; input.value=''; preview.hidden=true; preview.removeAttribute('src');
+    ++referenceRevision;savedReference=null;selectedCard.hidden=true;reference=null; input.value=''; preview.hidden=true; preview.removeAttribute('src');
     if(referenceURL)URL.revokeObjectURL(referenceURL); referenceURL=null;
   }
   input.addEventListener('change',async()=>{
     const candidate=input.files?.[0], ticket=revision, load=++referenceRevision;
-    if(!candidate||submitting)return;
+    if(!candidate||submitting||isReplace()&&scope.value==='location')return;
     try {
       if(!['image/jpeg','image/png','image/webp'].includes(candidate.type)||!candidate.size||candidate.size>20*1024*1024)
         throw Error('Choose a JPG, PNG or WebP reference up to 20 MB.');
@@ -104,7 +197,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify}) {
       const job=await prepared.submit();
       if(!job?.id)throw Error('No job was confirmed. Check Queue before retrying.');
       const result=await prepared.result(job,()=>active&&ticket===revision);
-      if(result&&active&&ticket===revision&&version===quoteRevision){close();await onResult(result);}
+      if(result&&active&&ticket===revision&&version===quoteRevision){markLearned();close();await onResult(result);}
       else if(active&&ticket===revision)status.textContent='Saved in History. Your newer selection is unchanged.';
     } catch(error) {
       if(active&&ticket===revision){uncertain=prepared.wasSubmitted();status.textContent=error.message;}
@@ -114,11 +207,13 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify}) {
     if(!active||reference||$('precision-result-canvas').hidden)return;
     const result=editor.result?.();
     if(!result||result.id===lastResult)return;
-    lastResult=result.id;close();void Promise.resolve(onResult(result)).catch(error=>notify(error.message,true));
+    lastResult=result.id;markLearned();close();void Promise.resolve(onResult(result)).catch(error=>notify(error.message,true));
   });
   resultObserver.observe($('precision-result-canvas'),{attributes:true,attributeFilter:['hidden']});
   const busyObserver=new MutationObserver(refresh);
   busyObserver.observe($('precision-clear-mask'),{attributes:true,attributeFilter:['disabled']});
+  busyObserver.observe($('precision-tool-magic'),{attributes:true,attributeFilter:['aria-pressed']});
+  busyObserver.observe($('precision-tool-brush'),{attributes:true,attributeFilter:['aria-pressed']});
   async function open({file,id,action='edit'}) {
     if(opening||submitting||editor.isBusy())throw Error('Finish the current image operation first.');
     if(!dialog.open)throw Error('Open the image before editing it.');
@@ -126,7 +221,8 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify}) {
     opening=true;const ticket=++revision;returnFocus=document.activeElement;
     const changed=sourceId!==id;
     try {
-      if(changed){clearReference();prompt.value='';scope.value='person';uncertain=false;}
+      if(changed||ownerSession!==session()){clearReference();prompt.value='';scope.value='person';uncertain=false;libraryItems=[];}
+      actionMode=action;ownerSession=session();learned=guidanceLearned(localStorage(),account());helpOpen=true;libraryOpen=false;library.hidden=true;
       sourceId=id;active=true;lastResult=null;dialog.classList.add('is-viewer-editing');mount(action);
       editor.setExternalMode(!!reference);
       await editor.open({file,id});
@@ -137,18 +233,18 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify}) {
   }
   function close() {
     if(!active)return false;
-    ++revision;++quoteRevision;active=false;quote=null;quoting=false;clearTimeout(quoteTimer);quoteTimer=null;
-    editor.close();editor.setExternalMode(false);home.after(workspace);
+    ++revision;++quoteRevision;active=false;loadingReference=false;quote=null;quoting=false;clearTimeout(quoteTimer);quoteTimer=null;
+    editor.close();editor.setExternalMode(false);home.after(workspace);uploadHome.after(uploadRow);
     for(const [node,marker] of moves.reverse()){marker.after(node);marker.remove();}moves.length=0;
-    for(const [node,text] of labels)node.textContent=text;labels.clear();title.remove();
-    dialog.classList.remove('is-viewer-editing');workspace.classList.remove('has-viewer-reference');
+    for(const [node,text] of labels)node.textContent=text;labels.clear();title.remove();help.remove();
+    dialog.classList.remove('is-viewer-editing');workspace.classList.remove('has-viewer-reference','is-guided-replace','has-guided-selection');guide.hidden=kinds.hidden=hint.hidden=library.hidden=selectedCard.hidden=locationNote.hidden=invert.hidden=true;++libraryTicket;
     workspace.setAttribute('aria-label',original.title);fields.hidden=options.hidden=true;options.open=false;
     back.textContent=original.back;back.setAttribute('aria-label',original.backLabel);back.removeAttribute('title');
     directionLabel.textContent=original.label;prompt.placeholder=original.placeholder;
     if(dialog.open&&returnFocus?.isConnected)returnFocus.focus({preventScroll:true});
     return true;
   }
-  function reset(){close();sourceId=null;clearReference();uncertain=false;status.textContent='';}
+  function reset(){close();libraryItems=[];ownerSession=null;sourceId=null;clearReference();uncertain=false;status.textContent='';}
   dialog.addEventListener('cancel',event=>{if(active){event.preventDefault();close();}});
   dialog.addEventListener('close',()=>{if(!dialog.open)close();});
   return {open,close,reset,active:()=>active};

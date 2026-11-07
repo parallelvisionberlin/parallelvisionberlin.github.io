@@ -131,6 +131,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     }
     overlay.style.cursor=mode==='pan'?'grab':'crosshair';
     refreshGuidance();
+    if(base&&next==='magic'&&view.classList.contains('is-guided-replace'))setStatus('Click what you want to replace.');
     if(base&&next==='brush')setStatus('Brush active. Click and drag directly on the photograph to paint your selection.');
     if(base&&next==='erase')setStatus('Eraser active. Drag on the photograph to remove parts of the selection.');
   }
@@ -244,6 +245,14 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     }
     maskChanged();
     setStatus('Selection expanded. You can refine the edges with Add or Erase.');
+  }
+  function invertSelection(){
+    if(!base||!selected||taskBusy)return;
+    saveUndo();
+    const pixels=maskCtx.getImageData(0,0,mask.width,mask.height);
+    for(let i=0;i<pixels.data.length;i+=4){pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=255;pixels.data[i+3]=255-pixels.data[i+3];}
+    maskCtx.putImageData(pixels,0,0);maskChanged();
+    setStatus('Selection inverted. Only the purple area will change. Erase over anything else to keep.');
   }
   function resetSelection(){
     editEpoch++;maskCtx.clearRect(0,0,mask.width,mask.height);
@@ -393,7 +402,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       if(!ready?.maskSourceId)throw new Error('SAM 3 is still processing. Do not click again until you have checked the request.');
       const blob=await assetBlob(ready.maskSourceId),bitmap=await createImageBitmap(blob);
       try{await saveUndo();maskFromSam(bitmap,point);}finally{bitmap.close();}
-      setStatus('Object selected. Click another garment to add it, or refine with the brush.');
+      setStatus(view.classList.contains('is-guided-replace')?'Selection ready. Choose a replacement or describe it.':'Object selected. Click another garment to add it, or refine with the brush.');
     }catch(e){
       if(/Magic Select limit reached/.test(e.message))selectMode('brush');
       setStatus(e.message,true);
@@ -798,7 +807,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   // No source is opened automatically in the normal gallery. This workspace is opt-in.
   reset();
-  return {open,close,isOpen,result:()=>resultJob,setMode:selectMode,setExternalMode,selectionSnapshot,hasSelection:()=>selected,isBusy:()=>taskBusy,preview:()=>{
+  return {open,close,isOpen,clearSelection:resetSelection,invertSelection,result:()=>resultJob,setMode:selectMode,setExternalMode,selectionSnapshot,hasSelection:()=>selected,isBusy:()=>taskBusy,preview:()=>{
     if(owner())return;
     host.classList.add('is-precision-active');view.hidden=false;
     refreshButtons();syncPreviewFit();settleRetouchScroll();

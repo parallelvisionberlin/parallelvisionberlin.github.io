@@ -112,7 +112,12 @@ try {
       if (url.pathname === '/api/jobs') return send({jobs:savedJob ? [savedJob] : [], activeJobs:[], next:null});
       if (url.pathname === '/api/customer/wallet') return send({customer:true, balanceCredits:100,
         billingReady:true, generationReady:true, products:[], storage:{bytes:0, limitBytes:10000000, files:0}});
-      if (url.pathname === '/api/packs') return send({packs:[]});
+      if (url.pathname === '/api/packs') return send({packs:[
+        {id:'20000000-0000-4000-8000-000000000088',name:'PVSCENE1|characters|Alma Eight',refs:Array.from({length:8},(_,i)=>({id:'saved-view-'+i,name:'Alma '+i,role:'identity',note:'Saved angle note '+i}))},
+        {id:'20000000-0000-4000-8000-000000000089',name:'PVSCENE1|outfits|Leather jacket',refs:[{id:'saved-view-0',role:'outfit'}]},
+        {id:'20000000-0000-4000-8000-000000000090',name:'PVSCENE1|props|Camera',refs:[{id:'saved-view-1',role:'object'}]},
+        {id:'20000000-0000-4000-8000-000000000091',name:'PVSCENE1|locations|Studio',refs:[{id:'saved-view-2',role:'room'}]}
+      ]});
       if (url.pathname === '/api/library') return send({folders:[]});
       if (url.pathname === '/api/moodboards') return send({boards:[]});
       return send({});
@@ -131,6 +136,7 @@ try {
       };
       return {original:make('#294453'), identity:make('#7b6c59'), raw:make('#fa2010'), mask:make('#000', true)};
     });
+    for(let i=0;i<8;i++)assets.set('saved-view-'+i,Buffer.from(fixtures.identity,'base64'));
     assets.set('generated-raw', Buffer.from(fixtures.raw, 'base64'));
     assets.set('automatic-mask', Buffer.from(fixtures.mask, 'base64'));
     await page.evaluate(data => window.__replacementFlow.seed(data.original, data.identity), fixtures);
@@ -241,10 +247,34 @@ try {
     assert.deepEqual(await page.evaluate(()=>window.__replacementFlow.state()),previousDraft,'Back must not mutate the Image draft');
     await page.locator('#image-detail-replace').click();
     await page.waitForFunction(()=>document.querySelector('#precision-tool-magic').getAttribute('aria-pressed')==='true');
+    await page.locator('#precision-clear-mask').click();
+    assert.equal(await page.locator('.viewer-selection-guide').isVisible(),true,'Replace guides the first photo click');
+    assert.match(await page.locator('.viewer-selection-guide').textContent(),/Click what you want to replace/);
+    assert.equal(await page.locator('label[for="precision-prompt"]').textContent(),'Replace with…');
+    assert.equal(await page.locator('[data-viewer-kind]').count(),4);
+    assert.match(await page.locator('#precision-selection-canvas').evaluate(node=>getComputedStyle(node).cursor),/data:image\/svg/);
+    assert.equal(submitted,1,'Guidance cannot submit a generation');
+    await page.screenshot({path:`test-results/pv-guided-enter-${width}.png`});
     const selection=await page.locator('#precision-selection-canvas').boundingBox();
     await page.mouse.click(selection.x+selection.width*.2,selection.y+selection.height*.3);
-    await page.waitForFunction(()=>document.querySelector('#precision-status-text').textContent.includes('Object selected'));
+    await page.waitForFunction(()=>document.querySelector('#precision-status-text').textContent.includes('Selection ready.'));
     assert.equal(segments,3,'Replace requests selection only after an explicit photo click');
+    assert.equal(await page.locator('.viewer-selection-guide').isVisible(),false);
+    assert.match(await page.locator('label[for="precision-prompt"]').textContent(),/Replace selected person with/);
+    await page.locator('[data-viewer-kind="person"]').click();
+    await page.locator('[data-viewer-saved="20000000-0000-4000-8000-000000000088"]').waitFor({state:'visible'});
+    await page.screenshot({path:`test-results/pv-guided-library-${width}.png`});
+    await page.locator('[data-viewer-saved="20000000-0000-4000-8000-000000000088"]').click();
+    await page.waitForFunction(()=>!document.querySelector('#viewer-replacement-continue').disabled);
+    assert.match(await page.locator('.viewer-selected-reference').textContent(),/Alma Eight.*8 photos/s);
+    const savedQuote=[...quotes.values()].at(-1);
+    assert.equal(savedQuote.inputs.referenceSourceIds.length,9,'Original plus every saved Character view');
+    assert.equal(savedQuote.settings.referenceRoles[8].elementView,7);
+    assert.match(savedQuote.settings.referenceRoles[8].note,/Saved angle note 7/);
+    assert.equal(requests.some(r=>r.path.includes('/analyze')),false,'Opening the saved picker never triggers paid analysis');
+    await page.screenshot({path:`test-results/pv-guided-saved-${width}.png`});
+    await page.locator('.viewer-selected-reference button').click();
+    assert.equal(await page.locator('.viewer-selected-reference').isVisible(),false);
     await page.locator('#viewer-replacement-reference').setInputFiles({name:'reference.png',mimeType:'image/png',buffer:Buffer.from(fixtures.identity,'base64')});
     await page.locator('#precision-prompt').fill('Keep the original pose and light.');
     await page.waitForFunction(()=>!document.querySelector('#viewer-replacement-continue').disabled);
@@ -266,6 +296,16 @@ try {
     assert.deepEqual(await page.evaluate(()=>({settings:window.__replacementFlow.state().settings,references:window.__replacementFlow.state().references})),unchangedDraft,'The inline flow never overwrites the main Image draft');
     assert.equal(await page.locator('#image-detail-edit').isVisible(),true,'Result returns to the same viewer actions');
     assert.equal(page.url(),originalURL);
+    assert.equal(await page.evaluate(()=>localStorage.getItem('pv:replace-guidance:v1:replacement-flow-customer')),'1','Only successful completion reduces guidance');
+    await page.locator('#image-detail-replace').click();
+    await page.locator('[data-viewer-kind="location"]').click();
+    assert.equal(await page.locator('#precision-clear-mask').isDisabled(),true,'A location cannot reuse a person mask');
+    assert.equal(await page.locator('.viewer-selection-guide.is-compact').count(),1);
+    assert.equal(await page.locator('#viewer-replacement-reference').isDisabled(),true,'Unsupported location references are not disguised as object references');
+    assert.match(await page.locator('.viewer-location-note').textContent(),/not supported/);
+    await page.locator('[data-viewer-kind="outfit"]').click();
+    assert.equal(await page.locator('#viewer-replacement-reference').isDisabled(),false);
+    await page.locator('#precision-return').click();
     assert.equal(requests.some(r=>/precision\/(submit|quote)/.test(r.path)),false,'Reference replacement never switches to FLUX');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Inline editor fits mobile');
     assert.deepEqual(errors, []);
