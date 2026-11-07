@@ -118,7 +118,9 @@ try{
             labelRight:label.getBoundingClientRect().right,clearLeft:clear.getBoundingClientRect().left,
             labelScroll:label.scrollWidth,labelClient:label.clientWidth,
             iconVisible:icon.getBoundingClientRect().width>0,
-            clearVisible:getComputedStyle(clear).display!=='none'};
+            clearVisible:getComputedStyle(clear).display!=='none',
+            deckClasses:document.getElementById('image-composer').className,
+            selectedPadding:getComputedStyle(mood).paddingRight};
         });
         assert.equal(labelFit.text,'Night Flash','Selected Mood keeps the complete name');
         assert.ok(Math.abs(labelFit.buttonWidth-104)<=1,'Keep the original Mood slot size: '+JSON.stringify(labelFit));
