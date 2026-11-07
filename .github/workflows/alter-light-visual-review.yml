@@ -1,0 +1,62 @@
+name: ALTER Light thumbnail variety scoped review
+on:
+  push:
+    branches: [fix/alter-light-visual-variety-20261107]
+    paths: [.github/workflows/alter-light-visual-review.yml]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Apply only Side Light and Rim Light existing photography
+        run: |
+          curl --fail --location --silent --show-error 'https://at.adobe.com/S2reJleDCVBNdsbM' -o /tmp/alter-light-patch.zip
+          echo 'ceecf1acdddac92281530bb91c5f78c11636c1704172d898d799469ec8c21e97  /tmp/alter-light-patch.zip' | sha256sum --check
+          mkdir -p /tmp/alter-light-patch
+          unzip -q /tmp/alter-light-patch.zip -d /tmp/alter-light-patch
+          sha256sum lab/beauty-settings.js lab/beauty-approved-20261029.js lab/beauty-editorial-final.css lab/visuals/beauty/atelier/hero.webp > /tmp/locked-alter.sha256
+          python3 /tmp/alter-light-patch/apply.py
+          cp /tmp/alter-light-patch/test-card-previews.mjs tests/lab-beauty-side-rim-previews.test.mjs
+          sha256sum --check /tmp/locked-alter.sha256
+          node --check lab/beauty-look-catalog.js
+          node --check tests/lab-beauty-side-rim-previews.test.mjs
+          git diff --check
+      - name: Verify Light/Color, native quote, and Image contracts
+        run: |
+          node --test tests/lab-beauty-side-rim-previews.test.mjs tests/lab-beauty-light-color-previews.test.mjs tests/lab-beauty-category-contract.test.mjs tests/lab-beauty-archive-curation.test.mjs tests/lab-beauty.test.mjs tests/lab-beauty-atelier.test.mjs tests/lab-approved-image-ui-contract.test.mjs
+          node --test --test-name-pattern='Beauty Studio binds' tests/lab-worker.test.mjs
+      - name: Verify actual responsive beauty controls without provider calls
+        run: |
+          npm install --prefix /tmp/pv-beauty --no-audit --no-fund playwright@1.57.0
+          node /tmp/pv-beauty/node_modules/playwright/cli.js install chromium
+          PV_PLAYWRIGHT_MODULE=/tmp/pv-beauty/node_modules/playwright/index.mjs node tests/lab-beauty-ui.mjs
+      - name: Save reviewed source on feature branch only
+        run: |
+          test "$GITHUB_REF" = refs/heads/fix/alter-light-visual-variety-20261107
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/beauty.html lab/beauty-look-catalog.js tests/lab-beauty-side-rim-previews.test.mjs lab/visuals/beauty/atelier/alter-light-side-editorial-20261107.webp lab/visuals/beauty/atelier/alter-light-rim-editorial-20261107.webp
+          git diff --cached --check
+          python3 - <<'PY'
+          import subprocess
+          files=set(subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines())
+          assert files=={
+            'lab/beauty.html','lab/beauty-look-catalog.js','tests/lab-beauty-side-rim-previews.test.mjs',
+            'lab/visuals/beauty/atelier/alter-light-side-editorial-20261107.webp',
+            'lab/visuals/beauty/atelier/alter-light-rim-editorial-20261107.webp'
+          }, files
+          PY
+          git commit -m 'Use visibly different Side Light and Rim Light editorial subjects'
+          git push origin HEAD:refs/heads/fix/alter-light-visual-variety-20261107
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: alter-light-variety-review
+          path: test-results/beauty-category-light-*.png
+          retention-days: 3
