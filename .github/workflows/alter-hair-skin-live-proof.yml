@@ -1,0 +1,51 @@
+name: ALTER Hair Skin live asset verification
+on:
+  push:
+    branches: [verify/alter-hair-skin-photos-20261107]
+    paths: [.github/workflows/alter-hair-skin-live-proof.yml]
+permissions:
+  contents: read
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 1b7d82d8e91dec868d4769f21d125f57025925fc
+      - name: Verify the custom-domain HTML and every Hair/Skin image
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,re,time,urllib.request,json
+          root=Path('lab')
+          html=(root/'beauty.html').read_bytes()
+          cat=(root/'beauty-look-catalog.js').read_text()
+          paths=sorted(set(re.findall(r'./visuals/beauty/atelier/alter-(?:hair|skin)-[\w-]+-20261107\.webp',html.decode())))
+          assert len(paths)==16,len(paths)
+          assert all(p in cat for p in paths)
+          assert html.decode().count('data-beauty-original')==5
+          assert b'<h1>ALTER <br>Studio.</h1>' in html
+          endpoint='https://pvlab.studio'
+          def get(path):
+            req=urllib.request.Request(endpoint+path,headers={'User-Agent':'Mozilla/5.0 (compatible; PVLAB-Release-Verification/1.0)','Cache-Control':'no-cache'})
+            with urllib.request.urlopen(req,timeout=20) as r:return r.read()
+          success=False
+          for n in range(5):
+            try:
+              live=get('/beauty')
+              if hashlib.sha256(live).digest()!=hashlib.sha256(html).digest():
+                live=get('/beauty.html')
+              assert hashlib.sha256(live).digest()==hashlib.sha256(html).digest(),'HTML differs from merged source'
+              for p in paths:
+                local=(root/p[2:]).read_bytes()
+                received=get('/'+p[2:])
+                assert hashlib.sha256(received).digest()==hashlib.sha256(local).digest(),'Mismatched live media: '+p
+              success=True
+              break
+            except Exception as e:
+              print('Production check attempt',n+1,str(e)[:200])
+              if n<4:time.sleep(10)
+          assert success,'Production HTML and all previews could not be confirmed'
+          print('LIVE VERIFIED: HTML and 16 distinct WebP assets byte-for-byte identical to merged commit 1b7d82d. Existing controls, paths and source image remain preserved. No write/API/generation request performed.')
+          PY
