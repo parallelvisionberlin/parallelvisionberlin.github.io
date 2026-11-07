@@ -5,6 +5,9 @@ import {prepareDreamBlurBasePrompt} from './dream-blur-base.js?v=20261024v1&drea
 import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10&hkCinema=20261025v1';
 import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2&hkCinema=20261025v1';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
+const NIGHT_FLASH_HEADER='NIGHT FLASH / AUTHENTIC PAPARAZZI-EDITORIAL PHOTOGRAPHY. ';
+const NIGHT_FLASH_LIGHT='with bold, bare frontal on-camera flash: the flash sharply freezes the real subject, creates crisp directional cast shadows and brilliant but controlled specular highlights on actual skin, hair, leather, metal and glass, then falls off quickly into deep underexposed ambient darkness. Real night photography, not a pasted lighting filter. Let existing practical lights and naturally reflective surfaces retain selective detail in the black background. Give the image spontaneous early-2000s fashion-party / street-arrival energy';
+const NIGHT_FLASH_FINISH='fine integrated color-negative film grain, restrained source-bound halation, organic shadow texture, natural pores and tactile fabrics. KEEP THE CUSTOMER BASE PHOTOGRAPH AUTHORITATIVE: identical recognizable face, age, facial structure, expression, hair, natural skin tone, body proportions, person count, exact outfit and skin coverage, primary pose, viewing direction, camera distance, lens perspective, framing, crop and defining scene geometry. Relight the existing subject and environment coherently, including daylight-to-night where requested, without replacing the person, costume, location or composition. Explicit user-authored changes take priority; do not infer a new outfit, pose, vehicle, street, rain or extra person.';
 const ALL_MOODS=Object.freeze([
   {
     "id": "dream-blur",
@@ -80,7 +83,7 @@ const ALL_MOODS=Object.freeze([
     "preview": "/lab/mood-previews/hd/night-flash-20261011.jpg",
     "previewFull": "/lab/mood-bank/2026-10-11/night-flash/originals/night-flash.png",
     "description": "Raw after-dark paparazzi fashion photography",
-    "direction": "NIGHT FLASH / AUTHENTIC PAPARAZZI-EDITORIAL PHOTOGRAPHY. Make one physically credible after-dark fashion photograph with bold, bare frontal on-camera flash: the flash sharply freezes the real subject, creates crisp directional cast shadows and brilliant but controlled specular highlights on actual skin, hair, leather, metal and glass, then falls off quickly into deep underexposed ambient darkness. Real night photography, not a pasted lighting filter. Let existing practical lights and naturally reflective surfaces retain selective detail in the black background. Give the image spontaneous early-2000s fashion-party / street-arrival energy, sophisticated styling, a slightly imperfect documentary 35mm framing, fine integrated color-negative film grain, restrained source-bound halation, organic shadow texture, natural pores and tactile fabrics. KEEP THE CUSTOMER BASE PHOTOGRAPH AUTHORITATIVE: identical recognizable face, age, facial structure, expression, hair, natural skin tone, body proportions, person count, exact outfit and skin coverage, primary pose, viewing direction, camera distance, lens perspective, framing, crop and defining scene geometry. Relight the existing subject and environment coherently, including daylight-to-night where requested, without replacing the person, costume, location or composition. Explicit user-authored changes take priority; do not infer a new outfit, pose, vehicle, street, rain or extra person.",
+    "direction": NIGHT_FLASH_HEADER+"Make one physically credible after-dark fashion photograph "+NIGHT_FLASH_LIGHT+", sophisticated styling, a slightly imperfect documentary 35mm framing, "+NIGHT_FLASH_FINISH,
     "subtle": "1–34%: a restrained but recognizable direct-flash exposure, crisp believable shadows, slightly darker ambient falloff, subtle integrated 35mm grain and richer natural blacks. Keep the source face, outfit, body, pose, original location and framing unchanged.",
     "intense": "76–100%: dramatic physically believable hard frontal flash, luminous sharp subject detail, fast falloff into deep near-black night, punchy real reflective highlights, rich textured shadow pockets and clearly photographic analog 35mm grain. Intensify the light and camera response, not the person. Preserve the exact Base identity, expression, hairstyle, outfit, proportions, pose, subject count, crop and scene structure.",
     "avoid": "changed identity, facial features, expression, outfit, body, pose, crop, location or extra people; plastic or airbrushed skin, smoothing filters, fake gloss, fake paparazzi text, watermarks, tabloid graphics, cyberpunk neon, artificial street replacement, invented rain or cars, hard fake glow, excessive bloom, gritty grunge styling, smeared makeup, CGI or HDR finish, fake film borders, coarse pasted noise, flat grey blacks, crushed face detail, anatomy distortions",
@@ -341,7 +344,7 @@ export function imageHistoryCaption(settings={}){
 }
 
 
-export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',filmFinish=undefined,moodVariant='original'}={}){
+export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',filmFinish=undefined,moodVariant='original',ownerNightFlashBase=false}={}){
   const original=String(input||'').trim(),mood=moodById(id);
   if(!mood)return {prompt:original,metadata:{},error:''};
   const intensity=mood.fixedIntensity?mood.defaultIntensity:Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
@@ -502,7 +505,10 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     'SELECTED MORPHOLOGY: restrained facial modification with radical torso and arm reconstruction, layered smoked-metal plates and routed cables.'
   ];
   const syntheticMorphology=syntheticRomance&&intensity>=35?syntheticMorphologies[Math.floor((intensity-35)/13)%syntheticMorphologies.length]:'';
-  const style=hyperPop
+  const ownerRelight=ownerNightFlashBase&&mood.id==='night-flash'&&engine==='seedream'&&referenceMode==='base'&&referenceCount===1;
+  const style=ownerRelight
+    ?NIGHT_FLASH_HEADER+'Edit this exact Base photograph. Change only its lighting, color and film grain. Preserve every face with the original facial geometry, exact head angle, eye direction and expression. Preserve the pose, camera perspective, framing and crop. Relight the existing scene '+NIGHT_FLASH_LIGHT+', '+NIGHT_FLASH_FINISH+' '+mood.intense
+    :hyperPop
     ?[lite?mood.compact:mood.direction,'CREATIVE INTENSITY '+intensity+'/100: change wardrobe materials and matching local set, NOT a saturation filter.',hyperLook].join(' ')
     :syntheticRomance
     ?[compactSyntheticRomance?mood.compact:mood.direction,syntheticMorphology,'Creative intensity '+intensity+'/100: physical reconstruction, NOT a pixel filter.',compactSyntheticRomance?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]].join(' ')
