@@ -64,3 +64,10 @@ Added the approved sidebar cards above Turn into video and retired the main/gues
 - Production HTML/CSS layout checked at 390px and 1440px with JavaScript blocked and a synthetic image. This is not a signed-in customer test.
 - Verification evidence: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42380694787
 - No paid provider generation or real-account edit was run. Existing unrelated CI failures remain documented; no assertions or gates were disabled.
+
+
+## Inline viewer correction, 2026-11-07
+
+Owner reported the published workspace did not match proposals 4 and 5. The correction keeps the editor inside the original photo pane with the existing metadata sidebar. Select/Brush/Erase are primary; strength/size/expansion are under More options. An optional reference and inline Generate replace the detour to the main Image deck. The main draft is never overwritten. Existing quote endpoints, selected model routes, quotas and compositing are reused.
+
+Scoped quote-safety unit tests, prior precision/replacement tests, full mocked 390px/1440px viewer flow and standalone Retouch navigation passed. No paid inference or real account edit was run. This branch revision is not yet claimed live.
