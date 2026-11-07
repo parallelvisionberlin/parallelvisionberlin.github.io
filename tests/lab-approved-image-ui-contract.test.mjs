@@ -131,3 +131,15 @@ test('the shared Image entrance title keeps its approved medium emphasis',()=>{
   assert.match(style,/#gate\.pv-guest-image h1,\s*#app\.image-studio-active #lab-welcome-start h2\s*\{[^}]*font-weight:500!important;/,
     'Public, customer and Owner entrances use one medium-weight Start with a feeling title');
 });
+
+test('Image Generate hides routine progress beneath the button but retains error notices',()=>{
+  const finish=readFileSync('lab/studio-finish-v2.css','utf8');
+  assert.match(finish,/#image-composer-status:not\\(\\.is-import-error\\)\\s*\\{display:none!important\\}/,
+    'Routine preparation and submission labels must not render beneath Generate');
+  assert.match(studio,/studio-finish-v2\\.css\\?v=20261107-quiet-image-progress1/,
+    'The updated stylesheet must be cache-busted in Studio');
+  assert.match(lab,/status\\.classList\\.add\\('is-import-error'\\)/,
+    'Actionable image input/generation errors retain their visible toast state');
+  assert.match(lab,/generate\\.setAttribute\\('aria-busy',String\\(imageSubmissionPending\\)\\)/,
+    'Generate must still expose an accessible in-progress state');
+});
