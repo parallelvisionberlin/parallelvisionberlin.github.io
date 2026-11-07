@@ -58,7 +58,7 @@ jobs:
                 for(const id of ids){
                   const el=page.locator('[data-beauty-choice="beauty-'+group+'"][data-value="'+id+'"]');
                   const background=await el.locator('.beauty-choice-photo').evaluate(n=>getComputedStyle(n).backgroundImage);
-                  assert.match(background,new RegExp('alter-'+group+'-'+id+'-fixed-20261107\\\\.webp'));
+                  assert.ok(background.includes('alter-'+group+'-'+id+'-fixed-20261107.webp'),'Expected current published thumbnail');
                 }
               }
               assert.equal(writes,0,'No paid requests');
