@@ -615,7 +615,7 @@ export function preparePersonalMoodPrompt(input='',mood,intensity=60,options={})
     error:nonBudgetError||(over>0?'Direction and saved Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction or edit your saved Mood.':base.error||(!original&&!referenceCount?'Describe a subject or add an image before using this Mood.':''))};
 }
 
-export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,chooseEngine,onChange,onOpen,onCreatePersonal=()=>{},onEditPersonal=()=>{}}){
+export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,chooseEngine,onChange,onOpen,onCreatePersonal=()=>{},onEditPersonal=()=>{},onNightFlashFinish}){
   const grid=panel.querySelector('#composer-moods-grid');
   const createMoodButton=panel.querySelector('#composer-moods-create');
   const filters=panel.querySelector('#composer-moods-filters');
@@ -698,20 +698,29 @@ export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,ch
   const startPersonalMood=()=>{close();onCreatePersonal();};
   createButton.onclick=startPersonalMood;
   emptyPersonal.append(emptyTitle,emptyNote,createButton);grid.append(emptyPersonal);
-  function appendMoodCard(mood){
+  function appendMoodCard(mood,onChoose){
     const card=document.createElement('button');card.type='button';card.className='moods-card';
-    card.setAttribute('aria-label','Select '+mood.name);card.setAttribute('aria-pressed','false');
+    card.setAttribute('aria-label','Select '+mood.name);if(!onChoose)card.setAttribute('aria-pressed','false');
     card.title=mood.description;card.setAttribute('aria-description',mood.description);
     const media=document.createElement('span');media.className='moods-card-media moods-look-'+mood.id;
     const image=document.createElement('img');image.src=moodPreviewURL(mood);image.onerror=()=>{image.onerror=null;image.src=mood.preview;};image.alt='';image.loading='lazy';image.decoding='async';media.append(image);
     const info=document.createElement('span');info.className='moods-card-copy';
     const title=document.createElement('strong');title.textContent=mood.name;
-    const subtitle=document.createElement('small');subtitle.textContent=mood.ownerOnly?'PV Soul · Owner test':captions[mood.id]||mood.description;info.append(title,subtitle);
+    const subtitle=document.createElement('small');subtitle.textContent=onChoose?mood.description:mood.ownerOnly?'PV Soul · Owner test':captions[mood.id]||mood.description;info.append(title,subtitle);
     card.append(media,info);
-    card.onclick=()=>{selected=selected===mood.id?null:mood.id;if(mood.ownerOnly&&!getOwner()){selected=null;render();return;}if(selected==='hong-kong-nights'){hkVariation='original';finishControls.set(HONG_KONG_FILM_FINISH);}if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;if(selected&&mood.ownerOnly)chooseEngine('soul2');render();fitPanelViewport();onChange({selectedMood:true});};
+    if(onChoose)card.onclick=onChoose;else card.onclick=()=>{selected=selected===mood.id?null:mood.id;if(mood.ownerOnly&&!getOwner()){selected=null;render();return;}if(selected==='hong-kong-nights'){hkVariation='original';finishControls.set(HONG_KONG_FILM_FINISH);}if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;if(selected&&mood.ownerOnly)chooseEngine('soul2');render();fitPanelViewport();onChange({selectedMood:true});};
     grid.append(card);cards.set(mood.id,card);
   }
-  for(const mood of MOODS)appendMoodCard(mood);
+  const nightFlashFinishId='night-flash-photo-finish';
+  for(const mood of MOODS){
+    appendMoodCard(mood);
+    if(mood.id==='night-flash'&&onNightFlashFinish){
+      appendMoodCard({...mood,id:nightFlashFinishId,ownerOnly:true,name:'Night Flash · Photo Finish',description:'Keep your Base photo · Owner test'},()=>{
+        if(!getOwner())return;
+        close();onNightFlashFinish();
+      });
+    }
+  }
   function syncOwnerCards(){
     for(const mood of OWNER_MOODS){
       const card=cards.get(mood.id);
@@ -721,6 +730,8 @@ export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,ch
   }
   function render(){
     syncOwnerCards();
+    const nightFlashFinishCard=cards.get(nightFlashFinishId);
+    if(nightFlashFinishCard)nightFlashFinishCard.hidden=!getOwner()||!['All','Fashion'].includes(category);
     for(const [name,tab] of tabs){tab.classList.toggle('is-selected',category===name);tab.setAttribute('aria-pressed',String(category===name));}
     for(const mood of [...MOODS,...(getOwner()?OWNER_MOODS:[]),...personalMoods]){
       const key=mood.category==='My Moods'?'custom:'+mood.id:mood.id,card=cards.get(key);
