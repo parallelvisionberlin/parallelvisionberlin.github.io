@@ -58,7 +58,7 @@ jobs:
           changed=set(subprocess.check_output(['git','diff','--name-only','origin/main'],text=True).splitlines())
           expected={'lab/beauty.html','lab/beauty-look-catalog.js','lab/beauty-gallery-20261107.css','tests/lab-beauty-ui.mjs','tests/lab-beauty-archive-curation.test.mjs','tests/lab-beauty-gallery-twenty.test.mjs','tests/lab-beauty-atelier.test.mjs'}
           expected|={'lab/visuals/beauty/atelier/archive-'+s+'-20261107.webp' for s in ['goldenhour','skinstudy','windowstudy','softfocus','velvet','silverhalo','windblown']}
-          assert changed==expected,(changed-expected,expected-changed)
+          assert changed==expected|{'.github/workflows/alter-gallery-20-review.yml'},(changed-expected,expected-changed)
           PY
           git diff --check
           git commit -m 'Expand ALTER photographic archive to twenty functional looks with four-card gallery'
