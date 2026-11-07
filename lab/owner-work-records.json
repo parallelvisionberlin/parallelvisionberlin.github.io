@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T09:15:51Z",
+  "updatedAt": "2026-11-07T09:54:50.543Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1430,6 +1430,72 @@
         "Keep thumbnail and deck dimensions unchanged."
       ],
       "updatedAt": "2026-11-06T23:11:37.049Z"
+    },
+    {
+      "id": "owner-photo-finishes",
+      "title": "Owner Photo Finish for three night Moods",
+      "component": "Image Moods / Soul 2",
+      "status": "needs_verification",
+      "summary": "Owner-only source-preserving Night Flash, Hong Kong Nights and Won Kar Night through the existing 35mm renderer.",
+      "nextAction": "Verify the Worker and Pages candidate and the owner flow before production release.",
+      "baselineSha": "3c4670a0ac8ca21b27e90bd6bcbc3b6619fbd40b",
+      "reviewedSha": null,
+      "branch": "codex/owner-photo-finishes-20261107",
+      "files": [
+        "lab-worker/film-finish.mjs",
+        "lab-worker/worker.mjs",
+        "lab/film-finish.css",
+        "lab/film-finish.js",
+        "lab/lab.js",
+        "lab/moods.js",
+        "lab/studio.html",
+        "lab/owner-photo-finish.js",
+        "tests/lab-worker.test.mjs",
+        "lab/NIGHT-FLASH-SOUL-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Night Flash handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/codex/owner-photo-finishes-20261107/lab/NIGHT-FLASH-SOUL-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "73 focused Node tests",
+          "scope": "Film renderer, Image deck, Moods and owner endpoint",
+          "result": "passed"
+        },
+        {
+          "label": "Storefront source with three finishes",
+          "scope": "Local Cloudflare Images emulation",
+          "result": "passed"
+        }
+      ],
+      "deployment": {
+        "state": "pending",
+        "environment": "PV LAB Pages and Worker",
+        "sourceSha": null,
+        "limitations": [
+          "Live owner session and Cloudflare Images rendering pending."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "fixture",
+          "summary": "Three distinct finished copies retained the original dimensions in a visual comparison.",
+          "scope": "Local Cloudflare Images emulation",
+          "limitations": [
+            "No live Cloudflare Images request."
+          ]
+        }
+      ],
+      "blockers": [
+        "Worker publication requires a verified production baseline."
+      ],
+      "doNotRepeat": [
+        "Do not submit paid generations as part of Photo Finish verification."
+      ],
+      "updatedAt": "2026-11-07T09:54:50.543Z"
     }
   ]
 }

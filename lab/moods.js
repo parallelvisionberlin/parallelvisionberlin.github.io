@@ -615,7 +615,7 @@ export function preparePersonalMoodPrompt(input='',mood,intensity=60,options={})
     error:nonBudgetError||(over>0?'Direction and saved Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction or edit your saved Mood.':base.error||(!original&&!referenceCount?'Describe a subject or add an image before using this Mood.':''))};
 }
 
-export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,chooseEngine,onChange,onOpen,onCreatePersonal=()=>{},onEditPersonal=()=>{}}){
+export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,chooseEngine,onChange,onOpen,onCreatePersonal=()=>{},onEditPersonal=()=>{},canPhotoFinish=()=>false,onPhotoFinish}){
   const grid=panel.querySelector('#composer-moods-grid');
   const createMoodButton=panel.querySelector('#composer-moods-create');
   const filters=panel.querySelector('#composer-moods-filters');
@@ -630,6 +630,14 @@ export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,ch
   const publicSwitcherText=switcher.textContent;
   const done=panel.querySelector('#composer-moods-done');
   const clearButton=panel.querySelector('#composer-moods-none');
+  const photoFinishButton=document.createElement('button');
+  photoFinishButton.type='button';photoFinishButton.className='quiet';
+  photoFinishButton.textContent='Photo Finish';photoFinishButton.hidden=true;
+  photoFinishButton.onclick=()=>{
+    if(!getOwner()||!canPhotoFinish())return;
+    close();onPhotoFinish?.(selected);
+  };
+  if(onPhotoFinish)done.before(photoFinishButton);
   const aboutButton=panel.querySelector('#composer-moods-about');
   const aboutDetails=panel.querySelector('#composer-moods-explanation');
   const backdrop=panel.parentElement.querySelector('#composer-moods-backdrop');
@@ -720,6 +728,7 @@ export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,ch
     }
   }
   function render(){
+    photoFinishButton.hidden=!getOwner()||!canPhotoFinish();
     syncOwnerCards();
     for(const [name,tab] of tabs){tab.classList.toggle('is-selected',category===name);tab.setAttribute('aria-pressed',String(category===name));}
     for(const mood of [...MOODS,...(getOwner()?OWNER_MOODS:[]),...personalMoods]){

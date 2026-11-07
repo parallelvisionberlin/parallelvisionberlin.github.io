@@ -75,3 +75,8 @@
   background:#292b2b;border:1px solid #666b67;border-radius:8px;
   color:#e1e3de;font-size:12px;line-height:1.5;box-shadow:0 12px 26px #0009
 }
+
+#owner-photo-finish-dialog { width:min(720px,calc(100vw - 28px)); max-height:90dvh; }
+#owner-photo-finish-look { display:block; width:100%; margin:6px 0 12px; }
+#owner-photo-finish-image:not([hidden]) { display:block; width:100%; max-height:54dvh; object-fit:contain; background:#101010; border-radius:6px; }
+.owner-photo-finish-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }

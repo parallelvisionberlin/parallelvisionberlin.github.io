@@ -40,6 +40,13 @@
 - Rechecked official Soul 2 I2I input on 2026-11-07: one image URL, one optional trained Soul ID and its strength, always-on reference prompt processing. The schema exposes no mask or source fidelity control. Mood intensity changes the text treatment, so lowering it does not lock the source.
 - Candidate for review: add an optional source-preserving finish for both moods using the existing 35mm film renderer. Tune each look against the approved Soul results, applying color, tone and grain to the original geometry. Preserve the existing generative modes. Prototype and visually compare before treating this as a validated fix. No new provider generation, product change or deployment in this diagnostic.
 
+## Private Photo Finish candidate, 2026-11-07
+
+- Moods → Photo Finish opens a separate owner dialog for the current Base. Choose Night Flash, Hong Kong Nights, or Won Kar Night, then compare or download the saved private copy.
+- The existing 35mm renderer applies tone, color, halation and grain to the source at its original dimensions. Night Flash deepens blacks with neutral highlights, Hong Kong Nights softens contrast with cooler shadows, and Won Kar Night adds emerald shadows with warmer skin tones. The renderer retains the geometry of the original photograph.
+- Server authorization rejects customer and anonymous requests. Generation, credit accounting, the existing Mood routes and Precision Edit retain their existing behavior.
+- 73 focused tests passed. Local Cloudflare Images emulation rendered all three finishes on the storefront source and kept the original dimensions. Live signed-in behavior and Cloudflare Images parity remain pending.
+
 ## Provider contract and customer activation
 
 - Official image API: https://open.higgsfield.ai/models/higgsfield-ai/soul/v2/image-to-image/api-reference
