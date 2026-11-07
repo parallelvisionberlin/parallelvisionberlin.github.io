@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T09:07:15Z",
+  "updatedAt": "2026-11-07T09:15:51Z",
   "handoffs": [
     {
       "id": "owner",
@@ -461,7 +461,7 @@
       "component": "Image Moods / Soul 2",
       "status": "needs_verification",
       "summary": "Owner production results confirm the Night Flash look and show facial and scene drift. Owner reports similar drift with Won Kar Night. Stored inputs confirm both Moods received Base images and no Soul ID; their recipes already instruct facial preservation.",
-      "nextAction": "Compare one authorized source-locked directional relight on the same original, using the Won Kar Night result as the visual benchmark. The raw Hong Kong Seedream result already contains fog/wet pavement. Review the raw trial before film finishing. Evaluate a source-only finish separately for exact geometry.",
+      "nextAction": "Review the local source-preserving lighting proof. Exact geometry is feasible, while the original frontal-light shape remains. A generalized finish and a controlled provider relight comparison remain separate validation paths.",
       "baselineSha": "519d9fad57af01fcf836203d24f54e150a3d9455",
       "reviewedSha": "04413ed5aa58f6db557bb6a5c21e4b4a7fabe0d0",
       "branch": "fix/soul-owner-flow-20261106",
@@ -681,6 +681,16 @@
             "Prototype relight remains unvalidated.",
             "No paid request, product code change or deployment in this diagnostic."
           ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "Rendered a local scene-specific exposure/color proof preserving original pixel coordinates and 1343×767 geometry. Both faces, expressions and composition remain source-derived. Original frontal lighting remains evident.",
+          "scope": "User-supplied storefront Base capture, local deterministic render and visual inspection.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/HONG-KONG-IMAGE3-WORK-STATE.md",
+          "observedAt": "2026-11-07T09:15:51Z",
+          "limitations": [
+            "One source-scene proof. It is not an equivalent physical relight or an application deployment."
+          ]
         }
       ],
       "blockers": [
@@ -694,7 +704,7 @@
         "Preserve the merged #870 replacement flow and existing quote, credit, idempotency and budget safeguards.",
         "The first-image width and Studio Clerk assertions reproduce on519d9fad in run42296062207. Do not rerun the same baseline investigation without a relevant source change; keep those failures distinct from the passing focused Soul flow."
       ],
-      "updatedAt": "2026-11-07T09:07:15Z"
+      "updatedAt": "2026-11-07T09:15:51Z"
     },
     {
       "id": "image-prompt-deck-clearance",

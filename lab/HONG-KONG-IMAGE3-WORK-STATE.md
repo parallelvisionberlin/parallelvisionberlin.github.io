@@ -13,6 +13,12 @@ Verified 2026-10-25 (Berlin). Main integration: `940c00c99f8a57877dd587177c32499
 
 - Diagnostic used existing stored assets and read-only request metadata. Candidate requires visual validation. Product code and deployment are untouched.
 
+## Local source-preserving proof, 7 November 2026
+
+- Rendered a single local lighting and color proof from the owner's storefront Base capture. The scene-specific exposure map cools the storefront, retains warmer face highlights, and lowers street exposure. Fine deterministic grain is integrated into the original raster.
+- Verified 1343 × 767 output, unchanged pixel coordinates, deterministic rendering and black stability. Both people, expressions, wardrobe and storefront remain exactly in position. The scene still carries the original frontal-light shape, so this proves a geometry-preserving finish rather than matching Soul's full directional reconstruction.
+- Preview delivered privately for review. Scene-specific prototype is not product code or a deployed Mood. Evaluate the preview before generalizing the finish or authorizing a provider relight comparison.
+
 ## Approved implementation
 
 - PR #536 merged as `bcd80d965b19c7d084b0c5c94009c4bb9467f3c6`.
