@@ -1,0 +1,183 @@
+name: Verify guided Replace production
+on:
+  push:
+    branches: [verify/guided-replace-920-20261107]
+    paths: ['.github/workflows/viewer-guided-production.yml']
+permissions:
+  contents: write
+  checks: read
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      RELEASE_SHA: f80296c43184de3b94fa693d66341ca5483ef028
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: f80296c43184de3b94fa693d66341ca5483ef028
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Verify exact Cloudflare release and production bytes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          node --input-type=module <<'JS'
+          import {verifyRelease,productionUrl} from './.github/scripts/verify-pvlab-release.mjs';
+          import {execFileSync} from 'node:child_process';
+          import {createHash} from 'node:crypto';
+          import {writeFileSync} from 'node:fs';
+          const sha=process.env.RELEASE_SHA,source=asset=>execFileSync('git',['show',sha+':'+asset]);
+          const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+          const html=source('lab/studio.html').toString();
+          const refs=[...html.matchAll(/<(?:link|script)\b[^>]*\b(?:href|src)=["']([^"']+)["']/gi)].map(m=>new URL(m[1].replaceAll('&amp;','&'),productionUrl));
+          let results=[];
+          for(let attempt=0;attempt<4;attempt++){
+            results=[];
+            for(const asset of ['lab/lab.js','lab/viewer-guided-replace.css','lab/image-viewer-editor.css']){
+              const ref=refs.find(url=>url.pathname==='/'+asset.slice(4));if(!ref)throw Error('Missing source reference '+asset);
+              results.push(await verifyRelease({sha,asset,version:ref.searchParams.get('v'),sourceBytes:source(asset)}));
+            }
+            writeFileSync('evidence/publication.json',JSON.stringify(results,null,2));
+            console.log(JSON.stringify(results));
+            if(results.every(result=>result.state==='LIVE_VERIFIED'))break;
+            if(attempt===3)throw Error('Production files do not yet match this release. This verifier never deploys.');
+            await new Promise(resolve=>setTimeout(resolve,45000));
+          }
+          for(const [parent,name] of [['lab/lab.js','precision-edit'],['lab/lab.js','image-viewer-editor'],['lab/image-viewer-editor.js','viewer-replacement-library'],['lab/viewer-replacement-library.js','scene-library']]){
+            const token=source(parent).toString().match(new RegExp('\\./'+name+'\\.js\\?[^\'"\\s]+'))?.[0];
+            if(!token)throw Error('Missing versioned import '+name);
+            const url=new URL(token,productionUrl),response=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(15000)});
+            if(!response.ok)throw Error('Unavailable production module '+name);
+            const bytes=Buffer.from(await response.arrayBuffer()),asset='lab/'+name+'.js';
+            if(hash(bytes)!==hash(source(asset)))throw Error('Production module differs from reviewed source '+name);
+            results.push({state:'LIVE_VERIFIED',commit:sha,asset,url:url.href,sha256:hash(bytes)});
+          }
+          writeFileSync('evidence/publication.json',JSON.stringify(results,null,2));
+          console.log('ALL_SEVEN_GUIDED_VIEWER_ASSETS_VERIFIED');
+          JS
+      - name: Exercise public modules with synthetic media and zero API access
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix /tmp/guided-public --no-save playwright@1.57.0
+          node --input-type=module <<'JS'
+          import {chromium} from '/tmp/guided-public/node_modules/playwright/index.mjs';
+          import {existsSync,writeFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          const executablePath=['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].find(existsSync);
+          if(!executablePath)throw Error('No hosted Chromium; asset evidence remains separate.');
+          const browser=await chromium.launch({headless:true,executablePath}),results=[];
+          const allowedScripts=new Set(['/precision-edit.js','/image-viewer-editor.js','/viewer-replacement-library.js','/scene-library.js']);
+          try{
+            for(const width of [390,1440]){
+              const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
+              let apiAttempts=0;const errors=[];page.on('pageerror',error=>errors.push(error.message));
+              await page.route('**/*',route=>{
+                const request=route.request(),url=new URL(request.url());
+                if(url.pathname.startsWith('/api/')){apiAttempts++;return route.abort();}
+                if(url.origin!=='https://pvlab.studio'||request.method()!=='GET'||request.resourceType()==='script'&&!allowedScripts.has(url.pathname))return route.abort();
+                return route.continue();
+              });
+              await page.goto('https://pvlab.studio/studio',{waitUntil:'domcontentloaded'});
+              await page.evaluate(async()=>{
+                document.getElementById('lab-boot')?.remove();
+                document.documentElement.classList.remove('pv-studio-boot-lock','pv-studio-route-pending','pv-native-route-pending');
+                document.body.classList.remove('lab-booting');document.body.classList.add('lab-ready');
+                document.getElementById('gate').hidden=true;
+                const app=document.getElementById('app');app.hidden=false;app.classList.add('image-studio-active');
+                const canvas=document.createElement('canvas');canvas.width=960;canvas.height=540;
+                const ctx=canvas.getContext('2d');ctx.fillStyle='#292d32';ctx.fillRect(0,0,960,540);ctx.fillStyle='#686372';ctx.fillRect(280,90,230,450);
+                const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+                const file=new File([blob],'synthetic-public-check.png',{type:'image/png'}),url=URL.createObjectURL(blob);
+                const image=document.getElementById('image-lightbox-img');image.src=url;image.hidden=false;
+                const dialog=document.getElementById('image-lightbox');dialog.showModal();
+                const {createPrecisionEditor}=await import('/precision-edit.js?v=20261107-guided-replace1');
+                const {createImageViewerEditor}=await import('/image-viewer-editor.js?v=20261107-guided-replace1');
+                const forbidden=async()=>{throw Error('API or paid operation is forbidden in the public fixture.');};
+                let viewer;
+                const editor=createPrecisionEditor({host:app,api:forbidden,assetBlob:async()=>blob,uploadAsset:forbidden,notify:()=>{},owner:()=>true,falReady:()=>true,magicReady:()=>true,customer:()=>true,onJob:()=>{},onExit:()=>viewer.close()});
+                const refs=Array.from({length:8},(_,i)=>({id:'synthetic-view-'+i,role:i===7?'body':'identity',name:'Synthetic angle '+i,note:'Synthetic view only.'}));
+                viewer=createImageViewerEditor({editor,onResult:()=>{},notify:()=>{},account:()=> 'public-fixture',session:()=>1,getReferenceLimit:()=>10,
+                  getSavedReferences:async()=>[{id:'synthetic-character',name:'PVSCENE1|characters|Fixture Character',category:'characters',title:'Fixture Character',refs,notes:'Synthetic reference; not a customer asset.'}],
+                  readReference:async()=>file,renderReference:(node)=>{const img=document.createElement('img');img.src=url;img.alt='Synthetic reference';node.replaceChildren(img);},
+                  onPrepare:async()=>({label:'Fixture quote',expiresAt:Date.now()+120000,submit:forbidden,result:forbidden,wasSubmitted:()=>false})});
+                window.publicViewer=viewer;
+                await viewer.open({file,id:'synthetic-original',action:'replace'});await document.fonts.ready;
+              });
+              assert.equal(await page.locator('.viewer-selection-guide').isVisible(),true);
+              assert.equal(await page.locator('[data-viewer-kind]').count(),4);
+              assert.match(await page.locator('label[for="precision-prompt"]').textContent(),/Replace with/);
+              assert.match(await page.locator('#precision-selection-canvas').evaluate(node=>getComputedStyle(node).cursor),/data:image\/svg/);
+              assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+              await page.screenshot({path:'evidence/production-guided-enter-'+width+'.png'});
+              await page.locator('#precision-tool-brush').click();
+              const photo=await page.locator('#precision-selection-canvas').boundingBox();
+              await page.mouse.move(photo.x+photo.width*.4,photo.y+photo.height*.5);await page.mouse.down();await page.mouse.move(photo.x+photo.width*.55,photo.y+photo.height*.5,{steps:5});await page.mouse.up();
+              await page.locator('[data-viewer-kind="person"]').click();
+              await page.locator('[data-viewer-saved="synthetic-character"]').click();
+              await page.waitForFunction(()=>!document.getElementById('viewer-replacement-continue').disabled);
+              assert.match(await page.locator('.viewer-selected-reference').textContent(),/Fixture Character.*8 photos/s);
+              assert.match(await page.locator('.viewer-selection-hint').textContent(),/Selection ready/);
+              assert.equal(await page.locator('.viewer-selection-guide').isVisible(),false);
+              assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+              await page.screenshot({path:'evidence/production-guided-saved-'+width+'.png'});
+              await page.locator('[data-viewer-kind="location"]').click();
+              assert.equal(await page.locator('#viewer-replacement-reference').isDisabled(),true);
+              assert.match(await page.locator('.viewer-location-note').textContent(),/not supported/);
+              await page.evaluate(()=>window.publicViewer.close());
+              assert.equal(await page.locator('#image-detail-replace').isVisible(),true);
+              assert.equal(apiAttempts,0);assert.deepEqual(errors,[]);
+              results.push({width,state:'PASS',scope:'Live public HTML/CSS/modules with synthetic media, stubbed identity/library/quote callbacks and no API access. Not a real signed-in or paid-generation test.'});
+              await context.close();
+            }
+          }finally{await browser.close();}
+          writeFileSync('evidence/public-controls.json',JSON.stringify(results,null,2));
+          console.log('GUIDED_PUBLIC_CONTROLS_VERIFIED_WITH_NO_API_ACCESS');
+          JS
+      - name: Record verified publication while preserving the Location limitation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main --depth=1
+          if [ "$(git rev-parse origin/main)" != "$RELEASE_SHA" ]; then
+            echo 'Main moved; publication verified but record update skipped to preserve concurrent work.' | tee evidence/record-status.txt
+            exit 0
+          fi
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync,appendFileSync} from 'node:fs';
+          const index=JSON.parse(readFileSync('lab/owner-work-records.json','utf8'));
+          const record=index.records.find(r=>r.id==='image-viewer-replace-edit-actions');if(!record)throw Error('Existing work record missing.');
+          const publication=JSON.parse(readFileSync('evidence/publication.json','utf8'));
+          const controls=JSON.parse(readFileSync('evidence/public-controls.json','utf8'));
+          if(publication.length!==7||publication.some(r=>r.state!=='LIVE_VERIFIED')||controls.length!==2||controls.some(r=>r.state!=='PASS'))throw Error('Incomplete publication evidence.');
+          const now=new Date().toISOString(),sha=process.env.RELEASE_SHA,run='https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID;
+          record.status='deployed';record.updatedAt=now;record.reviewedSha=sha;
+          record.nextAction='Guided Character/Outfit/Object flow is published. Saved Location swaps still require separately reviewed backend scope support and deployment. No real-account or paid generation was tested.';
+          record.deployment={state:'verified',sourceSha:sha,environment:'Cloudflare Pages pvlab-studio / pvlab.studio',observedAt:now,evidenceUrl:run,limitations:['Public module verification used synthetic media and stubbed account/library/price callbacks, with zero API access.','No real signed-in or paid-provider generation was run.','Saved location-reference swaps remain disabled because the current backend does not support location replacement scope.']};
+          record.links.push({label:'Guided Replace PR #920',url:'https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/920'},{label:'Guided production verification',url:run});
+          record.evidence.push({kind:'production_asset',summary:'Exact Cloudflare release succeeded; seven custom-domain viewer assets matched reviewed SHA-256 bytes.',scope:publication.map(r=>r.asset).join(', '),source:run,observedAt:now,limitations:['Not evidence of generation quality.']});
+          record.evidence.push({kind:'fixture',summary:'Live public modules rendered at 390px and 1440px: guidance, four types, real local brush selection, eight-view saved-reference card, Location guard and viewer return.',scope:'Synthetic media and stubbed identity/library/price callbacks; zero API access',source:run,observedAt:now,limitations:['Not a real signed-in customer journey or paid-generation test.']});
+          writeFileSync('/tmp/guided-production-record.json',JSON.stringify(record));
+          appendFileSync('lab/IMAGE-REPLACEMENT-WORK-STATE.md','\n\n## Guided Replace published, 2026-11-07\n\n- PR #920 merged as '+sha+'. Exact Cloudflare commit and all seven related custom-domain asset hashes verified.\n- Public HTML/CSS/editor modules exercised at 390px and 1440px with synthetic media, stubbed account/library/quote callbacks and zero API access. Guidance, cursor, real local selection, saved eight-photo Character card, Location guard and return to the viewer passed.\n- Character, Outfit and Object reference pickers reuse existing private Elements and compatible photo packs. Guided generation preserves the main Image draft; successful completion stores only a local account-scoped guidance flag.\n- LIMITATION: saved Location reference swaps remain unsupported and disabled with an explanation. Text-directed background editing and explicit mask inversion are available; no location is disguised as an object.\n- Verification: '+run+'\n- 70 scoped unit checks and full mocked desktop/mobile generation flow passed before release. No real-account or paid generation was run. Existing unrelated broad-suite failures remain documented and were not relabeled as passing.\n');
+          JS
+          node scripts/owner-work-state.mjs upsert /tmp/guided-production-record.json
+          node scripts/owner-work-state.mjs validate
+          git config user.name 'PV LAB verification'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/owner-work-records.json lab/IMAGE-REPLACEMENT-WORK-STATE.md
+          git diff --cached --check
+          git commit -m '[CF-Pages-Skip] Record guided Replace production evidence and Location limit'
+          git push origin HEAD:main
+          git rev-parse HEAD > evidence/record-commit.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: guided-replace-production-evidence
+          path: evidence/
+          retention-days: 2
