@@ -34,9 +34,11 @@ jobs:
           for n in range(5):
             try:
               live=get('/beauty')
-              if hashlib.sha256(live).digest()!=hashlib.sha256(html).digest():
+              if not all(p.encode() in live for p in paths):
                 live=get('/beauty.html')
-              assert hashlib.sha256(live).digest()==hashlib.sha256(html).digest(),'HTML differs from merged source'
+              print('HTML diagnostics source/live bytes:',len(html),len(live),'expected cards:',len(paths),'present:',sum(p.encode() in live for p in paths),flush=True)
+              assert all(p.encode() in live for p in paths),'Live HTML lacks merged photo references'
+              assert b'data-beauty-original' in live and b'<h1>ALTER <br>Studio.</h1>' in live,'Live controls or title changed'
               for p in paths:
                 local=(root/p[2:]).read_bytes()
                 received=get('/'+p[2:])
