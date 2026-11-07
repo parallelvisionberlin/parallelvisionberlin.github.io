@@ -1,5 +1,13 @@
 # Nina Instagram: verified owner-continuity work state
-Updated: 2026-10-24
+Updated: 2026-11-07
+
+## Instagram shutdown and audit, 2026-11-07
+- Production `nina-instagram` was paused at 17:36:57 UTC by setting `ig_autoreply_config.mode='off'`. The public mode was active immediately before the change.
+- Disabled the Worker’s `workers.dev` endpoint and removed its minute cron trigger. Cloudflare readback confirmed the endpoint disabled and the schedule empty. Both public `/health` and `/webhook` returned HTTP 404. No custom domain or Worker route was found for this script.
+- Production data readback confirmed zero pending/sending jobs. The audit reconciled every outgoing DM record with a successful Meta send attempt. Inbox history, credentials, and Worker source were preserved.
+- The last deployed version was `a196286b-b337-4ffc-83a6-bde55bc6b907` at 100%, dated 2026-10-30. Latest reviewed Instagram source is `nina-instagram/worker.mjs` at commit `e610b696ea361a9e164deac187a01224824a4538`. This shutdown was a runtime settings change, with no Worker deployment.
+- Audit findings included ambiguous AI-identity disclosure, unverified relationship continuity, and voice transcription errors. Review the existing private D1 records for details. A successful send does not establish that the recipient read it.
+- Keep Instagram automation off. Re-enabling would require deliberate restoration of the endpoint, the schedule, and the database mode. The normal deployment script stops before upload if the minute cron is absent.
 
 ## Warm flirting and silent boundaries 2026 10 24
 - Source base d1b589ce2fa7956e45df05def289b0a4a8ab4ff2. Revision warm-flirting-silent-boundaries-2026-10-24.
