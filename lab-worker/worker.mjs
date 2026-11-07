@@ -15,7 +15,7 @@ import {BROWSER_ORIGINS,LEGACY_ISSUER,STUDIO_ISSUER,originsForClerkSession} from
 import {linkedStudioIdentity,migrationRoute} from './clerk-migration.mjs';
 import {prepareVideoExtension,quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
 import {prepareCharacterTransform,quoteCharacterTransform,submitCharacterTransform} from './higgsfield-video-transform.mjs';
-import {klingHfParameters,quoteKlingHf,submitKlingHf} from './kling-hf.mjs';
+import {klingSpicyParameters,prepareKlingSpicyInput} from './kling-spicy.mjs';
 import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd,verifyClosureBilling} from './customer-billing.mjs';
 import {recordMoodOfferEvent,pruneMoodOfferEvents} from './mood-offer-funnel.mjs';
 import {canCustomerGenerate} from './customer-rollout.mjs';
@@ -210,7 +210,7 @@ async function config(env,owner) {
   }
   return first(env,'SELECT * FROM settings WHERE owner_id=?',owner);
 }
-function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,imageReplacementEnabled:true,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:c?.customer_no_daily_cap?null:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance','seedance15','seedance4k',...(falEnabled?['h3maxfal','omni']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
+function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,imageReplacementEnabled:true,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:c?.customer_no_daily_cap?null:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance','seedance15','seedance4k','kling3',...(falEnabled?['h3maxfal','omni']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Kling 3.0 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
 async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET') {
   let r;
   try {
@@ -296,7 +296,7 @@ function parseParameters(value) {
   }
   if(value.type!=='image'&&['h3maxfal','omni'].includes(value.engine))return falVideoParameters(value,{fail,referenceLabels});
   if(value.type!=='image'&&value.engine==='seedance')return seedanceParameters(value,{fail,referenceLabels});
-  if(value.type!=='image'&&value.engine==='klinghf')return klingHfParameters(value,{fail});
+  if(value.type!=='image'&&value.engine==='kling3')return klingSpicyParameters(value,{fail});
   if(value.type!=='image'&&['seedance15','seedance4k'].includes(value.engine))return seedanceVariantParameters(value,{fail});
   if(value.engine&&!['wan','wanprime','h3','h3max','h3spicy'].includes(value.engine)&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
@@ -399,6 +399,7 @@ async function prepareInput(env,owner,data,p,url) {
   if(p.engine==='seedance'&&p.mode==='extend')return prepareVideoExtension(env,owner,data,p,{fail,source,sources});
   if(p.engine==='seedance'&&p.mode==='transform'){const {original}=await prepareCharacterTransform(env,owner,data,p,{fail,source,sources});return {primary:original,input:{}};}
   if(p.engine==='kling'){if(url)fail(400,'Use the Kling image generation route.');const ids=data.referenceSourceIds||[],refs=ids.length?await sources(env,owner,ids,1):[];p.referenceSourceIds=refs.map(a=>a.id);return {primary:refs[0]||null,input:{}};}
+  if(p.engine==='kling3')return prepareKlingSpicyInput(env,owner,data,p,url,{fail,source,signedInput});
   if(p.provider==='higgsfield'&&p.mode==='extend'){const primary=await source(env,owner,data.sourceId);if(!['video/mp4','video/quicktime'].includes(primary.mime))fail(400,'Choose a video to extend.');p.referenceVideoIds=[primary.id];return {primary,input:{}};}
   if(p.provider==='higgsfield'){if(url)fail(400,'Use the Soul 2 generation route.');const primary=await source(env,owner,data.sourceId);return {primary,input:{}};}
   if(p.mode==='upscale'&&p.provider==='fal'){
@@ -1550,7 +1551,7 @@ async function route(request,env,ctx) {
     }
     await run(env,"DELETE FROM spend WHERE owner_id=? AND job_id IN (SELECT id FROM jobs WHERE owner_id=? AND state='failed' AND COALESCE(json_extract(params,'$.provider'),'')='fal')",owner,owner);
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
-    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),videoEngines:[...publicConfig(c,!!env.FAL_KEY).videoEngines,...(env.HF_CREDENTIALS?['klinghf']:[])],higgsfieldEnabled:!!env.HF_CREDENTIALS,higgsfieldPrices:SOUL2_PRICES,geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
+    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),videoEngines:publicConfig(c,!!env.FAL_KEY).videoEngines,higgsfieldEnabled:!!env.HF_CREDENTIALS,higgsfieldPrices:SOUL2_PRICES,geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
   }
   if(path==='/api/soul-pro/identity'&&method==='GET'){
     const pack=await first(env,'SELECT id,refs,created_at FROM packs WHERE owner_id=? AND name=? ORDER BY created_at DESC LIMIT 1',owner,SOUL_PRO_IDENTITY_PACK);
@@ -1902,10 +1903,6 @@ async function route(request,env,ctx) {
     if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0))fail(400,'Add a prompt or at least one reference photograph.');
     if(p.provider==='higgsfield'&&p.mode==='transform')return json(await quoteCharacterTransform(env,owner,data,p,url,hfDeps()));
     if(p.provider==='higgsfield'&&p.mode==='extend')return json(await quoteVideoExtension(env,owner,data,p,url,hfDeps()));
-    if(p.provider==='higgsfield'&&p.engine==='klinghf'){
-      if(customer)fail(403,'Higgsfield Kling Pro is currently owner-only. No video submitted.');
-      return json(await quoteKlingHf(env,owner,data,p,url,hfDeps()));
-    }
     if(p.provider==='fal'&&p.engine==='video-upscale'){
       if(!env.FAL_KEY)fail(503,'fal.ai video upscaling is not configured on this Worker.');
       if(data.lastSourceId||data.referenceSourceIds?.length||data.transferSourceIds?.length)
@@ -2046,12 +2043,10 @@ async function route(request,env,ctx) {
       const checkRequest=new Request(request.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:params})});
       await checkCustomerPromptSafety(env,checkRequest);
     }
+    if(params.engine==='klinghf'||/^kling-video\/v3\.0\/pro\//.test(params.model||''))
+      fail(409,'Legacy Higgsfield Kling quotes are disabled. Select Kling 3.0 and review a fresh SpicyAPI price. Nothing submitted.');
     if(params.provider==='higgsfield'&&params.mode==='transform')return json({job:jobView(await submitCharacterTransform(env,owner,q,params,savedPayload,hfDeps()))},202);
     if(params.provider==='higgsfield'&&params.mode==='extend')return json({job:jobView(await submitVideoExtension(env,owner,q,params,savedPayload,hfDeps()))},202);
-    if(params.provider==='higgsfield'&&params.engine==='klinghf'){
-      if(customer)fail(403,'Higgsfield Kling Pro is currently owner-only. No video submitted.');
-      return json({job:jobView(await submitKlingHf(env,owner,q,params,savedPayload,hfDeps()))},202);
-    }
     if(params.provider==='fal'&&params.type==='image'&&params.mode==='upscale')return json({job:jobView(await submitFalUpscaleQuote(env,owner,q,params,savedPayload))},202);
     if(params.provider==='fal'&&params.type==='video'){
       if(!env.FAL_KEY)fail(503,'fal.ai video is not configured on this Worker.');
