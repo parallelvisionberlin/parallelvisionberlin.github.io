@@ -65,6 +65,85 @@
   ],
   "records": [
     {
+      "id": "90s-cinema-natural-film-light",
+      "title": "90s Cinema natural source light",
+      "component": "Image Moods / Mood Atlas",
+      "status": "needs_verification",
+      "summary": "Replace forced halo, green theatrical lighting and fake sprocket borders with a source-motivated late-1990s 35mm film treatment. Distinct strength tiers at 15/60/82/100.",
+      "nextAction": "Merge PR #916 with verified application source, inspect exact Cloudflare Pages check and published module byte-for-byte, then assess a new real output separately.",
+      "baselineSha": "55ff406cb991b5f0770ea2f204e4efffcaed515e",
+      "reviewedSha": "0e13ac61e2efbf547ffacdc1f6765c333f781e50",
+      "branch": "fix/90s-cinema-natural-light-20261107",
+      "files": [
+        "lab/moods.js",
+        "tests/lab-moods.test.mjs",
+        "lab/lab.js",
+        "lab/studio.html",
+        "lab/explore-moods.js",
+        "lab/moods.html",
+        "lab/MOODS-FLOW-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Scoped handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/MOODS-FLOW-WORK-STATE.md"
+        },
+        {
+          "label": "PR #916",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/916"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Mood Creator focused 61 Node cases including new 90s Cinema regression",
+          "result": "passed",
+          "scope": "Pro/Lite at 15/60/82/100, source light, original prompt/metadata, <=3K Lite and <=5K Pro, other Moods.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42379392553"
+        },
+        {
+          "label": "Mood Creator browser and Explore generation",
+          "result": "passed",
+          "scope": "Mood Creator browser and Explore/Mood Atlas generation flow passed with mock APIs; no paid calls.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42379392561"
+        },
+        {
+          "label": "Approved Image UI contract, static site and scoped Night Flash/Soul",
+          "result": "passed",
+          "scope": "Approved Image, static site and night-flash-soul focused job. Broad shared Image workflow has prior Base-width and Clerk assertions.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42379392784"
+        },
+        {
+          "label": "Wider repository CI",
+          "result": "failed",
+          "scope": "Unrelated changed-scope failures in existing visual, navigation, auth/source, video and gallery tests. Not corrected or masked by this PR."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "No real owner paid generation or photographic-quality acceptance yet."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "signed_in_production",
+          "summary": "Owner-provided 100% Seedream 5 Pro result with unnatural rim halo, green shadows and film border.",
+          "scope": "Original poor-quality output, not verification of the revised preset.",
+          "observedAt": "2026-11-07",
+          "limitations": [
+            "New preset has not been visually tested."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not modify Night Flash, Kodak Gold, other Moods, prices, model defaults or the original thumbnail.",
+        "Do not run paid generations for CI."
+      ],
+      "updatedAt": "2026-11-07"
+    },
+    {
       "id": "image-selected-mood-label-fit",
       "title": "Selected Image Mood label clarity",
       "component": "Image Mood control",
@@ -1692,11 +1771,11 @@
       "component": "PV LAB Image viewer",
       "status": "needs_verification",
       "updatedAt": "2026-11-07T13:00:48.683Z",
-      "baselineSha": "f097394c213a1bc61600d1b35c833d210783cd66",
+      "baselineSha": "fa097ff9b1a776e70d097cdf585df204ac803a40",
       "reviewedSha": "2e111c664e9f0cbf43c45b30c67554aca2cf0150",
       "branch": "feat/image-viewer-replace-edit-20261107",
       "summary": "Approved Replace and Edit sidebar cards above Turn into video; main Image deck Retouch action retired. Both cards reuse the existing precision canvas inside the viewer. Replace stages its reviewed mask and reference in the existing Image deck without a generation or model substitution.",
-      "nextAction": "Run normal PR #915 checks on the reconciled branch, then verify Cloudflare production separately.",
+      "nextAction": "Review normal PR CI after reconciliation, merge PR #915 through the standard merge endpoint, then verify exact production assets. No paid or real-account claim.",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
@@ -1716,6 +1795,14 @@
         {
           "label": "Implementation PR",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/915"
+        },
+        {
+          "label": "Release blocker log comparison",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42380043023"
+        },
+        {
+          "label": "Reconciled source tests",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42380214257"
         }
       ],
       "tests": [
@@ -1733,6 +1820,16 @@
           "label": "Image deck regression suites",
           "result": "failed",
           "scope": "Prompt paste, Soul parity and standalone Retouch navigation passed. Existing first-image Base width and studio-layout Clerk source-regex failures were reproduced against unchanged application source and remain unmodified."
+        },
+        {
+          "label": "Reconciled source verification",
+          "result": "passed",
+          "scope": "54 unit tests; precision, replacement flow at mobile/desktop, prompt paste, Soul parity and Retouch navigation. No real provider calls."
+        },
+        {
+          "label": "Existing release-check failure audit",
+          "result": "failed",
+          "scope": "Existing main failures retained, not counted as passes. Matching logs cover general Lab/video, header, credit preview, public Studio, queue, first-image, appearance and Fashion. Compact Generate 15px failure reproduced on main. Shared deck mismatches previously reproduced on baseline."
         }
       ],
       "deployment": {
@@ -1760,12 +1857,18 @@
           "limitations": [
             "Browser verification of the combined branch is pending normal PR CI."
           ]
+        },
+        {
+          "kind": "automated_test",
+          "summary": "Targeted checks passed after merging the current Mood update. Broader failure audit preserves failing tests and distinguishes baseline issues.",
+          "scope": "Feature branch only",
+          "limitations": [
+            "Production not deployed or verified yet.",
+            "No paid generation performed."
+          ]
         }
       ],
-      "blockers": [
-        "tests/lab-first-image-instant-browser.mjs: idle new/guest base same w:",
-        "tests/lab-studio-layout-ui.mjs: Clerk resources cannot load indefinitely"
-      ],
+      "blockers": [],
       "doNotRepeat": [
         "Do not recreate a separate editor or add buttons over the photograph.",
         "Do not change provider, model or billing when opening an action."
