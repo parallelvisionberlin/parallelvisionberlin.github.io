@@ -24,8 +24,8 @@ jobs:
           git merge --no-ff --no-commit origin/main
       - name: Import exact reviewed workstation files
         run: |
-          curl --fail --location --silent --show-error 'https://at.adobe.com/7nQcZtJ4wc3BQcjc' -o /tmp/alter-reviewed.zip
-          echo '1fc3162a841bc007acf43ded9fcfec23eb8217a5e4a04dc37962233e8d0d017e  /tmp/alter-reviewed.zip' | sha256sum --check
+          curl --fail --location --silent --show-error 'https://at.adobe.com/QB2tsuDw8zbCnuBl' -o /tmp/alter-reviewed.zip
+          echo '80e8cdedb73b461680d3e1a5264b6139038456ca9dc4ba64a971f7c8e5dc8dd6  /tmp/alter-reviewed.zip' | sha256sum --check
           python3 - <<'PY'
           import zipfile
           with zipfile.ZipFile('/tmp/alter-reviewed.zip') as z:
