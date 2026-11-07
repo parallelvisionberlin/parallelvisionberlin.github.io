@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T23:41:57.239Z",
+  "updatedAt": "2026-11-07T00:43:00.440Z",
   "handoffs": [
     {
       "id": "owner",
@@ -941,14 +941,14 @@
     },
     {
       "id": "alter-tabbed-editor",
-      "title": "ALTER Studio: three-row visual editor",
+      "title": "ALTER Studio: 13 curated editorial looks",
       "component": "ALTER Studio",
       "status": "deployed",
-      "summary": "Published follow-up preserves PR #887 three-row layout and native scrolling. 45 labelled controls match canonical instructions; Original uses the local source. Larger arrow-free photographic archive; original typography and favicon preserved.",
-      "nextAction": "No publication work pending. New provider output fidelity remains untested because no paid generation was authorized. Use current source and receipts; preserve backend, quotes, history and original imagery.",
-      "baselineSha": "c697605c2866abfaef3c19e2db3ee56611e7f13f",
-      "reviewedSha": "f474eab432537393c768befd257ffb6ccbadf1e5",
-      "branch": "fix/alter-three-row-controls-20261107",
+      "summary": "Production verified: 13 distinct, visually curated editorial direction cards using 12 optimized crops from owner-supplied PV/HF imagery plus the retained Beauty close-up. Seven added directions, fully labeled continuous horizontal archive, larger photos and legible captions. Each click sets a distinct existing Makeup/Hair/Skin/Light/Color combination; source identity, wardrobe, environment, backend and credit validation remain protected.",
+      "nextAction": "No publication pending. Provider-generated visual fidelity of each look remains untested without an explicitly authorized paid experiment; avoid further speculative images or unrelated Studio changes.",
+      "baselineSha": "1b7d82d8e91dec868d4769f21d125f57025925fc",
+      "reviewedSha": "d9ebfb0c0a9977acad3a161ab9680593fc70b7f7",
+      "branch": "feature/alter-editorial-archive-20261107",
       "files": [
         "lab/beauty.html",
         "lab/beauty.js",
@@ -960,9 +960,23 @@
         "tests/lab-beauty-ui.mjs",
         "tests/lab-beauty-atelier.test.mjs",
         "tests/lab-beauty-category-contract.test.mjs",
-        ".github/workflows/pv-lab-beauty.yml"
+        ".github/workflows/pv-lab-beauty.yml",
+        "lab/beauty-archive-curation.css",
+        "tests/lab-beauty-archive-curation.test.mjs"
       ],
       "links": [
+        {
+          "label": "Live 13-asset verification",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42319656534"
+        },
+        {
+          "label": "Scoped Beauty/Studios review",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42318994587"
+        },
+        {
+          "label": "PR #891",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/891"
+        },
         {
           "label": "PR #888",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/888"
@@ -995,18 +1009,31 @@
           "scope": "1440 and 390: original defaults, five tabs/nine labelled choices, no arrows or page overflow, desktop wheel and actual mobile touch swipe, keyboard access to final card, private local-source Original thumbnails. Generation and signed-in actions not exercised.",
           "observedAt": "2026-11-06T23:41:28.484Z",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42313460601"
+        },
+        {
+          "label": "13 archive choices and generation mapping",
+          "result": "passed",
+          "scope": "13 distinct images/presets with unique valid native Makeup/Hair/Skin/Light/Color settings; original Image and Beauty contracts, Worker quote/idempotency, full Beauty/Studios desktop/mobile browser checks passed. No paid provider jobs.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42318994587"
+        },
+        {
+          "label": "Actual public production archive",
+          "result": "passed",
+          "scope": "Exact published CSS and all thirteen image bytes matched the reviewed commit on pvlab.studio. Guest UI at 1440 and 390: 13 cards with captions, no arrows or overflow, valid preset controls, keyboard Home/End, no paid mutations.",
+          "observedAt": "2026-11-07T00:43:00.440Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42319656534"
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "865708443a88fcdc7e0555426e8df817e9765f83",
+        "sourceSha": "5a5e698b27e6ca173921e3bea984ea5bbe726838",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-06T23:41:28.484Z",
-        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/73d0e9da-f86a-4123-9ea5-56e40b752599",
+        "observedAt": "2026-11-07T00:43:00.440Z",
+        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/87cd5b29-9f8c-462b-acfd-bd005b84a065",
         "limitations": [
-          "Guest production behavior verified; real signed-in production generation not exercised.",
-          "Mocked role/billing/history tests are recorded separately.",
-          "No paid provider output generated; thumbnails are illustrative, not guaranteed output previews."
+          "Actual guest desktop/mobile card interaction verified without a signed-in account or paid generation.",
+          "Presets use text instructions; output fidelity is not independently established for each look.",
+          "No customer data, payments or credits were accessed."
         ]
       },
       "evidence": [
