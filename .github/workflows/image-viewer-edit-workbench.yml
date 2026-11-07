@@ -1,0 +1,39 @@
+name: Image viewer implementation workbench
+on:
+  push:
+    branches: [feat/image-viewer-replace-edit-20261107]
+    paths:
+      - '.github/workflows/image-viewer-edit-workbench.yml'
+      - '.github/scripts/image-viewer-edit-workbench.mjs'
+permissions:
+  contents: write
+jobs:
+  implement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/image-viewer-replace-edit-20261107
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Apply scoped implementation when present
+        run: |
+          if [ -f .github/scripts/image-viewer-edit-workbench.mjs ]; then
+            node .github/scripts/image-viewer-edit-workbench.mjs
+            git diff --check
+          fi
+      - name: Collect scoped source and verification evidence
+        if: always()
+        run: |
+          mkdir -p /tmp/image-viewer-context
+          tar -czf /tmp/image-viewer-context/source.tar.gz lab/*.js lab/*.css lab/*.html lab/*WORK-STATE.md lab/owner-work-records.json lab/AGENTS.md lab/README.md scripts/owner-work-state.mjs tests/lab-* .github/workflows/pv-lab-precision-edit-ui.yml 2>/dev/null
+          git diff > /tmp/image-viewer-context/implementation.diff
+          if [ -f /tmp/image-viewer-verification.log ]; then cp /tmp/image-viewer-verification.log /tmp/image-viewer-context/; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: image-viewer-scoped-source
+          path: /tmp/image-viewer-context/
+          retention-days: 1
