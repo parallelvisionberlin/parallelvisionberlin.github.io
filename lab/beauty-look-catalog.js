@@ -77,56 +77,56 @@ export const beautyLookCatalog={
       "id": "sleek",
       "label": "Sleek",
       "instruction": "Style the hair into a sleek finish without changing its colour.",
-      "image": "./visuals/beauty/look-high-fashion-20261029.jpg",
+      "image": "./visuals/beauty/atelier/alter-hair-sleek-20261107.webp",
       "preview": ""
     },
     {
       "id": "waves",
       "label": "Soft waves",
       "instruction": "Style the hair into soft waves without changing its colour.",
-      "image": "./visuals/beauty/look-editorial-20261029.jpg",
+      "image": "./visuals/beauty/atelier/alter-hair-waves-20261107.webp",
       "preview": ""
     },
     {
       "id": "wet",
       "label": "Wet look",
       "instruction": "Give the existing hair a wet-look finish.",
-      "image": "./visuals/beauty/atelier/hair-wet.webp",
+      "image": "./visuals/beauty/atelier/alter-hair-wet-20261107.webp",
       "preview": ""
     },
     {
       "id": "updo",
       "label": "Updo",
       "instruction": "Style the existing hair into an elegant updo.",
-      "image": "./visuals/beauty/atelier/fashion.webp",
+      "image": "./visuals/beauty/atelier/alter-hair-updo-20261107.webp",
       "preview": ""
     },
     {
       "id": "textured",
       "label": "Textured",
       "instruction": "Give the existing hair an editorial textured finish, preserving length and colour.",
-      "image": "./visuals/beauty/atelier/hair-wet.webp",
+      "image": "./visuals/beauty/atelier/alter-hair-textured-20261107.webp",
       "preview": ""
     },
     {
       "id": "tousled",
       "label": "Tousled",
       "instruction": "Loosely tousled hair with natural separation; preserve the original length and colour.",
-      "image": "./visuals/beauty/atelier/hair-wet.webp",
+      "image": "./visuals/beauty/atelier/alter-hair-tousled-20261107.webp",
       "preview": ""
     },
     {
       "id": "back",
       "label": "Brushed back",
       "instruction": "Brush the existing hair away from the face, preserving its length, hairline and colour.",
-      "image": "./visuals/beauty/look-high-fashion-20261029.jpg",
+      "image": "./visuals/beauty/atelier/alter-hair-back-20261107.webp",
       "preview": ""
     },
     {
       "id": "volume",
       "label": "Soft volume",
       "instruction": "Add gentle natural volume to the existing hairstyle without changing its length or colour.",
-      "image": "./visuals/beauty/look-editorial-20261029.jpg",
+      "image": "./visuals/beauty/atelier/alter-hair-volume-20261107.webp",
       "preview": ""
     }
   ],
@@ -142,56 +142,56 @@ export const beautyLookCatalog={
       "id": "natural",
       "label": "Natural",
       "instruction": "Preserve natural skin texture, pores, freckles and distinctive marks.",
-      "image": "./visuals/beauty/atelier/skin-natural.webp",
+      "image": "./visuals/beauty/atelier/alter-skin-natural-20261107.webp",
       "preview": ""
     },
     {
       "id": "dewy",
       "label": "Dewy",
       "instruction": "Give the skin a subtle dewy finish while preserving pores and natural texture.",
-      "image": "./visuals/beauty/atelier/beauty.webp",
+      "image": "./visuals/beauty/atelier/alter-skin-dewy-20261107.webp",
       "preview": ""
     },
     {
       "id": "matte",
       "label": "Matte",
       "instruction": "Give the skin a soft matte finish while preserving pores and natural texture.",
-      "image": "./visuals/beauty/atelier/skin-natural.webp",
+      "image": "./visuals/beauty/atelier/alter-skin-matte-20261107.webp",
       "preview": ""
     },
     {
       "id": "satin",
       "label": "Satin",
       "instruction": "A subtle satin skin finish; retain pores, freckles and natural complexion.",
-      "image": "./visuals/beauty/atelier/skin-natural.webp",
+      "image": "./visuals/beauty/atelier/alter-skin-satin-20261107.webp",
       "preview": ""
     },
     {
       "id": "refined",
       "label": "Refined",
       "instruction": "Gently refine temporary skin blemishes without smoothing pores, changing identity or removing distinctive marks.",
-      "image": "./visuals/beauty/atelier/beauty.webp",
+      "image": "./visuals/beauty/atelier/alter-skin-refined-20261107.webp",
       "preview": ""
     },
     {
       "id": "luminous",
       "label": "Luminous",
       "instruction": "Gently luminous skin highlights with visible pores and natural marks; no whitening or plastic smoothing.",
-      "image": "./visuals/beauty/atelier/skin-natural.webp",
+      "image": "./visuals/beauty/atelier/alter-skin-luminous-20261107.webp",
       "preview": ""
     },
     {
       "id": "soft-matte",
       "label": "Soft matte",
       "instruction": "Softly balanced matte skin, retaining pores, freckles and the original complexion.",
-      "image": "./visuals/beauty/atelier/beauty.webp",
+      "image": "./visuals/beauty/atelier/alter-skin-soft-matte-20261107.webp",
       "preview": ""
     },
     {
       "id": "fresh",
       "label": "Fresh",
       "instruction": "A lightly refreshed natural skin finish, retaining all distinctive marks, pores and skin tone.",
-      "image": "./visuals/beauty/atelier/skin-natural.webp",
+      "image": "./visuals/beauty/atelier/alter-skin-fresh-20261107.webp",
       "preview": ""
     }
   ],
