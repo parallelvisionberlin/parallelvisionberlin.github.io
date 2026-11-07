@@ -1,5 +1,16 @@
 # Beauty Studio and Studios navigation
 
+## 2026-11-07 | Wider Edit Look without touching photographic hero: LIVE VERIFIED
+
+- Owner approved the revised desktop mock after rolling back the unsuccessful #900 workstation. **Only the right Edit Look panel was enlarged**, keeping existing 5 independent tabs × 9 choices and a 3-column × 3-row visual grid. Desktop >1300px uses a width of `clamp(460px,35vw,590px)`, modestly taller panel and clearer title, and enough archive clearance for Generate. No new controls, layers or providers.
+- Background asset `lab/visuals/beauty/atelier/hero.webp` and the entire `lab/beauty-editorial-final.css` are **unchanged**. The new scoped `lab/beauty-panel-widen-20261107.css` **never sets** a background image, background position, background size or fade. Regression compares the computed hero pseudo-element and hero canvas geometry with that stylesheet enabled/disabled; every value matches. The original ALTER title and left settings geometry also match.
+- The 13-card Editorial Looks archive preserves its exact card height and inertia/keyboard/touch scroll. Only its vertical distance from the taller editor changed to prevent overlaps. Phone and <=1300px grid designs unchanged. Existing upload, models/ratio/resolution, five categories, prompts, credit/quote validation, Generate, private history, and real-result Before/After comparison remain native.
+- PR #912 source merge **`fd9774e8bf4ff20752d064a7cf9e5b84ebd53159`**; files changed: new scoped CSS, one link in `lab/beauty.html`, narrow contract additions in `tests/lab-beauty-atelier.test.mjs` and `tests/lab-beauty-ui.mjs`.
+- Scoped and standard Image/Beauty/Worker quote/idempotency and responsive browser suite passed: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42370471509. Rendered screenshots were inspected at 1366, 1440, 1920 and phone widths.
+- Exact Cloudflare Pages deployment succeeded; custom domain CSS bytes, background source/crop CSS and hero image bytes matched the reviewed release, with read-only guest browser geometry and trial Generate checks at 1727, 1440, 1366, 1024 and 390: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42371185743. No paid generations, customer data access or billing mutations.
+- Current safe release retains the original restored layout and background. Do not reintroduce the discarded workstation/layer UI from #900.
+
+
 ## 2026-11-07 | Light-tab visual variety: LIVE VERIFIED
 
 - Follow-up to user's screenshot critique: Side Light and Rim Light felt overly similar to the nearby dark portraits. Replaced **only** those two Light thumbnails with pre-existing photographic crops (Side Light: male portrait with one-sided sculpted illumination; Rim Light: backlit blonde portrait). The other six non-Original Light cards and all Color cards stay unchanged.
