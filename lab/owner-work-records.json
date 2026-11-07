@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T11:11:40.169Z",
+  "updatedAt": "2026-11-07T11:37:56.467Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1522,30 +1522,25 @@
       "title": "Owner Night Flash Photo Finish",
       "component": "Image Deck / Moods",
       "status": "deployed",
-      "updatedAt": "2026-11-07T11:11:40.169Z",
-      "summary": "Owner Night Flash Photo Finish grades foreground and background separately with on-device person and face masks, 0.7 EV less ambient and modest existing skin highlight lift.",
-      "nextAction": "Review the automatic mask on more owner-selected photos inside Studio.",
-      "baselineSha": "a73fc4242a76802458facee8379d713654af9c15",
-      "reviewedSha": "e91dccc4481daf60ee95a53b3ad059cc39261c94",
-      "branch": "codex/owner-night-flash-subject-mask",
+      "updatedAt": "2026-11-07T11:37:56.467Z",
+      "summary": "The experimental owner Night Flash Photo Finish card and dialog are withdrawn from Studio after owner review rejected the lighting.",
+      "nextAction": "Pause iteration on the Photo Finish trial. Revisit only with an approved lighting reference and a visual acceptance check before release.",
+      "baselineSha": "d083387c5d786aca61b3a50513fa6df365f13842",
+      "reviewedSha": "096f69861e5bb453b17c66866c1b4c97584a1af6",
+      "branch": "codex/pause-night-flash-photo-finish",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
-        "lab/film-finish.css",
-        "lab/owner-photo-finish.js",
-        "lab/night-flash-photo-renderer.js",
-        "lab/night-flash-subject-mask.js",
-        "lab/night-flash-segmentation.html",
         "tests/lab-night-flash-soul-ui.mjs"
       ],
       "links": [
         {
-          "label": "Subject mask release",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/906"
+          "label": "Withdraw owner trial",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/908"
         },
         {
           "label": "Studio role and viewport checks",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42366726629"
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42368619528"
         }
       ],
       "tests": [
@@ -1555,48 +1550,43 @@
           "result": "passed"
         },
         {
-          "label": "Chrome 390 and 1440",
-          "scope": "Real models in an opaque-origin frame, two private original photo files, native dimensions, compare, cleanup and no photo uploads",
-          "result": "passed"
-        },
-        {
           "label": "Hosted Studio role tests",
-          "scope": "Owner visibility, customer exclusion and full Photo Finish flow",
+          "scope": "Photo Finish absent and generative Night Flash selectable at 390 and 1440 px",
           "result": "passed",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42366726629"
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42368619528"
         }
       ],
       "deployment": {
         "state": "verified",
         "environment": "PV LAB Cloudflare Pages",
-        "sourceSha": "b55bb9153a8ad6efbefe4103ff81db323ab40d33",
+        "sourceSha": "a4c7d2e73141520818d18628d3af223b29c9914a",
         "evidenceUrl": "https://pvlab.studio/studio?tool=image",
         "limitations": [
-          "This release was tested locally in Chrome and with hosted synthetic owner/customer roles."
+          "Behavior verified with synthetic Studio roles."
         ]
       },
       "evidence": [
         {
           "kind": "fixture",
-          "summary": "Both owner photos kept 2048×1170 dimensions and white detail. The silhouette model corrected a wall false positive in the portrait.",
-          "scope": "Actual photo and model fixture checks",
+          "summary": "An owner test of the segmentation-based release showed an artificial separation between the lit foreground and its surroundings.",
+          "scope": "Real owner creative feedback",
           "limitations": [
-            "Photo masks can be less precise on dark or occluded subjects."
+            "Quality acceptance failed even though the feature ran."
           ]
         },
         {
           "kind": "production_asset",
-          "summary": "Cloudflare deployment e969a8ed-b687-4a5c-be82-1ed7386dbbc8 served the reviewed Night Flash code and the sandbox on the custom domain.",
-          "scope": "Studio and Night Flash modules",
+          "summary": "Cloudflare deployment f9db1339-eeee-41f7-9804-7a6ddaab8b0b served the Studio entry point without the Photo Finish wiring.",
+          "scope": "Production Studio HTML and JavaScript",
           "source": "https://pvlab.studio/studio?tool=image",
           "limitations": [
-            "Live signed-in owner behavior remains unverified."
+            "Signed-in behavior tested using synthetic roles."
           ]
         }
       ],
       "blockers": [],
       "doNotRepeat": [
-        "Keep scope owner only. Load pinned model files on demand. Photo pixels remain in the browser. Do not request a paid generation."
+        "Compare the visual result against a natural flash reference before introducing another owner trial."
       ]
     }
   ]

@@ -1,12 +1,11 @@
 # Night Flash with Higgsfield Soul 2
 
-## Owner Night Flash Photo Finish, 2026-11-07
+## Owner Night Flash Photo Finish, paused 2026-11-07
 
-- Owner only: Image Deck → Moods → Night Flash · Photo Finish → Apply finish. Compare or download the PNG. The point tool from #901 was replaced with an automatic mask after real owner feedback.
-- #906 https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/906 uses pinned MediaPipe Vision 0.10.21 and model v1 in an opaque sandbox. The separate silhouette and face confidence masks are used for exposure and highlight protection. Static models load on demand. Photo pixels stay local.
-- The background drops 0.7 EV. Face reflections lift modestly. White cloth and framing are preserved and fine grain is applied to the original dimensions.
-- Both submitted private examples passed visual checks and retained 2048×1170. Chrome 390 and 1440 px using the downloaded model bytes verified apply, compare, cleanup, and that the only external requests are GETs for static files. 79 focused Node tests and the hosted Studio role check passed.
-- Cloudflare production deployment e969a8ed-b687-4a5c-be82-1ed7386dbbc8 at b55bb9153a8ad6efbefe4103ff81db323ab40d33 verified on pvlab.studio. The new build has not yet been exercised in a real owner session.
+- #906 used a person and face mask to grade foreground and background separately in the browser. The owner rejected the lighting in a subsequent real photo.
+- #908 https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/908 withdraws the owner card and dialog from Studio. The renderer source is available for future investigation.
+- The hosted 390 and 1440 px role checks passed for the withdrawn trial and the existing generative Mood. 79 focused Node cases passed.
+- Production Pages deployment f9db1339-eeee-41f7-9804-7a6ddaab8b0b at a4c7d2e73141520818d18628d3af223b29c9914a was verified on pvlab.studio. Keep the trial paused until visual acceptance criteria are agreed.
 
 ## Active state, 2026-11-06
 
