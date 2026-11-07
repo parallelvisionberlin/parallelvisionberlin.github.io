@@ -71,3 +71,11 @@ Added the approved sidebar cards above Turn into video and retired the main/gues
 Owner reported the published workspace did not match proposals 4 and 5. The correction keeps the editor inside the original photo pane with the existing metadata sidebar. Select/Brush/Erase are primary; strength/size/expansion are under More options. An optional reference and inline Generate replace the detour to the main Image deck. The main draft is never overwritten. Existing quote endpoints, selected model routes, quotas and compositing are reused.
 
 Scoped quote-safety unit tests, prior precision/replacement tests, full mocked 390px/1440px viewer flow and standalone Retouch navigation passed. No paid inference or real account edit was run. This branch revision is not yet claimed live.
+
+## Compact inline editor published
+
+- PR #917 merged as a048cedf5f589b609d4bad7e36fde64e05859d47.
+- Exact Cloudflare commit and all four custom-domain viewer asset hashes verified.
+- Actual public HTML/CSS/editor modules rendered at 390px and 1440px with synthetic input, stubbed session callbacks and zero API access. Editing stays inside the photo pane; metadata remains visible; Select/Brush/Erase, optional reference and Generate replace the old workspace. More options is collapsed.
+- Evidence: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42385474528
+- 62 provider-free unit tests and full mocked desktop/mobile inline-generation and standalone Retouch flows passed before merge. No real signed-in paid edit was run. Existing unrelated baseline CI failures remain documented.

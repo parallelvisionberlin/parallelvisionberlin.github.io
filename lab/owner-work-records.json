@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T15:04:40.252Z",
+  "updatedAt": "2026-11-07T15:15:45.128Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1769,13 +1769,13 @@
       "id": "image-viewer-replace-edit-actions",
       "title": "Contextual image viewer Replace and Edit",
       "component": "PV LAB Image viewer",
-      "status": "needs_verification",
-      "updatedAt": "2026-11-07T15:04:40.252Z",
+      "status": "deployed",
+      "updatedAt": "2026-11-07T15:15:45.128Z",
       "baselineSha": "8dfcb934ffe44391fa41fdaec5736870ce08ac2b",
-      "reviewedSha": null,
+      "reviewedSha": "a048cedf5f589b609d4bad7e36fde64e05859d47",
       "branch": "fix/viewer-inline-edit-20261107",
       "summary": "Correct the deployed Retouch-style workspace toward the approved inline viewer proposals. Keep the photo pane and metadata sidebar, compact Select/Brush/Erase tools, optional reference and inline Generate. Reference generation preserves the main Image draft and existing model/provider routes.",
-      "nextAction": "Review CI and actual desktop/mobile browser screenshots, merge the corrected viewer and verify exact production assets. No paid or real-account generation has been tested.",
+      "nextAction": "Compact inline editor is published and byte-verified. A real signed-in paid edit has not been tested; do not claim generation quality from the mocked checks.",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
@@ -1809,6 +1809,14 @@
         {
           "label": "Inline correction verification",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42384483334"
+        },
+        {
+          "label": "Inline production verification",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42385474528"
+        },
+        {
+          "label": "Inline editor correction PR",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/917"
         }
       ],
       "tests": [
@@ -1829,12 +1837,14 @@
         }
       ],
       "deployment": {
-        "state": "not_started",
-        "environment": "Cloudflare Pages pvlab-studio",
-        "sourceSha": null,
+        "state": "verified",
+        "sourceSha": "a048cedf5f589b609d4bad7e36fde64e05859d47",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-07T15:15:45.128Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42385474528",
         "limitations": [
-          "This corrected revision has not been published yet.",
-          "No real signed-in or paid-provider edit was run."
+          "No real account or paid generation tested.",
+          "Public render used synthetic input and stubbed session callbacks with all API access disabled."
         ]
       },
       "evidence": [
@@ -1890,11 +1900,29 @@
           "limitations": [
             "No real account or provider inference."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Exact Cloudflare merge deployment and all four viewer-related public asset hashes verified.",
+          "scope": "lab/image-viewer-editor.css, lab/lab.js, lab/precision-edit.js, lab/image-viewer-editor.js",
+          "observedAt": "2026-11-07T15:15:45.128Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42385474528",
+          "limitations": [
+            "Not evidence of signed-in paid generation."
+          ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "Public editor modules rendered and closed correctly at 390px and 1440px: in-viewer photo, metadata, simple tools, collapsed options and no horizontal overflow.",
+          "scope": "Synthetic public-layout fixture; zero API calls",
+          "observedAt": "2026-11-07T15:15:45.128Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42385474528",
+          "limitations": [
+            "Session callbacks were stubbed. No actual account or inference."
+          ]
         }
       ],
-      "blockers": [
-        "Normal PR checks and production verification pending. Existing unrelated baseline CI failures remain documented in the prior release audit."
-      ],
+      "blockers": [],
       "doNotRepeat": [
         "Do not recreate a separate editor or add buttons over the photograph.",
         "Do not change provider, model or billing when opening an action."
