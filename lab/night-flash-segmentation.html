@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/; connect-src https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm/ https://storage.googleapis.com/mediapipe-models/image_segmenter/; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Night Flash subject mask</title>
+</head>
+<body>
+<script type="module">
+const runtime='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21';
+const models='https://storage.googleapis.com/mediapipe-models/image_segmenter';
+const portrait='selfie_segmenter_landscape/float16/1/selfie_segmenter_landscape.tflite';
+const skin='selfie_multiclass_256x256/float32/1/selfie_multiclass_256x256.tflite';
+
+async function receive(event){
+  const image=event.data?.image;
+  if(event.source!==parent||event.data?.type!=='night-flash-photo'||!(image instanceof ImageData))return;
+  window.removeEventListener('message',receive);
+  const reply=(result,transfer=[])=>parent.postMessage({type:'night-flash-mask',...result},event.origin,transfer);
+  try{
+    const {FilesetResolver,ImageSegmenter}=await import(runtime+'/vision_bundle.mjs');
+    const fileset=await FilesetResolver.forVisionTasks(runtime+'/wasm');
+    async function confidence(model,index){
+      const segmenter=await ImageSegmenter.createFromOptions(fileset,{
+        baseOptions:{modelAssetPath:models+'/'+model,delegate:'CPU'},
+        runningMode:'IMAGE',outputCategoryMask:false,outputConfidenceMasks:true
+      });
+      try{
+        let pixels;
+        segmenter.segment(image,result=>{
+          const mask=result.confidenceMasks[index];
+          if(mask.width!==image.width||mask.height!==image.height)throw Error('Unexpected mask dimensions.');
+          pixels=mask.getAsFloat32Array().slice();
+        });
+        if(!pixels)throw Error("No confidence mask was returned.");
+        return pixels;
+      }finally{segmenter.close();}
+    }
+    // The binary model provides a cleaner silhouette than the skin model.
+    // The latter is used only inside the silhouette, to protect clothes.
+    const person=await confidence(portrait,0);
+    const face=await confidence(skin,3);
+    reply({width:image.width,height:image.height,person,face},[person.buffer,face.buffer]);
+  }catch(error){
+    console.warn('Night Flash subject mask:',error.message);
+    reply({error:'Could not find the subject mask. Try again.'});
+  }
+}
+window.addEventListener('message',receive);
+</script>
+</body>
+</html>
