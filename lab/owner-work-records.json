@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T09:15:51Z",
+  "updatedAt": "2026-11-07T10:18:20.227Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1430,6 +1430,82 @@
         "Keep thumbnail and deck dimensions unchanged."
       ],
       "updatedAt": "2026-11-06T23:11:37.049Z"
+    },
+    {
+      "id": "owner-photo-finishes",
+      "title": "Owner Night Flash Photo Finish",
+      "component": "Image Deck / Moods",
+      "status": "deployed",
+      "updatedAt": "2026-11-07T10:18:20.227Z",
+      "summary": "Owner-only Night Flash Photo Finish works on the current Base in the Image Deck. Compare and download the PNG in the browser. Source framing and dimensions are retained.",
+      "nextAction": "Review the look using an owner session and an owner-selected Base.",
+      "baselineSha": "3c4670a0ac8ca21b27e90bd6bcbc3b6619fbd40b",
+      "reviewedSha": "3167a7b7cc3d53a27fc71e97eeaafe35a85b1cdd",
+      "branch": "codex/owner-night-flash-photo-finish",
+      "files": [
+        "lab/lab.js",
+        "lab/moods.js",
+        "lab/studio.html",
+        "lab/owner-photo-finish.js",
+        "lab/night-flash-photo-renderer.js",
+        "lab/film-renderer.mjs",
+        "tests/lab-night-flash-soul-ui.mjs"
+      ],
+      "links": [
+        {
+          "label": "Merged Night Flash only",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/898"
+        },
+        {
+          "label": "Role and viewport checks",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42363019744"
+        }
+      ],
+      "tests": [
+        {
+          "label": "79 focused Node tests",
+          "scope": "Image contract, Mood catalog and renderer compatibility",
+          "result": "passed"
+        },
+        {
+          "label": "Hosted Chrome 390 and 1440",
+          "scope": "Owner shows finish, customer hides it, upload Base, compare, preserved dimensions and no POST",
+          "result": "passed",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42363019744"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "environment": "PV LAB Cloudflare Pages",
+        "sourceSha": "624b2a324c4885a70d8481d986339dc820c8fe02",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=image",
+        "limitations": [
+          "Authenticated production owner session was not exercised."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "fixture",
+          "summary": "Output matches the offline Night Flash trial for the same file and keeps its dimensions.",
+          "scope": "Canvas compositor and hosted synthetic Studio sessions",
+          "limitations": [
+            "No provider calls or production account session."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Cloudflare production deployed the merge and the custom domain served matching asset bytes.",
+          "scope": "Studio HTML and Night Flash modules",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": [
+            "Signed-in behavior verified in hosted synthetic sessions only."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Keep Hong Kong Nights and Won Kar Night out of this release. No paid generation is needed to test Photo Finish."
+      ]
     }
   ]
 }

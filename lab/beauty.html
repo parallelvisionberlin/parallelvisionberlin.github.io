@@ -18,6 +18,8 @@
 <link rel="stylesheet" href="./beauty-flow-refinement.css?v=20261106-flow1">
 <link rel="stylesheet" href="./beauty-category-labels.css?v=20261107-controls2">
 <link rel="stylesheet" href="./beauty-archive-curation.css?v=20261107-archive1">
+<link rel="stylesheet" href="./beauty-workstation-20261107.css?v=20261107-workstation1">
+<script type="module" src="./beauty-workstation-20261107.js?v=20261107-workstation1"></script>
 </head>
 <body>
 <a class="skip" href="#beauty-form">Skip to workspace</a>
@@ -47,8 +49,20 @@
    <aside class="beauty-editorial-heading">
     <button class="beauty-back" type="button" data-open-studios><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H4m6-6-6 6 6 6"/></svg>Back to studios</button>
     <h1>ALTER <br>Studio.</h1>
-    <p class="beauty-intro">Retouch, transform<br>or create a new look.</p>
-    <p class="beauty-description">Professional portrait editing<br>for real photos. Natural to bold.<br>Designed for fashion, editorial<br>and creative work.</p>
+    <p class="beauty-intro">Edit Deck</p>
+    <p class="beauty-description">Professional beauty editing for real photos. Retouch, transform, or create a new look.</p>
+    <section class="alter-layer-stack" aria-label="Editing layers and adjustments">
+     <div class="alter-layer-heading"><strong>Layers</strong><button type="button" id="alter-choose-look" aria-label="Choose a look" title="Open the look editor">+</button></div>
+     <button type="button" class="alter-layer-card" id="alter-layer-look" data-alter-tab="light" aria-label="Edit current look">
+      <img src="./visuals/beauty/atelier/editorial.webp" alt="" loading="lazy"><span><strong>Look</strong><small id="alter-look-summary">Choose a direction</small></span><span class="alter-layer-indicator" aria-hidden="true">◌</span>
+     </button>
+     <button type="button" class="alter-layer-card" id="alter-layer-skin" data-alter-tab="skin" aria-label="Edit skin retouching">
+      <img src="./visuals/beauty/atelier/beauty.webp" alt="" loading="lazy"><span><strong>Retouch</strong><small id="alter-skin-summary">Skin · Natural</small></span><span class="alter-layer-indicator" aria-hidden="true">◌</span>
+     </button>
+     <button type="button" class="alter-layer-card" id="alter-layer-base" aria-label="Upload or change base photograph">
+      <span class="alter-base-thumb"><img id="alter-base-image" alt="" hidden></span><span><strong>Base image</strong><small id="alter-base-summary">No source selected</small></span><span class="alter-layer-indicator" aria-hidden="true">+</span>
+     </button>
+    </section>
     <div class="beauty-left-settings">
      <label class="beauty-left-model" for="beauty-model"><span>Model</span><span class="beauty-model-control"><span class="beauty-model-thumb" aria-hidden="true"></span><select id="beauty-model"><option value="seedream" selected>Seedream 5 Pro</option><option value="flash">Seedream Flash</option></select></span><small>Photorealistic beauty &amp; detail</small></label>
      <label class="beauty-left-setting" for="beauty-resolution"><span>Resolution</span><select id="beauty-resolution"><option value="1k" selected>1K</option><option value="2k">2K</option></select></label>
@@ -59,7 +73,7 @@
     <label class="beauty-photo-tile" for="beauty-photo"><img id="beauty-photo-preview" alt="Your selected photograph" hidden><span id="beauty-photo-empty" aria-hidden="true">+</span><span class="sr-only">Choose your photograph</span></label>
     <input id="beauty-photo" type="file" accept="image/jpeg,image/png,image/webp" hidden>
     <div class="beauty-photo-caption"><strong>Use a source image.</strong><p>Upload a photo to retouch, transform or create a new look.</p><button id="beauty-change-photo" type="button">Upload image <span class="beauty-arrow" aria-hidden="true"></span></button><small>JPG, PNG or WebP · up to 10 MiB</small></div>
-    <div id="beauty-result" class="beauty-result" hidden><img id="beauty-result-image" alt="Your ALTER result"><button id="beauty-zoom-open" class="beauty-zoom-open" type="button" aria-haspopup="dialog" aria-controls="beauty-zoom-dialog" aria-label="Expand generated image"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg><span>View full size</span></button><a id="beauty-download" download="pvlab-beauty.png">Download image <span class="beauty-arrow" aria-hidden="true"></span></a></div>
+    <div id="beauty-result" class="beauty-result" hidden><img id="beauty-result-image" alt="Your ALTER result"><div class="alter-compare-top" id="alter-compare-top" hidden role="group" aria-label="Before and after view"><button type="button" data-alter-view="before" aria-pressed="false">Before</button><button type="button" data-alter-view="after" aria-pressed="false">After</button></div><div class="alter-compare-bottom" id="alter-compare-bottom" hidden role="group" aria-label="Result comparison controls"><button type="button" data-alter-view="before">Before</button><button type="button" data-alter-view="after">After</button><button type="button" data-alter-view="compare" aria-pressed="true">Compare</button></div><button id="beauty-zoom-open" class="beauty-zoom-open" type="button" aria-haspopup="dialog" aria-controls="beauty-zoom-dialog" aria-label="Expand generated image"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg><span>View full size</span></button><a id="beauty-download" download="pvlab-beauty.png">Download image <span class="beauty-arrow" aria-hidden="true"></span></a></div>
    </section>
    <aside class="beauty-edit-panel">
     <div class="beauty-edit-heading"><strong>Edit Look</strong><button id="beauty-reset-look" type="button"><span aria-hidden="true">↶</span> Reset</button></div>
@@ -141,6 +155,18 @@
      </div>
     </fieldset>
     <div class="beauty-strength"><label for="beauty-strength">Look strength</label><input id="beauty-strength" type="range" min="0" max="100" value="50"><output id="beauty-strength-value" for="beauty-strength">50</output></div>
+    <div class="alter-advanced-slot" id="alter-advanced-slot">
+     <details class="alter-advanced-light" id="alter-advanced-light" open>
+      <summary>Advanced Light <span>Prompt-based</span></summary>
+      <div class="alter-light-controls">
+       <label for="beauty-exposure">Exposure <input id="beauty-exposure" type="range" min="-20" max="20" step="1" value="0"><output id="beauty-exposure-value" for="beauty-exposure">0.0</output></label>
+       <label for="beauty-contrast">Contrast <input id="beauty-contrast" type="range" min="-50" max="50" step="1" value="0"><output id="beauty-contrast-value" for="beauty-contrast">0</output></label>
+       <label for="beauty-highlights">Highlights <input id="beauty-highlights" type="range" min="-50" max="50" step="1" value="0"><output id="beauty-highlights-value" for="beauty-highlights">0</output></label>
+       <label for="beauty-shadows">Shadows <input id="beauty-shadows" type="range" min="-50" max="50" step="1" value="0"><output id="beauty-shadows-value" for="beauty-shadows">0</output></label>
+       <label for="beauty-warmth">Warmth <input id="beauty-warmth" type="range" min="-50" max="50" step="1" value="0"><output id="beauty-warmth-value" for="beauty-warmth">0</output></label>
+      </div>
+     </details>
+    </div>
     <label class="beauty-direction" for="beauty-direction">Creative direction (optional)<textarea id="beauty-direction" rows="2" maxlength="1500" placeholder="Describe the look you want..."></textarea></label>
     <button id="beauty-generate" type="submit" class="beauty-generate-button">Generate <span class="beauty-arrow" aria-hidden="true"></span></button>
    </aside>
