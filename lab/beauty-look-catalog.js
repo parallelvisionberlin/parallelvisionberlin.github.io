@@ -228,7 +228,7 @@ export const beautyLookCatalog={
       "id": "side",
       "label": "Side light",
       "instruction": "Directional side lighting, sculpted shadows and controlled highlights.",
-      "image": "./visuals/beauty/atelier/alter-light-side-20261107.webp",
+      "image": "./visuals/beauty/atelier/alter-light-side-editorial-20261107.webp",
       "preview": ""
     },
     {
@@ -249,7 +249,7 @@ export const beautyLookCatalog={
       "id": "rim",
       "label": "Rim light",
       "instruction": "A restrained rim light defining the subject against the existing background; retain natural facial detail.",
-      "image": "./visuals/beauty/atelier/alter-light-rim-20261107.webp",
+      "image": "./visuals/beauty/atelier/alter-light-rim-editorial-20261107.webp",
       "preview": ""
     },
     {
