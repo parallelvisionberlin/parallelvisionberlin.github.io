@@ -107,6 +107,26 @@ try{
       assert.equal(palettes.identityInToolbar,true,'Identity stays in the normal toolbar');
       assert.equal(palettes.soul.color,'rgb(220, 255, 0)','Mood text remains legible on the dark control');
       assert.equal(palettes.soul.clear,palettes.soul.color,'Clear action remains legible too');
+      if(viewport.width>=1180){
+        const labelFit=await page.evaluate(()=>{
+          const mood=document.getElementById('image-composer-moods');
+          const label=mood.querySelector('.composer-mood-label');
+          const clear=document.getElementById('image-composer-moods-clear');
+          const icon=mood.querySelector('.composer-mood-icon');
+          return {text:label.textContent,buttonWidth:mood.getBoundingClientRect().width,
+            fontSize:parseFloat(getComputedStyle(mood).fontSize),
+            labelRight:label.getBoundingClientRect().right,clearLeft:clear.getBoundingClientRect().left,
+            labelScroll:label.scrollWidth,labelClient:label.clientWidth,
+            iconVisible:icon.getBoundingClientRect().width>0,
+            clearVisible:getComputedStyle(clear).display!=='none'};
+        });
+        assert.equal(labelFit.text,'Night Flash','Selected Mood keeps the complete name');
+        assert.ok(Math.abs(labelFit.buttonWidth-104)<=1,'Keep the original Mood slot size: '+JSON.stringify(labelFit));
+        assert.ok(labelFit.fontSize<=11.5,'Selected text must fit alongside the clear icon: '+JSON.stringify(labelFit));
+        assert.ok(labelFit.clearVisible&&labelFit.iconVisible,'The Mood star and separate clear action remain');
+        assert.ok(labelFit.labelScroll<=labelFit.labelClient+1&&labelFit.labelRight+2<=labelFit.clearLeft,
+          'Night Flash text cannot clip or overlap the clear X: '+JSON.stringify(labelFit));
+      }
 
       if(role==='customer'){
         assert.equal(await page.locator('#image-composer-generate').isEnabled(),false,'Night Flash customer gate defaults closed');
