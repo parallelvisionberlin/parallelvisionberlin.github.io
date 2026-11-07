@@ -1,0 +1,162 @@
+name: Verify single-sidebar production publication
+on:
+  push:
+    branches: [fix/viewer-single-sidebar-20261107]
+    paths: ['.github/workflows/viewer-sidebar-production.yml']
+permissions:
+  contents: write
+  checks: read
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      RELEASE_SHA: e363f1316b4c05552cac046246411e72ecb6424d
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: e363f1316b4c05552cac046246411e72ecb6424d
+          sparse-checkout: |
+            .github/scripts
+            scripts/owner-work-state.mjs
+            lab
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Verify Cloudflare and exact custom-domain asset bytes
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'JS'
+          import {verifyRelease,productionUrl} from './.github/scripts/verify-pvlab-release.mjs';
+          import {execFileSync} from 'node:child_process';
+          import {createHash} from 'node:crypto';
+          import {writeFileSync,mkdirSync} from 'node:fs';
+          const sha=process.env.RELEASE_SHA;
+          const source=path=>execFileSync('git',['show',sha+':'+path]);
+          const hash=b=>createHash('sha256').update(b).digest('hex');
+          const html=source('lab/studio.html').toString();
+          const refs=[...html.matchAll(/<(?:link|script)\b[^>]*\b(?:href|src)=["']([^"']+)["']/gi)].map(m=>new URL(m[1].replaceAll('&amp;','&'),productionUrl));
+          mkdirSync('evidence',{recursive:true});let results;
+          for(let attempt=0;attempt<4;attempt++){
+            results=[];
+            for(const asset of ['lab/image-viewer-editor.css','lab/lab.js']){
+              const ref=refs.find(r=>r.pathname==='/'+asset.slice(4));if(!ref)throw Error('Missing source reference '+asset);
+              results.push(await verifyRelease({sha,asset,version:ref.searchParams.get('v'),sourceBytes:source(asset)}));
+            }
+            writeFileSync('evidence/publication.json',JSON.stringify(results,null,2));
+            if(results.every(r=>r.state==='LIVE_VERIFIED'))break;
+            if(attempt===3||results.some(r=>r.state==='CLOUDFLARE_FAILED'))throw Error('Publication is not verified: '+JSON.stringify(results));
+            await new Promise(r=>setTimeout(r,45000));
+          }
+          const modules={},lab=source('lab/lab.js').toString();
+          for(const name of ['precision-edit','image-viewer-editor']){
+            const match=lab.match(new RegExp("from ['\"](\\./"+name+"\\.js\\?[^'\"]+)['\"]"));
+            if(!match)throw Error('Missing imported module '+name);
+            const url=new URL(match[1],productionUrl),response=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(15000)});
+            if(!response.ok)throw Error('Module unavailable '+name);
+            const bytes=Buffer.from(await response.arrayBuffer());if(hash(bytes)!==hash(source('lab/'+name+'.js')))throw Error('Live module differs: '+name);
+            results.push({state:'LIVE_VERIFIED',commit:sha,asset:'lab/'+name+'.js',sha256:hash(bytes),url:url.href});modules[name]=url.href;
+          }
+          writeFileSync('evidence/publication.json',JSON.stringify(results,null,2));writeFileSync('evidence/modules.json',JSON.stringify(modules));
+          console.log('All four changed viewer assets match the exact Cloudflare release.');
+          JS
+      - name: Check the real public interface without account or API access
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix /tmp/pv-sidebar-live --no-save playwright@1.57.0
+          node --input-type=module <<'JS'
+          import {chromium} from '/tmp/pv-sidebar-live/node_modules/playwright/index.mjs';
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          const modules=JSON.parse(readFileSync('evidence/modules.json','utf8'));
+          const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/google-chrome'}),results=[];
+          try{for(const width of [390,1440,1728]){
+            const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage(),errors=[];
+            page.on('pageerror',e=>errors.push(e.message));
+            await page.route('**/*',route=>{
+              const req=route.request(),url=new URL(req.url());
+              const permittedScript=/^\/(precision-edit|image-viewer-editor|viewer-replacement-library|scene-library)\.js$/.test(url.pathname);
+              if(url.origin!=='https://pvlab.studio'||url.pathname.startsWith('/api/')||req.method()!=='GET'||req.resourceType()==='script'&&!permittedScript)return route.abort();
+              return route.continue();
+            });
+            await page.goto('https://pvlab.studio/studio',{waitUntil:'domcontentloaded'});
+            await page.evaluate(async urls=>{
+              const $=id=>document.getElementById(id);
+              $('lab-boot')?.remove();document.documentElement.classList.remove('pv-studio-boot-lock','pv-studio-route-pending','pv-native-route-pending');
+              document.body.classList.remove('lab-booting');document.body.classList.add('lab-ready');$('gate').hidden=true;$('app').hidden=false;
+              const {createPrecisionEditor}=await import(urls['precision-edit']);const {createImageViewerEditor}=await import(urls['image-viewer-editor']);
+              const c=document.createElement('canvas');c.width=2048;c.height=1152;const x=c.getContext('2d');x.fillStyle='#345049';x.fillRect(0,0,c.width,c.height);x.fillStyle='#28312c';x.fillRect(300,160,450,900);x.fillStyle='#b3a499';x.fillRect(1200,80,550,850);
+              const blob=await new Promise(r=>c.toBlob(r,'image/png'));window.testPhoto=new File([blob],'layout-fixture.png',{type:'image/png'});
+              const img=$('image-lightbox-img');img.src=URL.createObjectURL(blob);img.hidden=false;await img.decode();$('image-lightbox').showModal();await document.fonts.ready;
+              const noAPI=()=>{throw Error('API access is prohibited in this public layout fixture');};
+              const editor=createPrecisionEditor({host:$('app'),api:noAPI,assetBlob:noAPI,uploadAsset:noAPI,notify:noAPI,owner:()=>true,falReady:()=>true,magicReady:()=>true});
+              window.testViewer=createImageViewerEditor({editor,onPrepare:noAPI,onResult:noAPI,notify:noAPI});$('precision-return').onclick=()=>testViewer.close();
+            },modules);
+            const original=await page.locator('#image-lightbox-img').evaluate(img=>{const r=img.getBoundingClientRect(),k=Math.min(r.width/img.naturalWidth,r.height/img.naturalHeight);return {width:img.naturalWidth*k,height:img.naturalHeight*k};});
+            for(const mode of ['replace','edit']){
+              await page.evaluate(mode=>testViewer.open({file:testPhoto,id:'layout-fixture',action:mode}),mode);
+              await page.waitForFunction(()=>document.getElementById('precision-source-canvas').getBoundingClientRect().width>0);
+              await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+              const box=await page.locator('#precision-source-canvas').boundingBox();
+              assert.ok(Math.abs(box.width-original.width)<2&&Math.abs(box.height-original.height)<2,'Photo size remains unchanged '+width+' '+mode);
+              assert.equal(await page.locator('.image-detail-inspector .precision-deck').count(),1);
+              assert.equal(await page.locator('.image-detail-inspector .precision-tools').count(),1);
+              assert.equal(await page.locator('.image-detail-inspector-head').isVisible(),false);
+              assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+              if(mode==='replace')assert.equal(await page.locator('.viewer-selection-guide').isVisible(),true);
+              await page.screenshot({path:'evidence/production-sidebar-'+mode+'-'+width+'.png'});
+              await page.evaluate(()=>testViewer.close());
+              assert.equal(await page.locator('.viewer-editor-sidebar').count(),0);assert.equal(await page.locator('.image-detail-inspector-head').isVisible(),true);
+              results.push({width,mode,original,edited:{width:box.width,height:box.height},scope:'Actual public HTML/CSS/modules; synthetic image and callbacks; no API or account access'});
+            }
+            assert.deepEqual(errors,[]);await context.close();
+          }}finally{await browser.close();}
+          writeFileSync('evidence/render.json',JSON.stringify(results,null,2));console.log('Public sidebar swap, image fitting and restoration verified at all three widths.');
+          JS
+      - name: Record publication without changing application code
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main:refs/remotes/origin/main --depth=1
+          if [ "$(git rev-parse origin/main)" != "$RELEASE_SHA" ]; then
+            echo 'Main moved; leaving shared records unchanged to protect concurrent work.' > evidence/record-status.txt
+            exit 0
+          fi
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync,appendFileSync} from 'node:fs';
+          const sha=process.env.RELEASE_SHA,now=new Date().toISOString();
+          const evidence=JSON.parse(readFileSync('evidence/publication.json','utf8')),render=JSON.parse(readFileSync('evidence/render.json','utf8'));
+          if(evidence.length!==4||evidence.some(x=>x.state!=='LIVE_VERIFIED')||render.length!==6)throw Error('Incomplete production verification');
+          const record=JSON.parse(readFileSync('lab/owner-work-records.json','utf8')).records.find(r=>r.id==='image-viewer-replace-edit-actions');
+          if(!record)throw Error('Missing existing viewer record');
+          const run='https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID;
+          record.status='deployed';record.updatedAt=now;record.reviewedSha=sha;
+          record.nextAction='Single-sidebar switch is published and public layout verified. Real-account or paid-provider edits were not run. Saved Location-reference swaps remain unsupported.';
+          record.deployment={state:'verified',sourceSha:sha,environment:'Cloudflare Pages pvlab-studio / pvlab.studio',observedAt:now,evidenceUrl:run,limitations:['Public layout checks used synthetic media and stub callbacks with APIs blocked.','No real-account or paid-provider generation was run.','Saved Location reference swaps remain unsupported.']};
+          record.links.push({label:'Single-sidebar PR #921',url:'https://github.com/'+process.env.GITHUB_REPOSITORY+'/pull/921'},{label:'Single-sidebar production verification',url:run});
+          record.evidence.push({kind:'production_asset',summary:'Exact Cloudflare release and all four modified public viewer asset hashes match reviewed source.',scope:'image-viewer-editor.css, lab.js, precision-edit.js and image-viewer-editor.js',observedAt:now,source:run,limitations:['Not evidence of a paid generation or real-account journey.']});
+          record.evidence.push({kind:'fixture',summary:'Actual public HTML/CSS/modules: both Edit and Replace swap the original right sidebar, preserve fitted photo dimensions and restore Image details on exit at 390px, 1440px and 1728px.',scope:'Synthetic photo and callbacks, all account/API calls blocked',observedAt:now,source:run,limitations:['No account access or paid provider calls.']});
+          record.blockers=[];
+          writeFileSync('/tmp/sidebar-published-record.json',JSON.stringify(record));
+          appendFileSync('lab/IMAGE-REPLACEMENT-WORK-STATE.md','\n\n## Single-sidebar published, 2026-11-07\n\n- PR #921 merged as '+sha+'. Exact Cloudflare deployment and all four modified custom-domain asset hashes verified.\n- Edit/Replace controls replace the original right-hand Image details panel. The photo keeps normal viewer fit and metadata/actions return on exit. No middle panel.\n- Public HTML/CSS/modules verified at 390px, 1440px and 1728px in both modes with synthetic photo/stubbed callbacks and all APIs blocked. This is not a real signed-in customer journey.\n- 70 focused unit tests and complete mocked replacement/Precision/Retouch regressions passed before release. No paid generation was run. Existing saved Location limitation remains unchanged.\n- Evidence: '+run+'\n');
+          JS
+          node scripts/owner-work-state.mjs upsert /tmp/sidebar-published-record.json
+          node scripts/owner-work-state.mjs validate
+          git config user.name 'PV LAB verification'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/owner-work-records.json lab/IMAGE-REPLACEMENT-WORK-STATE.md
+          git diff --cached --check
+          git commit -m '[CF-Pages-Skip] Record verified single-sidebar production release'
+          git push origin HEAD:main
+          git rev-parse HEAD > evidence/record-commit.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: single-sidebar-production-evidence
+          path: evidence/
+          retention-days: 2
