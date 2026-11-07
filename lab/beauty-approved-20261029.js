@@ -1,4 +1,4 @@
-import {beautyLookPresets} from './beauty-look-catalog.js?v=20261107-controls2';
+import {beautyLookPresets} from './beauty-look-catalog.js?v=20261107-archive2';
 /* Beauty Studio visual controls and actual source/result comparison.
    Native select and textarea values remain the only generation settings. */
 (() => {
