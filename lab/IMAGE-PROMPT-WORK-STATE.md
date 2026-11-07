@@ -1,3 +1,11 @@
+## 2026-11-07 | Selected Mood button lettering clearance
+
+- Owner screenshot shows selected Night Flash lettering crowded in the fixed desktop Mood button.
+- Source cause: the slot is 104px wide with 13px bold text, yet selected state reserves 30px for the absolute-positioned clear X. The label is not duplicated in the Mood selector source.
+- Scope: selected desktop web text only, 11px with bounded icon+label and a compact clear X. Retain exact 104px width, position, palette, handlers and all other controls. Long Mood names may ellipsize. Mobile/native unchanged.
+- Files: lab/image-deck-surface.css, stylesheet version in studio.html, existing Night Flash browser regression, scoped checkpoint and Owner index.
+- Baseline a73fc4242a76802458facee8379d713654af9c15, branch fix/image-selected-mood-label-clear-spacing-20261107. CI/merge/Cloudflare to be checked separately.
+
 ## 2026-11-07 | Empty Base prompt retains steady deck geometry
 
 - Owner screenshots taken at 1704×451 and 1673×489 explain their apparent overall position shift: the browser screenshot viewport changed. The deck measures approximately 1120×195 in both captures.
