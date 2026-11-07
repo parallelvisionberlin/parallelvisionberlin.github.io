@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T08:06:32.107Z",
+  "updatedAt": "2026-11-07T08:33:23.498Z",
   "handoffs": [
     {
       "id": "owner",
@@ -944,11 +944,11 @@
       "title": "ALTER Studio: 13 curated editorial looks",
       "component": "ALTER Studio",
       "status": "deployed",
-      "summary": "ALTER Studio published: 13 curated editorial archive looks plus 16 separately selected Light and Color thumbnails (8 each) from the existing supplied editorial contact sheets. Each example has distinct relevant imagery; native prompt settings, upload, quote/billing and UI remain unchanged.",
-      "nextAction": "No front-end deployment pending. Paid model output fidelity for reference images remains untested and was not requested; avoid new image generations without permission.",
-      "baselineSha": "610a7c3e9d5d7b8f1578887d233898f6db2f0c3f",
-      "reviewedSha": "cb47131d419345337738244fa5bee4c2a91e5b9f",
-      "branch": "fix/alter-light-color-photo-previews-20261107",
+      "summary": "Published ALTER with 13 original/added editorial archive cards and distinct Light/Color previews. Latest scoped refinement corrects five misleading examples: Direct Flash, High Key, Warm, Film Tone and Soft Film, using five previously generated photographs; other eleven Light/Color images unchanged. Native preview mapping, prompts, prices, backend and layout preserved.",
+      "nextAction": "No pending website publication work. Real model fidelity of each illustrative preset remains untested, and no paid jobs should be run without explicit authorization.",
+      "baselineSha": "57fc538965393615293dcbbf5b78989887344bcc",
+      "reviewedSha": "301d92de1d3eafb42b592ebe7e572554d3b7577a",
+      "branch": "fix/alter-five-preview-tweaks-20261107",
       "files": [
         "lab/beauty.html",
         "lab/beauty.js",
@@ -963,9 +963,22 @@
         ".github/workflows/pv-lab-beauty.yml",
         "lab/beauty-archive-curation.css",
         "tests/lab-beauty-archive-curation.test.mjs",
-        "tests/lab-beauty-light-color-previews.test.mjs"
+        "tests/lab-beauty-light-color-previews.test.mjs",
+        "tests/lab-beauty-five-preview-fixes.test.mjs"
       ],
       "links": [
+        {
+          "label": "Production custom-domain verification",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42355840420"
+        },
+        {
+          "label": "Browser, quote and integrity tests",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42355314100"
+        },
+        {
+          "label": "PR #893 five visual corrections",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/893"
+        },
         {
           "label": "Full Beauty and Worker regression",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42353378370"
@@ -1049,17 +1062,31 @@
           "scope": "Exact Cloudflare deployment for ac9e579e confirmed. All sixteen WebP images SHA-256 identical to source; guest Light and Color grid checked at 1440 and 390, no paid API mutation.",
           "observedAt": "2026-11-07T08:06:32.107Z",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42353925748"
+        },
+        {
+          "label": "Five existing photo corrections",
+          "result": "passed",
+          "scope": "Exact user-approved image substitution (Direct Flash, High Key, Warm, Film Tone, Soft Film); preserved eleven existing reference photos, all category/prompt mappings and original credit/Worker/idempotency browser checks.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42355314100",
+          "observedAt": "2026-11-07T08:33:23.498Z"
+        },
+        {
+          "label": "Live five-photo deployment",
+          "result": "passed",
+          "scope": "Cloudflare success, all five production WebP hashes and HTML paths verified; guest active Light/Color tabs at 1440/390 without generation requests.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42355840420",
+          "observedAt": "2026-11-07T08:33:23.498Z"
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "ac9e579e3ac1f65eaebceb350607de40012e70de",
+        "sourceSha": "c5c9e9e688bad0df51b0b3da1ff5d81d1d7ea440",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-07T08:06:32.107Z",
-        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/87cd5b29-9f8c-462b-acfd-bd005b84a065",
+        "observedAt": "2026-11-07T08:33:23.498Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42355840420",
         "limitations": [
-          "Guest production tabs and public assets verified; real signed-in generation/provider output not tested.",
-          "No customer data, paid requests or credits were used."
+          "Guest image and tab UI verified; no real signed-in model output generated.",
+          "No paid generation or customer credit action was performed."
         ]
       },
       "evidence": [
@@ -1100,7 +1127,7 @@
         "No paid generations, automatic submissions or provider/pricing changes were made.",
         "Do not represent illustrative thumbnails or mocked tests as verified provider result quality."
       ],
-      "updatedAt": "2026-11-07T08:06:32.107Z"
+      "updatedAt": "2026-11-07T08:33:23.498Z"
     },
     {
       "id": "shared-image-soul-deck",
