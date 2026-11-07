@@ -1,5 +1,15 @@
 # Beauty Studio and Studios navigation
 
+## 2026-11-07 | Five Light/Color corrections: LIVE VERIFIED
+
+- User approved five corrections to the examples previously marked visually misleading: Light **Direct flash**, **High key**; Color **Warm**, **Film tone**, **Soft film**. Five specific pre-existing generated photographs were reused, cropped and optimised as 800x500 WebP. No additional image-generation run.
+- PR #893 merged as `c5c9e9e688bad0df51b0b3da1ff5d81d1d7ea440`. Only the five new WebP assets, two updated static preview paths in `lab/beauty.html` and `lab/beauty-look-catalog.js`, and one new mapping test were changed. Remaining eleven Light/Color photos retained. Original continues to display the local uploaded source.
+- Native five-tab layout, all nine choices per category, instructions and IDs, quote/credit validation, backend/providers, Generate, results/history, album, hero, favicon and archive unchanged.
+- All mapped-image, approved Image UI, Beauty/category/archive and Worker quote/idempotency contracts plus full intercepted desktop/mobile Beauty browser tests passed: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42355314100. Standard Beauty branch CI passed as well.
+- Exact Cloudflare Pages app check for merge SHA succeeded; real production HTML references all five assets and served WebP SHA-256 hashes match the reviewed files. Guest desktop/mobile active-tab verification passed at 1440px and 390px, with zero charged/generation requests: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42355840420.
+- Five examples are visual guides. Model output fidelity still untested without a separately approved paid inference.
+
+
 ## 2026-11-07 | Light/Color distinct images: LIVE VERIFIED
 
 - Request: use the best available portraits already submitted/generated in this chat; do not create more images. Selected sixteen different visual examples from the owner's five contact sheets and earlier supplied editorial lighting/colour grids. Eight Light and eight Color, each matched to its existing label.
