@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T08:33:23.498Z",
+  "updatedAt": "2026-11-07T09:41:00+01:00",
   "handoffs": [
     {
       "id": "owner",
@@ -64,6 +64,49 @@
     }
   ],
   "records": [
+    {
+      "id": "image-quiet-progress",
+      "title": "Quiet Image Generate progress",
+      "component": "Image deck",
+      "status": "in_review",
+      "summary": "Hide only transient Checking price / Submitting progress below Generate, retaining visible image errors and existing billing/generation behavior.",
+      "nextAction": "Review PR and required Image UI tests; merge if green, then verify Cloudflare Pages and production asset before claiming live.",
+      "baselineSha": null,
+      "reviewedSha": null,
+      "branch": "fix/image-deck-quiet-progress-20261107",
+      "files": [
+        "lab/studio-finish-v2.css",
+        "lab/studio.html",
+        "tests/lab-approved-image-ui-contract.test.mjs",
+        "lab/IMAGE-PROMPT-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Image work checkpoint",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI contract",
+          "result": "pending",
+          "scope": "New assertions for quiet status and existing safety/busy cues."
+        }
+      ],
+      "deployment": {
+        "state": "not_deployed",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "No production or real-user check has been run."
+        ]
+      },
+      "evidence": [],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not alter quote, credit, submission, or provider logic."
+      ],
+      "updatedAt": "2026-11-07"
+    },
     {
       "id": "owner-partners",
       "title": "Group partner dashboards",
