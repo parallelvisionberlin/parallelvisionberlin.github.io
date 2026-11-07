@@ -208,6 +208,29 @@ try{
         });
         await page.waitForFunction(()=>document.getElementById('image-composer')
           .classList.contains('pv-deck-expanded'),null,{timeout:2000});
+        // A Base photograph stays attached while the Owner deletes a short
+        // direction. Neither the deck nor Generate may grow or jump.
+        await editor.fill('Keep the photograph intact, remove only the icons.');
+        await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+        const baseFilled=await page.evaluate(()=>{
+          const deck=document.getElementById('image-composer').getBoundingClientRect();
+          const button=document.getElementById('image-composer-generate').getBoundingClientRect();
+          return {height:deck.height,bottom:deck.bottom,buttonBottom:button.bottom};
+        });
+        await editor.fill('');
+        await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+        const baseCleared=await page.evaluate(()=>{
+          const deck=document.getElementById('image-composer').getBoundingClientRect();
+          const button=document.getElementById('image-composer-generate').getBoundingClientRect();
+          return {height:deck.height,bottom:deck.bottom,buttonBottom:button.bottom,fieldHeight:document.getElementById('image-composer-prompt').getBoundingClientRect().height};
+        });
+        assert.ok(Math.abs(baseCleared.height-baseFilled.height)<=1,
+          'Deleting a short Base prompt cannot resize the attached-photo deck: '+JSON.stringify({baseFilled,baseCleared}));
+        assert.ok(Math.abs(baseCleared.bottom-baseFilled.bottom)<=1 &&
+          Math.abs(baseCleared.buttonBottom-baseFilled.buttonBottom)<=1,
+          'Deleting a Base prompt cannot move the deck or Generate: '+JSON.stringify({baseFilled,baseCleared}));
+        assert.ok(Math.abs(baseCleared.fieldHeight-78)<=1,
+          'Cleared Base editor retains its short attached-photo writing row: '+JSON.stringify(baseCleared));
         await page.evaluate(()=>{
           // Reproduce stale inline height after an uploaded photo is removed.
           const field=document.getElementById('image-composer-prompt');
