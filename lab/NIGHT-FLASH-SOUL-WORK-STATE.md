@@ -21,7 +21,6 @@
 - Current focused run: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42296435939 (115 Node cases and all scoped Soul/replacement browser checks passed on the final candidate).
 - #883 frontend LIVE_VERIFIED at 2026-11-06T22:01:47Z through production commit `9401a465bc1061f94ea4e7fa59893dedb892f4bd`, deployment `07bab2ba-ab7b-492e-b464-d45d0218306e`, successful Cloudflare check `128179600406`. Both JS/CSS scoped verifiers pass. Actual pvlab.studio/studio HTML returns 200 and contains the popup, both actions and ownerSoulFlow=20261106v1.
 - Queue recovery: removed only unfinished superseded previews 91b206df (stalled clone over 30minutes), 5ede7e8d (merged #883), 6b01aab5 (merged Mood branch). Exact source commits were verified before removal. No production/completed deployment, account setting, credential, Worker or generation was changed. Production subsequently completed normally.
-- Next: owner can refresh Studio. No further publication work is pending for this flow; customer activation still requires the provider/account and explicitly authorized quality validation below.
 - Expected production SHA256: lab.js `d617259251ee204439cefddb2b76bc36f989938ce26f07bae5eb0ae970e0d266`; image-deck-surface.css `1559aa13af7c2181c6637cadfe4d6bb9801d1ac89e920f5abfd74004ef9d28e2`. HTML must contain soul-mood-dialog and ownerSoulFlow=20261106v1.
 
 ## Approved photographic behavior and assets
@@ -33,6 +32,13 @@
 - Private English card name: Won Kar Night; caption PV Soul · Owner test. Selecting it chooses PV Soul but never generates. Public MOODS remains 17 entries.
 - Original cover `lab/mood-previews/won-kar-night.png` exactly copies `wonkarwai1.png`, Git blob `b41cc5211b567d74d68f74cff89baa60132b94e2`; no generated/edited image. Cover is presentation only and never a provider input.
 - Recipe: cinematic emerald night, warm skin, source-bound motion and organic 35mm grain; preserve Base/Soul ID and authored changes rather than copying cover people/pose/car/cigarette.
+
+## Owner quality observation, 2026-11-07
+
+- Night Flash at 99% kept the intended direct-flash and film look in the owner's comparison, with visible changes to faces, gaze, expression, wardrobe and framing. The matching completed request carried the Base and the preservation instruction. It carried no Soul ID and no authored changes.
+- The owner also reports identity drift with Won Kar Night. Recent completed Won Kar Night requests carried a Base, no Soul ID and no authored changes. Both Base recipes already instruct Soul to preserve facial identity and scene details.
+- Rechecked official Soul 2 I2I input on 2026-11-07: one image URL, one optional trained Soul ID and its strength, always-on reference prompt processing. The schema exposes no mask or source fidelity control. Mood intensity changes the text treatment, so lowering it does not lock the source.
+- Candidate for review: add an optional source-preserving finish for both moods using the existing 35mm film renderer. Tune each look against the approved Soul results, applying color, tone and grain to the original geometry. Preserve the existing generative modes. Prototype and visually compare before treating this as a validated fix. No new provider generation, product change or deployment in this diagnostic.
 
 ## Provider contract and customer activation
 

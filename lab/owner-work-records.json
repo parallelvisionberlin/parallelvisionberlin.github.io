@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T08:55:29.534Z",
+  "updatedAt": "2026-11-07T08:58:12Z",
   "handoffs": [
     {
       "id": "owner",
@@ -460,8 +460,8 @@
       "title": "Night Flash with Higgsfield Soul",
       "component": "Image Moods / Soul 2",
       "status": "needs_verification",
-      "summary": "Owner Soul one-click generation and compact Won Kar Night/model popup are now LIVE_VERIFIED on pvlab.studio. Actual popup HTML and exact tested JS/CSS bytes verified. Customer activation and independent paid photographic/identity validation remain pending.",
-      "nextAction": "Owner can refresh Studio; this frontend publication is complete. Keep customer Night Flash closed until provider/account and explicitly authorized quality/identity conditions are met. No paid generation is authorized.",
+      "summary": "Owner production results confirm the Night Flash look and show facial and scene drift. Owner reports similar drift with Won Kar Night. Stored inputs confirm both Moods received Base images and no Soul ID; their recipes already instruct facial preservation.",
+      "nextAction": "Prototype and visually compare a source-preserving finish for both Moods using the existing 35mm renderer. Tune against approved Soul results. Keep paid testing subject to separate authorization and customer Night Flash gated until quality and provider conditions are met.",
       "baselineSha": "519d9fad57af01fcf836203d24f54e150a3d9455",
       "reviewedSha": "04413ed5aa58f6db557bb6a5c21e4b4a7fabe0d0",
       "branch": "fix/soul-owner-flow-20261106",
@@ -659,6 +659,17 @@
           "limitations": [
             "No paid generation or real signed-in production journey performed."
           ]
+        },
+        {
+          "kind": "signed_in_production",
+          "summary": "Owner-supplied Night Flash comparison shows facial, expression, gaze, outfit and framing drift. Owner reports similar Won Kar Night drift. Read-only request metadata confirms Base sent without a trained Soul ID or authored changes. Both recipes include preservation guidance.",
+          "scope": "Owner-reported visual results and matching stored request fields. Rechecked official I2I API schema.",
+          "source": "https://open.higgsfield.ai/models/higgsfield-ai/soul/v2/image-to-image/api-reference",
+          "observedAt": "2026-11-07T08:57:17Z",
+          "limitations": [
+            "The Won Kar Night image pair was not supplied in this turn.",
+            "Source-preserving finish remains a candidate; no new generation or software deployment."
+          ]
         }
       ],
       "blockers": [
@@ -672,7 +683,7 @@
         "Preserve the merged #870 replacement flow and existing quote, credit, idempotency and budget safeguards.",
         "The first-image width and Studio Clerk assertions reproduce on519d9fad in run42296062207. Do not rerun the same baseline investigation without a relevant source change; keep those failures distinct from the passing focused Soul flow."
       ],
-      "updatedAt": "2026-11-06T22:01:47Z"
+      "updatedAt": "2026-11-07T08:58:12Z"
     },
     {
       "id": "image-prompt-deck-clearance",
