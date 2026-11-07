@@ -808,6 +808,45 @@ test('Hong Kong 1K editing retains user Base and sends two exact photographic St
   }
 });
 
+test('Hong Kong Base Relight binds one original photo to an owner-only quote without atmospheric inputs',async()=>{
+  const {env}=fixture();
+  await setup(env);
+  const source=await seedreamTestReference(env,'storefront.png',31,768,512);
+  const direction='Keep both people and the storefront.';
+  const recipe=prepareMoodPrompt(direction,'hong-kong-nights',84,
+    {engine:'seedream',referenceCount:1,referenceMode:'base',moodVariant:'base-relight'});
+  assert.equal(recipe.error,'');
+  const settings={...imageSettings,...recipe.metadata,engine:'seedream',referenceMode:'base',
+    prompt:recipe.prompt,referenceRoles:[{role:'base',name:'storefront.png'}]};
+  const data={settings,referenceSourceIds:[source]};
+  const before=createCount;
+  const quote=payload=>req(env,'/api/quotes',{method:'POST',data:payload});
+  assert.equal((await quote(data)).status,403,'Disabled by default');
+  env.LAB_HONG_KONG_BASE_RELIGHT_ENABLED='true';
+  assert.equal((await quote({...data,count:2})).status,400,'One controlled result');
+  assert.equal((await quote({...data,referenceSourceIds:[]})).status,400,'A Base is required');
+  const response=await quote(data);
+  assert.equal(response.status,200,await response.clone().text());
+  const priced=await response.json();
+  assert.equal(priced.settings.moodVariant,'base-relight');
+  assert.deepEqual(priced.settings.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0});
+  assert.equal(quotedRequest.model,'bytedance/seedream-5.0-pro/edit');
+  assert.deepEqual(quotedRequest.input.image_urls,['spicy://f/fil_synthetic_reference']);
+  assert.match(quotedRequest.input.prompt,/Keep both people and the storefront/);
+  assert.match(quotedRequest.input.prompt,/directional key/);
+  assert.doesNotMatch(quotedRequest.input.prompt,/built-in references|wet street|green fog|rain-slick/i);
+  assert.equal(createCount,before,'Pricing never submits');
+  const submit=()=>req(env,'/api/jobs',{method:'POST',data:{quoteId:priced.id,confirm:true}});
+  delete env.LAB_HONG_KONG_BASE_RELIGHT_ENABLED;
+  assert.equal((await submit()).status,403,'Recheck trial access on bound submission');
+  assert.equal(createCount,before);
+  env.LAB_HONG_KONG_BASE_RELIGHT_ENABLED='true';
+  const submitted=await submit();
+  assert.equal(submitted.status,202,await submitted.clone().text());
+  assert.equal((await submitted.json()).job.settings.moodVariant,'base-relight');
+  assert.equal(createCount,before+1,'Exactly one mocked provider submission');
+});
+
 test('Seedream uses SpicyAPI with ordered images, compiled properties and reusable detail metadata',async()=>{
   const{env}=fixture();await setup(env);
   const ids=await Promise.all(['base','hands','coat','identity'].map((name,i)=>uploadGuidanceReference(env,name+'.png',i+1)));

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T09:15:51Z",
+  "updatedAt": "2026-11-07T09:30:18Z",
   "handoffs": [
     {
       "id": "owner",
@@ -461,7 +461,7 @@
       "component": "Image Moods / Soul 2",
       "status": "needs_verification",
       "summary": "Owner production results confirm the Night Flash look and show facial and scene drift. Owner reports similar drift with Won Kar Night. Stored inputs confirm both Moods received Base images and no Soul ID; their recipes already instruct facial preservation.",
-      "nextAction": "Review the local source-preserving lighting proof. Exact geometry is feasible, while the original frontal-light shape remains. A generalized finish and a controlled provider relight comparison remain separate validation paths.",
+      "nextAction": "Review the private Hong Kong Nights Base Relight draft. Bring up the isolated owner preview and obtain authorization for one same-Base visual comparison before deciding on publication.",
       "baselineSha": "519d9fad57af01fcf836203d24f54e150a3d9455",
       "reviewedSha": "04413ed5aa58f6db557bb6a5c21e4b4a7fabe0d0",
       "branch": "fix/soul-owner-flow-20261106",
@@ -691,6 +691,16 @@
           "limitations": [
             "One source-scene proof. It is not an equivalent physical relight or an application deployment."
           ]
+        },
+        {
+          "kind": "automated_test",
+          "summary": "Private Hong Kong Nights Base Relight draft compiles the same scene with a directional key. A mocked bound quote sends one Base, no atmospheric Style images and Film Finish off. Flag and submission guards passed.",
+          "scope": "70 targeted Mood/reference/UI contracts and 3 mocked Hong Kong Worker cases.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/tree/codex/hong-kong-base-relight-20261107",
+          "observedAt": "2026-11-07T09:30:18Z",
+          "limitations": [
+            "No real generation or deployment. Local Chromium launch blocked by sandbox permissions."
+          ]
         }
       ],
       "blockers": [
@@ -704,7 +714,7 @@
         "Preserve the merged #870 replacement flow and existing quote, credit, idempotency and budget safeguards.",
         "The first-image width and Studio Clerk assertions reproduce on519d9fad in run42296062207. Do not rerun the same baseline investigation without a relevant source change; keep those failures distinct from the passing focused Soul flow."
       ],
-      "updatedAt": "2026-11-07T09:15:51Z"
+      "updatedAt": "2026-11-07T09:30:18Z"
     },
     {
       "id": "image-prompt-deck-clearance",

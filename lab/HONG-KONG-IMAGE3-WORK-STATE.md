@@ -19,6 +19,13 @@ Verified 2026-10-25 (Berlin). Main integration: `940c00c99f8a57877dd587177c32499
 - Verified 1343 × 767 output, unchanged pixel coordinates, deterministic rendering and black stability. Both people, expressions, wardrobe and storefront remain exactly in position. The scene still carries the original frontal-light shape, so this proves a geometry-preserving finish rather than matching Soul's full directional reconstruction.
 - Preview delivered privately for review. Scene-specific prototype is not product code or a deployed Mood. Evaluate the preview before generalizing the finish or authorizing a provider relight comparison.
 
+## Private Base Relight draft, 7 November 2026
+
+- Branch `codex/hong-kong-base-relight-20261107`, based on `3c4670a0ac8ca21b27e90bd6bcbc3b6619fbd40b`. This is a change to the actual Mood pipeline. The local photo grade remains a separate diagnostic.
+- On a configured private preview, owner Studio `?hkRelight=1` plus Hong Kong Nights and Seedream 5 Pro compiles a one-Base directional relight. Use the source's existing light, preserve its faces and geometry, and retain its air and surfaces. It sends a single original photo, omits the atmospheric Style pack and requests the raw result with Film Finish off.
+- The Worker gate `LAB_HONG_KONG_BASE_RELIGHT_ENABLED=true` is required for both quote and confirmed submission. A bound quote must contain one Base and exactly one result. Ordinary Hong Kong and historical Style pack quotes retain their existing path.
+- Local checks: 70 Mood/reference/approved UI cases and 3 mocked Hong Kong Worker cases passed. Chromium could not start in this sandbox. The draft is not deployed. Next: preview Worker plus owner Studio, then a single explicitly authorized same-Base comparison to judge directionality and likeness.
+
 ## Approved implementation
 
 - PR #536 merged as `bcd80d965b19c7d084b0c5c94009c4bb9467f3c6`.
