@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T17:32:53.094Z",
+  "updatedAt": "2026-11-07T23:13:39.319Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1803,12 +1803,12 @@
       "title": "Contextual image viewer Replace and Edit",
       "component": "PV LAB Image viewer",
       "status": "deployed",
-      "updatedAt": "2026-11-07T17:32:53.094Z",
-      "baselineSha": "5f226c95947d8f31a9651e7c18b6b8a988187315",
-      "reviewedSha": "e363f1316b4c05552cac046246411e72ecb6424d",
-      "branch": "fix/viewer-single-sidebar-20261107",
-      "summary": "Edit/Replace swaps the original right-hand Image details sidebar for editing controls. No third column or smaller photo; leaving editing restores metadata/actions. Guided selection, saved references and generation behavior are unchanged.",
-      "nextAction": "Single-sidebar switch is published and public layout verified. Real-account or paid-provider edits were not run. Saved Location-reference swaps remain unsupported.",
+      "updatedAt": "2026-11-07T23:13:39.319Z",
+      "baselineSha": "14344317b16ad840d1c57290fc2fc927e17d1f59",
+      "reviewedSha": "01753ca93c4bde1f9a37906ccd59a420e5bc3394",
+      "branch": "feat/replace-scope-face-whole-20261107",
+      "summary": "Explicit Face/Whole person Character replacement scopes. Face and full person have separate instructions and reference handling, switching scope invalidates old mask/price, and conservative mask-extent warnings allow Brush or deliberate reselection. Existing external-pixel fidelity, billing and Image draft remain unchanged.",
+      "nextAction": "Frontend is live and exact public asset bytes are verified. SAM 3 point+semantic hints in Worker source require a separate authorized manual Worker deployment and production health check; existing production SAM remains point-based. Real-account/paid-result quality not verified.",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
@@ -1823,7 +1823,12 @@
         ".github/workflows/pv-lab-precision-edit-ui.yml",
         "lab/viewer-guided-replace.css",
         "lab/viewer-replacement-library.js",
-        "tests/lab-guided-replace.test.mjs"
+        "tests/lab-guided-replace.test.mjs",
+        "lab/viewer-selection-scope.js",
+        "lab-worker/precision-edit.mjs",
+        "tests/lab-viewer-scope.test.mjs",
+        "tests/lab-worker.test.mjs",
+        "tests/lab-precision-edit.test.mjs"
       ],
       "links": [
         {
@@ -1877,35 +1882,43 @@
         {
           "label": "Single-sidebar production verification",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42396759207"
+        },
+        {
+          "label": "Face and Whole person PR #922",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/922"
+        },
+        {
+          "label": "Face and Whole person live asset verification",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42424109922"
         }
       ],
       "tests": [
         {
-          "label": "70 focused Image and replacement safeguards",
+          "label": "Approved Image UI and focused scope/unit checks",
           "result": "passed",
-          "scope": "Existing provider-free tests including saved Character bundles, quotes and duplicate protection."
+          "scope": "Face/Whole scope, saved identity/full Character views, bounding-mask hints, selection invalidation and approved Image UI contract."
         },
         {
-          "label": "Single-sidebar complete browser flow",
+          "label": "Precision Edit and replacement browser/Worker checks",
           "result": "passed",
-          "scope": "390px, 1440px and 1728px: photo-size parity, correct mask alignment, saved references, explicit mocked Generate, unchanged Image draft and restored sidebar."
+          "scope": "Masked exterior pixels, quote/submit safeguards, explicit paid generation, and combined point/text mock. Synthetic desktop and mobile fixtures, no real inference."
         },
         {
-          "label": "Precision and standalone Retouch regression",
+          "label": "Public asset integrity",
           "result": "passed",
-          "scope": "Existing mocked selection, zoom/pan and safe navigation tests."
+          "scope": "Actual pvlab.studio production HTML and SHA-256 bytes for six scoped frontend files match exact Cloudflare deployment source."
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "e363f1316b4c05552cac046246411e72ecb6424d",
+        "sourceSha": "01753ca93c4bde1f9a37906ccd59a420e5bc3394",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-07T17:32:53.094Z",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42396759207",
+        "observedAt": "2026-11-07T23:13:39.319Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42424109922",
         "limitations": [
-          "Public layout checks used synthetic media and stub callbacks with APIs blocked.",
-          "No real-account or paid-provider generation was run.",
-          "Saved Location reference swaps remain unsupported."
+          "Frontend only. Semantic point-plus-target SAM 3 Worker change remains undeployed; current production selection remains point-based.",
+          "Synthetic browser/API tests and public asset byte checks do not verify a real signed-in or paid-provider generation.",
+          "Saved Location references remain unsupported."
         ]
       },
       "evidence": [
@@ -2039,12 +2052,36 @@
           "limitations": [
             "No account access or paid provider calls."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Exact Cloudflare merge deployment and SHA-256 identical production bytes verified for scope frontend assets.",
+          "scope": "lab.js, viewer-guided-replace.css, image-viewer-editor.js, precision-edit.js, viewer-selection-scope.js, viewer-replacement-library.js",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42424109922",
+          "observedAt": "2026-11-07T23:13:39.319Z",
+          "limitations": [
+            "Not a signed-in provider generation test.",
+            "Worker semantic target prompting is not deployed."
+          ]
+        },
+        {
+          "kind": "automated_test",
+          "summary": "Scoped Unit/Image UI/Precision browser and Worker integration checks passed after fixing legacy point-plus-prompt test mock; unrelated broad-suite failures were not changed.",
+          "scope": "PR #922 branch, intercepted provider requests and synthetic image fixtures",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/922",
+          "observedAt": "2026-11-07T23:13:39.319Z",
+          "limitations": [
+            "Real image quality and live paid account flow not verified."
+          ]
         }
       ],
-      "blockers": [],
+      "blockers": [
+        "Separate Cloudflare Worker deployment for semantic Face/person segmentation is pending authorized Worker credentials; do not silently treat this as deployed."
+      ],
       "doNotRepeat": [
         "Do not recreate a separate editor or add buttons over the photograph.",
-        "Do not change provider, model or billing when opening an action."
+        "Do not change provider, model or billing when opening an action.",
+        "Do not silently reuse a Face mask when switching to Whole person; force a new selection and quote."
       ]
     }
   ]
