@@ -86,3 +86,13 @@ Scoped quote-safety unit tests, prior precision/replacement tests, full mocked 3
 Approved storyboard implemented as contextual guidance, selection cursor, replacement-specific copy, four type tiles, existing saved-reference library and uploads. Character attachments retain all eight photos and notes when the selected model supports their capacity; unsupported capacity fails before downloading or charging. The main Image draft stays untouched. A local account-scoped completion flag reduces guidance only after a successful result; no private images or prompts are stored for training.
 
 70 focused unit checks and full mocked 390px/1440px guided flow passed, together with existing selection/Retouch regressions. Location is explicitly limited: the current backend cannot accept saved location-reference swaps. The UI supports explicit background selection/inversion and text-directed editing but disables location-reference picking/upload, rather than mislabeling it as an object. No Worker deployment, paid inference or real-account edit was performed. Production publication is still separate.
+
+
+## Guided Replace published, 2026-11-07
+
+- PR #920 merged as f80296c43184de3b94fa693d66341ca5483ef028. Exact Cloudflare commit and all seven related custom-domain asset hashes verified.
+- Public HTML/CSS/editor modules exercised at 390px and 1440px with synthetic media, stubbed account/library/quote callbacks and zero API access. Guidance, cursor, real local selection, saved eight-photo Character card, Location guard and return to the viewer passed.
+- Character, Outfit and Object reference pickers reuse existing private Elements and compatible photo packs. Guided generation preserves the main Image draft; successful completion stores only a local account-scoped guidance flag.
+- LIMITATION: saved Location reference swaps remain unsupported and disabled with an explanation. Text-directed background editing and explicit mask inversion are available; no location is disguised as an object.
+- Verification: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42393293916
+- 70 scoped unit checks and full mocked desktop/mobile generation flow passed before release. No real-account or paid generation was run. Existing unrelated broad-suite failures remain documented and were not relabeled as passing.

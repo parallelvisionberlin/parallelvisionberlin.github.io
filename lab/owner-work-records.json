@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T16:40:55.686Z",
+  "updatedAt": "2026-11-07T16:51:47.364Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1802,13 +1802,13 @@
       "id": "image-viewer-replace-edit-actions",
       "title": "Contextual image viewer Replace and Edit",
       "component": "PV LAB Image viewer",
-      "status": "needs_verification",
-      "updatedAt": "2026-11-07T16:40:55.686Z",
+      "status": "deployed",
+      "updatedAt": "2026-11-07T16:51:47.364Z",
       "baselineSha": "904c5d8fb0cc96046dd5af5ccea2ca994032562a",
-      "reviewedSha": null,
+      "reviewedSha": "f80296c43184de3b94fa693d66341ca5483ef028",
       "branch": "feat/viewer-guided-replace-20261107",
       "summary": "Owner-approved guided Replace: click instruction and selection cursor; real purple selection; Character/Outfit/Object/Location type tiles; inline existing saved library and upload; replacement-specific wording; successful-completion guidance memory. Existing inline generation and main Image draft remain separate.",
-      "nextAction": "Inspect actual desktop/mobile screenshots and normal PR checks, publish through normal Cloudflare release and byte-verify. Saved location-reference swaps remain unsupported by the current server; do not claim that capability or disguise a location as an object.",
+      "nextAction": "Guided Character/Outfit/Object flow is published. Saved Location swaps still require separately reviewed backend scope support and deployment. No real-account or paid generation was tested.",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
@@ -1857,6 +1857,14 @@
         {
           "label": "Guided Replace verification",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42392380290"
+        },
+        {
+          "label": "Guided Replace PR #920",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/920"
+        },
+        {
+          "label": "Guided production verification",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42393293916"
         }
       ],
       "tests": [
@@ -1877,13 +1885,15 @@
         }
       ],
       "deployment": {
-        "state": "not_started",
-        "sourceSha": null,
-        "environment": "Cloudflare Pages pvlab-studio",
+        "state": "verified",
+        "sourceSha": "f80296c43184de3b94fa693d66341ca5483ef028",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-07T16:51:47.364Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42393293916",
         "limitations": [
-          "Guided revision not yet published.",
-          "No paid or real-account generation tested.",
-          "Saved Location swaps need reviewed server scope support; only text-directed background editing is available."
+          "Public module verification used synthetic media and stubbed account/library/price callbacks, with zero API access.",
+          "No real signed-in or paid-provider generation was run.",
+          "Saved location-reference swaps remain disabled because the current backend does not support location replacement scope."
         ]
       },
       "evidence": [
@@ -1967,6 +1977,26 @@
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42392380290",
           "limitations": [
             "Not real-account or paid-generation evidence."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Exact Cloudflare release succeeded; seven custom-domain viewer assets matched reviewed SHA-256 bytes.",
+          "scope": "lab/lab.js, lab/viewer-guided-replace.css, lab/image-viewer-editor.css, lab/precision-edit.js, lab/image-viewer-editor.js, lab/viewer-replacement-library.js, lab/scene-library.js",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42393293916",
+          "observedAt": "2026-11-07T16:51:47.364Z",
+          "limitations": [
+            "Not evidence of generation quality."
+          ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "Live public modules rendered at 390px and 1440px: guidance, four types, real local brush selection, eight-view saved-reference card, Location guard and viewer return.",
+          "scope": "Synthetic media and stubbed identity/library/price callbacks; zero API access",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42393293916",
+          "observedAt": "2026-11-07T16:51:47.364Z",
+          "limitations": [
+            "Not a real signed-in customer journey or paid-generation test."
           ]
         }
       ],
