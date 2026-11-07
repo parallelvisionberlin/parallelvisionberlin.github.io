@@ -42,3 +42,17 @@
 - Complete mocked browser CI and review desktop/mobile screenshots before merge.
 - Deploy the tested Worker and verify Cloudflare Pages plus exact custom-domain assets. Record the deployed commit/version and actual production behavior separately.
 - Real visual likeness, fit, occlusion and edge quality require an explicitly authorized real result. Request/pixel tests establish routing and exterior fidelity only.
+
+## 2026-11-07: contextual viewer Replace and Edit
+
+Added the approved sidebar cards above Turn into video and retired the main/guest Image deck Retouch action. Both cards reuse the existing precision canvas inside the image viewer. Replace transfers a full-resolution reviewed mask, source and reference to the existing Image deck; it never submits a generation or changes the selected model. Edit retains existing Retouch pricing and submission. Existing sidebar actions remain in place.
+
+54 provider-free unit tests and focused desktop/mobile viewer, selection, prompt-paste, Soul-parity and Retouch-navigation checks passed. Two broader checks fail on unchanged application source too: first-image Base width parity and the studio-layout Clerk source-regex assertion. Neither assertion was weakened; unrelated deck/background/authentication code remains untouched. See the owner work record and workbench logs for baseline comparisons. Production hosting and signed-in paid generation are not verified. No paid provider test was run.
+
+## Release blocker audit, 2026-11-07
+
+- Integrated current main fa097ff9b1a776e70d097cdf585df204ac803a40, preserving the owner 1K and Mood updates.
+- Existing CI logs compared in run 42380043023. General Lab/video failures have the same eight failing test names on main; header, credit preview, public Studio, queue, first-image, appearance and Fashion assertions also match.
+- Compact prompt Generate-font assertion was separately reproduced on unchanged current main. Shared deck Base-width and Clerk-source assertions were already reproduced on unchanged source. No failing test was disabled or weakened.
+- Combined-source checks passed: 54 focused unit tests; precision editing; desktop/mobile viewer replacement flow; prompt paste; Soul deck parity; Retouch navigation. All provider-free.
+- Production publication remains a separate step. Review the standard PR checks, merge through the normal endpoint, verify the Cloudflare production commit and exact custom-domain asset bytes. No real signed-in or paid-generation verification claimed.

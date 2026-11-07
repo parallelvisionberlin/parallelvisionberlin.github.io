@@ -15,7 +15,8 @@ import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount,accountBootstrapMessage} from './native-account.js?v=20261103-browser-bootstrap1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
-import {createPrecisionEditor} from './precision-edit.js?v=20261028-customer-magic-quota1';
+import {createPrecisionEditor} from './precision-edit.js?v=20261107-viewer-actions1';
+import {createImageViewerEditor} from './image-viewer-editor.js?v=20261107-viewer-actions1';
 import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261102-local-currency';
 import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&creditPurchaseFlow=20261104v1&partnerMenu=20261027-bellini1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1&cookies=20261101-v1&conversionFlow=20261102-1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1&creditPurchaseFlow=20261104v1';
@@ -1247,9 +1248,10 @@ imageReplacement=createImageReplacement({host:$('app'),api,assetBlob,uploadAsset
   ensureReferences:()=>ensureReferences(),onChange:()=>{customerImagePricing?.reset();update();}});
 const precisionEditor=createPrecisionEditor({host:$('app'),api,assetBlob,uploadAsset,notify,
   owner:()=>owner,customer:()=>!ownerAccount,falReady:()=>!!config.falEnabled&&(!customerMode||customerGenerationReady),magicReady:()=>!!config.falEnabled&&(!customerMode||customerGenerationReady),
-  onExit:()=>returnToImageFromRetouch(),
+  onExit:()=>{if(!imageViewerEditor.close())returnToImageFromRetouch();},
   onJob:job=>{surfaceHistoryJob(job);refreshHistorySoon();}});
-// Retouch is an independent route. Image state stays in its existing deck.
+const imageViewerEditor=createImageViewerEditor({editor:precisionEditor,onReplace:stageViewerReplacement,notify});
+// Retouch remains available as a standalone route. Contextual actions stay in the viewer.
 let lastNativeStudioTab='';
 function syncStudioNav(){
   const selected=retouchActive?'retouch':assetLibrary?.active()?'assets':fashionActive?'fashion':tool;
@@ -2026,9 +2028,8 @@ function syncImageComposer(){
     $(id).disabled=busy;
   $('image-composer-model').disabled=busy;
   $('image-composer-edit-area').disabled=busy||!owner||customerMode;
-  // Keep the same tool slot for every account; customer eligibility is still
-  // enforced by the disabled state and the existing Retouch route.
-  $('image-composer-edit-area').hidden=false;
+  // Retouch now lives in the image viewer; retain this legacy hook for native routing.
+  $('image-composer-edit-area').hidden=true;
   $('image-composer-add').disabled=busy;
   $('composer-add-saved-toggle').disabled=busy;
   // Only genuinely model-specific or reference-detail controls need the menu.
@@ -4355,7 +4356,7 @@ function showImageDetail(job,hasOutput,loading=false){
   $('image-lightbox-unavailable').textContent=job.status==='uncertain'?'Provider status is unknown. Nothing will be resubmitted automatically.':job.status==='draft'?'Saved draft. Choose Reuse to continue editing.':'No finished output file is available for this record.';
   $('image-detail-status-help').hidden=contentRestricted||!['failed','uncertain'].includes(job.status);
   $('image-detail-status-help').textContent=contentRestricted?'':job.error||(job.status==='uncertain'?'Verify the provider request before trying again.':'The provider did not return an output.');
-  for(const id of ['image-detail-video','image-detail-reference','image-detail-upscale','image-detail-repair','image-detail-edit-area','image-detail-mood','image-detail-save-mood','image-lightbox-download'])
+  for(const id of ['image-detail-replace','image-detail-edit','image-detail-video','image-detail-reference','image-detail-upscale','image-detail-repair','image-detail-edit-area','image-detail-mood','image-detail-save-mood','image-lightbox-download'])
     $(id).disabled=!hasOutput||loading;
   $('image-detail-delete').disabled=activeStates.has(job.status);
   fillDetailExtraActions(job,'image');
@@ -4456,7 +4457,7 @@ $('image-detail-expand').onclick=()=>{
   $('image-detail-expand').innerHTML=expanded?'Show less <span aria-hidden="true">⌃</span>':'Show more <span aria-hidden="true">⌄</span>';
 };
 document.addEventListener('keydown',event=>{
-  if(!$('image-lightbox').open||$('image-source-lightbox').open||event.altKey||event.ctrlKey||event.metaKey||event.target.closest('input,textarea,select,[contenteditable="true"]'))return;
+  if(!$('image-lightbox').open||imageViewerEditor.active()||$('image-source-lightbox').open||event.altKey||event.ctrlKey||event.metaKey||event.target.closest('input,textarea,select,[contenteditable="true"]'))return;
   if(event.key==='Escape'&&$('image-detail-extra').open){
     event.preventDefault();$('image-detail-extra').open=false;
     $('image-detail-extra').querySelector('summary').focus();return;
@@ -4535,10 +4536,59 @@ $('image-detail-save-mood').onclick=()=>{
 };
 $('image-detail-upscale').onclick=()=>executeImageDetail(upscaleImage);
 $('image-detail-repair').onclick=()=>executeImageDetail(openRepair);
-$('image-detail-edit-area').onclick=()=>executeImageDetail(async job=>{
-  const photo=await assetFile(job.outputId,'retouch-original');
-  await openRetouch({file:photo,allowBusy:true});
-});
+async function openViewerEditor(mode){
+  const job=imageDetailJob,requestEpoch=epoch;
+  if(!job||!hasResult(job)||!owner||busy||imageSubmissionPending)return;
+  try{
+    const photo=await assetFile(job.outputId,'viewer-original');
+    if(!owner||requestEpoch!==epoch||imageDetailJob?.id!==job.id||!$('image-lightbox').open)return;
+    await imageViewerEditor.open({file:photo,id:job.outputId,action:mode});
+  }catch(error){if(owner&&requestEpoch===epoch)notify(error.message,true);}
+}
+$('image-detail-replace').onclick=()=>void openViewerEditor('replace');
+$('image-detail-edit').onclick=()=>void openViewerEditor('edit');
+$('image-detail-edit-area').onclick=()=>void openViewerEditor('edit');
+async function stageViewerReplacement(selection){
+  const requestEpoch=epoch,model=imageEngine,draftKey=replacementDraftKey();
+  const current=()=>owner&&epoch===requestEpoch&&imageEngine===model&&selection.isCurrent()&&selection.selectionCurrent()&&draftKey===replacementDraftKey();
+  if(!current()||busy||imageSubmissionPending)throw Error('Finish the current Image action before continuing.');
+  if(!config.imageReplacementEnabled)throw Error('Replacement is unavailable. Refresh Image and try again.');
+  if(!['seedream','seedreamlite','flash','gemini','gemini21','qwen3','krea3'].includes(model))
+    throw Error('Choose Seedream, Nano Banana, Qwen or Krea in Image for reference replacement. Your model has not been changed.');
+  if(tool!=='image')throw Error('Return to Image Studio and open this image there to prepare a replacement.');
+  if((references.length||file||$('prompt').value.trim())&&!confirm('Use this selection and reference in place of the current unsaved Image draft?'))return false;
+  const scopes={person:'identity',outfit:'outfit',object:'object'};
+  if(!scopes[selection.scope])throw Error('Choose Person, Outfit or Object.');
+  const proposed=[{file:selection.file},{file:selection.reference}];
+  const issue=modelImageInputIssue(model,proposed);if(issue)throw Error(issue);
+  const choices=[...$('ratio').options].map(option=>option.value),ratio=selection.width/selection.height;
+  const crop=choices.includes('auto')?'auto':choices.find(value=>{const [w,h]=value.split(':').map(Number);return w>0&&h>0&&Math.abs(w/h/ratio-1)<=.01;});
+  if(!crop)throw Error('This model cannot preserve this photo crop. Choose a model with Auto aspect ratio.');
+  const prepared=[];let installed=false;
+  try{
+    for(const item of proposed){prepared.push(await inspectImage(item.file));if(!current())throw Error('The Image session changed. Nothing was submitted.');}
+    if(prepared[0].file!==selection.file)throw Error('The original must remain unchanged for lossless replacement.');
+    const originalId=selection.id||await uploadAsset(selection.file);
+    if(!current())throw Error('The Image session changed. Nothing was submitted.');
+    const referenceId=await uploadAsset(prepared[1].file);
+    if(!current())throw Error('The Image session changed. Nothing was submitted.');
+    const maskSourceId=await uploadAsset(new File([selection.mask],'replacement-selection.png',{type:'image/png'}));
+    if(!current())throw Error('The Image session changed. Nothing was submitted.');
+    // All decoding and uploads completed before replacing the previous draft.
+    clearMedia();moodUI.clear(true);imageReferenceMode='base';
+    prepared[0].id=originalId;prepared[0].role='base';prepared[0].nonBaseRole='none';
+    prepared[1].id=referenceId;prepared[1].role=scopes[selection.scope];
+    for(const ref of prepared){ref.note='';ref.target='';}
+    references=prepared;installed=true;imageRevision++;
+    $('prompt').value='Replace the selected '+selection.scope+' using the provided reference.'+(selection.direction?' '+selection.direction:'');
+    $('ratio').value=crop;imageRatioExplicit=crop!=='auto';
+    renderReferences();refreshInputPreview();
+    imageReplacement.restore({key:replacementDraftKey(),replacement:{version:1,originalSourceId:originalId,maskSourceId,scope:selection.scope,referenceSourceIds:[referenceId]}});
+    customerImagePricing?.reset();update();
+    notify('Selection and reference ready. Review the credit price and press Generate. Nothing has been submitted.');
+    return true;
+  }finally{if(!installed)for(const ref of prepared)releaseReference(ref);}
+}
 $('image-detail-fix-eyes').onclick=()=>executeImageDetail(async job=>{
   const photo=await assetFile(job.outputId,'eye-repair-original');
   await openRetouch({file:photo,allowBusy:true});
@@ -5307,7 +5357,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();document.documentElement.classList.remove('pv-studio-route-pending');}
-function lock(){imageReplacement?.reset();replacementReviewPending=false;videoUpscaler?.reset();videoPricing?.reset();$('app').removeAttribute('data-guest-preview');const pvStrip=$('pv-video-detail-reference-strip');if(pvStrip){pvStrip.replaceChildren();pvStrip.dataset.key='';}const pvRefPanel=$('pv-video-detail-references');if(pvRefPanel)pvRefPanel.hidden=true;sceneLibrary?.reset();setMoodDiscoveryOpen(false);customerPriceIntentPending=false;customerImagePricing?.reset();packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerVideoProfile={};customerCreditBalance=0;customerGenerationReady=false;customerTrialGenerationPaused=false;customerBillingReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';syncImagePreviewAccount();soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();clearStoredToolSources();clearStoredToolReferences();mediaRefs.clear();frameMaker?.clear();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;videoHistoryAutoSuppressed=false;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();$('pv-guest-closed-state').hidden=true;finishLabBoot();}
+function lock(){imageViewerEditor.reset();imageReplacement?.reset();replacementReviewPending=false;videoUpscaler?.reset();videoPricing?.reset();$('app').removeAttribute('data-guest-preview');const pvStrip=$('pv-video-detail-reference-strip');if(pvStrip){pvStrip.replaceChildren();pvStrip.dataset.key='';}const pvRefPanel=$('pv-video-detail-references');if(pvRefPanel)pvRefPanel.hidden=true;sceneLibrary?.reset();setMoodDiscoveryOpen(false);customerPriceIntentPending=false;customerImagePricing?.reset();packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerVideoProfile={};customerCreditBalance=0;customerGenerationReady=false;customerTrialGenerationPaused=false;customerBillingReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';syncImagePreviewAccount();soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();clearStoredToolSources();clearStoredToolReferences();mediaRefs.clear();frameMaker?.clear();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;videoHistoryAutoSuppressed=false;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();$('pv-guest-closed-state').hidden=true;finishLabBoot();}
 const pricingOverlay=createPricingOverlay({
   buy:(sku,report)=>wallet.buyPlan(sku,report),
   getAccount:()=>({signedIn:owner,customer:customerMode}),

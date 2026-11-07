@@ -347,8 +347,8 @@ try{
         window.__welcomeMockGalleryChanged();
       });
       await rolePage.waitForFunction(()=>!document.getElementById('image-composer').classList.contains('pv-welcome-deck'));
-      if(role==='owner')assert.equal(await rolePage.locator('#image-composer-edit-area').isVisible(),true,
-        'Owner History retains its existing Retouch shortcut');
+      if(role==='owner')assert.equal(await rolePage.locator('#image-composer-edit-area').isVisible(),false,
+        'Retouch is removed from the Image deck; editing starts in the viewer');
       const historyDeck=await roleDeck.boundingBox();
       const slotGeometry=el=>{const r=el.getBoundingClientRect();return Object.fromEntries([...el.querySelectorAll('[data-deck-slot], [data-deck-control]')].filter(n=>n.getBoundingClientRect().width>0&&n.dataset.deckSlot!=='controls').map(n=>{const b=n.getBoundingClientRect();return [n.dataset.deckControl||n.dataset.deckSlot,{x:b.x-r.x,y:b.y-r.y,w:b.width,h:b.height}];}));};
       const historySlots=await roleDeck.evaluate(slotGeometry);

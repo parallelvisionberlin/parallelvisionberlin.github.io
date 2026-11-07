@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T13:00:25.600Z",
+  "updatedAt": "2026-11-07T13:00:48.683Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1763,6 +1763,115 @@
       "doNotRepeat": [
         "Keep customer defaults and other models unchanged.",
         "Preserve saved resolutions and settings bound to an existing generation quote."
+      ]
+    },
+    {
+      "id": "image-viewer-replace-edit-actions",
+      "title": "Contextual image viewer Replace and Edit",
+      "component": "PV LAB Image viewer",
+      "status": "needs_verification",
+      "updatedAt": "2026-11-07T13:00:48.683Z",
+      "baselineSha": "fa097ff9b1a776e70d097cdf585df204ac803a40",
+      "reviewedSha": "2e111c664e9f0cbf43c45b30c67554aca2cf0150",
+      "branch": "feat/image-viewer-replace-edit-20261107",
+      "summary": "Approved Replace and Edit sidebar cards above Turn into video; main Image deck Retouch action retired. Both cards reuse the existing precision canvas inside the viewer. Replace stages its reviewed mask and reference in the existing Image deck without a generation or model substitution.",
+      "nextAction": "Review normal PR CI after reconciliation, merge PR #915 through the standard merge endpoint, then verify exact production assets. No paid or real-account claim.",
+      "files": [
+        "lab/lab.js",
+        "lab/studio.html",
+        "lab/precision-edit.js",
+        "lab/image-viewer-editor.js",
+        "lab/image-viewer-editor.css",
+        "tests/lab-image-replacement-flow-ui.mjs",
+        "tests/lab-first-image-instant-browser.mjs",
+        "tests/lab-image-oneclick-ui.mjs",
+        "lab/IMAGE-REPLACEMENT-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Verification run",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42374844507"
+        },
+        {
+          "label": "Implementation PR",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/915"
+        },
+        {
+          "label": "Release blocker log comparison",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42380043023"
+        },
+        {
+          "label": "Reconciled source tests",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42380214257"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI, precision and replacement unit suites",
+          "result": "passed",
+          "scope": "Provider-free contract, mask, draft and backend regression tests"
+        },
+        {
+          "label": "Precision and replacement browser suites",
+          "result": "passed",
+          "scope": "Mocked existing flows plus contextual viewer Edit/Replace at 390 and 1440 pixels"
+        },
+        {
+          "label": "Image deck regression suites",
+          "result": "failed",
+          "scope": "Prompt paste, Soul parity and standalone Retouch navigation passed. Existing first-image Base width and studio-layout Clerk source-regex failures were reproduced against unchanged application source and remain unmodified."
+        },
+        {
+          "label": "Reconciled source verification",
+          "result": "passed",
+          "scope": "54 unit tests; precision, replacement flow at mobile/desktop, prompt paste, Soul parity and Retouch navigation. No real provider calls."
+        },
+        {
+          "label": "Existing release-check failure audit",
+          "result": "failed",
+          "scope": "Existing main failures retained, not counted as passes. Matching logs cover general Lab/video, header, credit preview, public Studio, queue, first-image, appearance and Fashion. Compact Generate 15px failure reproduced on main. Shared deck mismatches previously reproduced on baseline."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio",
+        "sourceSha": null,
+        "limitations": [
+          "No production asset check yet.",
+          "No signed-in live paid generation was performed."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "automated_test",
+          "summary": "54 unit tests and focused desktop/mobile viewer, selection and handoff browser suites passed. Separate baseline failures are listed in blockers, not counted as passes.",
+          "scope": "Source branch, mocked network requests only",
+          "limitations": [
+            "Not live-provider evidence."
+          ]
+        },
+        {
+          "kind": "source",
+          "summary": "Preserved concurrent owner Seedream 1K work from main; merged only the HTML version key and separate owner work records.",
+          "scope": "Reconciled feature branch before PR CI",
+          "limitations": [
+            "Browser verification of the combined branch is pending normal PR CI."
+          ]
+        },
+        {
+          "kind": "automated_test",
+          "summary": "Targeted checks passed after merging the current Mood update. Broader failure audit preserves failing tests and distinguishes baseline issues.",
+          "scope": "Feature branch only",
+          "limitations": [
+            "Production not deployed or verified yet.",
+            "No paid generation performed."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not recreate a separate editor or add buttons over the photograph.",
+        "Do not change provider, model or billing when opening an action."
       ]
     }
   ]

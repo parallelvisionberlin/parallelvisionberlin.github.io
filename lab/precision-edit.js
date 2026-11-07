@@ -9,6 +9,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   const rc=resultCanvas.getContext('2d');
   const mask=document.createElement('canvas'),maskCtx=mask.getContext('2d',{willReadFrequently:true});
   const undoStack=[],maxUndo=12,finalizing=new Map();
+  let externalMode=false;
   let base=null,mode='magic',drawing=false,lastPoint=null,taskBusy=false,pending=null,quoteBusy=false,quoteFailure=false,quoteTimer=null;
   let selected=false,resultBlob=null,resultBitmap=null,disposed=false,workingId=null,session=0;
   let resultFormat='png',lastResultSourceId=null,zoom=1,panX=0,panY=0,panDrag=null,spaceHeld=false;
@@ -169,7 +170,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-undo').disabled=!undoStack.length||taskBusy;
     const highRisk=!!(base&&base.width*base.height>=exportRiskPixels);
     const exportReady=!highRisk||$('precision-allow-jpeg').checked;
-    const ready=isOpen()&&have&&selected&&!!$('precision-prompt').value.trim()&&!taskBusy&&owner()&&falReady()&&exportReady;
+    const ready=!externalMode&&isOpen()&&have&&selected&&!!$('precision-prompt').value.trim()&&!taskBusy&&owner()&&falReady()&&exportReady;
     const quoted=ready&&pending&&Number.isSafeInteger(pending.creditCost)&&pending.creditCost>0&&pending.expiresAt>Date.now()+5000;
     $('precision-generate').disabled=!ready||(!quoted&&!quoteFailure);
     $('precision-change-photo').hidden=!have;
@@ -255,7 +256,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     base.id=id;return id;
   }
   function resetRetouchScroll(){
-    if(view.hidden)return;
+    if(view.hidden||view.closest('#image-lightbox'))return;
     // This is the page scroller, not an inner canvas scroll. Avoid the browser
     // restoring an old Image/Assets position when the large canvas is mounted.
     window.scrollTo({top:0,left:0,behavior:'instant'});
@@ -293,7 +294,9 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     if(taskBusy)throw new Error('Wait for the current operation to finish.');
     if(!mimeTypes.has(file?.type))throw new Error('Choose a JPG, PNG or WebP photograph.');
     if(!file.size||file.size>20*1024*1024)throw new Error('Image too large or empty. Maximum size is 20 MB.');
+    const account=session;
     const bitmap=await createImageBitmap(file);
+    if(account!==session||!owner()){bitmap.close();throw Error('The image session changed.');}
     if(Math.min(bitmap.width,bitmap.height)<240||Math.max(bitmap.width,bitmap.height)>8192){
       bitmap.close();throw new Error('Use an image from 240 to 8192 pixels on each side.');
     }
@@ -400,7 +403,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     return c;
   }
   async function prepareQuote(){
-    if(!base||!selected||taskBusy||quoteBusy||!owner()||!falReady())return;
+    if(externalMode||!base||!selected||taskBusy||quoteBusy||!owner()||!falReady())return;
     const prompt=$('precision-prompt').value.trim();
     if(!prompt)return;
     const allowJpegFallback=$('precision-allow-jpeg').checked;
@@ -475,7 +478,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     }
   }
   async function submit(){
-    if(taskBusy)return;
+    if(externalMode||taskBusy)return;
     if(!pending){quoteFailure=false;await prepareQuote();return;}
     if(Date.now()>=pending.expiresAt-5000){
       pending=null;quoteFailure=false;refreshButtons();setStatus('Refreshing the credit price…');return;
@@ -774,9 +777,25 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       if(drawing){drawing=false;lastPoint=null;maskChanged();}
       if(panDrag){panDrag=null;paintZoom();}
     });
+  function setExternalMode(value){
+    externalMode=value===true;editEpoch++;pending=null;quoteFailure=false;
+    clearTimeout(quoteTimer);quoteTimer=null;refreshButtons();
+  }
+  async function selectionSnapshot(){
+    if(!owner()||!base||!selected||taskBusy)throw Error('Select an area before continuing.');
+    if(base.width*base.height>5000000)throw Error('Use a photo up to 5 megapixels for lossless replacement.');
+    const original=base,revision=editEpoch,account=session;
+    const full=document.createElement('canvas');full.width=base.width;full.height=base.height;
+    const context=full.getContext('2d');context.fillStyle='#000';context.fillRect(0,0,full.width,full.height);
+    context.imageSmoothingEnabled=false;context.drawImage(mask,0,0,full.width,full.height);
+    const blob=await readBlob(full);
+    if(!owner()||base!==original||revision!==editEpoch||account!==session)
+      throw Error('The selection changed. Review it before continuing.');
+    return {file:original.file,id:original.id,width:original.width,height:original.height,mask:blob,selectionCurrent:()=>owner()&&base===original&&revision===editEpoch&&account===session};
+  }
   // No source is opened automatically in the normal gallery. This workspace is opt-in.
   reset();
-  return {open,close,isOpen,preview:()=>{
+  return {open,close,isOpen,setMode:selectMode,setExternalMode,selectionSnapshot,hasSelection:()=>selected,isBusy:()=>taskBusy,preview:()=>{
     if(owner())return;
     host.classList.add('is-precision-active');view.hidden=false;
     refreshButtons();syncPreviewFit();settleRetouchScroll();
