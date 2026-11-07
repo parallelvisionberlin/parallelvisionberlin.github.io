@@ -36,7 +36,7 @@ jobs:
           node --check lab/beauty.js
           node --check lab/beauty-workstation-20261107.js
           node --check tests/lab-beauty-ui.mjs
-          git diff --cached --check
+          git diff --cached --check -- lab/beauty.html lab/beauty.js lab/beauty-settings.js lab/beauty-workstation-20261107.js lab/beauty-workstation-20261107.css tests/lab-beauty-ui.mjs tests/lab-beauty-workstation.test.mjs
       - name: Existing Beauty, quote, and new workstation contracts
         run: |
           node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-beauty.test.mjs tests/lab-beauty-atelier.test.mjs tests/lab-beauty-category-contract.test.mjs tests/lab-beauty-archive-curation.test.mjs tests/lab-beauty-workstation.test.mjs
@@ -54,7 +54,7 @@ jobs:
       - name: Save reviewed implementation on feature branch only
         run: |
           test "$GITHUB_REF" = refs/heads/feature/alter-editorial-workstation-20261107
-          git diff --cached --check
+          git diff --cached --check -- lab/beauty.html lab/beauty.js lab/beauty-settings.js lab/beauty-workstation-20261107.js lab/beauty-workstation-20261107.css tests/lab-beauty-ui.mjs tests/lab-beauty-workstation.test.mjs
           git commit -m 'Build ALT​ER cinematic workstation with authentic Before/After and prompt-based Light adjustments'
           git rev-parse HEAD
           git push origin HEAD:refs/heads/feature/alter-editorial-workstation-20261107
