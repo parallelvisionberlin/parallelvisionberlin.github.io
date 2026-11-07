@@ -30,6 +30,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/viewer-sidebar-evidence
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('.github/scripts/viewer-sidebar.patch');s=p.read_text()
+          # Context only: the published guided revision already renamed this message.
+          old="textContent.includes('Object selected')"
+          assert s.count(old)==1
+          p.write_text(s.replace(old,"textContent.includes('Selection ready.')"))
+          PY
           git apply --check .github/scripts/viewer-sidebar.patch
           git apply .github/scripts/viewer-sidebar.patch
           python3 - <<'PY'
@@ -97,7 +105,7 @@ jobs:
           git config user.name 'PV LAB verification'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add lab/image-viewer-editor.js lab/image-viewer-editor.css lab/precision-edit.js lab/lab.js lab/studio.html tests/lab-image-replacement-flow-ui.mjs lab/owner-work-records.json lab/IMAGE-REPLACEMENT-WORK-STATE.md
-          git rm .github/scripts/viewer-sidebar.patch .github/workflows/viewer-sidebar-check.yml
+          git rm -f .github/scripts/viewer-sidebar.patch .github/workflows/viewer-sidebar-check.yml
           git diff --cached --check
           git commit -m 'fix: swap viewer sidebar without shrinking the photograph'
           git rev-parse HEAD > /tmp/viewer-sidebar-evidence/source-sha.txt
