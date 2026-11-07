@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T12:02:40.356Z",
+  "updatedAt": "2026-11-07T12:11:56.159Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1096,14 +1096,14 @@
     },
     {
       "id": "alter-tabbed-editor",
-      "title": "ALTER Studio: 13 curated editorial looks",
+      "title": "ALTER Studio: wider 3×3 Edit Look and 13 curated editorial looks",
       "component": "ALTER Studio",
       "status": "deployed",
-      "summary": "ALTER Studio live: 13 editorial archive directions and distinct Light/Color thumbnail examples. Latest two-card refinement replaces Side Light and Rim Light with visually different existing editorial portraits, avoiding a cluster of similar dark close-ups while preserving every other preset, all prompt/credit settings and the locked interface.",
-      "nextAction": "No web publication pending. Example photographs are illustrative; actual paid model-output fidelity untested. Avoid unrelated ALTER redesigns or unnecessary image generation.",
-      "baselineSha": "517771cd5290a347b0e688dc2d266f5998b43f7c",
-      "reviewedSha": "469222d395a5fbefc3d06aac0d897ef546977650",
-      "branch": "fix/alter-light-visual-variety-20261107",
+      "summary": "Production-verified desktop Edit Look widening (~460–590px at >1300px), larger preset thumbnails and clear Generate/gallery separation while keeping the original hero.webp asset, exact backdrop crop/position/size/fade and canvas/title geometry unchanged. All existing five category tabs, 13 editorial cards, approved image samples, native account/billing/quote/Generate/history/comparison and small-screen layouts preserved; no extra workflow or backend controls.",
+      "nextAction": "No pending ALTER deployment. Real model output fidelity is not tested by this presentation-only improvement; do not modify the locked hero/background or add speculative workflow features.",
+      "baselineSha": "bb14fc36f22395faf4fce9ce8b848b3e57fcf2a2",
+      "reviewedSha": "b68605837eb29770f6e6fdbe32732a17a2d3590f",
+      "branch": "feature/alter-wider-edit-look-safe-20261107",
       "files": [
         "lab/beauty.html",
         "lab/beauty.js",
@@ -1120,9 +1120,22 @@
         "tests/lab-beauty-archive-curation.test.mjs",
         "tests/lab-beauty-light-color-previews.test.mjs",
         "tests/lab-beauty-five-preview-fixes.test.mjs",
-        "tests/lab-beauty-side-rim-previews.test.mjs"
+        "tests/lab-beauty-side-rim-previews.test.mjs",
+        "lab/beauty-panel-widen-20261107.css"
       ],
       "links": [
+        {
+          "label": "Production stylesheet and desktop/mobile proof",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42371185743"
+        },
+        {
+          "label": "Scoped responsive and quote tests",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42370471509"
+        },
+        {
+          "label": "PR #912 widened Edit Look",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/912"
+        },
         {
           "label": "Live asset proof",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42357406752"
@@ -1258,17 +1271,31 @@
           "scope": "Cloudflare confirmed exact merge SHA; both WebP assets on pvlab.studio matched reviewed file hashes and expected active card references. No API mutation.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42357406752",
           "observedAt": "2026-11-07T08:55:29.534Z"
+        },
+        {
+          "label": "Safe wider Edit Look with immutable hero and archive",
+          "result": "passed",
+          "scope": "Background-image, position, size, opacity, mask and hero/title geometry compared with stylesheet disabled; right-side 3x3 photo size improved; card heights unchanged; no archive overlap. Original Image/Beauty/Worker quote and desktop/mobile browser checks passed.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42370471509",
+          "observedAt": "2026-11-07T12:11:56.159Z"
+        },
+        {
+          "label": "Production wide editor and source preservation",
+          "result": "passed",
+          "scope": "Cloudflare exact SHA success; pvlab.studio public CSS/hero file bytes matched GitHub and guest DOM checks passed at 1727,1440,1366,1024,390. Generate trial only; no paid requests.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42371185743",
+          "observedAt": "2026-11-07T12:11:56.159Z"
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "a5392cfdcb39d3ed5d4c485df47edb08ba49e8e7",
+        "sourceSha": "fd9774e8bf4ff20752d064a7cf9e5b84ebd53159",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-07T08:55:29.534Z",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42357406752",
+        "observedAt": "2026-11-07T12:11:56.159Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42371185743",
         "limitations": [
-          "Guest public asset hashes verified; no real signed-in model output generated.",
-          "No paid generation, customer credit or payment action occurred."
+          "Published guest layout/bytes verified without signed-in paid generation.",
+          "No provider output tests or customer-credit mutation."
         ]
       },
       "evidence": [
@@ -1309,7 +1336,7 @@
         "No paid generations, automatic submissions or provider/pricing changes were made.",
         "Do not represent illustrative thumbnails or mocked tests as verified provider result quality."
       ],
-      "updatedAt": "2026-11-07T08:55:29.534Z"
+      "updatedAt": "2026-11-07T12:11:56.159Z"
     },
     {
       "id": "shared-image-soul-deck",
