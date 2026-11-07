@@ -58,10 +58,10 @@ export const VIDEO_MODELS = Object.freeze({
     modes:['start'],resolutions:['4k'],ratios:['auto'],
     endpoints:{start:'bytedance/seedance-2.5-spicy/image-to-video'}
   }),
-  klinghf: Object.freeze({
-    label:'Kling 3.0 Pro · Higgsfield',minSeconds:3,maxSeconds:15,maxImages:0,
+  kling3: Object.freeze({
+    label:'Kling 3.0',minSeconds:3,maxSeconds:15,maxImages:0,
     modes:['start','text'],resolutions:['1080p'],ratios:['auto','16:9','9:16','1:1'],
-    endpoints:{start:'kling-video/v3.0/pro/image-to-video',text:'kling-video/v3.0/pro/text-to-video'}
+    endpoints:{start:'kling/3.0/image-to-video',text:'kling/3.0/text-to-video'}
   }),
   seedance: Object.freeze({
     label: 'Seedance 2.5', minSeconds: 4, maxSeconds: 30, maxImages: 30,
@@ -71,7 +71,7 @@ export const VIDEO_MODELS = Object.freeze({
   })
 });
 export function engineFor(settings = {}) {
-  if(settings.engine==='klinghf'||/^kling-video\/v3\.0\/pro\/(image-to-video|text-to-video)$/.test(settings.model||''))return 'klinghf';
+  if(settings.engine==='kling3'||settings.engine==='klinghf'||/^kling\/3\.0\/(image-to-video|text-to-video)$/.test(settings.model||'')||/^kling-video\/v3\.0\/pro\/(image-to-video|text-to-video)$/.test(settings.model||''))return 'kling3';
   if (settings.engine === 'omni' || /^google\/gemini-omni-flash\/v1\.1\//.test(settings.model || '')) return 'omni';
   if (settings.engine === 'h3maxfal' || settings.model === 'minimax/h3-max/reference-to-video' && settings.provider === 'fal') return 'h3maxfal';
   if (settings.engine === 'seedance15' || /^bytedance\/seedance-1\.5-pro\//.test(settings.model || '')) return 'seedance15';
@@ -83,4 +83,4 @@ export function engineFor(settings = {}) {
   if (settings.engine === 'wanprime' || /^alibaba\/wan-3\.0-prime\//.test(settings.model || '')) return 'wanprime';
   return 'wan';
 }
-export function videoLabel(settings = {}) { return VIDEO_MODELS[engineFor(settings)].label; }
+export function videoLabel(settings = {}) { return settings.engine==='klinghf'||String(settings.model||'').startsWith('kling-video/v3.0/pro/')?'Kling 3.0 Pro · legacy Higgsfield':VIDEO_MODELS[engineFor(settings)].label; }
