@@ -1,5 +1,15 @@
 # Beauty Studio and Studios navigation
 
+
+## 2026-11-07 | Production audit of Hair, Skin and the editorial archive
+
+- Cloudflare Pages reported success for `035a182f023ac51c1686c384e863b87c69707944` (check 128385444345). Public `/beauty` HTML matches that commit byte-for-byte. All 28 new WebPs from #890/#891 and the retained Beauty image returned HTTP 200 and matched reviewed SHA-256 hashes. The archive stylesheet and preset module matched source.
+- Direct guest Chromium session (1363px viewport, 1348px document area) verified all 13 recipes, including their five category values and automatic text, manual text preservation across all 13 selections, all 18 Hair/Skin choices, five local Original tiles with one public fixture and keyboard navigation to Night Tape without archive arrows. Prior custom-domain browser evidence at 1440/390 is in run 42319656534. The signed-in provider was outside this audit.
+- Same photographic takes reused across Hair and Skin despite unique WebP hashes: Sleek/Matte, Soft waves/Satin, Wet look/Dewy, Textured/Natural, Tousled/Luminous, Brushed back/Soft matte and Soft volume/Refined. The archive imagery is distinct.
+- Cache reproduction: the pre-#891 catalog and current catalog used the same versioned URL with a public four-hour freshness window. With the older catalog, the seven new buttons are present in current HTML but have no preset entry, so their click handler returns early. Current responses in the audited session had the correct bytes.
+- Prepared on a review branch: version both module entry points and their catalog dependencies, and use seven existing project photographs for the affected Skin tiles. Keep Hair, Fresh, all category settings, Original, archive, layout and image-generation logic. No paid generation, credit, price or billing changes. The candidate is not deployed.
+
+
 ## 2026-11-07 | Light-tab visual variety: LIVE VERIFIED
 
 - Follow-up to user's screenshot critique: Side Light and Rim Light felt overly similar to the nearby dark portraits. Replaced **only** those two Light thumbnails with pre-existing photographic crops (Side Light: male portrait with one-sided sculpted illumination; Rim Light: backlit blonde portrait). The other six non-Original Light cards and all Color cards stay unchanged.

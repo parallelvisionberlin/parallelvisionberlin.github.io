@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T10:46:56.457Z",
+  "updatedAt": "2026-11-07T11:05:35.261Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1104,12 +1104,12 @@
       "id": "alter-tabbed-editor",
       "title": "ALTER Studio: 13 curated editorial looks",
       "component": "ALTER Studio",
-      "status": "deployed",
-      "summary": "ALTER Studio live: 13 editorial archive directions and distinct Light/Color thumbnail examples. Latest two-card refinement replaces Side Light and Rim Light with visually different existing editorial portraits, avoiding a cluster of similar dark close-ups while preserving every other preset, all prompt/credit settings and the locked interface.",
-      "nextAction": "No web publication pending. Example photographs are illustrative; actual paid model-output fidelity untested. Avoid unrelated ALTER redesigns or unnecessary image generation.",
-      "baselineSha": "517771cd5290a347b0e688dc2d266f5998b43f7c",
-      "reviewedSha": "469222d395a5fbefc3d06aac0d897ef546977650",
-      "branch": "fix/alter-light-visual-variety-20261107",
+      "status": "needs_verification",
+      "summary": "Live audit confirmed 29 correct public assets and 13 working ALTER looks. Seven Skin images repeat Hair photographs as different crops, and the unchanged catalog URL could retain six recipes for returning visitors. Prepared a versioned module chain and seven distinct existing Skin photographs for review.",
+      "nextAction": "Review the Skin-only photo substitutions and module cache invalidation, then verify the candidate at 1440 and 390 px before merging. See the scoped Beauty handoff for reproducible evidence.",
+      "baselineSha": "035a182f023ac51c1686c384e863b87c69707944",
+      "reviewedSha": null,
+      "branch": "fix/alter-catalog-cache-20261107",
       "files": [
         "lab/beauty.html",
         "lab/beauty.js",
@@ -1264,17 +1264,31 @@
           "scope": "Cloudflare confirmed exact merge SHA; both WebP assets on pvlab.studio matched reviewed file hashes and expected active card references. No API mutation.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42357406752",
           "observedAt": "2026-11-07T08:55:29.534Z"
+        },
+        {
+          "label": "ALTER public archive and Hair/Skin audit",
+          "result": "passed",
+          "scope": "29 source-matching public images, 13 recipes and text preservation, all 18 Hair/Skin options, five local Original previews, and keyboard browsing in a guest Chromium session. Earlier production run covered 1440/390.",
+          "observedAt": "2026-11-07T11:05:35.261Z",
+          "source": "lab/BEAUTY-WORK-STATE.md"
+        },
+        {
+          "label": "ALTER candidate scope and regression contracts",
+          "result": "passed",
+          "scope": "27 scoped tests plus verified 16 unique Hair/Skin image bindings and both versioned catalog import paths.",
+          "observedAt": "2026-11-07T11:05:35.261Z",
+          "source": "lab/BEAUTY-WORK-STATE.md"
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "a5392cfdcb39d3ed5d4c485df47edb08ba49e8e7",
+        "sourceSha": "035a182f023ac51c1686c384e863b87c69707944",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-07T08:55:29.534Z",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42357406752",
+        "observedAt": "2026-11-07T11:05:35.261Z",
+        "evidenceUrl": "https://pvlab.studio/beauty",
         "limitations": [
-          "Guest public asset hashes verified; no real signed-in model output generated.",
-          "No paid generation, customer credit or payment action occurred."
+          "The public audit verified the deployed baseline. The candidate is awaiting review and has not been deployed.",
+          "No paid generation, real signed-in provider output, credits or billing actions."
         ]
       },
       "evidence": [
@@ -1307,6 +1321,16 @@
             "Mocked role/billing/history tests are recorded separately.",
             "No paid provider output generated; thumbnails are illustrative, not guaranteed output previews."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "29 direct HTTP 200 WebP responses matched reviewed SHA-256 hashes. The public HTML matched the exact successful Cloudflare source.",
+          "scope": "Direct guest production verification on November 7.",
+          "observedAt": "2026-11-07T11:05:35.261Z",
+          "source": "https://pvlab.studio/beauty",
+          "limitations": [
+            "Direct interactive browser used 1363 CSS px viewport. Earlier 1440/390 custom-domain evidence is separately linked."
+          ]
         }
       ],
       "blockers": [],
@@ -1315,7 +1339,7 @@
         "No paid generations, automatic submissions or provider/pricing changes were made.",
         "Do not represent illustrative thumbnails or mocked tests as verified provider result quality."
       ],
-      "updatedAt": "2026-11-07T08:55:29.534Z"
+      "updatedAt": "2026-11-07T11:05:35.261Z"
     },
     {
       "id": "shared-image-soul-deck",
