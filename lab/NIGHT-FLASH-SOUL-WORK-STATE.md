@@ -1,5 +1,13 @@
 # Night Flash with Higgsfield Soul 2
 
+## Owner Seedream exact-photo relight, 2026-11-07
+
+- [PR #918](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/918) uses the existing Night Flash Mood for owner Seedream 5 Pro with one Base photo. It requests lighting, color and grain on the exact shot, including the original facial geometry, head angle, eye direction, expression, pose and crop. The hard flash, deep blacks and 35mm grain remain the visual direction.
+- The Image Deck sends the revised recipe from `lab/lab.js` and `lab/moods.js`. The public, multi-reference, text and Soul recipes matched the baseline byte for byte in 95 checks. Authored directions remain in History and Reuse.
+- 107 focused Node cases passed on the merged source. [Hosted CI](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42385518142) verified owner and customer settings at 390 and 1440 px with simulated requests. Replacement, Precision Edit and the approved Image contract passed. Guest width, Clerk and Generate typography assertions reproduced on #917.
+- Production Pages deployment `9d519e1d-d773-4deb-910d-a726ed5a9051` verified for `d8dc190057b73bc72a9683903feb892c7ca871c1` through check `128443602500`. The production HTML loads the reviewed JavaScript and Mood bytes with `ownerNightFlashRelight=20261107v1`.
+- Next action: compare the owner's original blue-top portrait and mirror selfie at 1K against the existing outputs. Identity and photographic quality on the revised provider output remain unverified. No paid job was submitted during validation.
+
 ## Single Night Flash preset, 2026-11-07
 
 - The owner preferred the Seedream 5 Pro 100% piano portrait over a brighter 50% result. Use the former strong recipe as the single Night Flash treatment.
