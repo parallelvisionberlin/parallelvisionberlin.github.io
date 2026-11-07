@@ -61,3 +61,14 @@ test('Magic Select checks private image ownership before any metered request',as
     e=>e.status===404&&/Image not found/.test(e.message));
   assert.equal(touched,1);
 });
+
+test('Untrusted semantic point requests cannot enter a metered selection',async()=>{
+ let selected=0;const sourceId='d37bb74d-ec39-4aba-9b92-a240da9cf256';
+ const fail=(status,message)=>{throw Object.assign(new Error(message),{status});};
+ const d={customer:true,fail,body:async()=>({sourceId,point:{x:10,y:10},targetPrompt:'select all of the people'}),
+   source:async()=>{selected++;return {id:sourceId,mime:'image/png'};},falImageBytes:async()=>new Uint8Array([1]),storedImageDimensions:()=>({width:640,height:480}),
+   config:async()=>({daily_limit_microusd:100000}),signedInput:async()=>{throw Error('A metered call was attempted');}};
+ const request=new Request('https://parallel-vision-lab.parallelvision.workers.dev/api/precision/segment',{method:'POST'});
+ await assert.rejects(precisionEditRoute(request,{FAL_KEY:'test',LAB_SECRET:'test'},'customer',new URL(request.url),d),e=>e.status===400&&/Unsupported targeted selection/.test(e.message));
+ assert.equal(selected,1,'Source ownership is still checked before validating optional semantics');
+});
