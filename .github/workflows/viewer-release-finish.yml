@@ -1,0 +1,142 @@
+name: Viewer release reconciliation
+on:
+  push:
+    branches: [feat/image-viewer-replace-edit-20261107]
+    paths: ['.github/workflows/viewer-release-finish.yml']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/image-viewer-replace-edit-20261107
+          fetch-depth: 30
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Preserve current main and the approved viewer changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/viewer-release-evidence
+          git config user.name 'PV LAB verification'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch --no-tags origin fa097ff9b1a776e70d097cdf585df204ac803a40 --depth=3
+          git show HEAD:lab/owner-work-records.json > /tmp/viewer-release-evidence/previous-index.json
+          git merge --no-ff --no-commit fa097ff9b1a776e70d097cdf585df204ac803a40 || true
+          test -f "$(git rev-parse --git-path MERGE_HEAD)"
+          python3 - <<'PY'
+          import json,re,subprocess
+          from pathlib import Path
+          conflicts=set(subprocess.check_output(['git','diff','--name-only','--diff-filter=U'],text=True).splitlines())
+          assert conflicts <= {'lab/studio.html','lab/owner-work-records.json'},'Unexpected conflict: '+str(conflicts)
+          p=Path('lab/studio.html');s=p.read_text()
+          def resolve(m):
+              left,right=m.group(1).strip(),m.group(2).strip()
+              for value in [left,right]:
+                  assert value.startswith('<script type="module" src="./lab.js?') and value.endswith('"></script>') and '\n' not in value,'Non-version HTML conflict'
+              return right+'\n'
+          s=re.sub(r'^<<<<<<< [^\n]*\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]*\n',resolve,s,flags=re.M|re.S)
+          assert '<<<<<<<' not in s and '>>>>>>>' not in s
+          marker='&viewerActions=20261107-viewer-actions1'
+          needle='<script type="module" src="./lab.js?';assert s.count(needle)==1
+          start=s.index(needle)+len(needle);end=s.index(chr(34),start)
+          if marker not in s[start:end]:s=s[:end]+marker+s[end:]
+          p.write_text(s)
+          own=json.loads(Path('/tmp/viewer-release-evidence/previous-index.json').read_text())
+          record=next(r for r in own['records'] if r['id']=='image-viewer-replace-edit-actions')
+          Path('/tmp/viewer-release-evidence/record.json').write_text(json.dumps(record))
+          Path('lab/owner-work-records.json').write_bytes(subprocess.check_output(['git','show','fa097ff9b1a776e70d097cdf585df204ac803a40:lab/owner-work-records.json']))
+          PY
+          git add lab/studio.html lab/owner-work-records.json
+          test -z "$(git diff --name-only --diff-filter=U)"
+          git worktree add --detach /tmp/viewer-release-baseline fa097ff9b1a776e70d097cdf585df204ac803a40
+      - name: Install the existing pinned browser test dependency
+        run: |
+          npm install --prefix /tmp/viewer-release-test --no-save playwright@1.57.0
+          node /tmp/viewer-release-test/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify the combined source and remaining baseline-only prompt failure
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/viewer-release-test/node_modules/playwright/index.mjs
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os,re,subprocess
+          from pathlib import Path
+          out=Path('/tmp/viewer-release-evidence')
+          def run(label,args,cwd=None,env=None):
+              result=subprocess.run(args,cwd=cwd,env=env or os.environ,capture_output=True,text=True,timeout=180)
+              (out/(label+'.log')).write_text(result.stdout+result.stderr)
+              print(label,'exit',result.returncode)
+              return result
+          baseline=run('baseline-compact',['node','tests/lab-image-prompt-dock-ui.mjs'],cwd='/tmp/viewer-release-baseline')
+          assert baseline.returncode and 'primary Generate label is legible: 15' in baseline.stderr,'Compact failure does not match the prior PR failure'
+          for f in ['lab/lab.js','lab/precision-edit.js','lab/image-viewer-editor.js']:
+              assert run('syntax-'+Path(f).stem,['node','--check',f]).returncode==0
+          unit=['tests/lab-approved-image-ui-contract.test.mjs','tests/lab-precision-edit.test.mjs','tests/lab-image-replacement-intent.test.mjs','tests/lab-image-replacement-composite.test.mjs','tests/lab-image-replacement-backend.test.mjs','tests/lab-image-replacement-draft.test.mjs']
+          assert run('unit',['node','--test',*unit]).returncode==0
+          for f in ['tests/lab-precision-edit-ui.mjs','tests/lab-image-replacement-flow-ui.mjs','tests/lab-image-prompt-paste-ui.mjs','tests/lab-soul-deck-parity-ui.mjs']:
+              assert run(Path(f).stem,['node',f]).returncode==0
+          assert run('retouch-navigation',['node','tests/lab-image-oneclick-ui.mjs'],env={**os.environ,'PV_RETOUCH_NAV_ONLY':'1'}).returncode==0
+          repo=os.environ['GH_REPO']
+          for label,job in [('feature-gallery',128411766212),('main-gallery',128424498826)]:
+              result=run(label,['gh','api','--allow-escape-sequences',f'repos/{repo}/actions/jobs/{job}/logs'])
+              assert result.returncode==0
+              text=re.sub(r'\x1b\[[0-9;]*m','',result.stdout)
+              lines=[re.sub(r'^\ufeff?\d{4}-\d\d-\d\dT[^ ]+ ','',x) for x in text.splitlines()]
+              selected=[]
+              for i,line in enumerate(lines):
+                  if 'Timeout' in line or 'locator.click:' in line:selected.extend(lines[max(0,i-5):i+18])
+              (out/(label+'-excerpt.txt')).write_text('\n'.join(selected))
+          (out/'verified.json').write_text(json.dumps({'base':'fa097ff9b1a776e70d097cdf585df204ac803a40','focusedChecks':'passed','compactBaseline':'same Generate 15px assertion','production':'not_verified'}))
+          PY
+          git diff --check
+          node scripts/owner-work-state.mjs validate
+      - name: Record verified evidence and commit only to the feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f /tmp/viewer-release-evidence/verified.json
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os
+          p=Path('/tmp/viewer-release-evidence/record.json');r=json.loads(p.read_text())
+          r['baselineSha']='fa097ff9b1a776e70d097cdf585df204ac803a40'
+          r['nextAction']='Review normal PR CI after reconciliation, merge PR #915 through the standard merge endpoint, then verify exact production assets. No paid or real-account claim.'
+          r['blockers']=[]
+          r['tests'].append({'label':'Reconciled source verification','result':'passed','scope':'54 unit tests; precision, replacement flow at mobile/desktop, prompt paste, Soul parity and Retouch navigation. No real provider calls.'})
+          r['tests'].append({'label':'Existing release-check failure audit','result':'failed','scope':'Existing main failures retained, not counted as passes. Matching logs cover general Lab/video, header, credit preview, public Studio, queue, first-image, appearance and Fashion. Compact Generate 15px failure reproduced on main. Shared deck mismatches previously reproduced on baseline.'})
+          r['links'].append({'label':'Release blocker log comparison','url':'https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42380043023'})
+          r['links'].append({'label':'Reconciled source tests','url':'https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/actions/runs/'+os.environ['GITHUB_RUN_ID']})
+          r['evidence'].append({'kind':'automated_test','summary':'Targeted checks passed after merging the current Mood update. Broader failure audit preserves failing tests and distinguishes baseline issues.','scope':'Feature branch only','limitations':['Production not deployed or verified yet.','No paid generation performed.']})
+          p.write_text(json.dumps(r))
+          note='\n## Release blocker audit, 2026-11-07\n\n- Integrated current main fa097ff9b1a776e70d097cdf585df204ac803a40, preserving the owner 1K and Mood updates.\n- Existing CI logs compared in run 42380043023. General Lab/video failures have the same eight failing test names on main; header, credit preview, public Studio, queue, first-image, appearance and Fashion assertions also match.\n- Compact prompt Generate-font assertion was separately reproduced on unchanged current main. Shared deck Base-width and Clerk-source assertions were already reproduced on unchanged source. No failing test was disabled or weakened.\n- Combined-source checks passed: 54 focused unit tests; precision editing; desktop/mobile viewer replacement flow; prompt paste; Soul deck parity; Retouch navigation. All provider-free.\n- Production publication remains a separate step. Review the standard PR checks, merge through the normal endpoint, verify the Cloudflare production commit and exact custom-domain asset bytes. No real signed-in or paid-generation verification claimed.\n'
+          with Path('lab/IMAGE-REPLACEMENT-WORK-STATE.md').open('a') as f:f.write(note)
+          PY
+          node scripts/owner-work-state.mjs upsert /tmp/viewer-release-evidence/record.json
+          node scripts/owner-work-state.mjs validate
+          git add lab/owner-work-records.json lab/IMAGE-REPLACEMENT-WORK-STATE.md
+          git rm .github/workflows/viewer-release-audit.yml .github/workflows/viewer-release-finish.yml
+          git diff --cached --check
+          git diff --cached --stat
+          git commit -m 'Reconcile viewer actions with current main and document baseline CI failures'
+          git push origin HEAD:feat/image-viewer-replace-edit-20261107
+          git rev-parse HEAD > /tmp/viewer-release-evidence/source-sha.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: viewer-release-verification
+          path: |
+            /tmp/viewer-release-evidence/*.log
+            /tmp/viewer-release-evidence/*excerpt.txt
+            /tmp/viewer-release-evidence/verified.json
+            /tmp/viewer-release-evidence/source-sha.txt
+            test-results/pv-viewer-*.png
+          retention-days: 2
