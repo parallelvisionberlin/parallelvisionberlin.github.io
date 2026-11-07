@@ -63,3 +63,17 @@ test('Wheel animation settles on pixel-quantized and fractional scroll positions
   assert.ok(Math.abs(context.result.left-end)<=.5,'Final scroll position is reached to pixel precision');
  }
 });
+
+// Owner-approved widening must never silently reposition the original photographic hero.
+test('Wide-panel refinement preserves locked hero crop, editor controls and original archive',()=>{
+ const css=readFileSync(new URL('../lab/beauty-panel-widen-20261107.css',import.meta.url),'utf8');
+ assert.match(source,/beauty-panel-widen-20261107\.css\?v=20261107-panel1/);
+ assert.match(css,/@media\s*\(min-width:\s*1301px\)/);
+ assert.match(css,/grid-template-columns:[^;]+590px/);
+ assert.match(css,/\.beauty-edit-panel\s*\{/);
+ assert.match(css,/\.beauty-looks\s*\{\s*margin-top:/);
+ assert.doesNotMatch(css,/(?:::before|::after|background(?:-image|-size|-position)?\s*:|mask(?:-image)?\s*:|\.beauty-looks-list\s*>\s*button|\.beauty-editorial-heading\s*\{|\.beauty-photo\s*\{)/);
+ const choices=[...source.matchAll(/data-beauty-choice="beauty-(makeup|hair|skin|light|color)"/g)];
+ assert.equal(choices.length,45);
+ assert.equal([...source.matchAll(/data-look="/g)].length,13);
+});

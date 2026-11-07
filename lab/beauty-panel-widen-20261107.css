@@ -1,0 +1,25 @@
+/* ALTER · approved wider Edit Look, 7 Nov 2026.
+   Only the desktop right-hand editor gains width and breathing room.
+   Preserve the existing hero asset, photographic background geometry/crop/fade,
+   upload, left settings, five native tabs, 3×3 choices and archive cards. */
+@media (min-width: 1301px) {
+  .beauty-editor-grid {
+    grid-template-columns: minmax(182px, 17%) minmax(0, 1fr) clamp(460px, 35vw, 590px);
+  }
+
+  .beauty-edit-panel {
+    height: calc(100% + 65px);
+    padding: 17px 18px;
+    gap: 9px;
+    grid-template-rows: 30px 38px minmax(260px, 1fr) 28px 64px 50px;
+  }
+
+  .beauty-edit-heading strong {
+    font-size: clamp(26px, 1.65vw, 29px);
+  }
+
+  /* Keep the existing editorial archive card sizes and place it below Generate. */
+  .beauty-looks {
+    margin-top: 44px;
+  }
+}

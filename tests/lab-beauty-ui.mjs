@@ -117,6 +117,40 @@ try{
    assert.equal(editorial.fullDeck,false,'Archive has true horizontal overflow instead of squeezing six cards');
    if(width>=1440)assert.ok(editorial.titleSize>=70,'Desktop ALTER title has the approved editorial scale');
   }
+  // The wider desktop panel must leave the original photographic hero untouched.
+  if(width>=1366){
+   const review=await page.evaluate(async()=>{
+    const link=document.querySelector('link[href*="beauty-panel-widen-20261107.css"]');
+    if(!link)return null;
+    const snapshot=()=>{
+     const grid=document.querySelector('.beauty-editor-grid');
+     const hero=getComputedStyle(grid,'::before');
+     const rect=el=>{const r=el.getBoundingClientRect();return {x:Math.round(r.x),y:Math.round(r.y),w:Math.round(r.width),h:Math.round(r.height),bottom:Math.round(r.bottom)};};
+     return {grid:rect(grid),photo:rect(document.querySelector('.beauty-photo')),
+       panel:rect(document.querySelector('.beauty-edit-panel')),
+       look:rect(document.querySelector('.beauty-looks')),
+       archiveCard:rect(document.querySelector('#beauty-looks-list [data-look]')),
+       thumb:rect(document.querySelector('#beauty-panel-makeup [data-value="natural"] .beauty-choice-photo')),
+       bg:[hero.backgroundImage,hero.backgroundPosition,hero.backgroundSize,hero.maskImage,hero.opacity],
+       title:rect(document.querySelector('.beauty-editorial-heading h1'))};
+    };
+    const improved=snapshot();link.disabled=true;
+    await new Promise(resolve=>requestAnimationFrame(resolve));
+    const original=snapshot();link.disabled=false;
+    await new Promise(resolve=>requestAnimationFrame(resolve));
+    return {improved,original};
+   });
+   assert.ok(review,'Wider Edit Look stylesheet is loaded');
+   const {improved,original}=review;
+   assert.deepEqual(improved.bg,original.bg,'Hero image, position, size, fade and opacity remain unchanged');
+   assert.deepEqual(improved.grid,original.grid,'Hero background canvas geometry remains unchanged');
+   assert.deepEqual(improved.title,original.title,'Original ALTER heading geometry remains unchanged');
+   assert.equal(improved.archiveCard.h,original.archiveCard.h,'Editorial archive card height stays unchanged');
+   assert.ok(improved.panel.w>=Math.min(590,Math.max(460,width*.35))-1,'Edit Look is deliberately wider');
+   assert.ok(improved.thumb.w>=original.thumb.w+15,'Presets gain at least 15px of photo width');
+   assert.ok(improved.thumb.h>=original.thumb.h+5,'Presets gain photographic height');
+   assert.ok(improved.panel.bottom<=improved.look.y+1,'The bigger editor cannot overlap the archive heading');
+  }
   await page.locator('.beauty-breadcrumb button').click({trial:true});
   assert.equal(await page.locator('link[rel="icon"]').getAttribute('href'),'./branding/pv-mark.png');
   await page.locator('#beauty-generate').click({trial:true});
