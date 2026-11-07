@@ -6,8 +6,8 @@ import {VIDEO_MODELS,engineFor} from '../lab/video-models.js';
 const fail=(status,message)=>{throw Object.assign(new Error(message),{status});};
 const config=(mode,extra={})=>klingHfParameters({type:'video',engine:'klinghf',mode,prompt:'Slow camera move',duration:10,resolution:'1080p',aspectRatio:mode==='start'?'auto':'16:9',audio:false,seed:null,...extra},{fail});
 test('Kling Pro route and request never invent resolution or Soul Elements',()=>{
-  assert.equal(engineFor({model:KLING_HF_PRO.start}),'klinghf');
-  assert.equal(VIDEO_MODELS.klinghf.maxSeconds,15);
+  assert.equal(engineFor({model:KLING_HF_PRO.start}),'kling3');
+  assert.equal(VIDEO_MODELS.kling3.maxSeconds,15);
   const v=klingHfInput(config('start'),{imageUrl:'https://example.com/a.png',lastImageUrl:'https://example.com/b.png'});
   assert.equal(v.image_url,'https://example.com/a.png');
   assert.equal(v.last_image_url,'https://example.com/b.png');
