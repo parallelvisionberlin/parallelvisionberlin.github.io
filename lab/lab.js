@@ -15,8 +15,8 @@ import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount,accountBootstrapMessage} from './native-account.js?v=20261103-browser-bootstrap1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
-import {createPrecisionEditor} from './precision-edit.js?v=20261107-viewer-actions1';
-import {createImageViewerEditor} from './image-viewer-editor.js?v=20261107-viewer-actions1';
+import {createPrecisionEditor} from './precision-edit.js?v=20261107-inline-editor2';
+import {createImageViewerEditor} from './image-viewer-editor.js?v=20261107-inline-editor2';
 import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261102-local-currency';
 import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&creditPurchaseFlow=20261104v1&partnerMenu=20261027-bellini1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1&cookies=20261101-v1&conversionFlow=20261102-1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1&creditPurchaseFlow=20261104v1';
@@ -1250,7 +1250,7 @@ const precisionEditor=createPrecisionEditor({host:$('app'),api,assetBlob,uploadA
   owner:()=>owner,customer:()=>!ownerAccount,falReady:()=>!!config.falEnabled&&(!customerMode||customerGenerationReady),magicReady:()=>!!config.falEnabled&&(!customerMode||customerGenerationReady),
   onExit:()=>{if(!imageViewerEditor.close())returnToImageFromRetouch();},
   onJob:job=>{surfaceHistoryJob(job);refreshHistorySoon();}});
-const imageViewerEditor=createImageViewerEditor({editor:precisionEditor,onReplace:stageViewerReplacement,notify});
+const imageViewerEditor=createImageViewerEditor({editor:precisionEditor,onPrepare:stageViewerReplacement,onResult:job=>openVideo(job,{scroll:false,detail:true}),notify});
 // Retouch remains available as a standalone route. Contextual actions stay in the viewer.
 let lastNativeStudioTab='';
 function syncStudioNav(){
@@ -4549,45 +4549,85 @@ $('image-detail-replace').onclick=()=>void openViewerEditor('replace');
 $('image-detail-edit').onclick=()=>void openViewerEditor('edit');
 $('image-detail-edit-area').onclick=()=>void openViewerEditor('edit');
 async function stageViewerReplacement(selection){
-  const requestEpoch=epoch,model=imageEngine,draftKey=replacementDraftKey();
-  const current=()=>owner&&epoch===requestEpoch&&imageEngine===model&&selection.isCurrent()&&selection.selectionCurrent()&&draftKey===replacementDraftKey();
-  if(!current()||busy||imageSubmissionPending)throw Error('Finish the current Image action before continuing.');
-  if(!config.imageReplacementEnabled)throw Error('Replacement is unavailable. Refresh Image and try again.');
+  // A private viewer draft: do not clear or overwrite the main Image composer.
+  const requestEpoch=epoch,model=imageEngine,provider=currentProvider(),resolution=$('resolution').value;
+  const check=()=>{if(!owner||epoch!==requestEpoch||imageEngine!==model||!selection.isCurrent()||!selection.selectionCurrent())
+    throw Error('The image or selection changed. Nothing further was submitted.');};
+  check();
+  if(busy||imageSubmissionPending)throw Error('Finish the current Image action first.');
+  if(!config.imageReplacementEnabled)throw Error('Reference replacement is unavailable.');
   if(!['seedream','seedreamlite','flash','gemini','gemini21','qwen3','krea3'].includes(model))
-    throw Error('Choose Seedream, Nano Banana, Qwen or Krea in Image for reference replacement. Your model has not been changed.');
-  if(tool!=='image')throw Error('Return to Image Studio and open this image there to prepare a replacement.');
-  if((references.length||file||$('prompt').value.trim())&&!confirm('Use this selection and reference in place of the current unsaved Image draft?'))return false;
-  const scopes={person:'identity',outfit:'outfit',object:'object'};
-  if(!scopes[selection.scope])throw Error('Choose Person, Outfit or Object.');
+    throw Error('This model does not support reference replacement. Choose Seedream, Nano Banana, Qwen or Krea in Image.');
+  if(tool!=='image'||!customerImageProviderReady())throw Error('Open this image in Image Studio with an available model.');
+  if(customerMode&&(!customerGenerationReady||customerCreditBalance<=0))throw Error('Add credits before generating. Your selection is saved.');
+  const roles={person:'identity',outfit:'outfit',object:'object'};
+  if(!roles[selection.scope])throw Error('Choose the reference type.');
   const proposed=[{file:selection.file},{file:selection.reference}];
   const issue=modelImageInputIssue(model,proposed);if(issue)throw Error(issue);
-  const choices=[...$('ratio').options].map(option=>option.value),ratio=selection.width/selection.height;
+  const ratio=selection.width/selection.height,choices=[...$('ratio').options].map(o=>o.value);
   const crop=choices.includes('auto')?'auto':choices.find(value=>{const [w,h]=value.split(':').map(Number);return w>0&&h>0&&Math.abs(w/h/ratio-1)<=.01;});
-  if(!crop)throw Error('This model cannot preserve this photo crop. Choose a model with Auto aspect ratio.');
-  const prepared=[];let installed=false;
+  if(!crop)throw Error('This model cannot preserve this crop. Choose a model with Auto aspect ratio.');
+  const inspected=[];
   try{
-    for(const item of proposed){prepared.push(await inspectImage(item.file));if(!current())throw Error('The Image session changed. Nothing was submitted.');}
-    if(prepared[0].file!==selection.file)throw Error('The original must remain unchanged for lossless replacement.');
-    const originalId=selection.id||await uploadAsset(selection.file);
-    if(!current())throw Error('The Image session changed. Nothing was submitted.');
-    const referenceId=await uploadAsset(prepared[1].file);
-    if(!current())throw Error('The Image session changed. Nothing was submitted.');
-    const maskSourceId=await uploadAsset(new File([selection.mask],'replacement-selection.png',{type:'image/png'}));
-    if(!current())throw Error('The Image session changed. Nothing was submitted.');
-    // All decoding and uploads completed before replacing the previous draft.
-    clearMedia();moodUI.clear(true);imageReferenceMode='base';
-    prepared[0].id=originalId;prepared[0].role='base';prepared[0].nonBaseRole='none';
-    prepared[1].id=referenceId;prepared[1].role=scopes[selection.scope];
-    for(const ref of prepared){ref.note='';ref.target='';}
-    references=prepared;installed=true;imageRevision++;
-    $('prompt').value='Replace the selected '+selection.scope+' using the provided reference.'+(selection.direction?' '+selection.direction:'');
-    $('ratio').value=crop;imageRatioExplicit=crop!=='auto';
-    renderReferences();refreshInputPreview();
-    imageReplacement.restore({key:replacementDraftKey(),replacement:{version:1,originalSourceId:originalId,maskSourceId,scope:selection.scope,referenceSourceIds:[referenceId]}});
-    customerImagePricing?.reset();update();
-    notify('Selection and reference ready. Review the credit price and press Generate. Nothing has been submitted.');
-    return true;
-  }finally{if(!installed)for(const ref of prepared)releaseReference(ref);}
+    for(const item of proposed){inspected.push(await inspectImage(item.file));check();}
+    if(inspected[0].file!==selection.file)throw Error('The original must remain unchanged for lossless replacement.');
+    const originalId=selection.id||await uploadAsset(selection.file);check();
+    const referenceId=await uploadAsset(inspected[1].file);check();
+    const maskSourceId=await uploadAsset(new File([selection.mask],'replacement-selection.png',{type:'image/png'}));check();
+    const selected={type:'image',engine:model,processing:'normal',referenceMode:'base',mode:'image',
+      prompt:'Replace the selected '+selection.scope+' using the provided reference.'+(selection.direction?' '+selection.direction:''),
+      resolution,aspectRatio:crop,outputFormat:'png',exactPrompt:false,
+      referenceRoles:[{name:'Original image',role:'base',note:'',target:''},{name:'Replacement reference',role:roles[selection.scope],note:'',target:''}],
+      replacement:{version:1,originalSourceId:originalId,maskSourceId,scope:selection.scope,referenceSourceIds:[referenceId]}};
+    const inputs={sourceId:null,lastSourceId:null,referenceSourceIds:[originalId,referenceId]};
+    const chosen=inspected.map((item,i)=>({file:item.file,id:inputs.referenceSourceIds[i],width:item.width,height:item.height}));
+    const priced=await fetchCustomerImagePrice({settings:selected,count:1,chosen,sourceMode:false,provider,disableAutoMoodReferences:true},check);check();
+    if(!Number.isSafeInteger(priced?.credits)||priced.credits<1||!Number.isFinite(priced.expiresAt)||priced.expiresAt<=Date.now()+15000)
+      throw Error('A valid price could not be confirmed. Nothing was charged.');
+    const bound=priced.quotes?.[0];
+    if(provider==='spicy'&&(!bound||bound.settings?.prompt!==selected.prompt||JSON.stringify(bound.settings?.replacement)!==JSON.stringify(selected.replacement)))
+      throw Error('The quote does not match this edit. Nothing was charged.');
+    let attempted=false;
+    const record=job=>{if(!owner||epoch!==requestEpoch)return;if(activeStates.has(job.status))setActive(job);surfaceHistoryJob(job);refreshHistorySoon();};
+    return {expiresAt:priced.expiresAt,label:!customerMode&&Number.isFinite(bound?.estimatedUsd)?money(bound.estimatedUsd):(priced.kind==='server-estimate'?'~':'')+priced.credits+' credits',
+      wasSubmitted:()=>attempted,
+      submit:async()=>{
+        check();
+        if(attempted)throw Error('This generation was already sent. Check Queue.');
+        if(Date.now()+5000>=priced.expiresAt)throw Error('The price expired. Update the edit to check it again.');
+        if(customerMode&&priced.credits>customerCreditBalance)throw Error('Not enough credits. Add credits before generating.');
+        if(provider==='spicy'&&activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='spicy').length>=limitFor('image'))
+          throw Error('Your image queue is full. Try once a generation finishes.');
+        if(provider==='gemini'&&activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)==='gemini')&&!confirm('An earlier Nano Banana request is unconfirmed. This is a new paid generation. Continue?'))throw Error('Cancelled. Nothing submitted.');
+        attempted=true;
+        let response;
+        try{
+          response=provider==='spicy'?await api('/api/jobs',{method:'POST',body:{quoteId:bound.id,confirm:true}}):
+            provider==='fal'?await api('/api/fal/krea-3',{method:'POST',body:{...inputs,settings:selected}}):
+            await api('/api/gemini/jobs',{method:'POST',body:{...inputs,count:1,settings:selected,confirmNewCharge:true}});
+        }catch(error){throw Error('Generation was not confirmed. Check Queue before retrying. '+error.message);}
+        const job=response?.job||response?.jobs?.[0];
+        if(!job?.id)throw Error('No job was confirmed. Check Queue before retrying.');
+        record(job);return job;
+      },
+      result:async(initial,visible)=>{
+        let job=initial;
+        for(let n=0;n<110&&visible()&&owner&&epoch===requestEpoch;n++){
+          if(job.status==='completed'){
+            const final=await imageReplacement.finalize(job);
+            if(!owner||epoch!==requestEpoch)return null;
+            record(final);return final;
+          }
+          if(['failed','uncertain','resolved'].includes(job.status))throw Error(job.error||'The edit did not complete. Check Queue before retrying.');
+          await new Promise(resolve=>setTimeout(resolve,3000));
+          if(!visible()||!owner||epoch!==requestEpoch)return null;
+          const answer=await api('/api/jobs/'+encodeURIComponent(job.id));
+          if(!answer?.job)throw Error('The edit remains in Queue. Its status could not be read.');
+          job=answer.job;
+        }
+        return null;
+      }};
+  }finally{for(const item of inspected)releaseReference(item);}
 }
 $('image-detail-fix-eyes').onclick=()=>executeImageDetail(async job=>{
   const photo=await assetFile(job.outputId,'eye-repair-original');
