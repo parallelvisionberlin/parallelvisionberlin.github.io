@@ -28,7 +28,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify}) {
   const moves = [], labels = new Map();
   let active=false, opening=false, reference=null, referenceURL=null, sourceId=null, revision=0;
   let quoteRevision=0, quote=null, quoteTimer=null, quoting=false, submitting=false, uncertain=false, returnFocus=null;
-  let lastResult=null;
+  let lastResult=null, referenceRevision=0;
   function move(node, parent) { const marker=document.createComment('viewer control home'); node.before(marker); moves.push([node,marker]); parent.append(node); }
   function rename(node,text) { labels.set(node,node.textContent); node.textContent=text; }
   function mount(action) {
@@ -75,22 +75,22 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify}) {
     finally { if(current()){quoting=false;refresh();} }
   }
   function clearReference() {
-    reference=null; input.value=''; preview.hidden=true; preview.removeAttribute('src');
+    ++referenceRevision;reference=null; input.value=''; preview.hidden=true; preview.removeAttribute('src');
     if(referenceURL)URL.revokeObjectURL(referenceURL); referenceURL=null;
   }
   input.addEventListener('change',async()=>{
-    const candidate=input.files?.[0], ticket=revision;
+    const candidate=input.files?.[0], ticket=revision, load=++referenceRevision;
     if(!candidate||submitting)return;
     try {
       if(!['image/jpeg','image/png','image/webp'].includes(candidate.type)||!candidate.size||candidate.size>20*1024*1024)
         throw Error('Choose a JPG, PNG or WebP reference up to 20 MB.');
       const bitmap=await createImageBitmap(candidate);
       const valid=Math.min(bitmap.width,bitmap.height)>=240&&Math.max(bitmap.width,bitmap.height)<=8192; bitmap.close();
-      if(!active||ticket!==revision)return;
+      if(!active||ticket!==revision||load!==referenceRevision)return;
       if(!valid)throw Error('Use a reference from 240 to 8192 pixels per side.');
       clearReference(); reference=candidate; referenceURL=URL.createObjectURL(candidate); preview.src=referenceURL;preview.hidden=false;
       editor.setExternalMode(true); invalidate();
-    } catch(error) { if(ticket===revision)status.textContent=error.message; }
+    } catch(error) { if(ticket===revision&&load===referenceRevision)status.textContent=error.message; }
     refresh();
   });
   remove.addEventListener('click',()=>{if(submitting)return;clearReference();editor.setExternalMode(false);invalidate();});

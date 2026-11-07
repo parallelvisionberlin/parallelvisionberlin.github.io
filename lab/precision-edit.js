@@ -12,6 +12,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   let externalMode=false;
   let base=null,mode='magic',drawing=false,lastPoint=null,taskBusy=false,pending=null,quoteBusy=false,quoteFailure=false,quoteTimer=null;
   let selected=false,resultBlob=null,resultBitmap=null,disposed=false,workingId=null,session=0;
+  let resultJob=null;
   let resultFormat='png',lastResultSourceId=null,zoom=1,panX=0,panY=0,panDrag=null,spaceHeld=false;
   let queueRevision=0,editEpoch=0,latestJobId=null;
   const pendingPolls=new Map();
@@ -110,6 +111,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     // A previous quote is bound to a specific mask PNG. Never allow it to
     // survive further selection edits, brush strokes or undo.
     pending=null;quoteFailure=false;clearTimeout(quoteTimer);quoteTimer=null;refreshButtons();
+    view.dispatchEvent(new Event('precision-selection-change'));
   };
   function hasSelection(){
     if(!mask.width||!mask.height)return false;
@@ -200,7 +202,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     // Alpha-only selection becomes a high-visibility PV yellow overlay.
     oc.globalCompositeOperation='source-over';
     oc.drawImage(mask,0,0);
-    oc.globalCompositeOperation='source-in';oc.fillStyle='rgba(214,255,0,.58)';
+    oc.globalCompositeOperation='source-in';oc.fillStyle=view.closest('#image-lightbox')?'rgba(175,113,203,.38)':'rgba(214,255,0,.58)';
     oc.fillRect(0,0,overlay.width,overlay.height);oc.globalCompositeOperation='source-over';
   }
   function saveUndo(){
@@ -247,6 +249,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     editEpoch++;maskCtx.clearRect(0,0,mask.width,mask.height);
     undoStack.length=0;selected=false;pending=null;quoteFailure=false;clearTimeout(quoteTimer);quoteTimer=null;
     renderMask();refreshButtons();
+    view.dispatchEvent(new Event('precision-selection-change'));
   }
   async function ensureBaseId(){
     if(!base)throw new Error('Add a base photograph first.');
@@ -313,7 +316,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     resetZoom();
     maskCtx.clearRect(0,0,w,h);resetSelection();workingId=null;resultBlob=null;
     if(resultBitmap){resultBitmap.close();resultBitmap=null;}
-    lastResultSourceId=null;
+    lastResultSourceId=null;resultJob=null;
     resultCanvas.hidden=true;$('precision-output-empty').hidden=false;
     $('precision-continue').hidden=true;$('precision-continue').disabled=true;
     $('precision-empty-title').textContent='Ready to change one detail.';
@@ -448,7 +451,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
           const output=await assetBlob(final.outputId);
           if(sourceEpoch!==editEpoch||revision!==queueRevision)return;
           resultBlob=output;resultFormat=final.settings?.precisionOutputFormat==='jpeg'?'jpeg':'png';
-          lastResultSourceId=final.outputId;
+          lastResultSourceId=final.outputId;resultJob=final;
           if(resultBitmap)resultBitmap.close();
           resultBitmap=await createImageBitmap(output);showResult(resultBitmap);
           setStatus(resultFormat==='jpeg'?
@@ -617,7 +620,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-compare-control').hidden=true;$('precision-compare-idle').hidden=false;
     $('precision-download').hidden=true;
     $('precision-continue').hidden=true;$('precision-continue').disabled=true;
-    resultFormat='png';lastResultSourceId=null;
+    resultFormat='png';lastResultSourceId=null;resultJob=null;
     $('precision-source-meta').textContent='DROP IMAGE';
     $('precision-result-label').textContent='AWAITING EDIT';
     $('precision-empty-title').textContent='See what you can change.';
@@ -795,7 +798,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   // No source is opened automatically in the normal gallery. This workspace is opt-in.
   reset();
-  return {open,close,isOpen,setMode:selectMode,setExternalMode,selectionSnapshot,hasSelection:()=>selected,isBusy:()=>taskBusy,preview:()=>{
+  return {open,close,isOpen,result:()=>resultJob,setMode:selectMode,setExternalMode,selectionSnapshot,hasSelection:()=>selected,isBusy:()=>taskBusy,preview:()=>{
     if(owner())return;
     host.classList.add('is-precision-active');view.hidden=false;
     refreshButtons();syncPreviewFit();settleRetouchScroll();

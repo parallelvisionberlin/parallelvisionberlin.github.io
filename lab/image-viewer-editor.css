@@ -27,18 +27,18 @@
 #image-lightbox.is-viewer-editing .precision-tools #precision-undo,#image-lightbox.is-viewer-editing .precision-tools #precision-clear-mask{padding-inline:8px;border-color:transparent;background:transparent;font-size:11px}
 #image-lightbox.is-viewer-editing #precision-return{min-width:32px;width:32px;min-height:34px;padding:4px;border:0;background:transparent;color:#ddd;font-size:23px;font-weight:400;line-height:1;margin-left:2px}
 #image-lightbox.is-viewer-editing .precision-board{grid-column:1;grid-row:2;display:flex;min-width:0;min-height:0;height:100%;margin:0;gap:0}
-#image-lightbox.is-viewer-editing .precision-input-panel{width:100%;border:0;border-radius:0;background:#101112}
+#image-lightbox.is-viewer-editing .precision-input-panel{width:100%;min-height:0;border:0;border-radius:0;background:#101112}
 #image-lightbox.is-viewer-editing .precision-board>.precision-panel:not(.precision-input-panel){display:none!important}
 #image-lightbox.is-viewer-editing .precision-source-holder{padding:10px;min-height:0;background:#101112}
 #image-lightbox.is-viewer-editing .precision-stage{width:auto;max-width:100%;max-height:100%}
-#image-lightbox.is-viewer-editing .precision-deck{grid-column:2;grid-row:2;display:flex;flex-direction:column;gap:16px;align-self:stretch;min-width:0;width:100%;height:100%;margin:0;padding:22px 16px;overflow-y:auto;border:0;border-left:1px solid #2b2c2d;border-radius:0;background:#121314;box-shadow:none}
+#image-lightbox.is-viewer-editing .precision-deck{grid-column:2;grid-row:2;display:flex;flex-direction:column;align-items:stretch;gap:16px;align-self:stretch;min-width:0;width:100%;height:100%;margin:0;padding:22px 16px;overflow-y:auto;border:0;border-left:1px solid #2b2c2d;border-radius:0;background:#121314;box-shadow:none}
 #image-lightbox.is-viewer-editing .precision-deck-copy{width:100%;min-width:0}
 #image-lightbox.is-viewer-editing .precision-deck-copy>label{display:block;margin:0 0 12px;font-size:13px;font-weight:650;line-height:1.4;letter-spacing:0;text-transform:none;color:#eee}
 #image-lightbox.is-viewer-editing #precision-prompt{width:100%;min-height:118px;max-height:220px;padding:13px;box-sizing:border-box;resize:vertical;border:1px solid #3b3c3e;border-radius:10px;background:#1c1d1e;color:#eee;font:400 13px/1.5 'DM Sans',sans-serif;outline:none}
 #image-lightbox.is-viewer-editing #precision-prompt:focus{border-color:#737578}
-#image-lightbox.is-viewer-editing .precision-bottom{display:block;margin:0;padding:0;border:0}
-#image-lightbox.is-viewer-editing #precision-generate,#image-lightbox #viewer-replacement-continue{display:block;min-height:46px;width:100%;margin:0;padding:12px 8px;border:1px solid #eeeee8;border-radius:9px;background:#eeeee8;color:#131415;font:650 13px/1.3 'DM Sans',sans-serif;box-shadow:none}
-#image-lightbox.is-viewer-editing #precision-generate:disabled,#image-lightbox #viewer-replacement-continue:disabled{background:#393b3c3c;border-color:#393b3c;color:#a4a6a8;opacity:1}
+#image-lightbox.is-viewer-editing .precision-bottom{display:block;margin:0;padding:0;border:0;width:100%;max-width:none}
+#image-lightbox.is-viewer-editing #precision-generate,#image-lightbox #viewer-replacement-continue{display:block;min-height:46px;width:100%;max-width:none;margin:0;padding:12px 8px;border:1px solid #eeeee8;border-radius:9px;background:#eeeee8;color:#131415;font:650 13px/1.3 'DM Sans',sans-serif;box-shadow:none}
+#image-lightbox.is-viewer-editing #precision-generate:disabled,#image-lightbox #viewer-replacement-continue:disabled{background:#393b3c;border-color:#393b3c;color:#a4a6a8;opacity:1}
 #image-lightbox.is-viewer-editing .has-viewer-reference .precision-bottom{display:none!important}
 #image-lightbox.is-viewer-editing .has-viewer-reference .precision-deck-meta{display:none!important}
 #image-lightbox.is-viewer-editing .precision-deck-meta{margin:0;padding:0;border:0;display:flex;flex-direction:column;align-items:stretch;gap:10px}
@@ -48,7 +48,7 @@
 #image-lightbox.is-viewer-editing #precision-zoom-value{display:none}
 #image-lightbox.is-viewer-editing .precision-zoom-controls button{font-size:10px;min-height:27px;min-width:27px;padding:4px 6px}
 .viewer-replacement-fields[hidden],.viewer-edit-options[hidden],#viewer-replacement-continue[hidden],.viewer-reference-preview[hidden],.viewer-reference-remove[hidden],.viewer-reference-kind[hidden]{display:none!important}
-.viewer-replacement-fields{display:flex;flex-direction:column;gap:14px;font-size:12px}
+.viewer-replacement-fields{width:100%;max-width:none;display:flex;flex-direction:column;gap:14px;font-size:12px}
 .viewer-reference-row{display:flex;align-items:stretch;gap:8px;position:relative;min-width:0}
 .viewer-reference-preview{width:62px;height:76px;object-fit:cover;border:1px solid #3b3c3d;border-radius:9px;flex:none}
 .viewer-reference-picker{display:flex;align-items:center;justify-content:center;flex:1;position:relative;min-width:0;min-height:62px;padding:12px 8px;border:1px solid #363839;border-radius:9px;background:#171819;color:#e8e8e5;cursor:pointer}
@@ -72,17 +72,18 @@
  #image-lightbox.is-viewer-editing .precision-tools button{padding:8px}
 }
 @media(max-width:760px){
+ #image-lightbox.is-viewer-editing>#image-lightbox-close{display:none!important}
  #image-lightbox.is-viewer-editing .image-detail-layout{display:flex!important;flex-direction:column;overflow-y:auto;height:100%;min-height:0}
  #image-lightbox.is-viewer-editing .image-detail-media{flex:none;overflow:visible;height:auto;min-height:0}
  #image-lightbox.is-viewer-editing #precision-workspace{display:flex!important;flex-direction:column;height:auto;min-height:0;overflow:visible}
  #image-lightbox.is-viewer-editing .precision-tools{order:0;min-height:52px;gap:5px;flex-wrap:wrap;padding:9px}
  #image-lightbox.is-viewer-editing .viewer-editor-title{font-size:14px}
  #image-lightbox.is-viewer-editing .precision-tool-buttons{gap:3px;flex-wrap:nowrap}
- #image-lightbox.is-viewer-editing .precision-tools button{font-size:10px;padding:7px;min-height:31px}
+ #image-lightbox.is-viewer-editing .precision-tools button{font-size:12px;padding:7px;min-height:34px}
  #image-lightbox.is-viewer-editing .precision-tools #precision-undo{display:none}
  #image-lightbox.is-viewer-editing .precision-tools #precision-clear-mask{font-size:10px;padding:7px 3px}
  #image-lightbox.is-viewer-editing #precision-return{font-size:21px;width:26px;min-width:26px;margin:0}
- #image-lightbox.is-viewer-editing .precision-board{order:1;flex:none;height:clamp(220px,46dvh,480px);min-height:220px}
+ #image-lightbox.is-viewer-editing .precision-board{order:1;flex:none;height:auto;min-height:0;max-height:52dvh}
  #image-lightbox.is-viewer-editing #precision-source-canvas{max-height:calc(46dvh - 20px)}
  #image-lightbox.is-viewer-editing .precision-deck{order:2;flex:none;height:auto;overflow:visible;padding:16px;border-left:0;border-top:1px solid #2b2c2d;gap:12px}
  #image-lightbox.is-viewer-editing #precision-prompt{min-height:88px}

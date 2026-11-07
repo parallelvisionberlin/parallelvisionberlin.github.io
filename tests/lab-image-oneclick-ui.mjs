@@ -306,7 +306,7 @@ try{
   await x.page.locator('#image-detail-edit-area').click();
   await x.page.waitForFunction(()=>document.getElementById('image-lightbox').classList.contains('is-viewer-editing')&&
     !document.getElementById('precision-source-holder').hidden);
-  assert.equal(await x.page.locator('#image-lightbox > #precision-workspace').count(),1,'Reuse the existing editor inside the viewer');
+  assert.equal(await x.page.locator('.image-detail-media > #precision-workspace').count(),1,'Reuse the existing editor inside the viewer');
   assert.equal(await x.page.locator('#precision-tool-brush').getAttribute('aria-pressed'),'true');
   assert.equal(x.page.url(),viewerURL,'Edit does not navigate away');
   assert.match(await x.page.locator('#precision-source-meta').textContent(),/viewer-original/);
@@ -317,7 +317,7 @@ try{
   await x.page.waitForFunction(()=>document.getElementById('image-lightbox').open&&
     !document.getElementById('image-lightbox').classList.contains('is-viewer-editing'));
   assert.equal(await x.page.locator('#image-detail-edit').isVisible(),true,'Back restores the same viewer');
-  assert.equal(await x.page.locator('#image-lightbox > #precision-workspace').count(),0,'Restore the standalone editor on exit');
+  assert.equal(await x.page.locator('.image-detail-media > #precision-workspace').count(),0,'Restore the standalone editor on exit');
   await x.page.click('#image-lightbox-close');
   assert.equal(x.page.url(),viewerURL);
   ok('Completed image opens the contextual editor and returns safely without uploading or paying');
