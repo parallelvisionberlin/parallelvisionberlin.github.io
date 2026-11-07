@@ -25,11 +25,16 @@ export function viewerLibraryEntries(items,kindId,tab='saved'){
   }).filter(item=>item.refs.length);
 }
 export async function loadViewerReference(item,kindId,{read,limit,isCurrent,direction=''}){
-  const kind=replacementKind(kindId);
+  const kind=replacementKind(kindId==='face'?'person':kindId);
   if(item?.category!==kind.category)throw Error('Choose a matching saved reference.');
   const capacity=Math.max(0,limit-1); // The original photo always occupies the first slot.
-  const indices=elementAttachmentIndices(item,direction,capacity);
-  if(!indices.length)throw Error('This model has no space for a replacement reference.');
+  // Face uses identity photographs, never silently uses body notes as a physique edit.
+  // Limited models may use a smaller disclosed facial subset; full person still
+  // requires the complete approved Character capacity.
+  const indices=kindId==='face'
+    ?item.refs.map((ref,i)=>ref?.id&&ref.role!=='body'?i:null).filter(i=>i!==null).slice(0,capacity)
+    :elementAttachmentIndices(item,direction,capacity);
+  if(!indices.length)throw Error('This model has no compatible identity reference for a face replacement.');
   const refs=[];
   // Bounded sequential reads: no burst of eight full-size private image downloads.
   for(const i of indices){
