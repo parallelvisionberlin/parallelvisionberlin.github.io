@@ -207,56 +207,56 @@ export const beautyLookCatalog={
       "id": "daylight",
       "label": "Daylight",
       "instruction": "Soft natural daylight with believable falloff.",
-      "image": "./visuals/beauty/atelier/editorial.webp",
+      "image": "./visuals/beauty/atelier/alter-light-daylight-20261107.webp",
       "preview": ""
     },
     {
       "id": "softbox",
       "label": "Soft studio",
       "instruction": "Large soft studio lighting with gentle shadows.",
-      "image": "./visuals/beauty/atelier/hero.webp",
+      "image": "./visuals/beauty/atelier/alter-light-softbox-20261107.webp",
       "preview": ""
     },
     {
       "id": "flash",
       "label": "Direct flash",
       "instruction": "Direct on-camera flash with hard falloff and natural photographic contrast.",
-      "image": "./visuals/beauty/atelier/beauty.webp",
+      "image": "./visuals/beauty/atelier/alter-light-flash-20261107.webp",
       "preview": ""
     },
     {
       "id": "side",
       "label": "Side light",
       "instruction": "Directional side lighting, sculpted shadows and controlled highlights.",
-      "image": "./visuals/beauty/atelier/hero.webp",
+      "image": "./visuals/beauty/atelier/alter-light-side-20261107.webp",
       "preview": ""
     },
     {
       "id": "low-key",
       "label": "Low key",
       "instruction": "Low-key editorial lighting, deep shadows and restrained highlights.",
-      "image": "./visuals/beauty/atelier/night.webp",
+      "image": "./visuals/beauty/atelier/alter-light-low-key-20261107.webp",
       "preview": ""
     },
     {
       "id": "window",
       "label": "Window",
       "instruction": "Directional window light with soft falloff and believable shadows.",
-      "image": "./visuals/beauty/atelier/beauty.webp",
+      "image": "./visuals/beauty/atelier/alter-light-window-20261107.webp",
       "preview": ""
     },
     {
       "id": "rim",
       "label": "Rim light",
       "instruction": "A restrained rim light defining the subject against the existing background; retain natural facial detail.",
-      "image": "./visuals/beauty/atelier/night.webp",
+      "image": "./visuals/beauty/atelier/alter-light-rim-20261107.webp",
       "preview": ""
     },
     {
       "id": "high-key",
       "label": "High key",
       "instruction": "Bright high-key editorial lighting with retained highlight detail, natural skin tone and realistic texture.",
-      "image": "./visuals/beauty/atelier/editorial.webp",
+      "image": "./visuals/beauty/atelier/alter-light-high-key-20261107.webp",
       "preview": ""
     }
   ],
@@ -272,56 +272,56 @@ export const beautyLookCatalog={
       "id": "neutral",
       "label": "Neutral",
       "instruction": "Neutral photographic colour balance and faithful skin tones.",
-      "image": "./visuals/beauty/atelier/hero.webp",
+      "image": "./visuals/beauty/atelier/alter-color-neutral-20261107.webp",
       "preview": ""
     },
     {
       "id": "warm",
       "label": "Warm",
       "instruction": "Restrained warm colour grading, keeping skin colour believable.",
-      "image": "./visuals/beauty/atelier/hero.webp",
+      "image": "./visuals/beauty/atelier/alter-color-warm-20261107.webp",
       "preview": ""
     },
     {
       "id": "cool",
       "label": "Cool",
       "instruction": "Restrained cool colour grading, preserving natural skin tone.",
-      "image": "./visuals/beauty/atelier/hero.webp",
+      "image": "./visuals/beauty/atelier/alter-color-cool-20261107.webp",
       "preview": ""
     },
     {
       "id": "mono",
       "label": "Monochrome",
       "instruction": "Photographic black-and-white tonal treatment with nuanced skin texture.",
-      "image": "./visuals/beauty/atelier/film.webp",
+      "image": "./visuals/beauty/atelier/alter-color-mono-20261107.webp",
       "preview": ""
     },
     {
       "id": "film",
       "label": "Film tone",
       "instruction": "Subtle analog film colour and fine organic grain; no synthetic glow.",
-      "image": "./visuals/beauty/atelier/editorial.webp",
+      "image": "./visuals/beauty/atelier/alter-color-film-20261107.webp",
       "preview": ""
     },
     {
       "id": "muted",
       "label": "Muted",
       "instruction": "Muted editorial colour, restrained saturation and faithful skin tones.",
-      "image": "./visuals/beauty/atelier/fashion.webp",
+      "image": "./visuals/beauty/atelier/alter-color-muted-20261107.webp",
       "preview": ""
     },
     {
       "id": "contrast",
       "label": "Rich contrast",
       "instruction": "A rich photographic contrast treatment with preserved skin detail and controlled highlights.",
-      "image": "./visuals/beauty/atelier/night.webp",
+      "image": "./visuals/beauty/atelier/alter-color-contrast-20261107.webp",
       "preview": ""
     },
     {
       "id": "soft-film",
       "label": "Soft film",
       "instruction": "Soft colour-negative film tonality with gentle contrast and fine organic grain; no artificial glow.",
-      "image": "./visuals/beauty/atelier/editorial.webp",
+      "image": "./visuals/beauty/atelier/alter-color-soft-film-20261107.webp",
       "preview": ""
     }
   ]
