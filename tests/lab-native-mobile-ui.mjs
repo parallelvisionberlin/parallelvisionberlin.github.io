@@ -91,7 +91,11 @@ for(const [width,height] of [[390,730],[320,590],[768,900]]){
  });
  await page.getByRole('button',{name:'Select Dream Blur',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('#composer-moods-summary')?.textContent==='Dream Blur');
- assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k');
+ assert.equal(await page.locator('#image-composer-resolution').inputValue(),'1k',
+   'Owner Seedream keeps the 1K deck default when selecting a Mood');
+ await page.click('#mobile-advanced');
+ await page.locator('#image-composer-resolution').selectOption('2k');
+ await page.click('#mobile-advanced');
  assert.equal(await page.locator('#image-composer-generate').isEnabled(),true,
    'Dream Blur References Only must not exceed prompt budget before a paid click');
  assert.doesNotMatch((await page.locator('#reference-guidance-warning').textContent())||'',
@@ -104,6 +108,8 @@ for(const [width,height] of [[390,730],[320,590],[768,900]]){
    select.dispatchEvent(new Event('change',{bubbles:true}));
  });
  await page.getByRole('button',{name:'Select Hong Kong Nights',exact:true}).click();
+ assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
+   'Owner manual 2K selection survives switching Moods');
  await page.locator('#composer-moods-intensity').fill('80');
  assert.equal(await page.locator('#image-composer-generate').isEnabled(),true);
  await page.screenshot({path:out+`/photo-mood-${width}.png`,fullPage:true});

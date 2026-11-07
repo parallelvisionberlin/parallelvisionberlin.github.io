@@ -285,7 +285,7 @@ async function restoreStudioEntry(requestedRoute=studioRoute()){
         moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70,...(mood.id==='hong-kong-nights'?{moodVariant:query.get('variation')||'original'}:{})},true);
         title=mood.name;
       }
-      if(imageEngine==='seedream')$('resolution').value='2k';
+      if(!ownerAccount&&imageEngine==='seedream')$('resolution').value='2k';
       let hadPhoto=false,generation=null;
       if(query.has('handoff')){
         try{
@@ -451,9 +451,9 @@ const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-compo
   onEditPersonal:board=>location.assign('./mood-creator.html?board='+encodeURIComponent(board.id)),
   onChange:change=>{
     if(change?.selectedMood||!moodUI.active())inspirationMoodId=null;
-    // A newly selected Mood starts at the approved 2K Seedream quality.
-    // A later explicit resolution choice is still respected.
-    if(change?.selectedMood&&moodUI.selected()&&imageEngine==='seedream'&&!busy)
+    // Customer Moods retain their approved 2K default. Owner Moods keep
+    // the deck's 1K default or the owner's explicit resolution selection.
+    if(change?.selectedMood&&moodUI.selected()&&imageEngine==='seedream'&&!ownerAccount&&!busy)
       $('resolution').value='2k';
     autoPreview=null;update();
     // Bypass the generic typing debounce on an intentional Mood selection.
@@ -1676,7 +1676,7 @@ function restoreGuestImageDraft(){
     // A draft from the public six-card preview remains a visible-prompt-only Inspiration selection.
     inspirationMoodId=draftMood;
     if(draftMood==='fisheye-2000')inspirationMoodId=null;
-    $('resolution').value='2k';
+    $('resolution').value=ownerAccount&&imageEngine==='seedream'?'1k':'2k';
     if(draft.mood==='chrome-couture'&&!stagedFiles.length){$('ratio').value=CHROME_COUTURE_DEFAULTS.aspectRatio;$('image-count').value=String(CHROME_COUTURE_DEFAULTS.count);}
   }
   $('prompt').value=prompt;
@@ -1769,7 +1769,7 @@ function useWelcomeMood(id){
   // Keep customer settings and user-uploaded photographs when applying the aesthetic to their own work.
   if(!preserveWorkspace){
     imageProcessing='normal';$('image-processing').value='normal';
-    $('resolution').value='2k';$('image-count').value='1';
+    $('resolution').value=ownerAccount&&imageEngine==='seedream'?'1k':'2k';$('image-count').value='1';
     if(!references.length&&!file){$('ratio').value='16:9';imageRatioExplicit=false;}
   }
   // A seventh look can provide a distinct visible prompt without creating
@@ -5455,7 +5455,7 @@ if(window.__PV_LAB_NATIVE__===1&&window.ReactNativeWebView){
         if(command.action==='mood'){
           if(command.moodboard){await myMoods.refresh();const board=myMoods.find(command.moodboard);if(!board)throw Error('This Mood is unavailable.');moodUI.restore({moodId:'custom',customMoodBoardId:board.id,moodIntensity:board.intensity});}
           else {const mood=moodById(command.mood);if(!mood)throw Error('This Mood is unavailable.');moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70});}
-          if(imageEngine==='seedream')$('resolution').value='2k';
+          if(!ownerAccount&&imageEngine==='seedream')$('resolution').value='2k';
           update();
         }
         if(command.handoff){
