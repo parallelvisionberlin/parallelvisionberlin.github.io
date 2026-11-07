@@ -54,23 +54,21 @@ jobs:
             m=re.search(r'/job/(\d+)',c['details_url'] or '')
             if not m:return {'ref':label,**c,'log_error':'no job URL'}
             job=m.group(1)
-            p=subprocess.run(['gh','api',f'repos/{repo}/actions/jobs/{job}/logs'],capture_output=True,text=True,timeout=45)
+            p=subprocess.run(['gh','api','--allow-escape-sequences',f'repos/{repo}/actions/jobs/{job}/logs'],capture_output=True,text=True,timeout=45)
             if p.returncode:return {'ref':label,**c,'log_error':p.stderr[:500]}
             text=re.sub(r'\x1b\[[0-9;]*m','',p.stdout)
             lines=[re.sub(r'^\ufeff?\d{4}-\d\d-\d\dT[^ ]+ ','',line) for line in text.splitlines()]
             hits=[i for i,line in enumerate(lines) if re.search(r'(^not ok\b|AssertionError|Error:|TimeoutError|error:|FAIL |failed tests:|# fail [1-9])',line)]
             indices=set()
-            for i in hits:
-              indices.update(range(max(0,i-3),min(len(lines),i+18)))
+            for i in hits:indices.update(range(max(0,i-3),min(len(lines),i+18)))
             excerpt='\n'.join(lines[i] for i in sorted(indices))
             Path('audit/'+label+'-'+str(c['id'])+'.txt').write_text(excerpt)
-            return {'ref':label,**c,'job_id':job,'failure_excerpt':excerpt[:20000]}
-          with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
-            results=list(pool.map(log_excerpt,selected))
+            return {'ref':label,**c,'job_id':job,'failure_excerpt':excerpt[:25000]}
+          with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:results=list(pool.map(log_excerpt,selected))
           Path('audit/failures.json').write_text(json.dumps(results,indent=2))
           for r in results:
             print('\n###',r['ref'],r['name'],r.get('job_id'))
-            print(r.get('log_error') or r['failure_excerpt'][:6500])
+            print(r.get('log_error') or r['failure_excerpt'][:5000])
           state=json.loads(Path('lab/owner-work-records.json').read_text())
           record=next(r for r in state['records'] if r['id']=='image-viewer-replace-edit-actions')
           Path('audit/owner-record.json').write_text(json.dumps(record,indent=2))
