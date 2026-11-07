@@ -96,3 +96,10 @@ Approved storyboard implemented as contextual guidance, selection cursor, replac
 - LIMITATION: saved Location reference swaps remain unsupported and disabled with an explanation. Text-directed background editing and explicit mask inversion are available; no location is disguised as an object.
 - Verification: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42393293916
 - 70 scoped unit checks and full mocked desktop/mobile generation flow passed before release. No real-account or paid generation was run. Existing unrelated broad-suite failures remain documented and were not relabeled as passing.
+
+
+## Single-sidebar mode switch, 2026-11-07
+
+Editing now replaces Image details in the existing right-hand sidebar rather than adding a middle panel. The photograph retains normal viewer fit, including small originals. Exit restores metadata/actions. Guided selection, saved references, provider/model and billing behavior are unchanged.
+
+70 focused unit tests and the full mocked flow at 390px, 1440px and 1728px passed, including photo-size parity and masks. Existing Precision and standalone Retouch regression checks passed. No paid or real-account edit was run. Production verification remains separate.

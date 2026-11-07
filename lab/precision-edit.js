@@ -41,7 +41,8 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   // the same image scale rather than crop a tall canvas behind the footer.
   function syncPreviewFit(){
     if(!isOpen())return;
-    if(window.matchMedia('(max-width:900px)').matches){
+    if(base&&view.closest('#image-lightbox'))view.style.setProperty('--viewer-source-aspect',String(base.width/base.height));
+    if(window.matchMedia('(max-width:900px)').matches&&!view.closest('#image-lightbox')){
       view.style.removeProperty('--precision-source-fit-height');
       view.style.removeProperty('--precision-result-fit-height');
       return;
@@ -52,7 +53,9 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     ]){
       const holder=$(id);
       if(holder.hidden)continue;
-      const height=Math.max(110,Math.floor(holder.getBoundingClientRect().height-22))+'px';
+      const style=getComputedStyle(holder);
+      const inset=view.closest('#image-lightbox')?parseFloat(style.paddingTop)+parseFloat(style.paddingBottom):22;
+      const height=Math.max(110,Math.floor(holder.getBoundingClientRect().height-inset))+'px';
       if(view.style.getPropertyValue(property)!==height)view.style.setProperty(property,height);
     }
   }
@@ -62,8 +65,9 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   window.addEventListener('resize',syncPreviewFit);
   function zoomBounds(){
     const holder=$('precision-source-holder'),stage=$('precision-stage');
-    const availableWidth=Math.max(1,holder.clientWidth-20);
-    const availableHeight=Math.max(1,holder.clientHeight-20);
+    const style=getComputedStyle(holder);
+    const availableWidth=Math.max(1,holder.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight));
+    const availableHeight=Math.max(1,holder.clientHeight-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom));
     return {x:Math.max(0,(stage.offsetWidth*zoom-availableWidth)/2),
       y:Math.max(0,(stage.offsetHeight*zoom-availableHeight)/2)};
   }
@@ -193,7 +197,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     for(const chip of view.querySelectorAll('[data-retouch-idea]'))
       chip.disabled=!have||taskBusy;
     $('precision-tool-pan').disabled=!have||taskBusy;
-    view.querySelector('.precision-deck').classList.toggle('is-ready',have&&selected&&!!$('precision-prompt').value.trim());
+    $('precision-prompt').closest('.precision-deck').classList.toggle('is-ready',have&&selected&&!!$('precision-prompt').value.trim());
     view.dataset.phase=!have?'empty':!selected?'select':$('precision-prompt').value.trim()?'ready':'describe';
     refreshGuidance();
   }
