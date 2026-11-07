@@ -1,0 +1,174 @@
+--- a/lab/image-viewer-editor.js
++++ b/lab/image-viewer-editor.js
+@@ -5,4 +5,6 @@
+   const dialog = $('image-lightbox'), workspace = $('precision-workspace');
+   const media = dialog.querySelector('.image-detail-media');
++  const inspector = dialog.querySelector('.image-detail-inspector');
++  const sidebar = document.createElement('div'); sidebar.className = 'viewer-editor-sidebar';
+   const home = document.createComment('precision workspace home'); workspace.before(home);
+   const tools = workspace.querySelector('.precision-tools'), buttons = workspace.querySelector('.precision-tool-buttons');
+@@ -106,4 +108,5 @@
+   function rename(node,text) { labels.set(node,node.textContent); node.textContent=text; }
+   function mount(action) {
++    workspace.style.setProperty('--viewer-source-padding',getComputedStyle($('image-lightbox-stage')).padding);
+     media.append(workspace); workspace.setAttribute('aria-label',action==='replace'?'Replace part of this image':'Edit this image');
+     title.textContent=action==='replace'?'Replace':'Edit'; tools.prepend(title);tools.append(help);help.hidden=action!=='replace';
+@@ -112,4 +115,5 @@
+     move($('precision-expand'),options.lastElementChild);
+     move(workspace.querySelector('.precision-strength'),options.lastElementChild);
++    inspector.append(sidebar); move(tools,sidebar); move(deck,sidebar);
+     rename($('precision-tool-magic'),'Select'); rename($('precision-tool-brush'),'Brush'); rename($('precision-tool-erase'),'Erase');
+     back.textContent='×'; back.setAttribute('aria-label','Back to image viewer'); back.title='Back to image';
+@@ -118,4 +122,5 @@
+     scope.querySelector('[value=location]').hidden=!isReplace();if(!isReplace()&&scope.value==='location')scope.value='person';
+     workspace.classList.toggle('is-guided-replace',isReplace());
++    sidebar.classList.toggle('is-guided-replace',isReplace());
+     if(!isReplace()){uploadHome.after(uploadRow);uploadRow.querySelector('.viewer-reference-picker span').textContent='+ Add reference';uploadRow.querySelector('label').classList.remove('is-unavailable');}else{prompt.before(uploadRow);uploadRow.querySelector('.viewer-reference-picker span')?.replaceChildren(document.createTextNode('+ Upload reference'));}
+   }
+@@ -123,8 +128,10 @@
+     if(!active)return;
+     workspace.classList.toggle('has-viewer-reference',!!reference||loadingReference);
++    sidebar.classList.toggle('has-viewer-reference',!!reference||loadingReference);
+     kind.hidden=isReplace()||!reference;remove.hidden=!reference||!!savedReference;generate.hidden=!reference;
+     selectedCard.hidden=!savedReference;preview.hidden=!reference||!!savedReference;
+     const chosen=editor.hasSelection(),type=replacementKind(scope.value),mode=$('precision-tool-magic').getAttribute('aria-pressed')==='true'?'magic':$('precision-tool-brush').getAttribute('aria-pressed')==='true'?'brush':'other';
+     workspace.dataset.selectionTool=mode;workspace.classList.toggle('has-guided-selection',chosen);
++    sidebar.classList.toggle('has-guided-selection',chosen);
+     guide.hidden=!isReplace()||chosen||!helpOpen;guide.classList.toggle('is-compact',learned);
+     guide.querySelector('strong').textContent=scope.value==='location'?'Select the background to replace.':mode==='brush'?'Brush over what you want to replace.':'Click what you want to replace.';
+@@ -237,5 +244,5 @@
+     editor.close();editor.setExternalMode(false);home.after(workspace);uploadHome.after(uploadRow);
+     for(const [node,marker] of moves.reverse()){marker.after(node);marker.remove();}moves.length=0;
+-    for(const [node,text] of labels)node.textContent=text;labels.clear();title.remove();help.remove();
++    for(const [node,text] of labels)node.textContent=text;labels.clear();title.remove();help.remove();sidebar.remove();
+     dialog.classList.remove('is-viewer-editing');workspace.classList.remove('has-viewer-reference','is-guided-replace','has-guided-selection');guide.hidden=kinds.hidden=hint.hidden=library.hidden=selectedCard.hidden=locationNote.hidden=invert.hidden=true;++libraryTicket;
+     workspace.setAttribute('aria-label',original.title);fields.hidden=options.hidden=true;options.open=false;
+--- a/lab/image-viewer-editor.css
++++ b/lab/image-viewer-editor.css
+@@ -92,2 +92,27 @@
+  #image-lightbox.is-viewer-editing .image-detail-inspector-scroll{max-height:180px}
+ }
++
++/* Edit/Replace swaps the inspector content, never adds a third column. */
++#image-lightbox.is-viewer-editing>#image-lightbox-close{display:none!important}
++#image-lightbox.is-viewer-editing .image-detail-inspector>:not(.viewer-editor-sidebar){display:none!important}
++#image-lightbox.is-viewer-editing .viewer-editor-sidebar{display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;overflow:hidden;--pe-accent:#eeeee8}
++#image-lightbox.is-viewer-editing #precision-workspace{display:flex!important;flex-direction:column;height:100%;min-height:0}
++#image-lightbox.is-viewer-editing .precision-board{flex:1;min-height:0;height:100%;max-height:none}
++#image-lightbox.is-viewer-editing #precision-source-holder{flex:1;height:100%;min-height:0;padding:var(--viewer-source-padding,4px)}
++#image-lightbox.is-viewer-editing #precision-source-canvas{max-height:var(--precision-source-fit-height,100%)}
++#image-lightbox.is-viewer-editing .viewer-editor-sidebar .precision-tools{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px 6px;flex:none;padding:12px}
++#image-lightbox.is-viewer-editing .viewer-editor-sidebar .viewer-editor-title{grid-column:1;grid-row:1}
++#image-lightbox.is-viewer-editing .viewer-editor-sidebar .viewer-guide-toggle{grid-column:2;grid-row:1}
++#image-lightbox.is-viewer-editing .viewer-editor-sidebar #precision-return{grid-column:3;grid-row:1}
++#image-lightbox.is-viewer-editing .viewer-editor-sidebar .precision-tool-buttons{grid-column:1/-1;grid-row:2;gap:5px;flex-wrap:wrap}
++#image-lightbox.is-viewer-editing .viewer-editor-sidebar .precision-tools button{padding:8px;min-height:34px}
++#image-lightbox.is-viewer-editing .viewer-editor-sidebar #precision-return{padding:4px}
++#image-lightbox.is-viewer-editing .viewer-editor-sidebar .precision-deck{flex:1;min-height:0;height:auto;overflow-y:auto;border:0;padding:20px 16px;box-sizing:border-box}
++@media(max-width:760px){
++ #image-lightbox.is-viewer-editing .image-detail-media{height:clamp(240px,49dvh,560px);flex:none}
++ #image-lightbox.is-viewer-editing .image-detail-inspector{height:auto;max-height:none;overflow:visible}
++ #image-lightbox.is-viewer-editing .viewer-editor-sidebar{height:auto;overflow:visible}
++ #image-lightbox.is-viewer-editing .viewer-editor-sidebar .precision-deck{flex:none;overflow:visible;padding:16px}
++}
++
++#image-lightbox .viewer-editor-sidebar *{box-sizing:border-box}
+--- a/lab/precision-edit.js
++++ b/lab/precision-edit.js
+@@ -42,5 +42,5 @@
+   function syncPreviewFit(){
+     if(!isOpen())return;
+-    if(window.matchMedia('(max-width:900px)').matches){
++    if(window.matchMedia('(max-width:900px)').matches&&!view.closest('#image-lightbox')){
+       view.style.removeProperty('--precision-source-fit-height');
+       view.style.removeProperty('--precision-result-fit-height');
+@@ -53,5 +53,7 @@
+       const holder=$(id);
+       if(holder.hidden)continue;
+-      const height=Math.max(110,Math.floor(holder.getBoundingClientRect().height-22))+'px';
++      const style=getComputedStyle(holder);
++      const inset=view.closest('#image-lightbox')?parseFloat(style.paddingTop)+parseFloat(style.paddingBottom):22;
++      const height=Math.max(110,Math.floor(holder.getBoundingClientRect().height-inset))+'px';
+       if(view.style.getPropertyValue(property)!==height)view.style.setProperty(property,height);
+     }
+@@ -63,6 +65,7 @@
+   function zoomBounds(){
+     const holder=$('precision-source-holder'),stage=$('precision-stage');
+-    const availableWidth=Math.max(1,holder.clientWidth-20);
+-    const availableHeight=Math.max(1,holder.clientHeight-20);
++    const style=getComputedStyle(holder);
++    const availableWidth=Math.max(1,holder.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight));
++    const availableHeight=Math.max(1,holder.clientHeight-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom));
+     return {x:Math.max(0,(stage.offsetWidth*zoom-availableWidth)/2),
+       y:Math.max(0,(stage.offsetHeight*zoom-availableHeight)/2)};
+@@ -193,5 +196,5 @@
+       chip.disabled=!have||taskBusy;
+     $('precision-tool-pan').disabled=!have||taskBusy;
+-    view.querySelector('.precision-deck').classList.toggle('is-ready',have&&selected&&!!$('precision-prompt').value.trim());
++    $('precision-prompt').closest('.precision-deck').classList.toggle('is-ready',have&&selected&&!!$('precision-prompt').value.trim());
+     view.dataset.phase=!have?'empty':!selected?'select':$('precision-prompt').value.trim()?'ready':'describe';
+     refreshGuidance();
+--- a/lab/lab.js
++++ b/lab/lab.js
+@@ -16,6 +16,6 @@
+ import {loadLabAccount,accountBootstrapMessage} from './native-account.js?v=20261103-browser-bootstrap1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
+ import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
+-import {createPrecisionEditor} from './precision-edit.js?v=20261107-guided-replace1';
+-import {createImageViewerEditor} from './image-viewer-editor.js?v=20261107-guided-replace1';
++import {createPrecisionEditor} from './precision-edit.js?v=20261107-viewer-sidebar1';
++import {createImageViewerEditor} from './image-viewer-editor.js?v=20261107-viewer-sidebar1';
+ import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261102-local-currency';
+ import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&creditPurchaseFlow=20261104v1&partnerMenu=20261027-bellini1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1&cookies=20261101-v1&conversionFlow=20261102-1';
+--- a/tests/lab-image-replacement-flow-ui.mjs
++++ b/tests/lab-image-replacement-flow-ui.mjs
+@@ -52,5 +52,5 @@
+   browser = await chromium.launch({headless:true});
+   mkdirSync('test-results', {recursive:true});
+-  for (const width of [390, 1440]) {
++  for (const width of [390, 1440, 1728]) {
+     const context = await browser.newContext({viewport:{width, height:900}});
+     const page = await context.newPage();
+@@ -231,4 +231,9 @@
+     assert.ok(editCard.y+editCard.height<=videoCard.y,'Both actions stay above Turn into video');
+     const originalURL=page.url(),previousDraft=await page.evaluate(()=>window.__replacementFlow.state());
++    await page.waitForFunction(()=>{const image=document.getElementById('image-lightbox-img');return image.complete&&image.naturalWidth>0;});
++    const fittedPhoto=await page.locator('#image-lightbox-img').evaluate(image=>{
++      const rect=image.getBoundingClientRect(),scale=Math.min(rect.width/image.naturalWidth,rect.height/image.naturalHeight);
++      return {width:image.naturalWidth*scale,height:image.naturalHeight*scale};
++    });
+     const beforeRequests=requests.length;
+     await page.screenshot({path:`test-results/pv-viewer-actions-${width}.png`});
+@@ -240,4 +245,10 @@
+     const brush=await page.locator('#precision-selection-canvas').boundingBox();
+     assert.ok(brush.width>150&&brush.height>100,'The source remains large enough to select');
++    assert.ok(Math.abs(brush.width-fittedPhoto.width)<2,'Edit preserves the fitted viewer photo width');
++    assert.ok(Math.abs(brush.height-fittedPhoto.height)<2,'Edit preserves the fitted viewer photo height');
++    assert.equal(await page.locator('.image-detail-inspector .precision-tools').count(),1,'Tools occupy the existing right sidebar');
++    assert.equal(await page.locator('.image-detail-inspector .precision-deck').count(),1,'No additional middle panel');
++    assert.equal(await page.locator('.image-detail-inspector-head').isVisible(),false,'Details are replaced, not displayed beside the edit deck');
++    await page.screenshot({path:`test-results/pv-sidebar-edit-${width}.png`});
+     await page.mouse.move(brush.x+brush.width*.4,brush.y+brush.height*.5);
+     await page.mouse.down();await page.mouse.move(brush.x+brush.width*.5,brush.y+brush.height*.5,{steps:4});await page.mouse.up();
+@@ -245,4 +256,6 @@
+     await page.locator('#precision-return').click();
+     assert.equal(await page.locator('#image-detail-edit').isVisible(),true);
++    assert.equal(await page.locator('.viewer-editor-sidebar').count(),0,'Leaving Edit removes the contextual sidebar');
++    assert.equal(await page.locator('.image-detail-inspector-head').isVisible(),true,'Image details return on exit');
+     assert.deepEqual(await page.evaluate(()=>window.__replacementFlow.state()),previousDraft,'Back must not mutate the Image draft');
+     await page.locator('#image-detail-replace').click();
+@@ -257,4 +270,8 @@
+     await page.screenshot({path:`test-results/pv-guided-enter-${width}.png`});
+     const selection=await page.locator('#precision-selection-canvas').boundingBox();
++    assert.ok(Math.abs(selection.width-fittedPhoto.width)<2,'Replace preserves the fitted viewer photo width');
++    assert.ok(Math.abs(selection.height-fittedPhoto.height)<2,'Replace preserves the fitted viewer photo height');
++    assert.equal(await page.locator('.image-detail-inspector .viewer-replacement-kinds').count(),1,'Saved reference controls live in the original sidebar');
++    await page.screenshot({path:`test-results/pv-sidebar-replace-${width}.png`});
+     await page.mouse.click(selection.x+selection.width*.2,selection.y+selection.height*.3);
+     await page.waitForFunction(()=>document.querySelector('#precision-status-text').textContent.includes('Object selected'));
+@@ -281,5 +298,5 @@
+     assert.equal(await page.locator('#precision-generate').isVisible(),false,'Replace cannot accidentally call FLUX');
+     await page.screenshot({path:`test-results/pv-viewer-replace-${width}.png`});
+-    assert.equal(await page.locator('.image-detail-inspector').isVisible(),true,'Editing keeps the existing image details sidebar');
++    assert.equal(await page.locator('.image-detail-inspector').isVisible(),true,'Editing reuses the existing sidebar frame');
+     assert.equal(await page.locator('.image-detail-media > #precision-workspace').count(),1,'Edit lives inside the existing photo pane');
+     assert.equal(await page.locator('.precision-panel-label').first().isVisible(),false,'No technical Original/file-name header');
