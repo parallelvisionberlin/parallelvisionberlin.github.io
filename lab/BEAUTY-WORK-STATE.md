@@ -1,5 +1,17 @@
 # Beauty Studio and Studios navigation
 
+## 2026-11-08 | Twenty curated looks and four-plus-peek editorial archive: LIVE VERIFIED
+
+- Owner approved the fashion-exhibition direction for **Editorial Looks & Moods**: four complete photographic cards on large desktop (>=1350px) plus a visible sliver of the fifth to imply continuous horizontal browsing. Cards have greater height, breathing room, restrained captions, and no decorative arrows. Responsive gallery on smaller screens retains existing wheel, inertia, trackpad, native swipe, focus and keyboard selection behavior.
+- **Seven new functional looks** appended to the original thirteen: Golden Hour, Skin Study, Window Study, Soft Focus, Velvet, Silver Halo and Windblown, for a total of twenty individually photographed and selectable editorial presets. All source photographs were chosen/cropped from previously provided imagery; optimized as unique WebP files. Original order of the first thirteen, including first four, was preserved.
+- Each added look maps to validated existing Makeup, Hair, Skin, Light and Color values plus an honest creative direction. Selection fills native fields but **does not automatically generate or charge**. Presets preserve the uploaded person's identity, outfit, setting and pose rather than claiming to reconstruct the preview scene.
+- **Locked upper ALTER preserved:** byte-identical `lab/visuals/beauty/atelier/hero.webp`, `lab/beauty-editorial-final.css`, `lab/beauty-flow-refinement.css`, `lab/beauty-panel-widen-20261107.css`, existing 45 Edit Look images and settings, source upload, models/ratio/resolution, billing/quote checks, Generate, History, sign-in and real-result comparison. No change to the background crop, fade, position, image, or upper editor.
+- **Source:** PR #923 merged as `92ee7dea6589ec52934e076ca89206645a649de2`. Scope: `lab/beauty.html`, `lab/beauty-look-catalog.js`, new `lab/beauty-gallery-20261107.css`, seven new archive WebPs, and three relevant Beauty regression test files.
+- **Isolated and standard CI:** all 20 presets, protected asset hashes, approved Image/Beauty category contracts, Worker quotes/idempotency, full mobile/desktop/Studio navigation browser regression including four-full-plus-peek passed. https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42387086669 and PR #923 standard checks.
+- **Live proof:** Cloudflare Pages app confirmed success for exact merge SHA. Independent custom-domain validation verified all 20 live card references; all seven new images and gallery/hero CSS bytes matched the approved source. Guest Playwright checks at 1727, 1440, 1366, 1024 and 390 verified layout, original background, responsive navigation, and Golden Hour selection setting Hair=waves, Light=window, Color=warm with no paid request: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42424984168.
+- No live signed-in or paid model generation was run. Preview imagery is illustrative, not a promise of output fidelity.
+
+
 ## 2026-11-07 | Wider Edit Look without touching photographic hero: LIVE VERIFIED
 
 - Owner approved the revised desktop mock after rolling back the unsuccessful #900 workstation. **Only the right Edit Look panel was enlarged**, keeping existing 5 independent tabs × 9 choices and a 3-column × 3-row visual grid. Desktop >1300px uses a width of `clamp(460px,35vw,590px)`, modestly taller panel and clearer title, and enough archive clearance for Generate. No new controls, layers or providers.
