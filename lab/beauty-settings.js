@@ -17,29 +17,15 @@ const skin=beautyChoiceMap('skin');
 // nothing, preserving byte-identical legacy prompts and quote validation by default.
 const light=beautyChoiceMap('light');
 const color=beautyChoiceMap('color');
-export function beautySettings({makeup:makeupId='editorial',hair:hairId='keep',skin:skinId='natural',light:lightId='keep',color:colorId='keep',strength=50,direction='',advancedLight={},model='seedream',resolution='1k',aspectRatio='4:5',sourceWidth=0,sourceHeight=0,filename='Your photo'}={}){
+export function beautySettings({makeup:makeupId='editorial',hair:hairId='keep',skin:skinId='natural',light:lightId='keep',color:colorId='keep',strength=50,direction='',model='seedream',resolution='1k',aspectRatio='4:5',sourceWidth=0,sourceHeight=0,filename='Your photo'}={}){
  const value=Number(strength);
  if(!Object.hasOwn(makeup,makeupId)||!Object.hasOwn(hair,hairId)||!Object.hasOwn(skin,skinId)||!Object.hasOwn(light,lightId)||!Object.hasOwn(color,colorId)||!Number.isInteger(value)||value<0||value>100)throw Error('Choose valid beauty settings.');
  if(!['seedream','seedream-pro','flash'].includes(model)||!['1k','2k'].includes(resolution)||!['4:5','1:1','3:4','9:16','auto'].includes(aspectRatio))throw Error('Choose valid image settings.');
  const extra=String(direction).trim();if(extra.length>1500)throw Error('Keep the extra direction within 1,500 characters.');
- // Fine controls are explicitly approximate prompt directions, not pixel-calibrated edits.
- const limits={exposure:20,contrast:50,highlights:50,shadows:50,warmth:50};
- const precise=Object.fromEntries(Object.entries(limits).map(([key,max])=>{
-  const n=Number(advancedLight?.[key]??0);
-  if(!Number.isInteger(n)||Math.abs(n)>max)throw Error('Choose valid lighting adjustments.');
-  return [key,n];
- }));
- const lightNotes=[];
- for(const [key,n] of Object.entries(precise)){
-  if(!n)continue;
-  if(key==='exposure')lightNotes.push((n>0?'raise':'lower')+' exposure by approximately '+(Math.abs(n)/10).toFixed(1)+' stop'+(Math.abs(n)===10?'':'s'));
-  else lightNotes.push((n>0?'increase ':'decrease ')+key+' slightly (relative '+Math.abs(n)+'/50)');
- }
- const advancedDirection=value>0&&lightNotes.length?'Additional creative lighting guidance: '+lightNotes.join('; ')+'. Preserve natural skin texture and keep the original subject and background.':'';
  const prompt=[BEAUTY_PROMPT_PREFIX,(colorId==='mono'&&value>0?'Edit the supplied photograph of this same person. Preserve their identity, facial structure, age, relative skin luminance, body proportions, pose and background. Apply the requested monochrome treatment without changing identity. Do not add a veil, clothing, jewellery or props unless explicitly requested.':'Edit the supplied photograph of this same person. Preserve their identity, facial structure, age, skin tone, body proportions, pose and background. Make only the requested beauty changes. Do not add a veil, clothing, jewellery or props unless explicitly requested.'),
  value===0?'Keep the original look without an intentional transformation.':[makeup[makeupId],colorId==='mono'?hair[hairId].replace(/hair colour/g,'relative hair tone').replace(/colour/g,'relative tonal value'):hair[hairId],skin[skinId],`Look intensity: ${value}/100; scale the beauty changes accordingly.`].join(' '),
  value===0?'':[light[lightId],color[colorId],lightId!=='keep'||colorId!=='keep'?`Apply the requested lighting and colour at ${value}/100 intensity. These settings do not change makeup, hairstyle, facial structure, clothing or background objects.`:''].filter(Boolean).join(' '),
- 'Believable fashion photography, realistic skin and hair; no plastic smoothing or reshaped anatomy.',advancedDirection,extra&&value>0?`Additional direction: ${extra}`:''].filter(Boolean).join('\n');
+ 'Believable fashion photography, realistic skin and hair; no plastic smoothing or reshaped anatomy.',extra&&value>0?`Additional direction: ${extra}`:''].filter(Boolean).join('\n');
  // Resolve Auto before quoting so the provider's reference-edit fallback cannot silently force 16:9.
  const quotedAspectRatio=aspectRatio==='auto'?beautyAutoRatio(sourceWidth,sourceHeight):aspectRatio;
  return {type:'image',mode:'image',engine:model==='seedream-pro'?'seedream':model,referenceMode:'references',prompt,resolution,aspectRatio:quotedAspectRatio,outputFormat:'png',referenceRoles:[{name:String(filename).slice(0,160),role:'identity',note:'Preserve the identity and distinctive facial features of this person.'}]};

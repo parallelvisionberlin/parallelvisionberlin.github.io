@@ -16,7 +16,7 @@ function readPending(){try{const p=JSON.parse(sessionStorage.getItem(pendingKey)
 function savePending(value){try{if(value)sessionStorage.setItem(pendingKey,JSON.stringify({...value,sessionId}));else sessionStorage.removeItem(pendingKey);}catch{}}
 function busy(){return submitting||!!activeId||uncertain;}
 function clearQuote(){quote=null;clearTimeout(expiryTimer);clearTimeout(quoteTimer);}
-function settings(){return beautySettings({makeup:$('beauty-makeup').value,hair:$('beauty-hair').value,skin:$('beauty-skin').value,light:$('beauty-light').value,color:$('beauty-color').value,strength:$('beauty-strength').value,direction:$('beauty-direction').value,advancedLight:{exposure:$('beauty-exposure').value,contrast:$('beauty-contrast').value,highlights:$('beauty-highlights').value,shadows:$('beauty-shadows').value,warmth:$('beauty-warmth').value},model:$('beauty-model').value,resolution:$('beauty-resolution').value,aspectRatio:$('beauty-ratio').value,sourceWidth:photoWidth,sourceHeight:photoHeight,filename:file?.name});}
+function settings(){return beautySettings({makeup:$('beauty-makeup').value,hair:$('beauty-hair').value,skin:$('beauty-skin').value,light:$('beauty-light').value,color:$('beauty-color').value,strength:$('beauty-strength').value,direction:$('beauty-direction').value,model:$('beauty-model').value,resolution:$('beauty-resolution').value,aspectRatio:$('beauty-ratio').value,sourceWidth:photoWidth,sourceHeight:photoHeight,filename:file?.name});}
 function update(){
  $('beauty-strength-value').value=$('beauty-strength').value;
  const button=$('beauty-generate');button.disabled=busy()||preparing;button.setAttribute('aria-busy',String(submitting||!!activeId||preparing));
@@ -179,7 +179,7 @@ for(const name of ['dragenter','dragover'])$('beauty-photo-drop').addEventListen
 $('beauty-photo-drop').addEventListener('dragleave',event=>{if(!event.currentTarget.contains(event.relatedTarget))event.currentTarget.classList.remove('is-dragging');});
 $('beauty-photo-drop').addEventListener('drop',event=>{event.preventDefault();event.currentTarget.classList.remove('is-dragging');void setPhoto(event.dataTransfer?.files?.[0]);});
 for(const id of ['beauty-makeup','beauty-hair','beauty-skin','beauty-light','beauty-color','beauty-model','beauty-resolution','beauty-ratio'])$(id).addEventListener('change',()=>{status('');invalidate();});
-for(const id of ['beauty-strength','beauty-direction','beauty-exposure','beauty-contrast','beauty-highlights','beauty-shadows','beauty-warmth'])$(id).addEventListener('input',()=>{status('');invalidate();});
+for(const id of ['beauty-strength','beauty-direction'])$(id).addEventListener('input',()=>{status('');invalidate();});
 $('beauty-form').addEventListener('submit',event=>void generate(event));$('beauty-signin').addEventListener('click',()=>void signIn());
 $('beauty-refresh').addEventListener('click',()=>{if(activeId)void poll(activeId);void loadHistory();});
 $('beauty-account').querySelector('[data-account-signout]').addEventListener('click',async()=>{clearPrivate();await clerk?.signOut();});
