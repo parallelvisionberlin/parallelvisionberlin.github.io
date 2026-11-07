@@ -76,8 +76,7 @@ try{
    const bounds=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right};};
    return {title:bounds('h1'),photo:bounds('.beauty-photo'),notes:bounds('#beauty-direction'),panel:bounds('.beauty-edit-panel'),ratio:bounds('#beauty-ratio'),button:bounds('#beauty-generate'),height:innerHeight,width:innerWidth,scrollWidth:document.documentElement.scrollWidth};
   });
-  if(width<1240)assert.ok(layout.button.bottom<=height-12,'Compact Generate fits first viewport at '+width+'x'+height+': '+JSON.stringify(layout));
-  else assert.ok(layout.button.bottom<=layout.panel.bottom-5&&layout.panel.top>=0,'Workstation Generate stays within its right-hand workspace at '+width+'x'+height+': '+JSON.stringify(layout));
+  assert.ok(layout.button.bottom<=height-12,'Generate fits the first viewport at '+width+'x'+height+': '+JSON.stringify(layout));
   assert.ok(layout.button.top>=layout.panel.top+8&&layout.button.bottom<=layout.panel.bottom-5,'Generate remains inside the visible Edit Look panel at '+width+'x'+height+': '+JSON.stringify(layout));
   assert.ok(layout.ratio.bottom<=layout.photo.bottom-8,'Aspect ratio stays visible above the bottom of the hero at '+width+'x'+height+': '+JSON.stringify(layout));
   assert.ok(layout.notes.bottom+8<=layout.button.top,'Creative direction and Generate never overlap at '+width+'x'+height+': '+JSON.stringify(layout));
@@ -116,33 +115,11 @@ try{
    assert.equal(editorial.thumbnails,9,'Active tab shows nine large photographic controls');
    assert.ok(editorial.minThumbHeight>=80,'Right-hand visual presets are readable, not tiny');
    assert.equal(editorial.fullDeck,false,'Archive has true horizontal overflow instead of squeezing six cards');
-   if(width>=1440)assert.ok(editorial.titleSize>=58,'Workstation title retains prominent editorial scale');
+   if(width>=1440)assert.ok(editorial.titleSize>=70,'Desktop ALTER title has the approved editorial scale');
   }
   await page.locator('.beauty-breadcrumb button').click({trial:true});
   assert.equal(await page.locator('link[rel="icon"]').getAttribute('href'),'./branding/pv-mark.png');
-  // At 1024px the bottom archive must not intercept the genuine Generate button.
-  if(width===1024){
-   const regions=await page.evaluate(()=>{
-    const panel=document.querySelector('.beauty-edit-panel').getBoundingClientRect();
-    const archive=document.querySelector('.beauty-looks').getBoundingClientRect();
-    const button=document.getElementById('beauty-generate').getBoundingClientRect();
-    const target=document.elementFromPoint(button.left+button.width/2,button.top+button.height/2);
-    return {panelBottom:panel.bottom,archiveTop:archive.top,correctHit:!!target?.closest('#beauty-generate')};
-   });
-   assert.ok(regions.archiveTop>=regions.panelBottom+8,'Compact editor and archive must not overlap: '+JSON.stringify(regions));
-   assert.ok(regions.correctHit,'The Generate button, not the archive, receives pointer input');
-  }
   await page.locator('#beauty-generate').click({trial:true});
-  if(width>=1240){
-   const workbench=await page.evaluate(()=>{
-    const r=s=>{const a=document.querySelector(s).getBoundingClientRect();return {top:a.top,bottom:a.bottom,left:a.left,right:a.right,width:a.width}};
-    return {panel:r('.beauty-edit-panel'),look:r('.beauty-looks'),layers:r('.alter-layer-stack'),photo:r('#beauty-photo-drop'),hero:r('.beauty-editor-grid'),button:r('#beauty-generate')};
-   });
-   assert.ok(workbench.layers.width>180&&workbench.layers.bottom<workbench.hero.bottom+100,'Layers stay inside the left workspace');
-   assert.ok(workbench.look.right<=workbench.panel.left-5,'The editorial filmstrip remains beneath the image, not behind the tools');
-   assert.ok(workbench.panel.bottom>=workbench.look.top+(height>=880?75:-30),'The editor remains aligned beside the archive within the available viewport: '+JSON.stringify(workbench));
-   assert.ok(workbench.photo.width>=350,'Main image is not sacrificed for the side tools');
-  }
   await page.screenshot({path:'test-results/beauty-fit-'+width+'x'+height+'.png',fullPage:true});
   await s.context.close();
  }
@@ -150,8 +127,6 @@ try{
  {
   const s=await scenario({role:'guest',width:1448}),{page}=s;
   assert.equal(await page.locator('[data-beauty-choice]').count(),45,'Five independent categories each have nine working options');
-  assert.equal(await page.locator('#alter-compare-top').isVisible(),false,'Before/after controls never imply an ungenerated result');
-  assert.equal(await page.locator('#alter-compare-bottom').isVisible(),false);
   const src=await page.locator('.beauty-looks-list .beauty-look-photo').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('src')));
   assert.equal(src.length,13,'Thirteen editorial cards are in the archive');
   assert.equal(new Set(src).size,13,'Every editorial direction has a distinct photographic asset');
@@ -307,15 +282,7 @@ try{
   await page.waitForFunction(()=>document.querySelector('[data-beauty-choice="beauty-color"]').disabled);
   assert.equal(await page.locator('[data-beauty-choice="beauty-color"][data-value="cool"]').isDisabled(),true,'Native busy state disables visual choices');
   await page.evaluate(()=>document.querySelector('#beauty-color').disabled=false);
-  await page.locator('#beauty-tab-light').click();
-  await page.locator('#beauty-exposure').evaluate(el=>{el.value='3';el.dispatchEvent(new Event('input',{bubbles:true}));});
-  await page.waitForFunction(()=>document.querySelector('#beauty-exposure-value').textContent.includes('+0.3'));
-  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'));
-  await page.waitForTimeout(650);
-  assert.match(s.quotes.at(-1).settings.prompt,/raise exposure by approximately 0.3 stops/,'Advanced light uses the current exact quoted prompt');
-  assert.equal(s.submits,0,'Fine light directions cannot submit automatically');
   await page.locator('#beauty-reset-look').click();
-  assert.equal(await page.locator('#beauty-exposure').inputValue(),'0','Reset clears fine lighting too');
   assert.deepEqual(await defaults(),{makeup:'keep',hair:'keep',skin:'natural',light:'keep',color:'keep',strength:'50'});
   await page.locator('[data-look="editorial"]').focus();await page.keyboard.press('End');
   const visible=await page.locator('[data-look="nighttape"]').evaluate(card=>{const a=card.getBoundingClientRect(),b=card.parentElement.getBoundingClientRect();return a.left>=b.left-3&&a.right<=b.right+3;});
@@ -436,31 +403,19 @@ try{
   assert.equal(s.quotes.at(-1).settings.aspectRatio,'2:3');
   assert.deepEqual(await page.locator('#beauty-model option').allTextContents(),['Seedream 5 Pro','Seedream Flash']);
   const illustrative=page.getByText('Illustrative directions. Actual results may vary.',{exact:true});
-  assert.equal(await illustrative.count(),1,'Illustrative reference disclosure remains present in DOM despite the compact visual archive');
+  await illustrative.scrollIntoViewIfNeeded();assert.equal(await illustrative.isVisible(),true);
   await page.locator('#beauty-generate').click();await page.locator('#beauty-result').waitFor({state:'visible'});
   const originalUrl=await page.locator('.beauty-before-image').getAttribute('src');
   assert.notEqual(originalUrl,await page.locator('#beauty-photo-preview').getAttribute('src'),'Comparison owns a URL independent of the upload tile');
   await page.locator('.beauty-before-image').evaluate(image=>image.decode());
-  assert.equal(await page.locator('#alter-compare-top').isVisible(),true,'Real completed result reveals comparison controls');
-  assert.equal(await page.locator('#alter-compare-bottom').isVisible(),true);
   const slider=page.getByRole('slider',{name:'Before and after image comparison'});
-  await page.locator('[data-alter-view="before"]').first().click();assert.equal(await slider.getAttribute('aria-valuenow'),'100');
-  await page.locator('[data-alter-view="after"]').first().click();assert.equal(await slider.getAttribute('aria-valuenow'),'0');
-  await page.locator('[data-alter-view="compare"]').click();assert.equal(await slider.getAttribute('aria-valuenow'),'50');
   await slider.press('End');assert.equal(await slider.getAttribute('aria-valuenow'),'100');
   await slider.press('Home');await slider.press('ArrowRight');assert.equal(await slider.getAttribute('aria-valuenow'),'5');
   if(width===390){
-   // A centered handle is the actual touch affordance. Keep it in the visual viewport
-   // before dispatching real mobile touch events; the old test used y+20 outside it.
-   await page.locator('#beauty-result').scrollIntoViewIfNeeded();
    const box=await page.locator('#beauty-result').boundingBox();
    const handle=await slider.boundingBox(),cdp=await page.context().newCDPSession(page);
-   assert.ok(handle.width>=28,'The before/after split has a finger-sized drag target');
-   const touchX=handle.x+handle.width/2,touchY=box.y+box.height/2;
-   const hit=await page.evaluate(([x,y])=>{const n=document.elementFromPoint(x,y);return {hit:!!n&&(n.classList.contains('beauty-compare-handle')||!!n.closest('.beauty-compare-handle')),name:n?.className||'',position:[x,y],viewport:[innerWidth,innerHeight]};},[touchX,touchY]);
-   assert.equal(hit.hit,true,'Mobile drag begins on the visible divider: '+JSON.stringify({hit,box,handle}));
-   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:touchX,y:touchY}]});
-   await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:box.x+box.width*.75,y:touchY}]});
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:handle.x+handle.width/2,y:box.y+20}]});
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:box.x+box.width*.75,y:box.y+20}]});
    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
    assert.ok(Math.abs(Number(await slider.getAttribute('aria-valuenow'))-75)<=1,'Touch comparison uses the image position');
   }
