@@ -15,8 +15,8 @@ import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount,accountBootstrapMessage} from './native-account.js?v=20261103-browser-bootstrap1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
-import {createPrecisionEditor} from './precision-edit.js?v=20261107-viewer-sidebar1';
-import {createImageViewerEditor} from './image-viewer-editor.js?v=20261107-viewer-sidebar1';
+import {createPrecisionEditor} from './precision-edit.js?v=20261107-scope1';
+import {createImageViewerEditor} from './image-viewer-editor.js?v=20261107-scope1';
 import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261102-local-currency';
 import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&creditPurchaseFlow=20261104v1&partnerMenu=20261027-bellini1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1&cookies=20261101-v1&conversionFlow=20261102-1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1&creditPurchaseFlow=20261104v1';
@@ -4574,11 +4574,11 @@ async function stageViewerReplacement(selection){
     throw Error('This model does not support reference replacement. Choose Seedream, Nano Banana, Qwen or Krea in Image.');
   if(tool!=='image'||!customerImageProviderReady())throw Error('Open this image in Image Studio with an available model.');
   if(customerMode&&(!customerGenerationReady||customerCreditBalance<=0))throw Error('Add credits before generating. Your selection is saved.');
-  const roles={person:'identity',outfit:'outfit',object:'object'};
+  const roles={face:'identity',person:'identity',outfit:'outfit',object:'object'};
   if(!roles[selection.scope])throw Error('Choose the reference type.');
   const destinations=selection.references?.length?selection.references:[{file:selection.reference}];
   if(!destinations.length||destinations.length>9||destinations.some(ref=>!ref?.file))throw Error('Choose valid replacement photographs.');
-  if(destinations.some(ref=>ref.label?.elementCategory&&ref.label.elementCategory!==({person:'characters',outfit:'outfits',object:'props'}[selection.scope])))
+  if(destinations.some(ref=>ref.label?.elementCategory&&ref.label.elementCategory!==({face:'characters',person:'characters',outfit:'outfits',object:'props'}[selection.scope])))
     throw Error('The saved reference does not match the selected replacement type.');
   const proposed=[{file:selection.file},...destinations];
   const issue=modelImageInputIssue(model,proposed);if(issue)throw Error(issue);
