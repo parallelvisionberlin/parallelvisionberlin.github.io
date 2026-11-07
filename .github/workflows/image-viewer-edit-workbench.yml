@@ -30,18 +30,22 @@ jobs:
           marker="const log='/tmp/image-viewer-verification.log';"
           assert s.count(marker)==1
           helper="""
-          let baselineKnownFailure=false;
+          const baselineFailures=[];
+          let baselineReady=false;
           function knownBaselineFailure(command,args,result){
-            if(command!=='node'||args.length!==1||args[0]!=='tests/lab-first-image-instant-browser.mjs')return false;
-            const signature='idle new/guest base same w:';
-            if(!(result.stderr||'').includes(signature))return false;
+            const signatures={
+              'tests/lab-first-image-instant-browser.mjs':'idle new/guest base same w:',
+              'tests/lab-studio-layout-ui.mjs':'Clerk resources cannot load indefinitely'
+            };
+            const signature=command==='node'&&args.length===1?signatures[args[0]]:null;
+            if(!signature||!(result.stderr||'').includes(signature))return false;
             const baseline='/tmp/pv-viewer-baseline';
-            execFileSync('git',['worktree','add','--detach',baseline,'HEAD'],{stdio:'inherit'});
+            if(!baselineReady){execFileSync('git',['worktree','add','--detach',baseline,'HEAD'],{stdio:'inherit'});baselineReady=true;}
             const check=spawnSync('node',args,{cwd:baseline,encoding:'utf8',env:{...process.env,PV_PLAYWRIGHT_MODULE:'/tmp/pv-viewer-check/node_modules/playwright/index.mjs'},timeout:180000,maxBuffer:10*1024*1024});
-            appendFileSync(log,'\\nUNMODIFIED BASELINE COMPARISON\\n'+(check.stdout||'')+(check.stderr||''));
+            appendFileSync(log,'\\nUNMODIFIED BASELINE COMPARISON: '+args[0]+'\\n'+(check.stdout||'')+(check.stderr||''));
             if(check.status===0||!(check.stderr||'').includes(signature))return false;
-            baselineKnownFailure=true;
-            console.log('KNOWN BASELINE FAILURE: first-image Base width mismatch exists unchanged on main; not changing its CSS or weakening the test.');
+            baselineFailures.push(args[0]+': '+signature);
+            console.log('KNOWN BASELINE FAILURE: '+args[0]+': '+signature+' reproduced on unchanged application source.');
             return true;
           }
           """
@@ -50,13 +54,12 @@ jobs:
           assert s.count(old)==1
           s=s.replace(old,"if(result.status!==0&&!knownBaselineFailure(command,args,result))throw Error('Verification failed; no source commit: '")
           s=s.replace("'tests/lab-studio-layout-ui.mjs']","'tests/lab-studio-layout-ui.mjs','tests/lab-soul-deck-parity-ui.mjs']")
-          s=s.replace('All scoped checks passed. Source remains on this isolated branch for PR review.','Scoped verification finished. Any baseline failure is recorded separately; production is not verified.')
+          s=s.replace('All scoped checks passed. Source remains on this isolated branch for PR review.','Scoped verification finished. Baseline failures are recorded separately; production is not verified.')
           s=s.replace("writeFileSync('/tmp/viewer-owner-record.json',JSON.stringify(record));", """
-          if(baselineKnownFailure){
-            record.tests[2]={label:'Image deck regression suites',result:'failed',scope:'First-image Base width parity fails identically on unchanged main and this branch. Prompt paste, studio layout, Soul parity and Retouch navigation passed. No assertion was weakened.'};
-            record.blockers=['Pre-existing first-image Base width parity failure reproduced on unchanged main.'];
-            record.evidence[0].summary='54 unit tests and focused viewer/selection browser suites passed. First-image parity failure was reproduced on unchanged main and remains documented.';
-          }
+          record.tests[2]={label:'Image deck regression suites',result:baselineFailures.length?'failed':'passed',scope:'Prompt paste, Soul parity and standalone Retouch navigation passed. Existing first-image Base width and studio-layout Clerk source-regex failures were reproduced against unchanged application source and remain unmodified.'};
+          record.blockers=baselineFailures;
+          record.evidence[0].summary='54 unit tests and focused desktop/mobile viewer, selection and handoff browser suites passed. Separate baseline failures are listed in blockers, not counted as passes.';
+          record.links=[{label:'Verification run',url:'https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID}];
           writeFileSync('/tmp/viewer-owner-record.json',JSON.stringify(record));
           """)
           p.write_text(s)
@@ -88,7 +91,7 @@ jobs:
           test -f /tmp/image-viewer-verified
           git config user.name 'PV LAB verification'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          printf '\n## 2026-11-07: contextual viewer Replace and Edit\n\nAdded the approved sidebar cards above Turn into video and retired the main/guest Image deck Retouch action. Both cards reuse the existing precision canvas inside the image viewer. Replace transfers a full-resolution reviewed mask, source and reference to the existing Image deck; it never submits a generation or changes the selected model. Edit retains existing Retouch pricing and submission. Existing sidebar actions remain in place.\n\n54 provider-free unit tests and focused desktop/mobile viewer, selection, prompt-paste, studio-layout, Soul-parity and Retouch-navigation checks passed. The first-image Base width parity test fails on unchanged main as well as this branch; no assertion was weakened and unrelated deck/background styling was left untouched. See the owner work record and workbench logs for this pre-existing failure. Production hosting and signed-in paid generation are not verified. No paid provider test was run.\n' >> lab/IMAGE-REPLACEMENT-WORK-STATE.md
+          printf '\n## 2026-11-07: contextual viewer Replace and Edit\n\nAdded the approved sidebar cards above Turn into video and retired the main/guest Image deck Retouch action. Both cards reuse the existing precision canvas inside the image viewer. Replace transfers a full-resolution reviewed mask, source and reference to the existing Image deck; it never submits a generation or changes the selected model. Edit retains existing Retouch pricing and submission. Existing sidebar actions remain in place.\n\n54 provider-free unit tests and focused desktop/mobile viewer, selection, prompt-paste, Soul-parity and Retouch-navigation checks passed. Two broader checks fail on unchanged application source too: first-image Base width parity and the studio-layout Clerk source-regex assertion. Neither assertion was weakened; unrelated deck/background/authentication code remains untouched. See the owner work record and workbench logs for baseline comparisons. Production hosting and signed-in paid generation are not verified. No paid provider test was run.\n' >> lab/IMAGE-REPLACEMENT-WORK-STATE.md
           git add lab/lab.js lab/precision-edit.js lab/studio.html lab/image-viewer-editor.js lab/image-viewer-editor.css lab/IMAGE-REPLACEMENT-WORK-STATE.md tests/lab-image-replacement-flow-ui.mjs tests/lab-first-image-instant-browser.mjs tests/lab-image-oneclick-ui.mjs
           git rm .github/scripts/image-viewer-edit-workbench.mjs .github/scripts/viewer-repair.py .github/workflows/image-viewer-edit-workbench.yml
           git diff --cached --check
