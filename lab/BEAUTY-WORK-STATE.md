@@ -1,5 +1,15 @@
 # Beauty Studio and Studios navigation
 
+## 2026-11-07 | Light/Color distinct images: LIVE VERIFIED
+
+- Request: use the best available portraits already submitted/generated in this chat; do not create more images. Selected sixteen different visual examples from the owner's five contact sheets and earlier supplied editorial lighting/colour grids. Eight Light and eight Color, each matched to its existing label.
+- PR #892 merged as `ac9e579e3ac1f65eaebceb350607de40012e70de`. Changed only `lab/beauty.html`, `lab/beauty-look-catalog.js`, 16 new optimized `alter-light-*` / `alter-color-*` WebP assets and `tests/lab-beauty-light-color-previews.test.mjs`.
+- Native option IDs, text instructions, nine-per-tab grid, dynamic Original user-photo preview, default settings, generation controls, billing, exact quotes, backend, hero, favicon, archive and other Studio components unchanged. No credits or paid provider jobs.
+- Scoped browser, Worker quote/idempotency, Image/Beauty/category/13-look archive and 16-image integrity checks passed: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42353378370. Standard Beauty CI and approved Image contract also passed on final PR head.
+- Cloudflare Pages reported successful deployment of the exact merge; all sixteen live photo URLs matched reviewed source SHA-256 hashes and browser tab tests at 1440/390 passed with no generation requests: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42353925748.
+- The thumbnails are visual references. Fidelity of actual paid model outputs to these looks remains untested. No change to styling, naming or options requested.
+
+
 ## 2026-11-07 | 13-look editorial archive: LIVE VERIFIED
 
 - User-requested redesign of only the horizontal Editorial Looks & Moods archive: 13 curated photographic directions (6 original IDs plus Sculptural, Noir, Afterimage, Street Flash, Concrete, Blue Hour and Night Tape), 12 new optimized WebP crops from user-supplied PV/HF/portrait assets and one retained original Beauty close-up. No named third-party photographer images were published.
