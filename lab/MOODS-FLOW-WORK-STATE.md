@@ -1,3 +1,16 @@
+## 90s Cinema natural-light calibration / 2026-11-07
+
+- Scope: change only the curated `90s-cinema` recipe, its matching tests and the Studio/Mood Atlas module versions. Do not change other Moods, preview images, models, quotes or the Worker.
+- Owner quality evidence: a 100% Seedream 5 Pro 1K outdoor portrait showed a bright white-gold silhouette halo, teal-green backdrop and artificial border/perforation marks; the person appeared pasted against the environment.
+- Root cause in source: the former direction explicitly called for golden backlighting, theatrical light, pronounced halation, a film gate and high-intensity sprocket marks, even when the Base did not justify those choices.
+- Decision: authentic intimate 1990s indie-cinema film response, not a decorative film filter. Source lighting and its direction govern the whole photograph. Soft halation stays only at existing sources, natural skin and background contact are preserved, and generated borders/scratches/leaks are forbidden.
+- Intensity: 1–34 quiet, 35–75 moody, 76–89 strong, 90–100 maximum but physically credible; 82% and 100% now produce distinct instruction tiers instead of the same high-intensity recipe.
+- Core files: `lab/moods.js`, `tests/lab-moods.test.mjs`; asset version bumps in `lab/lab.js`, `lab/studio.html`, `lab/explore-moods.js`, `lab/moods.html`.
+- Original approved record-store thumbnail, public catalog identity and historical generated images remain untouched.
+- New test scope: Seedream Pro/Lite at 15/60/82/100, source/identity preservation, no positive film-gate or generated halo instructions, text-only behavior, saved metadata and prompt length.
+- Pending after branch implementation: automated checks, reviewed PR merge, exact Cloudflare Pages check and production module readback. No paid generation is authorized as part of code validation.
+- Photographic output quality has not been verified by a new real provider render. Owner's next comparison should use a comparable original photo and the revised preset.
+
 ## Stable Mood Atlas frame / 2026-11-06
 
 - Objective: one responsive photographic frame through upload, preparation, generation, result, Make another and source removal.
