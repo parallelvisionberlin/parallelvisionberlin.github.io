@@ -2,6 +2,17 @@
 
 Verified 2026-10-25 (Berlin). Main integration: `940c00c99f8a57877dd587177c3249917b0730bc` (PR #539), based on `61a2729fea715995ed2648aa82cb7a5d9035eee3` and preserving subsequent main documentation. Scoped branch: `codex/hong-kong-film-finish-ci-20261025`.
 
+## Same-source production comparison, 7 November 2026
+
+- Owner compared Won Kar Night (Soul 2, 93%) with Hong Kong Nights (Seedream 5 Pro, 84%) from the same storefront scene. Soul's stronger cinematic result replaces frontal fill with directional overhead fluorescent light, warm highlights and deep blacks. The new framing, shifted storefront and changed subjects demonstrate re-synthesis rather than a faithful relight.
+- The Hong Kong request supplied Base plus the existing city-haze and wet-street Style inputs. Its prompt explicitly asked for green background fog and wet reflections. Retrieved and inspected the saved Seedream output before Film Finish. The broad green fog and wet pavement were already present. The applied 13/100/78/100 finish lifts midtones and contributes optical spread. It is a separate stage from scene lighting.
+- Owner's visual benchmark for the next trial is the Won Kar Night result. Aim for a single motivated overhead/storefront key, localized green-cool spill, warm skin, clean shadow separation and integrated grain, while retaining the exact Base camera, people, expressions, clothing, storefront, signs and props. An original-only 35mm finish retains geometry, but must be judged separately from re-lighting.
+- Candidate control for review: same original and Seedream 5 Pro, Base as the only image, Mood off. Use the short art direction below. Inspect the raw result against the original and Soul example before film finishing. One authorized comparison or a matching saved result is enough to decide whether to revise the recipe. Keep the approved Mood preset as the comparison baseline.
+
+> Keep this exact photograph, camera, faces, expressions, poses, outfits, cups, storefront, signs and bicycles. Relight the same scene as a low-key 35mm movie still. The existing overhead storefront fluorescent is the directional key. Let its cool green spill fall on the nearest surfaces and lit edges, keep warm natural skin, and let the far sides of the subjects and the street fall into clean, readable blacks. Use gentle halation on the actual fixtures and fine integrated grain. Preserve clear air and the source pavement.
+
+- Diagnostic used existing stored assets and read-only request metadata. Candidate requires visual validation. Product code and deployment are untouched.
+
 ## Approved implementation
 
 - PR #536 merged as `bcd80d965b19c7d084b0c5c94009c4bb9467f3c6`.
@@ -50,4 +61,3 @@ Owner instruction: preserve the approved Image 3 palette and integrity; increase
 - Preparation verifies all other Mood outputs by deterministic digest. The release diff excludes the V8 implementation, provider/reference routing, safety and billing. Permanent tests cover the approved Hong Kong recipe and controls without blocking unrelated future provider changes.
 - Three anchor PROMPT checks cover portrait/interior/street for all seven compatible model settings. No paid generation or customer wallet action is performed. These are not visual approval of new AI outputs, and a matching prompt cannot guarantee identical pixels on a new stochastic generation.
 - Browser module cache marker: hkImage3=20261020v1.
-
