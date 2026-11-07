@@ -70,9 +70,9 @@
       "component": "Image Moods / Mood Atlas",
       "status": "needs_verification",
       "summary": "Replace forced halo, green theatrical lighting and fake sprocket borders with a source-motivated late-1990s 35mm film treatment. Distinct strength tiers at 15/60/82/100.",
-      "nextAction": "Run relevant Mood and approved Image checks, merge reviewed PR, verify Cloudflare production asset and separately evaluate next real owner generation.",
+      "nextAction": "Merge PR #916 with verified application source, inspect exact Cloudflare Pages check and published module byte-for-byte, then assess a new real output separately.",
       "baselineSha": "55ff406cb991b5f0770ea2f204e4efffcaed515e",
-      "reviewedSha": null,
+      "reviewedSha": "0e13ac61e2efbf547ffacdc1f6765c333f781e50",
       "branch": "fix/90s-cinema-natural-light-20261107",
       "files": [
         "lab/moods.js",
@@ -87,13 +87,35 @@
         {
           "label": "Scoped handoff",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/MOODS-FLOW-WORK-STATE.md"
+        },
+        {
+          "label": "PR #916",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/916"
         }
       ],
       "tests": [
         {
-          "label": "90s Cinema photo-source and intensity regression",
-          "result": "not_run",
-          "scope": "15/60/82/100 for Seedream/Lite; prompt preservation, no unnatural halo/film border instructions."
+          "label": "Mood Creator focused 61 Node cases including new 90s Cinema regression",
+          "result": "passed",
+          "scope": "Pro/Lite at 15/60/82/100, source light, original prompt/metadata, <=3K Lite and <=5K Pro, other Moods.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42379392553"
+        },
+        {
+          "label": "Mood Creator browser and Explore generation",
+          "result": "passed",
+          "scope": "Mood Creator browser and Explore/Mood Atlas generation flow passed with mock APIs; no paid calls.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42379392561"
+        },
+        {
+          "label": "Approved Image UI contract, static site and scoped Night Flash/Soul",
+          "result": "passed",
+          "scope": "Approved Image, static site and night-flash-soul focused job. Broad shared Image workflow has prior Base-width and Clerk assertions.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42379392784"
+        },
+        {
+          "label": "Wider repository CI",
+          "result": "failed",
+          "scope": "Unrelated changed-scope failures in existing visual, navigation, auth/source, video and gallery tests. Not corrected or masked by this PR."
         }
       ],
       "deployment": {
