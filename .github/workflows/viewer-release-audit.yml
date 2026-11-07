@@ -1,0 +1,84 @@
+name: Viewer release blocker audit
+on:
+  push:
+    branches: [feat/image-viewer-replace-edit-20261107]
+    paths: ['.github/workflows/viewer-release-audit.yml']
+permissions:
+  contents: read
+  actions: read
+  checks: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            AGENTS.md
+            lab/AGENTS.md
+            lab/RELEASE-PROTOCOL.md
+            lab/IMAGE-REPLACEMENT-WORK-STATE.md
+            lab/owner-work-records.json
+          sparse-checkout-cone-mode: false
+      - name: Compare existing failed checks without rerunning generation or tests
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit
+          python3 - <<'PY'
+          import concurrent.futures,json,os,re,subprocess
+          from pathlib import Path
+          repo=os.environ['GH_REPO']
+          def api(path):
+            p=subprocess.run(['gh','api',f'repos/{repo}/'+path],capture_output=True,text=True,timeout=35)
+            if p.returncode: raise RuntimeError(p.stderr[:600])
+            return json.loads(p.stdout)
+          refs={'feature':'8b2410d88b4dd55cdeda031ffb87ab65a2dded69','main':'fa097ff9b1a776e70d097cdf585df204ac803a40','previous_main':'f097394c213a1bc61600d1b35c833d210783cd66'}
+          checks={}
+          for label,sha in refs.items():
+            items=api('commits/'+sha+'/check-runs?per_page=100')['check_runs']
+            checks[label]=[{k:c.get(k) for k in ['id','name','status','conclusion','details_url','head_sha']} for c in items]
+          Path('audit/checks.json').write_text(json.dumps(checks,indent=2))
+          failed=[c for c in checks['feature'] if c['conclusion']=='failure']
+          names={c['name'] for c in failed}
+          selected=[]
+          for label,items in checks.items():
+            for c in items:
+              if c['name'] in names and c['conclusion']=='failure':selected.append((label,c))
+          def log_excerpt(item):
+            label,c=item
+            m=re.search(r'/job/(\d+)',c['details_url'] or '')
+            if not m:return {'ref':label,**c,'log_error':'no job URL'}
+            job=m.group(1)
+            p=subprocess.run(['gh','api',f'repos/{repo}/actions/jobs/{job}/logs'],capture_output=True,text=True,timeout=45)
+            if p.returncode:return {'ref':label,**c,'log_error':p.stderr[:500]}
+            text=re.sub(r'\x1b\[[0-9;]*m','',p.stdout)
+            lines=[re.sub(r'^\ufeff?\d{4}-\d\d-\d\dT[^ ]+ ','',line) for line in text.splitlines()]
+            hits=[i for i,line in enumerate(lines) if re.search(r'(^not ok\b|AssertionError|Error:|TimeoutError|error:|FAIL |failed tests:|# fail [1-9])',line)]
+            indices=set()
+            for i in hits:
+              indices.update(range(max(0,i-3),min(len(lines),i+18)))
+            excerpt='\n'.join(lines[i] for i in sorted(indices))
+            Path('audit/'+label+'-'+str(c['id'])+'.txt').write_text(excerpt)
+            return {'ref':label,**c,'job_id':job,'failure_excerpt':excerpt[:20000]}
+          with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
+            results=list(pool.map(log_excerpt,selected))
+          Path('audit/failures.json').write_text(json.dumps(results,indent=2))
+          for r in results:
+            print('\n###',r['ref'],r['name'],r.get('job_id'))
+            print(r.get('log_error') or r['failure_excerpt'][:6500])
+          state=json.loads(Path('lab/owner-work-records.json').read_text())
+          record=next(r for r in state['records'] if r['id']=='image-viewer-replace-edit-actions')
+          Path('audit/owner-record.json').write_text(json.dumps(record,indent=2))
+          Path('audit/work-state.md').write_text(Path('lab/IMAGE-REPLACEMENT-WORK-STATE.md').read_text())
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: viewer-release-audit
+          path: audit/
+          retention-days: 2
