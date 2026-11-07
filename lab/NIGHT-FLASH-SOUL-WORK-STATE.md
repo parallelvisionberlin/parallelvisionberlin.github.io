@@ -2,12 +2,11 @@
 
 ## Owner Night Flash Photo Finish, 2026-11-07
 
-- Owner only: Image Deck → Moods → Night Flash · Photo Finish. Click the face (or between two faces), Apply finish, compare with the Base or download the PNG.
-- #898 shipped the local 35mm finish. An owner real-photo comparison showed that it mostly dimmed the room and softened fine detail.
-- #901 https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/901 applies stronger localized exposure, faster falloff and full-resolution tonal processing with restrained halation and grain. Browser processing uses the source pixels and preserves the geometry. No provider or Worker deployment.
-- A private check on the submitted portrait made the face brighter than the wall and kept its original 2048×1170 dimensions. A second check on a two-person source preserved both subjects and framing.
-- 79 scoped Node cases and hosted Chrome at 390 and 1440 px passed. Checks cover aim, apply, compare, re-aim, owner visibility, customer exclusion and zero POSTs.
-- Production Pages deployment f5c90ddd-a2be-490f-a05a-93faff158939 at 4fa67404ae926edf23161e93d8187130ffff1990 verified on the custom domain. The revised control was not exercised in a real owner session.
+- Owner only: Image Deck → Moods → Night Flash · Photo Finish → Apply finish. Compare or download the PNG. The point tool from #901 was replaced with an automatic mask after real owner feedback.
+- #906 https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/906 uses pinned MediaPipe Vision 0.10.21 and model v1 in an opaque sandbox. The separate silhouette and face confidence masks are used for exposure and highlight protection. Static models load on demand. Photo pixels stay local.
+- The background drops 0.7 EV. Face reflections lift modestly. White cloth and framing are preserved and fine grain is applied to the original dimensions.
+- Both submitted private examples passed visual checks and retained 2048×1170. Chrome 390 and 1440 px using the downloaded model bytes verified apply, compare, cleanup, and that the only external requests are GETs for static files. 79 focused Node tests and the hosted Studio role check passed.
+- Cloudflare production deployment e969a8ed-b687-4a5c-be82-1ed7386dbbc8 at b55bb9153a8ad6efbefe4103ff81db323ab40d33 verified on pvlab.studio. The new build has not yet been exercised in a real owner session.
 
 ## Active state, 2026-11-06
 
