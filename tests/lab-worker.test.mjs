@@ -588,7 +588,7 @@ test('paused customer can discover draft video models without receiving spending
   assert.deepEqual(session.config.videoEngines,[]);
   assert.ok(session.config.videoPreparationEngines.includes('wan'));
   assert.ok(session.config.videoPreparationEngines.includes('seedance'));
-  assert.ok(!session.config.videoPreparationEngines.includes('klinghf'),'Owner-only model stays private');
+  assert.ok(session.config.videoPreparationEngines.includes('kling3'),'Public Kling 3.0 remains selectable before purchase, but not billable without credits');
   const count=createCount;
   const quote=await req(env,'/api/quotes',{method:'POST',authToken,data:{settings:{type:'video',engine:'seedance',mode:'text',prompt:'A slow camera move.'}}});
   assert.equal(quote.status,403);
