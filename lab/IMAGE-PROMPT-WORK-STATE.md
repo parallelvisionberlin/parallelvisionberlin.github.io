@@ -5,8 +5,9 @@
 - The base deck already initializes Seedream Pro at 1K. Stop owner Mood selection, Mood URL entry and native Mood commands from promoting that setting to 2K. Fresh Inspiration and guest-draft handoffs use 1K only for owner Seedream Pro.
 - Explicit 2K selection survives subsequent Mood changes. Preserve customer defaults, other models, saved-draft/History resolutions and the exact 2K settings of a previously priced Mood Generate handoff.
 - Files: lab/lab.js, lab/studio.html cache version, existing native Mood regression and shared Owner work record. No layout, prompt, provider, pricing or generation changes.
-- Local syntax and 11 relevant Node checks pass. Local Image browser suites attempted: prompt-paste/first-image cannot launch because Chromium is absent; Studio-layout stops on its existing Clerk source assertion. Hosted CI and production verification pending.
-- Native regression aligns the owner default with 1K, then explicitly selects 2K for the existing prompt-budget case and verifies that choice survives another Mood.
+- Final reviewed head: 0570f6b54530ba5177376900edcfecdeeb01eada. PR #914 merged as 39ac9a582c31302f59562af3675d65b5d8878e36. Syntax and 11 relevant Node checks pass. Hosted approved Image contract, prompt-paste, owner/customer controller checks and Explore/native/app discovery pass. The isolated Explore fixture now explicitly declares ownerAccount; no assertions weakened. Existing compact-height, Base-width and Clerk source-regex failures remain documented separately.
+- Native regression passes at 390/320/768: owner defaults to 1K, then explicitly selects 2K for the existing prompt-budget case and retains it across another Mood. Final flow evidence: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42374664148/job/128409692703.
+- Production: Cloudflare check128410356201 succeeded; read-only verifier returned LIVE_VERIFIED for lab.js v=20261107-owner-seedream-1k1, SHA256 94f9205e3b8603989cb9982b7038cdc07eb157af9090cb3d9cc9d964c097c959. Merged application/fixture files match reviewed source. No paid generation or real signed-in owner observation. Next: no implementation work pending; refresh Studio.
 
 ## 2026-11-07 | Selected Mood button lettering clearance
 

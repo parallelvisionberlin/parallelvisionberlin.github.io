@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T12:51:07.171Z",
+  "updatedAt": "2026-11-07T13:00:25.600Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1614,40 +1614,72 @@
       "id": "owner-seedream-default-1k",
       "title": "Owner Seedream 1K default",
       "component": "Image deck",
-      "status": "needs_verification",
-      "updatedAt": "2026-11-07T12:51:07.171Z",
+      "status": "deployed",
+      "updatedAt": "2026-11-07T13:00:25.600Z",
       "summary": "Owner Seedream Pro keeps 1K across fresh Mood and Inspiration entry; explicit 2K choices survive later Mood selection.",
-      "nextAction": "Complete hosted Image/native checks, merge reviewed source, verify Cloudflare and production lab.js.",
+      "nextAction": "Complete. Refresh Studio to load the published default. Real signed-in account observation remains separate from synthetic browser checks.",
       "baselineSha": "d3f66d75791d022a6c482dbd2f069196f202dd32",
-      "reviewedSha": null,
+      "reviewedSha": "0570f6b54530ba5177376900edcfecdeeb01eada",
       "branch": "fix/owner-seedream-default-1k-20261107",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
         "tests/lab-native-mobile-ui.mjs",
-        "lab/IMAGE-PROMPT-WORK-STATE.md"
+        "lab/IMAGE-PROMPT-WORK-STATE.md",
+        "tests/lab-explore-generation.mjs"
       ],
-      "links": [],
+      "links": [
+        {
+          "label": "PR #914",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/914"
+        }
+      ],
       "tests": [
         {
-          "label": "Syntax and 11 focused Node tests",
+          "label": "Focused Node and syntax checks",
           "result": "passed",
-          "scope": "Approved Image contract, Seedream/Flash default separation, exact priced Mood handoff."
+          "scope": "11 local checks: approved Image contract, Seedream Pro/Flash defaults, exact priced Mood handoff."
         },
         {
-          "label": "Required Image browser attempts",
-          "result": "not_run",
-          "scope": "Local prompt-paste and first-image blocked by missing Chromium; Studio-layout retains its documented Clerk source assertion. Hosted checks pending."
+          "label": "Hosted owner default and explicit resolution",
+          "result": "passed",
+          "scope": "Explore handoffs, native owner at 390/320/768, and app discovery pass. Owner starts at 1K and manual 2K survives another Mood. No real paid generation.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42374664148/job/128409692703"
+        },
+        {
+          "label": "Hosted Image UI and controller checks",
+          "result": "passed",
+          "scope": "Approved Image contract, prompt paste/clearance and actual-controller owner/customer Night Flash/Soul/replacement checks passed on final head.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42374664244/job/128409692965"
+        },
+        {
+          "label": "Existing broader Image failures",
+          "result": "documented",
+          "scope": "Guest/signed compact height, Base width 120px vs96px and Clerk boundedSetup source-regex failures persist in unchanged suites. No failing assertion removed or weakened. The earlier missing ownerAccount fixture was corrected and its final flow passed."
         }
       ],
       "deployment": {
-        "state": "not_started",
+        "state": "verified",
+        "sourceSha": "39ac9a582c31302f59562af3675d65b5d8878e36",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-07T13:00:25.600Z",
+        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/77eeb40b-76bc-4fc0-b1e2-f94f10bf076d",
         "limitations": [
-          "Real signed-in owner behavior not observed."
+          "Real signed-in owner observation was not performed. Browser behavior used synthetic accounts and no paid provider requests."
         ]
       },
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "production_asset",
+          "summary": "LIVE_VERIFIED: production HTML loads lab.js v=20261107-owner-seedream-1k1 and exact JS SHA256 94f9205e3b8603989cb9982b7038cdc07eb157af9090cb3d9cc9d964c097c959 matches merge39ac9a5. Cloudflare check128410356201 succeeded.",
+          "scope": "Custom-domain Studio HTML and complete application module bytes; merged source matches reviewed application and fixture files.",
+          "observedAt": "2026-11-07T13:00:25.600Z",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": [
+            "Publication evidence is separate from real signed-in account behavior."
+          ]
+        }
+      ],
       "blockers": [],
       "doNotRepeat": [
         "Keep customer defaults and other models unchanged.",
