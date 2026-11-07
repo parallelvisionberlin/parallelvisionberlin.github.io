@@ -122,6 +122,33 @@ try{
       await page.locator('#image-composer-add').click();
       await (await sourceChooser).setFiles(resolve('lab/mood-previews/hd/night-flash-20261011.jpg'));
       await page.waitForFunction(()=>window.__nightFlashRead().source===true);
+      await page.locator('#image-composer-moods').click();
+      const finishCard=page.getByRole('button',{name:'Select Night Flash · Photo Finish',exact:true});
+      assert.equal(await finishCard.isVisible(),role==='owner');
+      if(role==='owner'){
+        const beforeRequests=requests.length;
+        await finishCard.click();
+        const finishDialog=page.locator('#owner-photo-finish-dialog');
+        const finishImage=finishDialog.locator('img');
+        await page.waitForFunction(()=>document.querySelector('#owner-photo-finish-image').naturalWidth>0);
+        const original=await finishImage.evaluate(img=>[img.src,img.naturalWidth,img.naturalHeight]);
+        await finishDialog.getByRole('button',{name:'Apply finish'}).click();
+        await finishDialog.getByRole('link',{name:'Download'}).waitFor();
+        await page.waitForFunction(src=>{
+          const image=document.querySelector('#owner-photo-finish-image');
+          return image.src!==src&&image.complete&&image.naturalWidth>0;
+        },original[0]);
+        const result=await finishImage.evaluate(img=>[img.naturalWidth,img.naturalHeight]);
+        assert.deepEqual(result,original.slice(1),'Photo Finish preserves original dimensions');
+        assert.equal(await finishDialog.evaluate(el=>el.getBoundingClientRect().width<innerWidth),true);
+        await finishDialog.getByRole('button',{name:'View original'}).click();
+        assert.equal(await finishImage.getAttribute('src'),original[0]);
+        await finishDialog.getByRole('button',{name:'Close',exact:true}).click();
+        assert.equal(await finishDialog.isVisible(),false);
+        assert.equal(requests.slice(beforeRequests).some(r=>r.method==='POST'),false,'No upload, quote or generation');
+        assert.equal(await page.evaluate(()=>window.__nightFlashRead().mood),'night-flash','Generative selection is retained');
+      }else await page.locator('#composer-moods-done').click();
+
       await page.locator('#image-composer-prompt').fill('Keep the expression.');
       state=await page.evaluate(()=>window.__nightFlashRead());
       assert.match(state.settings.prompt,/Relight the existing subject/);
