@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T17:28:20.699Z",
+  "updatedAt": "2026-11-07T17:32:53.094Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1802,13 +1802,13 @@
       "id": "image-viewer-replace-edit-actions",
       "title": "Contextual image viewer Replace and Edit",
       "component": "PV LAB Image viewer",
-      "status": "needs_verification",
-      "updatedAt": "2026-11-07T17:28:20.699Z",
+      "status": "deployed",
+      "updatedAt": "2026-11-07T17:32:53.094Z",
       "baselineSha": "5f226c95947d8f31a9651e7c18b6b8a988187315",
-      "reviewedSha": null,
+      "reviewedSha": "e363f1316b4c05552cac046246411e72ecb6424d",
       "branch": "fix/viewer-single-sidebar-20261107",
       "summary": "Edit/Replace swaps the original right-hand Image details sidebar for editing controls. No third column or smaller photo; leaving editing restores metadata/actions. Guided selection, saved references and generation behavior are unchanged.",
-      "nextAction": "Review the PR and verify exact Cloudflare production assets after merge. No real-account or paid edit has been run.",
+      "nextAction": "Single-sidebar switch is published and public layout verified. Real-account or paid-provider edits were not run. Saved Location-reference swaps remain unsupported.",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
@@ -1869,6 +1869,14 @@
         {
           "label": "Single-sidebar verification",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42396378068"
+        },
+        {
+          "label": "Single-sidebar PR #921",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/921"
+        },
+        {
+          "label": "Single-sidebar production verification",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42396759207"
         }
       ],
       "tests": [
@@ -1889,12 +1897,14 @@
         }
       ],
       "deployment": {
-        "state": "not_started",
-        "environment": "Cloudflare Pages pvlab-studio",
-        "sourceSha": null,
+        "state": "verified",
+        "sourceSha": "e363f1316b4c05552cac046246411e72ecb6424d",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-07T17:32:53.094Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42396759207",
         "limitations": [
-          "Sidebar correction is not yet published.",
-          "No real-account or paid generation was run.",
+          "Public layout checks used synthetic media and stub callbacks with APIs blocked.",
+          "No real-account or paid-provider generation was run.",
           "Saved Location reference swaps remain unsupported."
         ]
       },
@@ -2009,11 +2019,29 @@
           "limitations": [
             "Not a live signed-in or paid generation test."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Exact Cloudflare release and all four modified public viewer asset hashes match reviewed source.",
+          "scope": "image-viewer-editor.css, lab.js, precision-edit.js and image-viewer-editor.js",
+          "observedAt": "2026-11-07T17:32:53.094Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42396759207",
+          "limitations": [
+            "Not evidence of a paid generation or real-account journey."
+          ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "Actual public HTML/CSS/modules: both Edit and Replace swap the original right sidebar, preserve fitted photo dimensions and restore Image details on exit at 390px, 1440px and 1728px.",
+          "scope": "Synthetic photo and callbacks, all account/API calls blocked",
+          "observedAt": "2026-11-07T17:32:53.094Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42396759207",
+          "limitations": [
+            "No account access or paid provider calls."
+          ]
         }
       ],
-      "blockers": [
-        "PR and production asset verification pending."
-      ],
+      "blockers": [],
       "doNotRepeat": [
         "Do not recreate a separate editor or add buttons over the photograph.",
         "Do not change provider, model or billing when opening an action."

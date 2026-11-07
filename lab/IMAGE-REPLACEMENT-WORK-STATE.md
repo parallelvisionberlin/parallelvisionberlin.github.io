@@ -103,3 +103,12 @@ Approved storyboard implemented as contextual guidance, selection cursor, replac
 Editing now replaces Image details in the existing right-hand sidebar rather than adding a middle panel. The photograph retains normal viewer fit, including small originals. Exit restores metadata/actions. Guided selection, saved references, provider/model and billing behavior are unchanged.
 
 70 focused unit tests and the full mocked flow at 390px, 1440px and 1728px passed, including photo-size parity and masks. Existing Precision and standalone Retouch regression checks passed. No paid or real-account edit was run. Production verification remains separate.
+
+
+## Single-sidebar published, 2026-11-07
+
+- PR #921 merged as e363f1316b4c05552cac046246411e72ecb6424d. Exact Cloudflare deployment and all four modified custom-domain asset hashes verified.
+- Edit/Replace controls replace the original right-hand Image details panel. The photo keeps normal viewer fit and metadata/actions return on exit. No middle panel.
+- Public HTML/CSS/modules verified at 390px, 1440px and 1728px in both modes with synthetic photo/stubbed callbacks and all APIs blocked. This is not a real signed-in customer journey.
+- 70 focused unit tests and complete mocked replacement/Precision/Retouch regressions passed before release. No paid generation was run. Existing saved Location limitation remains unchanged.
+- Evidence: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42396759207
