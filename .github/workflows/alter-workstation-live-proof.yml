@@ -1,0 +1,74 @@
+name: ALTER workstation production proof
+on:
+  push:
+    branches: [verify/alter-workstation-live-20261107]
+    paths: [.github/workflows/alter-workstation-live-proof.yml]
+permissions:
+  contents: read
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 6e001659cf209b330b5d53113411399ce8db2851
+      - name: Compare published workstation bytes with exact reviewed production source
+        run: |
+          python3 - <<'PY'
+          import urllib.request,hashlib
+          from pathlib import Path
+          def get(path):
+            request=urllib.request.Request('https://pvlab.studio/'+path,headers={'Cache-Control':'no-cache','User-Agent':'Mozilla/5.0 (PVLAB verification)'})
+            with urllib.request.urlopen(request,timeout=20) as r:return r.read()
+          text=get('beauty').decode('utf-8')
+          for token in [
+            'beauty-workstation-20261107.css?v=20261107-workstation1',
+            'beauty-workstation-20261107.js?v=20261107-workstation1',
+            'alter-compare-top','alter-compare-bottom','alter-layer-stack',
+            'beauty-exposure','beauty-contrast','beauty-highlights','beauty-shadows','beauty-warmth',
+            'beauty-photo-preview','beauty-result','beauty-generate','beauty-looks-list'
+          ]: assert token in text,'Missing live workstation control: '+token
+          for p in ['beauty-workstation-20261107.css','beauty-workstation-20261107.js','beauty-settings.js','beauty.js']:
+            original=Path('lab')/p
+            remote=get(p)
+            assert hashlib.sha256(original.read_bytes()).digest()==hashlib.sha256(remote).digest(),'Source differs from published bytes: '+p
+            print('LIVE VERIFIED:',p,len(remote))
+          assert 'data-beauty-choice="beauty-light"' in text
+          assert '<h1>ALTER <br>Studio.</h1>' in text
+          print('WORKSTATION CUSTOM DOMAIN BYTES VERIFIED')
+          PY
+      - name: Verify real guest controls without network writes
+        run: |
+          npm install --prefix /tmp/pv-verify --no-audit --no-fund playwright@1.57.0
+          node /tmp/pv-verify/node_modules/playwright/cli.js install chromium
+          node --input-type=module <<'JS'
+          import {chromium} from '/tmp/pv-verify/node_modules/playwright/index.mjs';
+          import assert from 'node:assert/strict';
+          const browser=await chromium.launch({headless:true});
+          try{
+            for(const width of [1920,1440,1024,390]){
+              const context=await browser.newContext({viewport:{width,height:900}});
+              const page=await context.newPage();let writes=0;
+              await page.route('**/api/**',route=>{if(route.request().method()!=='GET'){writes++;route.abort();}else route.continue();});
+              await page.goto('https://pvlab.studio/beauty',{waitUntil:'domcontentloaded',timeout:30000});
+              await page.locator('#beauty-generate').waitFor({state:'visible'});
+              assert.equal(await page.locator('.beauty-tabs [role="tab"]').count(),5);
+              assert.equal(await page.locator('#beauty-looks-list [data-look]').count(),13);
+              assert.equal(await page.locator('#beauty-model').count(),1);
+              assert.equal(await page.locator('#beauty-ratio').count(),1);
+              assert.equal(await page.locator('.alter-compare-top:visible').count(),0,'Cannot present fake before/after');
+              assert.equal(await page.locator('.alter-compare-bottom:visible').count(),0,'No fake result toolbar');
+              assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'No horizontal page overflow');
+              await page.locator('#beauty-tab-light').click();
+              assert.equal(await page.locator('#beauty-exposure').inputValue(),'0');
+              await page.locator('#beauty-exposure').fill('3');
+              assert.equal(await page.locator('#beauty-exposure').inputValue(),'3');
+              await page.locator('#beauty-reset-look').click();
+              assert.equal(await page.locator('#beauty-exposure').inputValue(),'0');
+              assert.equal(writes,0,'Guest UI cannot make paid writes');
+              console.log('GUEST LAYOUT CHECK PASSED:',width);
+              await context.close();
+            }
+          }finally{await browser.close();}
+          JS
