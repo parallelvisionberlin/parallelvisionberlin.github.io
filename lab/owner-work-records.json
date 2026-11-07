@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T16:51:47.364Z",
+  "updatedAt": "2026-11-07T17:28:20.699Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1802,13 +1802,13 @@
       "id": "image-viewer-replace-edit-actions",
       "title": "Contextual image viewer Replace and Edit",
       "component": "PV LAB Image viewer",
-      "status": "deployed",
-      "updatedAt": "2026-11-07T16:51:47.364Z",
-      "baselineSha": "904c5d8fb0cc96046dd5af5ccea2ca994032562a",
-      "reviewedSha": "f80296c43184de3b94fa693d66341ca5483ef028",
-      "branch": "feat/viewer-guided-replace-20261107",
-      "summary": "Owner-approved guided Replace: click instruction and selection cursor; real purple selection; Character/Outfit/Object/Location type tiles; inline existing saved library and upload; replacement-specific wording; successful-completion guidance memory. Existing inline generation and main Image draft remain separate.",
-      "nextAction": "Guided Character/Outfit/Object flow is published. Saved Location swaps still require separately reviewed backend scope support and deployment. No real-account or paid generation was tested.",
+      "status": "needs_verification",
+      "updatedAt": "2026-11-07T17:28:20.699Z",
+      "baselineSha": "5f226c95947d8f31a9651e7c18b6b8a988187315",
+      "reviewedSha": null,
+      "branch": "fix/viewer-single-sidebar-20261107",
+      "summary": "Edit/Replace swaps the original right-hand Image details sidebar for editing controls. No third column or smaller photo; leaving editing restores metadata/actions. Guided selection, saved references and generation behavior are unchanged.",
+      "nextAction": "Review the PR and verify exact Cloudflare production assets after merge. No real-account or paid edit has been run.",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
@@ -1865,35 +1865,37 @@
         {
           "label": "Guided production verification",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42393293916"
+        },
+        {
+          "label": "Single-sidebar verification",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42396378068"
         }
       ],
       "tests": [
         {
-          "label": "70 focused unit checks",
+          "label": "70 focused Image and replacement safeguards",
           "result": "passed",
-          "scope": "Approved Image contract, all eight Character photos/order/notes, type validation, capacity before downloads, session invalidation, local completion memory, signed quote and duplicate guards."
+          "scope": "Existing provider-free tests including saved Character bundles, quotes and duplicate protection."
         },
         {
-          "label": "Guided Replace desktop/mobile browser flow",
+          "label": "Single-sidebar complete browser flow",
           "result": "passed",
-          "scope": "390px and 1440px, real application with synthetic media and intercepted APIs. Initial guidance, selected state, saved bundle, explicit Generate, exact exterior composition, same viewer and unchanged Image draft."
+          "scope": "390px, 1440px and 1728px: photo-size parity, correct mask alignment, saved references, explicit mocked Generate, unchanged Image draft and restored sidebar."
         },
         {
-          "label": "Existing Precision and standalone Retouch",
+          "label": "Precision and standalone Retouch regression",
           "result": "passed",
-          "scope": "Selection, quote safety and navigation regression checks."
+          "scope": "Existing mocked selection, zoom/pan and safe navigation tests."
         }
       ],
       "deployment": {
-        "state": "verified",
-        "sourceSha": "f80296c43184de3b94fa693d66341ca5483ef028",
-        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-07T16:51:47.364Z",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42393293916",
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio",
+        "sourceSha": null,
         "limitations": [
-          "Public module verification used synthetic media and stubbed account/library/price callbacks, with zero API access.",
-          "No real signed-in or paid-provider generation was run.",
-          "Saved location-reference swaps remain disabled because the current backend does not support location replacement scope."
+          "Sidebar correction is not yet published.",
+          "No real-account or paid generation was run.",
+          "Saved Location reference swaps remain unsupported."
         ]
       },
       "evidence": [
@@ -1998,10 +2000,19 @@
           "limitations": [
             "Not a real signed-in customer journey or paid-generation test."
           ]
+        },
+        {
+          "kind": "automated_test",
+          "summary": "Single-sidebar mode switch and fitted-photo dimensions passed with existing selection, generation and Retouch regressions.",
+          "scope": "Synthetic media and intercepted APIs at phone and desktop widths",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42396378068",
+          "limitations": [
+            "Not a live signed-in or paid generation test."
+          ]
         }
       ],
       "blockers": [
-        "Saved Location reference swaps are not implemented because the current production replacement API rejects location scope. The UI explains this and keeps location reference upload/picking disabled."
+        "PR and production asset verification pending."
       ],
       "doNotRepeat": [
         "Do not recreate a separate editor or add buttons over the photograph.",

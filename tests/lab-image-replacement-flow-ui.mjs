@@ -51,7 +51,7 @@ let browser;
 try {
   browser = await chromium.launch({headless:true});
   mkdirSync('test-results', {recursive:true});
-  for (const width of [390, 1440]) {
+  for (const width of [390, 1440, 1728]) {
     const context = await browser.newContext({viewport:{width, height:900}});
     const page = await context.newPage();
     const requests = [], uploads = [], quotes = new Map(), assets = new Map(), errors = [];
@@ -230,6 +230,11 @@ try {
     assert.ok(Math.abs(editCard.y-replaceCard.y)<2,'Replace and Edit share one row');
     assert.ok(editCard.y+editCard.height<=videoCard.y,'Both actions stay above Turn into video');
     const originalURL=page.url(),previousDraft=await page.evaluate(()=>window.__replacementFlow.state());
+    await page.waitForFunction(()=>{const image=document.getElementById('image-lightbox-img');return image.complete&&image.naturalWidth>0;});
+    const fittedPhoto=await page.locator('#image-lightbox-img').evaluate(image=>{
+      const rect=image.getBoundingClientRect(),scale=Math.min(rect.width/image.naturalWidth,rect.height/image.naturalHeight);
+      return {width:image.naturalWidth*scale,height:image.naturalHeight*scale};
+    });
     const beforeRequests=requests.length;
     await page.screenshot({path:`test-results/pv-viewer-actions-${width}.png`});
     await page.locator('#image-detail-edit').click();
@@ -239,11 +244,19 @@ try {
     assert.equal(requests.slice(beforeRequests).some(r=>r.method==='POST'&&/segment|quote|submit|jobs/.test(r.path)),false,'Opening must not select, quote or generate');
     const brush=await page.locator('#precision-selection-canvas').boundingBox();
     assert.ok(brush.width>150&&brush.height>100,'The source remains large enough to select');
+    assert.ok(Math.abs(brush.width-fittedPhoto.width)<2,'Edit preserves the fitted viewer photo width');
+    assert.ok(Math.abs(brush.height-fittedPhoto.height)<2,'Edit preserves the fitted viewer photo height');
+    assert.equal(await page.locator('.image-detail-inspector .precision-tools').count(),1,'Tools occupy the existing right sidebar');
+    assert.equal(await page.locator('.image-detail-inspector .precision-deck').count(),1,'No additional middle panel');
+    assert.equal(await page.locator('.image-detail-inspector-head').isVisible(),false,'Details are replaced, not displayed beside the edit deck');
+    await page.screenshot({path:`test-results/pv-sidebar-edit-${width}.png`});
     await page.mouse.move(brush.x+brush.width*.4,brush.y+brush.height*.5);
     await page.mouse.down();await page.mouse.move(brush.x+brush.width*.5,brush.y+brush.height*.5,{steps:4});await page.mouse.up();
     assert.equal(await page.locator('#precision-clear-mask').isDisabled(),false);
     await page.locator('#precision-return').click();
     assert.equal(await page.locator('#image-detail-edit').isVisible(),true);
+    assert.equal(await page.locator('.viewer-editor-sidebar').count(),0,'Leaving Edit removes the contextual sidebar');
+    assert.equal(await page.locator('.image-detail-inspector-head').isVisible(),true,'Image details return on exit');
     assert.deepEqual(await page.evaluate(()=>window.__replacementFlow.state()),previousDraft,'Back must not mutate the Image draft');
     await page.locator('#image-detail-replace').click();
     await page.waitForFunction(()=>document.querySelector('#precision-tool-magic').getAttribute('aria-pressed')==='true');
@@ -256,6 +269,10 @@ try {
     assert.equal(submitted,1,'Guidance cannot submit a generation');
     await page.screenshot({path:`test-results/pv-guided-enter-${width}.png`});
     const selection=await page.locator('#precision-selection-canvas').boundingBox();
+    assert.ok(Math.abs(selection.width-fittedPhoto.width)<2,'Replace preserves the fitted viewer photo width');
+    assert.ok(Math.abs(selection.height-fittedPhoto.height)<2,'Replace preserves the fitted viewer photo height');
+    assert.equal(await page.locator('.image-detail-inspector .viewer-replacement-kinds').count(),1,'Saved reference controls live in the original sidebar');
+    await page.screenshot({path:`test-results/pv-sidebar-replace-${width}.png`});
     await page.mouse.click(selection.x+selection.width*.2,selection.y+selection.height*.3);
     await page.waitForFunction(()=>document.querySelector('#precision-status-text').textContent.includes('Selection ready.'));
     assert.equal(segments,3,'Replace requests selection only after an explicit photo click');
@@ -280,7 +297,7 @@ try {
     await page.waitForFunction(()=>!document.querySelector('#viewer-replacement-continue').disabled);
     assert.equal(await page.locator('#precision-generate').isVisible(),false,'Replace cannot accidentally call FLUX');
     await page.screenshot({path:`test-results/pv-viewer-replace-${width}.png`});
-    assert.equal(await page.locator('.image-detail-inspector').isVisible(),true,'Editing keeps the existing image details sidebar');
+    assert.equal(await page.locator('.image-detail-inspector').isVisible(),true,'Editing reuses the existing sidebar frame');
     assert.equal(await page.locator('.image-detail-media > #precision-workspace').count(),1,'Edit lives inside the existing photo pane');
     assert.equal(await page.locator('.precision-panel-label').first().isVisible(),false,'No technical Original/file-name header');
     assert.equal(await page.locator('.viewer-edit-options').getAttribute('open'),null,'Advanced tools are collapsed');

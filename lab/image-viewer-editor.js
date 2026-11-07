@@ -4,6 +4,8 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
   const $ = id => document.getElementById(id);
   const dialog = $('image-lightbox'), workspace = $('precision-workspace');
   const media = dialog.querySelector('.image-detail-media');
+  const inspector = dialog.querySelector('.image-detail-inspector');
+  const sidebar = document.createElement('div'); sidebar.className = 'viewer-editor-sidebar';
   const home = document.createComment('precision workspace home'); workspace.before(home);
   const tools = workspace.querySelector('.precision-tools'), buttons = workspace.querySelector('.precision-tool-buttons');
   const deck = workspace.querySelector('.precision-deck'), back = $('precision-return'), prompt = $('precision-prompt');
@@ -105,27 +107,32 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
   function move(node, parent) { const marker=document.createComment('viewer control home'); node.before(marker); moves.push([node,marker]); parent.append(node); }
   function rename(node,text) { labels.set(node,node.textContent); node.textContent=text; }
   function mount(action) {
+    workspace.style.setProperty('--viewer-source-padding',getComputedStyle($('image-lightbox-stage')).padding);
     media.append(workspace); workspace.setAttribute('aria-label',action==='replace'?'Replace part of this image':'Edit this image');
     title.textContent=action==='replace'?'Replace':'Edit'; tools.prepend(title);tools.append(help);help.hidden=action!=='replace';
     move(back,tools);
     move(workspace.querySelector('.precision-tool-size'),options.lastElementChild);
     move($('precision-expand'),options.lastElementChild);
     move(workspace.querySelector('.precision-strength'),options.lastElementChild);
+    inspector.append(sidebar); move(tools,sidebar); move(deck,sidebar);
     rename($('precision-tool-magic'),'Select'); rename($('precision-tool-brush'),'Brush'); rename($('precision-tool-erase'),'Erase');
     back.textContent='×'; back.setAttribute('aria-label','Back to image viewer'); back.title='Back to image';
     directionLabel.textContent='What do you want to change?'; prompt.placeholder='Describe the change…';
     fields.hidden=false; options.hidden=false;kinds.hidden=hint.hidden=!isReplace();
     scope.querySelector('[value=location]').hidden=!isReplace();if(!isReplace()&&scope.value==='location')scope.value='person';
     workspace.classList.toggle('is-guided-replace',isReplace());
+    sidebar.classList.toggle('is-guided-replace',isReplace());
     if(!isReplace()){uploadHome.after(uploadRow);uploadRow.querySelector('.viewer-reference-picker span').textContent='+ Add reference';uploadRow.querySelector('label').classList.remove('is-unavailable');}else{prompt.before(uploadRow);uploadRow.querySelector('.viewer-reference-picker span')?.replaceChildren(document.createTextNode('+ Upload reference'));}
   }
   function refresh() {
     if(!active)return;
     workspace.classList.toggle('has-viewer-reference',!!reference||loadingReference);
+    sidebar.classList.toggle('has-viewer-reference',!!reference||loadingReference);
     kind.hidden=isReplace()||!reference;remove.hidden=!reference||!!savedReference;generate.hidden=!reference;
     selectedCard.hidden=!savedReference;preview.hidden=!reference||!!savedReference;
     const chosen=editor.hasSelection(),type=replacementKind(scope.value),mode=$('precision-tool-magic').getAttribute('aria-pressed')==='true'?'magic':$('precision-tool-brush').getAttribute('aria-pressed')==='true'?'brush':'other';
     workspace.dataset.selectionTool=mode;workspace.classList.toggle('has-guided-selection',chosen);
+    sidebar.classList.toggle('has-guided-selection',chosen);
     guide.hidden=!isReplace()||chosen||!helpOpen;guide.classList.toggle('is-compact',learned);
     guide.querySelector('strong').textContent=scope.value==='location'?'Select the background to replace.':mode==='brush'?'Brush over what you want to replace.':'Click what you want to replace.';
     guide.querySelector('p').textContent=scope.value==='location'?'Keep people outside the purple selection.':'Select a person, outfit or object. Use Brush for a custom area.';
@@ -236,7 +243,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
     ++revision;++quoteRevision;active=false;loadingReference=false;quote=null;quoting=false;clearTimeout(quoteTimer);quoteTimer=null;
     editor.close();editor.setExternalMode(false);home.after(workspace);uploadHome.after(uploadRow);
     for(const [node,marker] of moves.reverse()){marker.after(node);marker.remove();}moves.length=0;
-    for(const [node,text] of labels)node.textContent=text;labels.clear();title.remove();help.remove();
+    for(const [node,text] of labels)node.textContent=text;labels.clear();title.remove();help.remove();sidebar.remove();
     dialog.classList.remove('is-viewer-editing');workspace.classList.remove('has-viewer-reference','is-guided-replace','has-guided-selection');guide.hidden=kinds.hidden=hint.hidden=library.hidden=selectedCard.hidden=locationNote.hidden=invert.hidden=true;++libraryTicket;
     workspace.setAttribute('aria-label',original.title);fields.hidden=options.hidden=true;options.open=false;
     back.textContent=original.back;back.setAttribute('aria-label',original.backLabel);back.removeAttribute('title');
