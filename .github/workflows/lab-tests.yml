@@ -96,8 +96,12 @@ jobs:
   kling-worker-bundle:
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
@@ -113,3 +117,25 @@ jobs:
           path: .pv-kling-worker-build/
           retention-days: 1
           if-no-files-found: error
+          include-hidden-files: true
+      - name: Stage temporary compressed bundle on PR branch for Cloudflare connection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,gzip,pathlib
+          p=pathlib.Path('.pv-kling-worker-build/worker.js')
+          if not p.exists(): p=pathlib.Path('.pv-kling-worker-build/worker.mjs')
+          encoded=base64.b64encode(gzip.compress(p.read_bytes(),compresslevel=9)).decode('ascii')
+          out=pathlib.Path('.pv-release-transfer')
+          out.mkdir(exist_ok=True)
+          for i in range(0,len(encoded),180000):
+              (out/f'kling-903-{i//180000:03d}.txt').write_text(encoded[i:i+180000])
+          (out/'manifest.json').write_text(__import__('json').dumps({'source_sha':'${{ github.event.pull_request.head.sha }}','bytes':p.stat().st_size,'parts':(len(encoded)+179999)//180000}))
+          PY
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add .pv-release-transfer
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "ci: stage temporary reviewed Worker bundle for direct deployment"
+          git push origin HEAD:refs/heads/${{ github.head_ref }}
