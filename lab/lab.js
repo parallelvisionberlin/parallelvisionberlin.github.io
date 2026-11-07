@@ -1520,8 +1520,8 @@ function syncComposerOptions(){
   $('reference-list').hidden=['soul','soulpro','zspicy'].includes(imageEngine);
   for(const el of target.querySelectorAll('input,select,textarea'))el.disabled=busy;
   const identity=imageEngine==='soulpro',trained=imageEngine==='soul';
-  const selected=isSoul2()?(hf.current()?.name||'NO SOUL ID'):identity?'Nina FOK':trained?($('soul-character').selectedOptions[0]?.textContent||'Character'):packs.find(p=>p.id===$('pack-select').value)?.name||'References';
-  $('composer-character-name').textContent=selected;if(isSoul2())$('composer-character').title=hf.current()?'Selected Soul ID: '+selected:'No Soul ID selected. Click to choose a trained identity. Without one, the face is not preserved.';
+  const selected=isSoul2()?(hf.current()?.name||'Choose character'):identity?'Nina FOK':trained?($('soul-character').selectedOptions[0]?.textContent||'Character'):packs.find(p=>p.id===$('pack-select').value)?.name||'References';
+  $('composer-character-name').textContent=selected;if(isSoul2())$('composer-character').title=hf.current()?'Selected character: '+selected:'Choose a saved character. Without one, the face may change.';
   $('composer-character').disabled=busy;
   const portrait=isSoul2()?hf.current()?.portraitAssetId:identity?soulProIdentity.refs?.[0]?.id:trained?composerCharacterAsset($('soul-character').value):packs.find(p=>p.id===$('pack-select').value)?.refs?.[0]?.id;
   const key=selected+':'+(portrait||'')+':'+(trained?$('soul-character').value:'');
@@ -1611,12 +1611,13 @@ const imageModelDescriptions = Object.freeze({
   kling:'Kling V3 · $0.028/image · text or one base image',
   gemini:'Nano Banana Pro · image and reference editing',
   gemini21:'Google · 1K, 2K, 4K · reference editing',
-  soulpro:'Create from text or a photograph · optional character',
+  soul2:'Higgsfield Soul 2 · Text or photo · Optional character',
+  soulpro:'Create from text or a photo · Optional saved character',
   soul:'Krea 2 / Qwen · identity LoRA training',
   fal:'Controlled Pose · FAL FLUX image controls'
 });
 function imageStudioModelTitle(){
-  if(isSoul2())return 'PV Soul';
+  if(isSoul2())return 'PV Still';
   if(tool==='image'&&imageEngine==='soul')return soul.isKrea()?'Krea 2 LoRA':'Character LoRAs';
   const select=$('image-engine');
   return select.options[select.selectedIndex]?.textContent || 'Image model';
@@ -2221,7 +2222,8 @@ function populateImageModelMenu(query=''){
   for(const option of $('image-engine').options){
     if(option.hidden)continue;
     const publicDescriptions={flash:'Fast · up to 10 references',kling:'Kling V3 · text or one base image'};
-    const name=option.textContent,detail=(!ownerAccount&&publicDescriptions[option.value])||imageModelDescriptions[option.value]||'Image creation';
+    const model=option.value==='soulpro'&&soulProModel==='soul2'?'soul2':option.value;
+    const name=option.textContent,detail=(!ownerAccount&&publicDescriptions[model])||imageModelDescriptions[model]||'Image creation';
     if(value&&!(name+' '+detail+(readProviderPolicyDetails(userId)?' provider policy':'')).toLowerCase().includes(value))continue;
     const row=document.createElement('button');row.type='button';
     row.className='composer-model-option';row.dataset.value=option.value;row.disabled=busy||option.disabled;
