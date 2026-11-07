@@ -343,13 +343,13 @@ export const beautyLookPresets={
     "color": "neutral",
     "text": "Gentle natural light, subtle refinement, authentic skin texture. Keep the original person and background."
   },
-  "night": {
-    "makeup": "keep",
-    "hair": "keep",
-    "skin": "natural",
-    "light": "low-key",
-    "color": "keep",
-    "text": "Atmospheric low-key evening portrait, controlled highlights and natural skin tones. Keep original identity."
+  "fashion": {
+    "makeup": "editorial",
+    "hair": "sleek",
+    "skin": "satin",
+    "light": "softbox",
+    "color": "neutral",
+    "text": "High-fashion portrait lighting, refined contours and believable skin texture. Preserve original clothing, pose and background, without adding fabrics or accessories."
   },
   "avant": {
     "makeup": "metallic",
@@ -357,15 +357,15 @@ export const beautyLookPresets={
     "skin": "natural",
     "light": "side",
     "color": "keep",
-    "text": "Experimental editorial beauty. Preserve the person, clothing and background; do not add accessories."
+    "text": "Experimental editorial beauty with metallic eye makeup and directional light. Preserve the person, clothing and background; do not add accessories."
   },
-  "fashion": {
-    "makeup": "editorial",
-    "hair": "sleek",
-    "skin": "satin",
-    "light": "softbox",
-    "color": "neutral",
-    "text": "High-fashion editorial portrait with believable photographic texture. Preserve the original clothing and background."
+  "night": {
+    "makeup": "keep",
+    "hair": "keep",
+    "skin": "natural",
+    "light": "low-key",
+    "color": "cool",
+    "text": "Atmospheric low-key evening portrait, controlled highlights and cool photographic tonality. Keep original identity, clothing and location."
   },
   "film": {
     "makeup": "keep",
@@ -374,6 +374,62 @@ export const beautyLookPresets={
     "light": "keep",
     "color": "film",
     "text": "Subtle analog grain, realistic film tonality and natural texture, understated contrast."
+  },
+  "sculptural": {
+    "makeup": "editorial",
+    "hair": "back",
+    "skin": "satin",
+    "light": "side",
+    "color": "muted",
+    "text": "Sculptural shadow and bright fabric-like highlights in the light treatment of the existing portrait. Preserve original outfit, scene and anatomy; no new sculptural objects."
+  },
+  "noir": {
+    "makeup": "smoky",
+    "hair": "back",
+    "skin": "soft-matte",
+    "light": "side",
+    "color": "mono",
+    "text": "Photographic black and white with deep but detailed shadows and realistic skin. Keep the same person, clothing and background."
+  },
+  "afterimage": {
+    "makeup": "shimmer",
+    "hair": "textured",
+    "skin": "natural",
+    "light": "rim",
+    "color": "cool",
+    "text": "Cool optical bloom and restrained filmic halation in existing highlights. Preserve sharp recognizable facial features and the existing background; no added light trails or objects."
+  },
+  "streetflash": {
+    "makeup": "natural",
+    "hair": "tousled",
+    "skin": "natural",
+    "light": "flash",
+    "color": "film",
+    "text": "Direct-camera flash, natural candid presence and fine analogue grain. Preserve identity, original clothing and location without changing the composition."
+  },
+  "concrete": {
+    "makeup": "keep",
+    "hair": "sleek",
+    "skin": "matte",
+    "light": "side",
+    "color": "muted",
+    "text": "Muted cool-grey editorial tones, sculpted directional light and precise natural detail. Preserve original location and wardrobe; do not introduce architecture."
+  },
+  "bluehour": {
+    "makeup": "natural",
+    "hair": "keep",
+    "skin": "natural",
+    "light": "daylight",
+    "color": "cool",
+    "text": "Subtle overcast blue-hour colour, natural light falloff and understated contrast. Keep skin believable and retain the existing background."
+  },
+  "nighttape": {
+    "makeup": "keep",
+    "hair": "keep",
+    "skin": "natural",
+    "light": "low-key",
+    "color": "film",
+    "text": "Understated analog nighttime grade with restrained green cast, deep photographic shadows and fine grain. Preserve source environment and identity; do not add a city or neon signage."
   }
 };
 export const beautyChoiceMap=category=>Object.fromEntries(beautyLookCatalog[category].map(o=>[o.id,o.instruction]));

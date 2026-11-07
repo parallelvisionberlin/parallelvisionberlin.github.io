@@ -106,7 +106,7 @@ try{
    };
   });
   assert.match(editorial.hero,/atelier\/hero\.webp/,'Approved mock photograph is the new hero asset');
-  assert.equal(editorial.lookCount,6,'All six original editorial photographs remain');
+  assert.equal(editorial.lookCount,13,'All 13 editorial directions render');
   if(width>1000){
    assert.match(editorial.mask,/gradient/,'Hero has a real photographic fade into the archive');
    assert.equal(editorial.background,'rgba(0, 0, 0, 0)','Hero no longer has the hard gray rectangle');
@@ -128,8 +128,8 @@ try{
   const s=await scenario({role:'guest',width:1448}),{page}=s;
   assert.equal(await page.locator('[data-beauty-choice]').count(),45,'Five independent categories each have nine working options');
   const src=await page.locator('.beauty-looks-list .beauty-look-photo').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('src')));
-  assert.equal(src.length,6,'Six editorial cards are visible');
-  assert.equal(new Set(src).size,6,'Editorial cards use six distinct photographic assets');
+  assert.equal(src.length,13,'Thirteen editorial cards are in the archive');
+  assert.equal(new Set(src).size,13,'Every editorial direction has a distinct photographic asset');
 
   // Explicitly approved redesign: new photo assets, five tabs, continuous archive.
   const hero=await page.locator('.beauty-editor-grid').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
@@ -196,8 +196,8 @@ try{
   assert.deepEqual(await unchanged(),initial,'Browsing does not apply presets or change generation fields');
   assert.equal(s.submits,0);assert.equal(s.quotes.length,0);
   await track.focus();await page.keyboard.press('End');
-  assert.equal(await page.locator('[data-look="film"]').evaluate(el=>el===document.activeElement),true);
-  const visible=await page.locator('[data-look="film"]').evaluate(el=>{const a=el.getBoundingClientRect(),b=el.parentElement.getBoundingClientRect();return a.right<=b.right+2&&a.left>=b.left-2;});assert.equal(visible,true);
+  assert.equal(await page.locator('[data-look="nighttape"]').evaluate(el=>el===document.activeElement),true);
+  const visible=await page.locator('[data-look="nighttape"]').evaluate(el=>{const a=el.getBoundingClientRect(),b=el.parentElement.getBoundingClientRect();return a.right<=b.right+2&&a.left>=b.left-2;});assert.equal(visible,true);
   if(width===390){
    await track.evaluate(el=>el.scrollLeft=0);const r=await track.boundingBox();
    const client=await page.context().newCDPSession(page),x=r.x+r.width*.85,y=r.y+r.height*.5;
@@ -285,7 +285,7 @@ try{
   await page.locator('#beauty-reset-look').click();
   assert.deepEqual(await defaults(),{makeup:'keep',hair:'keep',skin:'natural',light:'keep',color:'keep',strength:'50'});
   await page.locator('[data-look="editorial"]').focus();await page.keyboard.press('End');
-  const visible=await page.locator('[data-look="film"]').evaluate(card=>{const a=card.getBoundingClientRect(),b=card.parentElement.getBoundingClientRect();return a.left>=b.left-3&&a.right<=b.right+3;});
+  const visible=await page.locator('[data-look="nighttape"]').evaluate(card=>{const a=card.getBoundingClientRect(),b=card.parentElement.getBoundingClientRect();return a.left>=b.left-3&&a.right<=b.right+3;});
   assert.equal(visible,true,'Last archive card is fully reachable by keyboard');
   assert.equal(await page.locator('#beauty-direction').inputValue(),'','Archive keyboard navigation does not apply the focused preset');
   await page.evaluate(()=>window.__beautyAccount.signOut());
