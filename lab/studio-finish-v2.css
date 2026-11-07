@@ -87,6 +87,10 @@
  color:#bfc2c6;text-shadow:0 1px 5px rgba(0,0,0,.95);pointer-events:none;
 }
 #image-composer #image-composer-status[hidden]{display:none!important}
+/* The paid action has aria-busy and History shows job progress. Quiet only the
+   transient labels below Generate, across desktop, phone and native. Keep
+   actionable file-validation and generation error toasts visible. */
+#image-composer-status:not(.is-import-error){display:none!important}
 /* Import-validation notices are interactive; only plain progress labels stay pointer-inert. */
 #image-composer #image-composer-status.is-import-error{pointer-events:auto!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 
