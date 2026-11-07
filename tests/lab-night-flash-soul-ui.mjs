@@ -39,11 +39,6 @@ try{
     page.on('pageerror',e=>errors.push(e.message));
     await context.route('https://**/*',async route=>{
       const req=route.request(),url=new URL(req.url());
-      if((url.origin==='https://cdn.jsdelivr.net'&&url.pathname.startsWith('/npm/@mediapipe/tasks-vision@0.10.21/'))||
-         (url.origin==='https://storage.googleapis.com'&&url.pathname.startsWith('/mediapipe-models/image_segmenter/'))){
-        assert.equal(req.method(),'GET','The on-device mask only downloads static model files');
-        return route.continue();
-      }
       if(url.origin!=='https://parallel-vision-lab.parallelvision.workers.dev')return route.abort();
       const path=url.pathname,data=req.headers()['content-type']?.includes('application/json')?req.postDataJSON():{};
       requests.push({path,method:req.method(),data});
@@ -150,37 +145,10 @@ try{
       await (await sourceChooser).setFiles(resolve('lab/mood-previews/hd/night-flash-20261011.jpg'));
       await page.waitForFunction(()=>window.__nightFlashRead().source===true);
       await page.locator('#image-composer-moods').click();
-      const finishCard=page.getByRole('button',{name:'Select Night Flash · Photo Finish',exact:true});
-      assert.equal(await finishCard.isVisible(),role==='owner');
-      if(role==='owner'){
-        const beforeRequests=requests.length;
-        await finishCard.click();
-        const finishDialog=page.locator('#owner-photo-finish-dialog');
-        const finishImage=finishDialog.locator('img');
-        await page.waitForFunction(()=>document.querySelector('#owner-photo-finish-image').naturalWidth>0);
-        const original=await finishImage.evaluate(img=>[img.src,img.naturalWidth,img.naturalHeight]);
-        await finishDialog.getByRole('button',{name:'Apply finish'}).click();
-        await page.waitForFunction(()=>{
-          const result=document.querySelector('#owner-photo-finish-download');
-          const apply=document.querySelector('#owner-photo-finish-apply');
-          return !result.hidden||!apply.disabled;
-        },{},{timeout:50_000});
-        assert.equal(await finishDialog.getByRole('link',{name:'Download'}).isVisible(),true,
-          await finishDialog.getByRole('status').textContent());
-        await page.waitForFunction(src=>{
-          const image=document.querySelector('#owner-photo-finish-image');
-          return image.src!==src&&image.complete&&image.naturalWidth>0;
-        },original[0]);
-        const result=await finishImage.evaluate(img=>[img.naturalWidth,img.naturalHeight]);
-        assert.deepEqual(result,original.slice(1),'Photo Finish preserves original dimensions');
-        assert.equal(await finishDialog.evaluate(el=>el.getBoundingClientRect().width<innerWidth),true);
-        await finishDialog.getByRole('button',{name:'View original'}).click();
-        assert.equal(await finishImage.getAttribute('src'),original[0]);
-        await finishDialog.getByRole('button',{name:'Close',exact:true}).click();
-        assert.equal(await finishDialog.isVisible(),false);
-        assert.equal(requests.slice(beforeRequests).some(r=>r.method==='POST'),false,'No upload, quote or generation');
-        assert.equal(await page.evaluate(()=>window.__nightFlashRead().mood),'night-flash','Generative selection is retained');
-      }else await page.locator('#composer-moods-done').click();
+      assert.equal(await page.getByRole('button',{name:'Select Night Flash · Photo Finish',exact:true}).count(),0,
+        'The paused Photo Finish trial stays out of Studio for both roles');
+      assert.equal(await page.getByRole('button',{name:'Select Night Flash',exact:true}).isVisible(),true);
+      await page.locator('#composer-moods-done').click();
 
       await page.locator('#image-composer-prompt').fill('Keep the expression.');
       state=await page.evaluate(()=>window.__nightFlashRead());
