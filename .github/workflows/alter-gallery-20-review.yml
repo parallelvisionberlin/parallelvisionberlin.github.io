@@ -25,8 +25,8 @@ jobs:
           sha256sum lab/visuals/beauty/atelier/hero.webp lab/beauty-editorial-final.css lab/beauty-flow-refinement.css lab/beauty-panel-widen-20261107.css lab/beauty-approved-20261029.js lab/beauty.js lab/beauty-settings.js > /tmp/alter-locked.sha256
       - name: Apply only seven supplied-image gallery cards and responsive layout
         run: |
-          curl --fail --silent --show-error --location 'https://at.adobe.com/ZYSLdRkffETIAvtW' -o /tmp/alter-gallery.zip
-          echo 'a1f8102cc9d56e3c9ce38d9b44a04e85e177e3068efcfe7e97968dceac4d9ef4  /tmp/alter-gallery.zip' | sha256sum --check
+          curl --fail --silent --show-error --location 'https://at.adobe.com/MiIBMWgxKQHwLZ3h' -o /tmp/alter-gallery.zip
+          echo 'db05882931e649984d7ae2815cbc88c7c336f09175b4566197a5500668629cb6  /tmp/alter-gallery.zip' | sha256sum --check
           mkdir -p /tmp/alter-gallery-package
           unzip -q /tmp/alter-gallery.zip -d /tmp/alter-gallery-package
           python3 /tmp/alter-gallery-package/apply.py
