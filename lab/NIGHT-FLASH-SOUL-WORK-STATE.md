@@ -1,5 +1,14 @@
 # Night Flash with Higgsfield Soul 2
 
+## Owner Night Flash Photo Finish, 2026-11-07
+
+- Owner only: Image Deck → Moods → Night Flash · Photo Finish → Apply finish. Compare with the Base and download the PNG.
+- In-browser 35mm processing. Same recipe as the owner offline trial, full source dimensions and no new generation or provider call.
+- Merged PR #898 https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/898 at 624b2a324c4885a70d8481d986339dc820c8fe02. Hong Kong Nights and Won Kar Night remain on their existing routes. The production Worker did not require a deployment.
+- 79 scoped tests and hosted Chrome at 390 and 1440 px passed. Synthetic role checks verify owner visibility, customer exclusion, Base/result dimensions, comparison and zero POST requests.
+- Shared Image legacy first-image, Clerk and compact prompt assertions still fail with the previously observed baseline symptoms. CI gates are unchanged.
+- Production Pages deployment 8dc4c894-0a70-42ec-aa17-e8545b321053 verified at the custom domain. Real signed-in owner session remains unverified.
+
 ## Active state, 2026-11-06
 
 - Owner-flow PR #883: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/883
