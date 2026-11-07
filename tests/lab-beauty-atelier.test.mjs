@@ -75,5 +75,5 @@ test('Wide-panel refinement preserves locked hero crop, editor controls and orig
  assert.doesNotMatch(css,/(?:::before|::after|background(?:-image|-size|-position)?\s*:|mask(?:-image)?\s*:|\.beauty-looks-list\s*>\s*button|\.beauty-editorial-heading\s*\{|\.beauty-photo\s*\{)/);
  const choices=[...source.matchAll(/data-beauty-choice="beauty-(makeup|hair|skin|light|color)"/g)];
  assert.equal(choices.length,45);
- assert.equal([...source.matchAll(/data-look="/g)].length,13);
+ assert.equal([...source.matchAll(/data-look="/g)].length,20);
 });

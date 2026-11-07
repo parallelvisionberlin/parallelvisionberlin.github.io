@@ -1,0 +1,37 @@
+/* ALTER photographic archive | 20 curated directions | 2026-11-07.
+   Scope: the bottom Editorial Looks strip only. The hero composition,
+   Edit Look panel, existing 45 photographic choices and pricing remain locked. */
+@media (min-width: 1001px) {
+  .beauty-looks-heading {
+    border-top: 1px solid rgba(255,255,255,.18);
+    padding-top: 15px;
+    margin-bottom: 18px;
+    align-items: baseline;
+  }
+  .beauty-looks-list > button {
+    height: clamp(258px, 30vh, 330px);
+  }
+  .beauty-looks-list > button .beauty-look-copy {bottom: 19px;left: 20px;right: 15px;}
+  .beauty-looks-list > button .beauty-look-copy strong {font-size: clamp(24px, 1.5vw, 29px);}
+  .beauty-looks-list > button .beauty-look-copy small {font-size: 11px;margin-top: 8px;}
+}
+@media (min-width: 1350px) {
+  .beauty-looks-list {gap: 18px;}
+  /* Four fully visible cards, with a clear preview of card five.
+     4.2 cards + four gaps always fill the scrollport exactly. */
+  .beauty-looks-list > button {
+    flex: 0 0 calc((100% - 72px) / 4.2);
+    width: calc((100% - 72px) / 4.2);
+  }
+}
+@media (min-width: 1001px) and (max-width: 1349px) {
+  .beauty-looks-list {gap: 16px;}
+  .beauty-looks-list > button {
+    flex: 0 0 calc((100% - 48px) / 3.2);
+    width: calc((100% - 48px) / 3.2);
+    height: clamp(250px, 28vh, 306px);
+  }
+}
+@media (max-width: 1000px) {
+  /* Existing native horizontal phone/tablet browsing stays unchanged. */
+}

@@ -430,6 +430,13 @@ export const beautyLookPresets={
     "light": "low-key",
     "color": "film",
     "text": "Understated analog nighttime grade with restrained green cast, deep photographic shadows and fine grain. Preserve source environment and identity; do not add a city or neon signage."
-  }
+  },
+  "goldenhour": {"makeup": "natural", "hair": "waves", "skin": "luminous", "light": "window", "color": "warm", "text": "Honeyed directional light across the original portrait, restrained warmth, realistic luminous skin and softly styled waves. Preserve the original subject, clothing and environment."},
+  "skinstudy": {"makeup": "natural", "hair": "keep", "skin": "dewy", "light": "softbox", "color": "neutral", "text": "Intimate photographic skin study with visible pores, freckles and subtle dewy highlights. Preserve the face, hairstyle, original clothing and location, with no plastic smoothing."},
+  "windowstudy": {"makeup": "editorial", "hair": "updo", "skin": "natural", "light": "window", "color": "muted", "text": "Directional soft window illumination and nuanced shadows, restrained editorial makeup and natural skin texture. Keep the same person and source background; do not add new windows or scenery."},
+  "softfocus": {"makeup": "soft-glam", "hair": "volume", "skin": "satin", "light": "softbox", "color": "soft-film", "text": "Soft diffuse portrait light, delicate optical bloom and a gentle film-like colour treatment while retaining recognizable facial detail and authentic skin. Keep the original outfit and environment."},
+  "velvet": {"makeup": "editorial", "hair": "sleek", "skin": "matte", "light": "low-key", "color": "contrast", "text": "Intimate low-key editorial portrait with rich shadow depth, detailed highlights and lifelike skin tones. Keep the original identity, hairstyle length, clothing and location."},
+  "silverhalo": {"makeup": "keep", "hair": "textured", "skin": "soft-matte", "light": "rim", "color": "mono", "text": "Fine black-and-white photographic portrait with a delicate rim-lit hair outline, nuanced grain and controlled contrast. Preserve recognizable features, clothing and the source scene."},
+  "windblown": {"makeup": "natural", "hair": "tousled", "skin": "natural", "light": "rim", "color": "neutral", "text": "Natural editorial hair movement with soft loose strands and believable rim-lit volume, preserving original hair length and colour, facial identity, pose and environment."}
 };
 export const beautyChoiceMap=category=>Object.fromEntries(beautyLookCatalog[category].map(o=>[o.id,o.instruction]));

@@ -625,17 +625,16 @@
       "title": "Night Flash with Higgsfield Soul",
       "component": "Image Moods / Soul 2",
       "status": "deployed",
-      "summary": "Night Flash is a single Studio preset using the former 100% recipe. The owner preferred the strong Seedream 5 Pro piano portrait as the creative reference.",
-      "nextAction": "Evaluate the preset against the approved piano portrait when reviewing future owner results. Continue treating identity preservation and customer Soul validation as separate checks.",
-      "baselineSha": "bb14fc36f22395faf4fce9ce8b848b3e57fcf2a2",
-      "reviewedSha": "79afcc1daf6518d811f2c75a9bbb9bca26cd2576",
-      "branch": "codex/night-flash-fixed-preset",
+      "summary": "Owner Seedream 5 Pro with one Base uses an exact-photo Night Flash relight. The recipe retains hard flash, deep blacks and 35mm grain and asks to retain facial geometry, expression, pose and crop.",
+      "nextAction": "Compare the original blue-top portrait and mirror selfie at 1K against the existing outputs to judge facial geometry and flash quality.",
+      "baselineSha": "a048cedf5f589b609d4bad7e36fde64e05859d47",
+      "reviewedSha": "14dc2472a51c1a060d9d75244c8f6fdfa68674be",
+      "branch": "codex/night-flash-exact-photo-20261107",
       "files": [
-        "lab/moods.js",
         "lab/lab.js",
+        "lab/moods.js",
         "lab/studio.html",
         "tests/lab-moods.test.mjs",
-        "tests/lab-night-flash-soul.test.mjs",
         "tests/lab-night-flash-soul-ui.mjs"
       ],
       "links": [
@@ -666,6 +665,14 @@
         {
           "label": "Studio role and viewport checks",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42370342765"
+        },
+        {
+          "label": "Owner exact-photo relight",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/918"
+        },
+        {
+          "label": "Hosted owner and customer checks",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42385518142"
         }
       ],
       "tests": [
@@ -679,15 +686,32 @@
           "scope": "Slider hidden only for the preset and legacy Reuse restores the current treatment at 390 and 1440 px",
           "result": "passed",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42370342765"
+        },
+        {
+          "label": "107 focused Node tests",
+          "scope": "Exact merged source, Mood prompt, approved Image contract and replacement",
+          "result": "passed"
+        },
+        {
+          "label": "Owner and customer at 390 and 1440 px",
+          "scope": "Seedream Base Reuse, prompt separation and replacement in hosted Chrome with simulated requests",
+          "result": "passed",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42385518142"
+        },
+        {
+          "label": "Existing guest width, Clerk and Generate typography assertions",
+          "scope": "Same assertion failures reproduced on the preceding #917 release",
+          "result": "failed",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42385518142"
         }
       ],
       "deployment": {
         "state": "verified",
         "environment": "PV LAB Cloudflare Pages",
-        "sourceSha": "62d5d05c11e9f3f5f7be8549c1fbe4cc3d54500d",
+        "sourceSha": "d8dc190057b73bc72a9683903feb892c7ca871c1",
         "evidenceUrl": "https://pvlab.studio/studio?tool=image",
         "limitations": [
-          "Signed-in behavior tested with synthetic sessions. No new paid generation was submitted."
+          "Hosted role tests used simulated requests. Visual identity and photographic quality on the revised provider output await the owner comparison."
         ]
       },
       "evidence": [
@@ -849,6 +873,15 @@
           "source": "https://pvlab.studio/studio?tool=image",
           "limitations": [
             "Signed-in behavior tested with synthetic roles."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Cloudflare deployment 9d519e1d-d773-4deb-910d-a726ed5a9051 succeeded. Check 128443602500 and production HTML, lab.js and moods.js verify the reviewed owner relight bytes.",
+          "scope": "Production asset chain and owner-only routing in hosted fixtures.",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": [
+            "Paid output quality remains unverified."
           ]
         }
       ],
