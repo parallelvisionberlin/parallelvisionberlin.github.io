@@ -2543,8 +2543,14 @@ test('replacement text segmentation keeps point selection compatible and reserve
   assert.equal(submitted.prompt,'the red-haired woman on the left');assert.deepEqual(submitted.point_prompts,[]);
   assert.equal(falSubmitCount,before+1);assert.equal(db.prepare('SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?').get(owner).n,0);
   assert.equal(db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(owner).balance_credits,balance);
+  const targeted=await req(env,'/api/precision/segment',{method:'POST',authToken,data:{sourceId,point:{x:147,y:162},targetPrompt:'person'}});
+  assert.equal(targeted.status,202,await targeted.clone().text());
+  const targetedBody=JSON.parse(calls.findLast(call=>call.url==='https://queue.fal.run/fal-ai/sam-3/image'&&call.options.method==='POST').options.body);
+  assert.equal(targetedBody.prompt,'person','Point and text refine the same requested subject');
+  assert.deepEqual(targetedBody.point_prompts,[{x:147,y:162,label:1,object_id:1}]);
+  assert.equal(falSubmitCount,before+2,'Only the explicit second click buys another segmentation');
   const invalid=await req(env,'/api/precision/segment',{method:'POST',authToken,data:{sourceId,targetPrompt:'x'.repeat(301)}});
-  assert.equal(invalid.status,400);assert.equal(falSubmitCount,before+1,'Invalid selection does not submit another request');
+  assert.equal(invalid.status,400);assert.equal(falSubmitCount,before+2,'Invalid selection does not submit another request');
 });
 
 test('replacement upload recovery keeps the paid raw output when a duplicate upload is still being stored',async()=>{
