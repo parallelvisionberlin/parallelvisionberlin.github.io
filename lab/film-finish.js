@@ -6,6 +6,12 @@ export const FILM_FINISH_RENDER_REVISION=10;
 // Saved jobs retain their own settings; explicit zero values disable the finish.
 export const HONG_KONG_FILM_FINISH=Object.freeze({version:2,grain:13,haze:100,halation:78,film:100});
 export const FILM_FINISH_OFF=Object.freeze({version:2,grain:0,haze:0,halation:0,film:0});
+// Private source-photo recipes. Keep these separate from the generative Mood catalog.
+export const OWNER_PHOTO_FINISHES=Object.freeze({
+  'night-flash':Object.freeze({name:'Night Flash',settings:Object.freeze({version:2,grain:29,haze:0,halation:16,film:100})}),
+  'hong-kong-nights':Object.freeze({name:'Hong Kong Nights',settings:Object.freeze({version:2,grain:18,haze:14,halation:28,film:100})}),
+  'won-kar-night':Object.freeze({name:'Won Kar Night',settings:Object.freeze({version:2,grain:32,haze:7,halation:24,film:100})})
+});
 // Reuse the existing private R2 film renderer for 100% Seedream Base edits.
 // 1980s capture is an optical finish, not an additional AI generation.
 export const EIGHTIES_100_FILM_FINISH=Object.freeze({version:2,grain:100,haze:22,halation:20,film:100});

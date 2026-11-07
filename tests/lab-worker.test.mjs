@@ -431,6 +431,40 @@ function filmImagesFixture(){
     transform(){return this;},draw(){return this;},async output(){renders++;const bytes=await grainPng(64,64,15,'valid-fixture');return {response:()=>new Response(bytes,{headers:{'Content-Type':'image/png'}})};}
   };}};
 }
+test('owner Photo Finish saves three private copies of the original without creating a generation',async()=>{
+  const {env}=fixture(),db=env.LAB_DB.db;
+  env.IMAGES=filmImagesFixture();
+  const sourceId=await seedreamTestReference(env,'original.png',21,64,64);
+  const before=calls.filter(call=>new URL(call.url).hostname==='api.spicyapi.ai').length;
+  const route='/api/owner/photo-finish';
+  const apply=(look,authToken)=>req(env,route,{method:'POST',data:{sourceId,look},authToken});
+  const outputs=[];
+  for(const look of ['night-flash','hong-kong-nights','won-kar-night']){
+    const response=await apply(look);
+    assert.equal(response.status,200,await response.clone().text());
+    const result=await response.json();
+    assert.equal(result.filename,look+'-finish.png');
+    assert.notEqual(result.assetId,sourceId);
+    assert.equal((await req(env,'/api/assets/'+result.assetId)).status,200);
+    outputs.push(result.assetId);
+  }
+  assert.equal(new Set(outputs).size,3);
+  const renders=env.IMAGES.renders;
+  assert.equal((await (await apply('night-flash')).json()).assetId,outputs[0]);
+  assert.equal(env.IMAGES.renders,renders,'Repeated finish reuses its derivative');
+  assert.equal((await apply('unknown')).status,400);
+  assert.equal((await req(env,route,{method:'POST',data:{sourceId,look:'night-flash'},authToken:null})).status,401);
+  for(const file of ['0006-customers-billing.sql','0007-lab-referrals.sql','0008-soul-id-launch-credits.sql','0011-customer-lifecycle.sql'])
+    db.exec(readFileSync(new URL('../lab-worker/migrations/'+file,import.meta.url),'utf8'));
+  env.LAB_CUSTOMER_SIGNUPS_ENABLED='true';
+  assert.equal((await apply('night-flash',await token('user_FinishCustomer'))).status,403);
+  assert.equal(env.IMAGES.renders,renders,'Rejected requests do not render');
+  assert.equal((await req(env,'/api/assets/'+sourceId)).status,200);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,0);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM spend').get().n,0);
+  assert.equal(calls.filter(call=>new URL(call.url).hostname==='api.spicyapi.ai').length,before);
+});
+
 test('new Hong Kong jobs default to the approved finish while explicit zero and other Moods remain independent',async()=>{
   const {env}=fixture();env.GEMINI_API_KEY='synthetic-gemini-key';env.IMAGES=filmImagesFixture();
   const approved={version:2,grain:13,haze:100,halation:78,film:100};

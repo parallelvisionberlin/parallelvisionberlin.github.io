@@ -201,11 +201,29 @@ export function earlyEightiesPrintPixel(r,g,b,strength=1){
     Math.round(clamp(blue-5*warm+1*olive,0,255))
   ];
 }
-export async function printGradePng(bytes,deluxe=0,engine='v6'){
+// Tone and color only. The same source pixel and alpha remain at every coordinate.
+export function ownerPhotoPrintPixel(r,g,b,look){
+  const y=(.2126*r+.7152*g+.0722*b)/255;
+  const warm=smooth(.035,.16,(r-b)/255)*smooth(.20,.58,y);
+  const mid=smooth(.12,.62,y),highlight=smooth(.58,.98,y);
+  if(look==='night-flash'){
+    const gain=.58+.36*mid+.12*highlight;
+    return [r,g,b].map(value=>Math.round(clamp(value*gain,0,255)));
+  }
+  const wonKar=look==='won-kar-night';
+  const gain=(wonKar ? .56 : .72)+(wonKar ? .38 : .24)*mid+.05*highlight;
+  const cool=(1-warm*.88)*smooth(.04,.28,y)*(1-highlight*.72);
+  const rgb=[r*gain*(1-cool*(wonKar ? .22 : .10)),g*gain*(1+cool*(wonKar ? .13 : .07)),b*gain*(1+cool*(wonKar ? .08 : .12))];
+  return rgb.map(value=>Math.round(clamp(value,0,255)));
+}
+
+export async function printGradePng(bytes,deluxe=0,engine='v6',photoLook=null){
   const {width,height,pixels}=await normalizedPixels(bytes),scan=new Uint8Array((width*4+1)*height);
+  const grade=photoLook?(r,g,b)=>ownerPhotoPrintPixel(r,g,b,photoLook):
+    engine==='eighties'?earlyEightiesPrintPixel:['v3','v8','v10'].includes(engine)?filmPrintPixelV3:photochemicalPixel;
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
     const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4;
-    const graded=(engine==='eighties'?earlyEightiesPrintPixel:['v3','v8','v10'].includes(engine)?filmPrintPixelV3:photochemicalPixel)(pixels[i],pixels[i+1],pixels[i+2],deluxe);
+    const graded=grade(pixels[i],pixels[i+1],pixels[i+2],deluxe);
     if(engine==='eighties'&&x>0&&x<width-1){
       // Low-amplitude 1px chroma registration drift. Keep original luma,
       // avoid large rainbow fringes and never invent scene features.
@@ -275,7 +293,7 @@ async function bytesFrom(response,max=OUTPUT_LIMIT){
 const stream=bytes=>new Blob([bytes]).stream();
 // V10 retains V3 print color, but uses independent multiscale light-only
 // scattering. V8/V3/V6 remain available for controlled comparison/rollback.
-export async function renderFilmFinish(images,bytes,settings,seed,{engine='v10'}={}){
+export async function renderFilmFinish(images,bytes,settings,seed,{engine='v10',photoLook=null}={}){
   if(!['v6','v3','v8','v10','eighties'].includes(engine))throw Error('Unknown film engine.');
   const finish=filmFinishSettings(settings);
   if(!images?.input||!images?.info)throw Error('Film processing is temporarily unavailable.');
@@ -292,7 +310,7 @@ export async function renderFilmFinish(images,bytes,settings,seed,{engine='v10'}
   if(finish.film){
     // Blend a graded low-res negative/print layer over the native-resolution
     // photograph. Fine image detail remains in the original underneath.
-    const grade=images.input(stream(await printGradePng(sourcePng,plan.printStrength,engine))).transform({width,height,fit:'squeeze'});
+    const grade=images.input(stream(await printGradePng(sourcePng,plan.printStrength,engine,photoLook))).transform({width,height,fit:'squeeze'});
     image=image.draw(grade,{opacity:plan.printOpacity,composite:'over'});
   }
   if(['v10','eighties'].includes(engine)&&(finish.haze||finish.halation)){
@@ -350,17 +368,17 @@ export async function filmAssetId(owner,originalId,settings,variant='v10'){
 
 // Caller has already authorized the original asset. No URL fetch, provider API,
 // generation quote or wallet debit exists anywhere in this module.
-export async function prepareFilmAsset(env,original,settings,{first,remaining,variant='v10'}){
+export async function prepareFilmAsset(env,original,settings,{first,remaining,variant='v10',photoLook=null}){
   const finish=filmFinishSettings(settings);
   if(!finish.grain&&!finish.haze&&!finish.halation&&!finish.film)return original;
-  const id=await filmAssetId(original.owner_id,original.id,finish,variant);
+  const id=await filmAssetId(original.owner_id,original.id,finish,photoLook?'owner-photo-v1:'+photoLook:variant);
   const cached=await first(env,'SELECT * FROM assets WHERE id=? AND owner_id=?',id,original.owner_id);
   if(cached&&await env.LAB_MEDIA.head(cached.object_key))return cached;
   if(original.bytes>INPUT_LIMIT)throw Error('This image is too large for the film finish.');
   const source=await env.LAB_MEDIA.get(original.object_key);
   if(!source)throw Error('The original image is unavailable.');
   const input=await bytesFrom(new Response(source.body),INPUT_LIMIT);
-  const bytes=await renderFilmFinish(env.IMAGES,input,finish,original.id,{engine:variant==='eighties'?'eighties':'v10'});
+  const bytes=await renderFilmFinish(env.IMAGES,input,finish,original.id,{engine:variant==='eighties'?'eighties':'v10',photoLook});
   if(bytes.length>remaining)throw Error('There is not enough archive space for a finished copy.');
   const object_key=original.owner_id+'/film-finish/v'+FILM_RENDER_REVISION+'/'+id+'.png';
   await env.LAB_MEDIA.put(object_key,bytes,{httpMetadata:{contentType:'image/png'}});

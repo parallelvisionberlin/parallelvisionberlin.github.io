@@ -3,7 +3,7 @@ import {musicPublicRoute,musicAdminRoute,pruneMusicEvents,MUSIC_LINKS_VERSION} f
 import {refreshPartnerCostFx} from './partner-generation-costs.mjs';
 import {reconcileProviderSettlements} from './provider-settlement.mjs';
 import {agencyPublicRoute,agencyAdminRoute,processAgencyNotifications,pruneAgencyData} from './agency-enquiries.mjs';
-import {filmFinishSettings,HONG_KONG_FILM_FINISH,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish} from '../lab/film-finish.js';
+import {filmFinishSettings,HONG_KONG_FILM_FINISH,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish,OWNER_PHOTO_FINISHES} from '../lab/film-finish.js';
 import {checkCustomerPromptSafety} from './prompt-safety.mjs';
 import {verifySpicyCallback,spicyWakeToken,equalWakeToken} from './spicy-webhook.mjs';
 import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
@@ -1406,6 +1406,20 @@ async function route(request,env,ctx) {
       status:409,headers:{'Content-Type':'application/json','Cache-Control':'no-store','X-PV-Lab-Onboarding':'required'}
     });
   }
+  if(path==='/api/owner/photo-finish'&&method==='POST'){
+    if(identity.kind!=='owner')fail(403,'Photo Finish is available to the owner only.');
+    if(!env.IMAGES)fail(503,'Photo Finish is temporarily unavailable.');
+    const {sourceId,look}=await body(request);
+    if(typeof look!=='string'||!Object.hasOwn(OWNER_PHOTO_FINISHES,look))fail(400,'Choose a Photo Finish look.');
+    const original=await source(env,owner,sourceId);
+    if(!['image/jpeg','image/png','image/webp'].includes(original.mime))fail(400,'Choose a JPG, PNG or WebP Base photo.');
+    const stored=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',owner);
+    let output;
+    try{output=await prepareFilmAsset(env,original,OWNER_PHOTO_FINISHES[look].settings,{first,remaining:MAX_STORAGE-stored.n,photoLook:look});}
+    catch(e){fail(422,String(e.message||'Photo Finish could not process this photo.').slice(0,200));}
+    await assetInsert(env,output).run();
+    return json({assetId:output.id,filename:look+'-finish.png'});
+  }
   if(path.startsWith('/api/music/admin/'))return musicAdminRoute(request,env,owner);
   if(path==='/api/admin/partner-payouts'||/^\/api\/admin\/partners\/(bellini-studio|robin-studio)\/payouts/.test(path))return partnerPayoutRoute(request,env,owner,{ownerView:true});
   if(/^\/api\/admin\/partners\/(vitolas-studio|bellini-studio|robin-studio)\//.test(path))return partnerVoucherRoute(request,env,owner,{ownerView:true});
@@ -1550,7 +1564,7 @@ async function route(request,env,ctx) {
     }
     await run(env,"DELETE FROM spend WHERE owner_id=? AND job_id IN (SELECT id FROM jobs WHERE owner_id=? AND state='failed' AND COALESCE(json_extract(params,'$.provider'),'')='fal')",owner,owner);
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
-    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),videoEngines:[...publicConfig(c,!!env.FAL_KEY).videoEngines,...(env.HF_CREDENTIALS?['klinghf']:[])],higgsfieldEnabled:!!env.HF_CREDENTIALS,higgsfieldPrices:SOUL2_PRICES,geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
+    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),ownerPhotoFinish:!!env.IMAGES,videoEngines:[...publicConfig(c,!!env.FAL_KEY).videoEngines,...(env.HF_CREDENTIALS?['klinghf']:[])],higgsfieldEnabled:!!env.HF_CREDENTIALS,higgsfieldPrices:SOUL2_PRICES,geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
   }
   if(path==='/api/soul-pro/identity'&&method==='GET'){
     const pack=await first(env,'SELECT id,refs,created_at FROM packs WHERE owner_id=? AND name=? ORDER BY created_at DESC LIMIT 1',owner,SOUL_PRO_IDENTITY_PACK);
