@@ -1,0 +1,38 @@
+name: ALTER scoped source export
+on:
+  push:
+    branches: [feature/alter-editorial-workstation-20261107]
+    paths: [.github/workflows/alter-workstation-source.yml]
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pack only ALTER source, linked design assets and relevant test fixtures
+        run: |
+          python3 - <<'PY'
+          import pathlib,subprocess,zipfile
+          files=subprocess.check_output(['git','ls-files'],text=True).splitlines()
+          def keep(p):
+            if p in ('AGENTS.md','package.json','package-lock.json','scripts/owner-work-state.mjs'):return True
+            if p.startswith('lab/'):
+              name=p[4:]
+              return name.startswith(('beauty','account-menu','studios-menu','branding/pv-','visuals/beauty/atelier/')) or name in ('AGENTS.md','RELEASE-PROTOCOL.md','owner-work-records.json')
+            if p.startswith('tests/'):
+              return p.startswith(('tests/lab-beauty','tests/lab-approved-image','tests/lab-studios-menu','tests/lab-worker')) or p in ('tests/lab-ui-helpers.mjs','tests/pvlab-release-status.test.mjs')
+            if p.startswith('lab-worker/'):return p in ('lab-worker/src/index.js','lab-worker/wrangler.toml')
+            return False
+          selected=[p for p in files if keep(p)]
+          with zipfile.ZipFile('/tmp/alter-scoped-source.zip','w',zipfile.ZIP_DEFLATED,compresslevel=5) as z:
+            for p in selected:z.write(p)
+            z.writestr('SOURCE_SHA.txt',subprocess.check_output(['git','rev-parse','HEAD'],text=True))
+          print('Packed',len(selected),'scoped files')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alter-scoped-source
+          path: /tmp/alter-scoped-source.zip
+          retention-days: 2
