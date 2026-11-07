@@ -25,8 +25,8 @@ jobs:
           sha256sum lab/visuals/beauty/atelier/hero.webp lab/beauty-editorial-final.css lab/beauty-flow-refinement.css lab/beauty-panel-widen-20261107.css lab/beauty-approved-20261029.js lab/beauty.js lab/beauty-settings.js > /tmp/alter-locked.sha256
       - name: Apply only seven supplied-image gallery cards and responsive layout
         run: |
-          curl --fail --silent --show-error --location 'https://at.adobe.com/1OQQ7JVEkRJbqOrr' -o /tmp/alter-gallery.zip
-          echo 'd546f337fd5435322d8cc00d8261a0ff1d49dcca14a6d3faf3ef347755499b23  /tmp/alter-gallery.zip' | sha256sum --check
+          curl --fail --silent --show-error --location 'https://at.adobe.com/ZYSLdRkffETIAvtW' -o /tmp/alter-gallery.zip
+          echo 'a1f8102cc9d56e3c9ce38d9b44a04e85e177e3068efcfe7e97968dceac4d9ef4  /tmp/alter-gallery.zip' | sha256sum --check
           mkdir -p /tmp/alter-gallery-package
           unzip -q /tmp/alter-gallery.zip -d /tmp/alter-gallery-package
           python3 /tmp/alter-gallery-package/apply.py
@@ -52,11 +52,11 @@ jobs:
       - name: Scope-check and commit exact reviewed gallery files
         run: |
           test "$GITHUB_REF" = refs/heads/feature/alter-twenty-looks-four-card-gallery-20261107
-          git add lab/beauty.html lab/beauty-look-catalog.js lab/beauty-gallery-20261107.css tests/lab-beauty-ui.mjs tests/lab-beauty-archive-curation.test.mjs tests/lab-beauty-gallery-twenty.test.mjs lab/visuals/beauty/atelier/archive-*-20261107.webp
+          git add lab/beauty.html lab/beauty-look-catalog.js lab/beauty-gallery-20261107.css tests/lab-beauty-ui.mjs tests/lab-beauty-archive-curation.test.mjs tests/lab-beauty-gallery-twenty.test.mjs tests/lab-beauty-atelier.test.mjs lab/visuals/beauty/atelier/archive-*-20261107.webp
           python3 - <<'PY'
           import subprocess
           changed=set(subprocess.check_output(['git','diff','--name-only','origin/main'],text=True).splitlines())
-          expected={'lab/beauty.html','lab/beauty-look-catalog.js','lab/beauty-gallery-20261107.css','tests/lab-beauty-ui.mjs','tests/lab-beauty-archive-curation.test.mjs','tests/lab-beauty-gallery-twenty.test.mjs'}
+          expected={'lab/beauty.html','lab/beauty-look-catalog.js','lab/beauty-gallery-20261107.css','tests/lab-beauty-ui.mjs','tests/lab-beauty-archive-curation.test.mjs','tests/lab-beauty-gallery-twenty.test.mjs','tests/lab-beauty-atelier.test.mjs'}
           expected|={'lab/visuals/beauty/atelier/archive-'+s+'-20261107.webp' for s in ['goldenhour','skinstudy','windowstudy','softfocus','velvet','silverhalo','windblown']}
           assert changed==expected,(changed-expected,expected-changed)
           PY
