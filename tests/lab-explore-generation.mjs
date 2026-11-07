@@ -15,7 +15,7 @@ const harness=`<!doctype html><div id="notice"></div><input id="prompt"><input i
 import {takeMoodHandoff as readMoodHandoff,moodGenerationQuote} from './mood-handoff.js';
 async function takeMoodHandoff(id){const packet=await readMoodHandoff(id);if(window.testExpired&&packet.generation)packet.generation.quote.expiresAt=Date.now()-1;return packet;}
 import {moodById} from './moods.js';
-let owner=true,config={enabled:true},customerMode=false,customerGenerationReady=true,userId=window.testUser||'user_Test',epoch=1,busy=false,imageSubmissionPending=false,imageSubmissionStage='',references=[],imageEngine='',imageProcessing='',imageReferenceMode='',tool='image',previewRevision=0,autoPreview=null;
+let owner=true,ownerAccount=true,config={enabled:true},customerMode=false,customerGenerationReady=true,userId=window.testUser||'user_Test',epoch=1,busy=false,imageSubmissionPending=false,imageSubmissionStage='',references=[],imageEngine='',imageProcessing='',imageReferenceMode='',tool='image',previewRevision=0,autoPreview=null;
 const $=id=>document.getElementById(id),studioRoute=()=>new URLSearchParams(location.search).get('tool')||'image',setTool=t=>tool=t,syncStudioRoute=()=>{},clearMedia=()=>references=[],update=()=>{},notify=s=>$('notice').textContent=s,submissionBlocked=()=>window.testBlocked||false;
 const moodUI={restore(value){window.restoredMood=value}},beginImageFeedback=()=>({phase(){},finish(){},fail(e){window.failure=e.message}});
 async function addReferences(files,ids){references=files.map((file,i)=>({file,id:ids?.[i],width:480,height:640}));window.restoredFile=files[0]?.name;}
