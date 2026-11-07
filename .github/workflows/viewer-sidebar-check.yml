@@ -16,6 +16,7 @@ jobs:
           sparse-checkout: |
             AGENTS.md
             package.json
+            assets/fashion-hero.png
             lab
             lab-worker
             tests
@@ -68,6 +69,7 @@ jobs:
         run: |
           npm install --prefix /tmp/viewer-sidebar-browser --no-save playwright@1.57.0
           test -x /usr/bin/google-chrome
+          test -s assets/fashion-hero.png
           cat > /tmp/viewer-sidebar-browser/runtime.mjs <<'JS'
           import * as pw from './node_modules/playwright/index.mjs';
           export const chromium=new Proxy(pw.chromium,{get(target,key){return key==='launch'?(options={})=>target.launch({...options,executablePath:'/usr/bin/google-chrome'}):Reflect.get(target,key);}});
