@@ -1,5 +1,12 @@
 # Night Flash with Higgsfield Soul 2
 
+## Single Night Flash preset, 2026-11-07
+
+- The owner preferred the Seedream 5 Pro 100% piano portrait over a brighter 50% result. Use the former strong recipe as the single Night Flash treatment.
+- #913 https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/913 fixes new Night Flash requests at 100 internally, removes its intensity slider and makes Reuse use the current preset. Existing History retains its stored settings.
+- 58 focused tests and hosted Chrome role checks passed. The compiled Night Flash request is identical to the former 100% request across Seedream, Seedream Lite and Soul in text and Base workflows.
+- Production Pages deployment 1ad36f4d-787f-4b3f-be1f-fbed42a46b3e at 62d5d05c11e9f3f5f7be8549c1fbe4cc3d54500d was verified on pvlab.studio. No new provider generation was submitted.
+
 ## Owner Night Flash Photo Finish, paused 2026-11-07
 
 - #906 used a person and face mask to grade foreground and background separately in the browser. The owner rejected the lighting in a subsequent real photo.

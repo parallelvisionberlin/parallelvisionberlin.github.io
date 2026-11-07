@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T11:37:56.467Z",
+  "updatedAt": "2026-11-07T12:02:40.356Z",
   "handoffs": [
     {
       "id": "owner",
@@ -545,29 +545,19 @@
       "id": "night-flash-soul",
       "title": "Night Flash with Higgsfield Soul",
       "component": "Image Moods / Soul 2",
-      "status": "needs_verification",
-      "summary": "Owner production results confirm the Night Flash look and show facial and scene drift. Owner reports similar drift with Won Kar Night. Stored inputs confirm both Moods received Base images and no Soul ID; their recipes already instruct facial preservation.",
-      "nextAction": "Review the local source-preserving lighting proof. Exact geometry is feasible, while the original frontal-light shape remains. A generalized finish and a controlled provider relight comparison remain separate validation paths.",
-      "baselineSha": "519d9fad57af01fcf836203d24f54e150a3d9455",
-      "reviewedSha": "04413ed5aa58f6db557bb6a5c21e4b4a7fabe0d0",
-      "branch": "fix/soul-owner-flow-20261106",
+      "status": "deployed",
+      "summary": "Night Flash is a single Studio preset using the former 100% recipe. The owner preferred the strong Seedream 5 Pro piano portrait as the creative reference.",
+      "nextAction": "Evaluate the preset against the approved piano portrait when reviewing future owner results. Continue treating identity preservation and customer Soul validation as separate checks.",
+      "baselineSha": "bb14fc36f22395faf4fce9ce8b848b3e57fcf2a2",
+      "reviewedSha": "79afcc1daf6518d811f2c75a9bbb9bca26cd2576",
+      "branch": "codex/night-flash-fixed-preset",
       "files": [
-        "lab/night-flash-soul.js",
         "lab/moods.js",
         "lab/lab.js",
         "lab/studio.html",
-        "lab-worker/higgsfield.mjs",
+        "tests/lab-moods.test.mjs",
         "tests/lab-night-flash-soul.test.mjs",
-        "lab/NIGHT-FLASH-SOUL-WORK-STATE.md",
-        "lab/README.md",
-        "tests/lab-night-flash-soul-ui.mjs",
-        ".github/workflows/pv-lab-night-flash-soul.yml",
-        "lab-worker/worker.mjs",
-        "lab-worker/wrangler.toml",
-        "lab/won-kar-night.js",
-        "lab/mood-previews/won-kar-night.png",
-        "tests/lab-won-kar-night.test.mjs",
-        "lab/image-deck-surface.css"
+        "tests/lab-night-flash-soul-ui.mjs"
       ],
       "links": [
         {
@@ -589,50 +579,37 @@
         {
           "label": "Owner Soul generation and compatibility PR #883",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/883"
+        },
+        {
+          "label": "Fixed Night Flash preset",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/913"
+        },
+        {
+          "label": "Studio role and viewport checks",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42370342765"
         }
       ],
       "tests": [
         {
-          "label": "Focused CI contracts and replacement compatibility",
+          "label": "58 focused Node tests",
+          "scope": "Preset, prompt continuity, quote safety, other Moods and Image contract",
+          "result": "passed"
+        },
+        {
+          "label": "Hosted Studio role tests",
+          "scope": "Slider hidden only for the preset and legacy Reuse restores the current treatment at 390 and 1440 px",
           "result": "passed",
-          "scope": "115 focused Node cases pass on the final owner-flow candidate, including approved Image contract and unchanged billing, quote, Mood and replacement safeguards.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42296435939"
-        },
-        {
-          "label": "Owner/customer browser integration and #870",
-          "result": "passed",
-          "scope": "Mocked owner/customer 390x844 and1440x900: one-click owner submit, rapid clicks, failed estimates with no submit, customer cancel/confirm, Base/identity/Mood binding, Reuse, compatibility popup choices/Escape, no status row, plus replacement flows.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42296435939"
-        },
-        {
-          "label": "Worker, customer lifecycle, pricing, prompt safety and submission",
-          "result": "passed",
-          "scope": "Initial Night Flash release: 139 local tests on Node 24.22.1, before the Won Kar Night addition. No paid provider calls.",
-          "source": "tests/lab-worker.test.mjs"
-        },
-        {
-          "label": "General Node suite and main baseline",
-          "result": "failed",
-          "scope": "Prior Night Flash release broad baseline: 1096/1102 passed; same six failures reproduced on main 24d2b96. No broad rerun claimed for Won Kar Night; its focused CI passes.",
-          "source": "lab/NIGHT-FLASH-SOUL-WORK-STATE.md"
-        },
-        {
-          "label": "Legacy first-image and Studio layout comparison",
-          "result": "failed",
-          "scope": "First-image Base width assertion120px/96px (line258) and Studio Clerk source assertion (line28) fail identically on candidate and unchanged main519d9fad. Prompt-paste passes. Original tests and CI gates unchanged; no claim that these suites pass.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42296062207"
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42370342765"
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "9401a465bc1061f94ea4e7fa59893dedb892f4bd",
-        "environment": "Cloudflare Pages production pvlab.studio; owner Soul flow actual HTML and exact JS/CSS verified",
+        "environment": "PV LAB Cloudflare Pages",
+        "sourceSha": "62d5d05c11e9f3f5f7be8549c1fbe4cc3d54500d",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=image",
         "limitations": [
-          "No independently verified real signed-in journey or paid photographic/identity test.",
-          "Customer Night Flash remains gated; no Worker or provider/billing configuration changes."
-        ],
-        "evidenceUrl": "https://pvlab.studio/studio",
-        "observedAt": "2026-11-06T22:01:47Z"
+          "Signed-in behavior tested with synthetic sessions. No new paid generation was submitted."
+        ]
       },
       "evidence": [
         {
@@ -777,6 +754,23 @@
           "limitations": [
             "One source-scene proof. It is not an equivalent physical relight or an application deployment."
           ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "The new Night Flash request matches the former 100% request byte for byte on Seedream, Seedream Lite and Soul in text and Base workflows.",
+          "scope": "Local prompt comparison and automated role test",
+          "limitations": [
+            "Generation is stochastic and visual review is separate."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Cloudflare deployment 1ad36f4d-787f-4b3f-be1f-fbed42a46b3e served the fixed preset Studio entry and Mood recipe.",
+          "scope": "Production Studio HTML and JavaScript",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": [
+            "Signed-in behavior tested with synthetic roles."
+          ]
         }
       ],
       "blockers": [
@@ -790,7 +784,7 @@
         "Preserve the merged #870 replacement flow and existing quote, credit, idempotency and budget safeguards.",
         "The first-image width and Studio Clerk assertions reproduce on519d9fad in run42296062207. Do not rerun the same baseline investigation without a relevant source change; keep those failures distinct from the passing focused Soul flow."
       ],
-      "updatedAt": "2026-11-07T09:15:51Z"
+      "updatedAt": "2026-11-07T12:02:40.356Z"
     },
     {
       "id": "image-prompt-deck-clearance",
