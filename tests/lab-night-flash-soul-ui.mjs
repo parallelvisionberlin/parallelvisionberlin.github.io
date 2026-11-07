@@ -208,6 +208,23 @@ try{
       state=await page.evaluate(()=>window.__nightFlashRead());
       assert.equal(state.settings.characterId,characterId);assert.equal(state.settings.identityStrength,.05);
       assert.equal(state.settings.moodIntensity,100,'Reuse adopts the preset for the next generation');assert.equal(state.settings.moodOriginalPrompt,'Keep the expression.');
+      const seedreamJob={...job,sourceId:null,settings:{type:'image',engine:'seedream',mode:'image',resolution:'1k',aspectRatio:'16:9',
+        moodId:'night-flash',moodIntensity:100,moodOriginalPrompt:'',referenceMode:'base',
+        referenceSourceIds:[job.sourceId],referenceRoles:[{role:'base',name:'fixture-base.jpg'}]}};
+      await page.evaluate(job=>window.__nightFlashReuse(job),seedreamJob);
+      state=await page.evaluate(()=>window.__nightFlashRead());
+      assert.equal(state.settings.engine,'seedream');
+      assert.equal(state.settings.moodId,'night-flash');
+      assert.deepEqual(state.settings.referenceRoles.map(ref=>ref.role),['base']);
+      assert.equal(state.settings.moodOriginalPrompt,'');
+      if(role==='owner'){
+        assert.match(state.settings.prompt,/Edit this exact Base photograph/);
+        assert.doesNotMatch(state.settings.prompt,/photographic variation|imperfect documentary 35mm framing/);
+      }else{
+        assert.match(state.settings.prompt,/Create a natural photographic variation/);
+        assert.doesNotMatch(state.settings.prompt,/Edit this exact Base photograph/);
+      }
+      await page.evaluate(job=>window.__nightFlashReuse(job),legacyJob);
       await page.locator('#image-composer-moods').click();
       const ownerCard=page.getByRole('button',{name:'Select Won Kar Night',exact:true});
       if(role==='customer')assert.equal(await ownerCard.count(),0,'Owner experiment never enters the customer catalogue DOM');

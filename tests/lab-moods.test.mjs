@@ -190,6 +190,26 @@ test('Night Flash uses the strong photographic recipe for new requests at any su
     for(const amount of [1,50,82])assert.deepEqual(prepareMoodPrompt(direction,mood.id,amount,options),preset);
   }
 });
+test('Owner Seedream Night Flash relights a single Base while keeping the strong flash recipe',()=>{
+  const options={engine:'seedream',referenceMode:'base',referenceCount:1,ownerNightFlashBase:true};
+  const authored='Keep the lamp warm.';
+  const relight=prepareMoodPrompt(authored,'night-flash',100,options);
+  const compiled=compileImagePrompt(relight.prompt,[{role:'base'}],{...relight.metadata,engine:'seedream',referenceMode:'base',exactPrompt:true});
+  assert.equal(relight.error,'');
+  assert.deepEqual(relight.metadata,{moodId:'night-flash',moodIntensity:100,moodOriginalPrompt:authored});
+  assert.match(compiled,/Keep the lamp warm[.]/);
+  assert.match(compiled,/Edit this exact Base photograph. Change only its lighting, color and film grain/);
+  assert.match(compiled,/original facial geometry, exact head angle, eye direction and expression/);
+  assert.match(compiled,/hard frontal flash.*deep near-black night.*analog 35mm grain/);
+  assert.doesNotMatch(compiled,/photographic variation|imperfect documentary 35mm framing/);
+  assert.ok(compiled.length<5000);
+  for(const inactive of [{ownerNightFlashBase:false},{engine:'seedreamlite'},{engine:'soul2'},{referenceCount:0},{referenceCount:2},{referenceMode:'references'}]){
+    assert.deepEqual(
+      prepareMoodPrompt(authored,'night-flash',100,{...options,...inactive}),
+      prepareMoodPrompt(authored,'night-flash',100,{...options,...inactive,ownerNightFlashBase:false})
+    );
+  }
+});
 test('Krea 3 accepts curated and personal Moods, preserves source directions and stays within reference limits',()=>{
   const original='Editorial photograph of a woman in a studio.';
   const mood=prepareMoodPrompt(original,'night-flash',82,{engine:'krea3',referenceCount:1,referenceMode:'base'});
