@@ -62,7 +62,7 @@ jobs:
                 const values=await page.locator('#beauty-panel-'+group+' [data-beauty-choice]').evaluateAll(nodes=>nodes.map(n=>({value:n.dataset.value,style:n.querySelector('.beauty-choice-photo')?.getAttribute('style')||''})));
                 assert.equal(values.length,9);
                 assert.equal(values[0].value,'keep');
-                assert.equal(values[0].style,'');
+                assert.ok(!values[0].style.includes('alter-light-')&&!values[0].style.includes('alter-color-'),'Original remains the user-upload preview');
                 const images=values.slice(1).map(x=>x.style.match(/alter-(?:light|color)-[a-z-]+-20261107\.webp/)?.[0]);
                 assert.equal(images.filter(Boolean).length,8);
                 assert.equal(new Set(images).size,8);
