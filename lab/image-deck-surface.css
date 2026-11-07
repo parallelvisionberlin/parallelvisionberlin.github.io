@@ -36,7 +36,7 @@
     /* Empty Base/reference editor must retain its one-line photo-editing height.
        Prevent a stale inline textarea size from changing the deck when text is deleted. */
     &:has(#image-composer-references:not([hidden]) .composer-reference-tile):not(.pv-deck-has-prompt) #image-composer-prompt{
-      height:78px!important;min-height:78px!important;max-height:78px!important;
+      height:44px!important;min-height:44px!important;max-height:44px!important;
     }
     & [data-deck-slot="controls"]{
       grid-area:2 / 1!important;display:flex!important;align-items:center!important;
