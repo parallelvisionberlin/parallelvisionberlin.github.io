@@ -10,7 +10,7 @@
   .beauty-edit-panel {
     height: calc(100% + 65px);
     padding: 17px 18px;
-    gap: 9px;
+    gap: 11px;
     grid-template-rows: 30px 38px minmax(260px, 1fr) 28px 64px 50px;
   }
 

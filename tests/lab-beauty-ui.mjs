@@ -128,7 +128,7 @@ try{
      const rect=el=>{const r=el.getBoundingClientRect();return {x:Math.round(r.x),y:Math.round(r.y),w:Math.round(r.width),h:Math.round(r.height),bottom:Math.round(r.bottom)};};
      return {grid:rect(grid),photo:rect(document.querySelector('.beauty-photo')),
        panel:rect(document.querySelector('.beauty-edit-panel')),
-       look:rect(document.querySelector('.beauty-looks')),
+       look:rect(document.querySelector('.beauty-looks-heading')),
        archiveCard:rect(document.querySelector('#beauty-looks-list [data-look]')),
        thumb:rect(document.querySelector('#beauty-panel-makeup [data-value="natural"] .beauty-choice-photo')),
        bg:[hero.backgroundImage,hero.backgroundPosition,hero.backgroundSize,hero.maskImage,hero.opacity],
