@@ -1,0 +1,36 @@
+name: Guided Replace scoped verification
+on:
+  push:
+    branches: [feat/viewer-guided-replace-20261107]
+    paths: ['.github/workflows/viewer-guided-check.yml', '.github/scripts/apply-viewer-guided.mjs']
+permissions:
+  contents: write
+jobs:
+  viewer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/viewer-guided-replace-20261107
+          sparse-checkout: |
+            AGENTS.md
+            package.json
+            lab
+            lab-worker
+            tests
+            scripts
+            .github
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Preserve scoped current source
+        run: |
+          mkdir -p /tmp/viewer-guided-evidence
+          tar -czf /tmp/viewer-guided-evidence/source.tar.gz AGENTS.md package.json lab/*.js lab/*.css lab/*.html lab/*WORK-STATE.md lab/owner-work-records.json lab/AGENTS.md lab/RELEASE-PROTOCOL.md lab-worker/*.mjs tests/*.mjs scripts/owner-work-state.mjs .github/scripts/verify-pvlab-release.mjs .github/workflows/pv-lab-precision-edit-ui.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: guided-replace-source
+          path: /tmp/viewer-guided-evidence/
+          retention-days: 2
