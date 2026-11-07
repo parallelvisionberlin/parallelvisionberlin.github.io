@@ -1,0 +1,29 @@
+/* ALTER | 13 curated photographic directions, 7 November 2026.
+   Scope: editorial archive only. Hero, right-side editor, generation and billing untouched. */
+.beauty-looks-heading{align-items:baseline;row-gap:8px}
+.beauty-looks-kicker{letter-spacing:.06em;color:#a6a6a3;font-size:11px}
+.beauty-looks-list{gap:14px;scroll-padding-inline:3px}
+.beauty-looks-list>button{
+  position:relative;flex:0 0 clamp(254px,19vw,338px);width:clamp(254px,19vw,338px);
+  height:clamp(242px,27vh,285px);background:#111313;border-radius:11px;
+}
+.beauty-looks-list>button::after{content:'';position:absolute;inset:40% 0 0;pointer-events:none;
+  background:linear-gradient(0deg,rgba(0,0,0,.76),rgba(0,0,0,.23) 53%,transparent 100%)}
+.beauty-looks-list>button .beauty-look-photo{height:100%;width:100%;object-fit:cover;object-position:center;filter:none}
+.beauty-looks-list>button:hover .beauty-look-photo{transform:scale(1.025)}
+.beauty-look-copy{position:absolute;z-index:1;left:17px;bottom:16px;right:12px;text-align:left}
+.beauty-look-copy strong{display:block;font-size:23px;font-weight:500;line-height:1.1;letter-spacing:-.038em}
+.beauty-look-copy small{display:block;margin-top:6px;font-size:11px;font-weight:400;line-height:1.32;
+  letter-spacing:.005em;color:#e4e4e0;opacity:.93;white-space:normal;max-width:96%}
+.beauty-looks-list>button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.beauty-looks-list>button[aria-pressed=true]{border-color:#f3f3ef;box-shadow:0 0 0 1px #f3f3ef}
+@media(max-width:1000px){.beauty-looks-list>button{flex-basis:270px;width:270px;height:252px}}
+@media(max-width:700px){
+  .beauty-looks-list>button{flex-basis:235px;width:235px;height:242px}
+  .beauty-look-copy{left:14px;right:10px;bottom:13px}
+  .beauty-look-copy strong{font-size:22px}
+  .beauty-look-copy small{font-size:10.5px}
+  .beauty-looks-heading{align-items:flex-start;flex-wrap:wrap;gap:8px}
+  .beauty-looks-kicker{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){.beauty-looks-list>button .beauty-look-photo{transition:none}}
