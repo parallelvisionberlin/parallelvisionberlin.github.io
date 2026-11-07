@@ -257,7 +257,7 @@ try {
     await page.screenshot({path:`test-results/pv-guided-enter-${width}.png`});
     const selection=await page.locator('#precision-selection-canvas').boundingBox();
     await page.mouse.click(selection.x+selection.width*.2,selection.y+selection.height*.3);
-    await page.waitForFunction(()=>document.querySelector('#precision-status-text').textContent.includes('Object selected'));
+    await page.waitForFunction(()=>document.querySelector('#precision-status-text').textContent.includes('Selection ready.'));
     assert.equal(segments,3,'Replace requests selection only after an explicit photo click');
     assert.equal(await page.locator('.viewer-selection-guide').isVisible(),false);
     assert.match(await page.locator('label[for="precision-prompt"]').textContent(),/Replace selected person with/);

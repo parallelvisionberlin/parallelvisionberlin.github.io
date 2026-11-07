@@ -131,6 +131,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     }
     overlay.style.cursor=mode==='pan'?'grab':'crosshair';
     refreshGuidance();
+    if(base&&next==='magic'&&view.classList.contains('is-guided-replace'))setStatus('Click what you want to replace.');
     if(base&&next==='brush')setStatus('Brush active. Click and drag directly on the photograph to paint your selection.');
     if(base&&next==='erase')setStatus('Eraser active. Drag on the photograph to remove parts of the selection.');
   }
@@ -401,7 +402,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       if(!ready?.maskSourceId)throw new Error('SAM 3 is still processing. Do not click again until you have checked the request.');
       const blob=await assetBlob(ready.maskSourceId),bitmap=await createImageBitmap(blob);
       try{await saveUndo();maskFromSam(bitmap,point);}finally{bitmap.close();}
-      setStatus('Object selected. Click another garment to add it, or refine with the brush.');
+      setStatus(view.classList.contains('is-guided-replace')?'Selection ready. Choose a replacement or describe it.':'Object selected. Click another garment to add it, or refine with the brush.');
     }catch(e){
       if(/Magic Select limit reached/.test(e.message))selectMode('brush');
       setStatus(e.message,true);

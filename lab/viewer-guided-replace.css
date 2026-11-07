@@ -50,3 +50,5 @@
  #image-lightbox .viewer-library-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
  #image-lightbox.is-viewer-editing .precision-tools .viewer-guide-toggle{min-width:25px;width:25px;min-height:25px;height:25px;margin:0;padding:3px}
 }
+
+#image-lightbox .is-guided-replace .viewer-reference-picker{letter-spacing:normal;text-transform:none;font:500 12px/1.4 'DM Sans',sans-serif}
