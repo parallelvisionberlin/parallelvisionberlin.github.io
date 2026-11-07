@@ -56,6 +56,7 @@ try {
     const page = await context.newPage();
     const requests = [], uploads = [], quotes = new Map(), assets = new Map(), errors = [];
     let submitted = 0, segments = 0, commits = 0, savedJob = null;
+    const segmentInputs = [];
     page.on('pageerror', error => errors.push(error.message));
     await context.route('https://**/*', async route => {
       const request = route.request(), url = new URL(request.url());
@@ -72,7 +73,7 @@ try {
         const input = request.postDataJSON();
         assert.ok(input.sourceId, 'Selection is associated with the actual uploaded Base');
         assert.ok(input.targetPrompt || input.point, 'Selection has a text target or explicit click');
-        segments++; return send({requestId:'mock-selection-request', ticket:'mock-selection-ticket', expires:Date.now() + 90000});
+        segments++; segmentInputs.push(input);return send({requestId:'mock-selection-request', ticket:'mock-selection-ticket', expires:Date.now() + 90000});
       }
       if (url.pathname === '/api/precision/segment') return send({status:'completed', maskSourceId:'automatic-mask'});
       if (url.pathname === '/api/quotes') {
@@ -262,7 +263,9 @@ try {
     await page.waitForFunction(()=>document.querySelector('#precision-tool-magic').getAttribute('aria-pressed')==='true');
     await page.locator('#precision-clear-mask').click();
     assert.equal(await page.locator('.viewer-selection-guide').isVisible(),true,'Replace guides the first photo click');
-    assert.match(await page.locator('.viewer-selection-guide').textContent(),/Click what you want to replace/);
+    assert.equal(await page.locator('[data-viewer-character-scope]').count(),2,'Character offers Face and Whole person');
+    assert.equal(await page.locator('[data-viewer-character-scope="face"]').getAttribute('aria-pressed'),'true');
+    assert.match(await page.locator('.viewer-selection-guide').textContent(),/Click the face you want to replace/);
     assert.equal(await page.locator('label[for="precision-prompt"]').textContent(),'Replace with…');
     assert.equal(await page.locator('[data-viewer-kind]').count(),4);
     assert.match(await page.locator('#precision-selection-canvas').evaluate(node=>getComputedStyle(node).cursor),/data:image\/svg/);
@@ -276,7 +279,16 @@ try {
     await page.mouse.click(selection.x+selection.width*.2,selection.y+selection.height*.3);
     await page.waitForFunction(()=>document.querySelector('#precision-status-text').textContent.includes('Selection ready.'));
     assert.equal(segments,3,'Replace requests selection only after an explicit photo click');
+    assert.equal(segmentInputs.at(-1).targetPrompt,'face','Face request carries a semantic target with the explicit point');
     assert.equal(await page.locator('.viewer-selection-guide').isVisible(),false);
+    assert.match(await page.locator('label[for="precision-prompt"]').textContent(),/Replace selected face area with/);
+    await page.locator('[data-viewer-character-scope="person"]').click();
+    assert.equal(await page.locator('#precision-clear-mask').isDisabled(),true,'Switching Face to Whole person invalidates the previous mask and quote');
+    assert.match(await page.locator('.viewer-selection-guide').textContent(),/person’s torso/);
+    await page.mouse.click(selection.x+selection.width*.32,selection.y+selection.height*.6);
+    await page.waitForFunction(()=>document.querySelector('#precision-status-text').textContent.includes('Selection ready.'));
+    assert.equal(segments,4,'Explicit reselection runs one additional segmentation');
+    assert.equal(segmentInputs.at(-1).targetPrompt,'person');
     assert.match(await page.locator('label[for="precision-prompt"]').textContent(),/Replace selected person with/);
     await page.locator('[data-viewer-kind="person"]').click();
     await page.locator('[data-viewer-saved="20000000-0000-4000-8000-000000000088"]').waitFor({state:'visible'});
