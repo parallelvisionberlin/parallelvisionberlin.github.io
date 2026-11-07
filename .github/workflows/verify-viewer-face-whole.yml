@@ -1,0 +1,61 @@
+name: Verify PR 922 Face and Whole Person production
+on:
+  push:
+    branches: [verify/face-whole-922-production-20261107]
+    paths: ['.github/workflows/verify-viewer-face-whole.yml']
+permissions:
+  contents: read
+  checks: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Verify exact Cloudflare release and served asset bytes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'JS'
+          import {verifyRelease,productionUrl} from './.github/scripts/verify-pvlab-release.mjs';
+          import {execFileSync} from 'node:child_process';
+          import {createHash} from 'node:crypto';
+          const sha='01753ca93c4bde1f9a37906ccd59a420e5bc3394';
+          const source=asset=>execFileSync('git',['show',sha+':'+asset]);
+          const digest=buffer=>createHash('sha256').update(buffer).digest('hex');
+          const html=source('lab/studio.html').toString();
+          const htmlRefs=[...html.matchAll(/<(?:script|link)\b[^>]*\b(?:src|href)=["']([^"']+)["']/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'),productionUrl));
+          for(const asset of ['lab/lab.js','lab/viewer-guided-replace.css']){
+            const url=htmlRefs.find(x=>x.pathname==='/'+asset.slice(4));
+            if(!url)throw Error('Missing production HTML asset: '+asset);
+            const result=await verifyRelease({sha,asset,version:url.searchParams.get('v'),sourceBytes:source(asset)});
+            console.log(asset,JSON.stringify(result));
+            if(result.state!=='LIVE_VERIFIED')throw Error(asset+' is not published: '+result.state);
+          }
+          const moduleRefs=[
+            ['lab/lab.js','lab/image-viewer-editor.js'],
+            ['lab/lab.js','lab/precision-edit.js'],
+            ['lab/image-viewer-editor.js','lab/viewer-selection-scope.js'],
+            ['lab/image-viewer-editor.js','lab/viewer-replacement-library.js']
+          ];
+          for(const [parent,child] of moduleRefs){
+            const js=source(parent).toString();
+            const name=child.split('/').at(-1);
+            const match=js.match(new RegExp("from\\s+['\\\"](\\./"+name.replace(/\./g,'\\.')+"\\?[^'\\\"]+)['\\\"]"));
+            if(!match)throw Error('Missing versioned module import: '+parent+' => '+child);
+            const uri=new URL(match[1],new URL('/'+parent.slice(4),productionUrl));
+            const response=await fetch(uri,{cache:'no-store',signal:AbortSignal.timeout(15000)});
+            if(!response.ok)throw Error('Module unavailable: '+child+' '+response.status);
+            const served=Buffer.from(await response.arrayBuffer());
+            if(digest(served)!==digest(source(child)))throw Error('Live module differs from reviewed source: '+child);
+            console.log('LIVE_VERIFIED',child,uri.pathname,uri.search,'sha256='+digest(served));
+          }
+          console.log('PR922_ALL_PUBLIC_ASSETS_LIVE_VERIFIED');
+          JS
