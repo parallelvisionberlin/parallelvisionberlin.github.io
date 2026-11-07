@@ -215,7 +215,7 @@ try{
         const baseFilled=await page.evaluate(()=>{
           const deck=document.getElementById('image-composer').getBoundingClientRect();
           const button=document.getElementById('image-composer-generate').getBoundingClientRect();
-          return {height:deck.height,bottom:deck.bottom,buttonBottom:button.bottom};
+          return {height:deck.height,bottom:deck.bottom,buttonBottom:button.bottom,fieldHeight:document.getElementById('image-composer-prompt').getBoundingClientRect().height};
         });
         await editor.fill('');
         await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
@@ -229,8 +229,8 @@ try{
         assert.ok(Math.abs(baseCleared.bottom-baseFilled.bottom)<=1 &&
           Math.abs(baseCleared.buttonBottom-baseFilled.buttonBottom)<=1,
           'Deleting a Base prompt cannot move the deck or Generate: '+JSON.stringify({baseFilled,baseCleared}));
-        assert.ok(Math.abs(baseCleared.fieldHeight-78)<=1,
-          'Cleared Base editor retains its short attached-photo writing row: '+JSON.stringify(baseCleared));
+        assert.ok(Math.abs(baseCleared.fieldHeight-baseFilled.fieldHeight)<=1,
+          'The empty Base writing row matches the short text row: '+JSON.stringify({baseFilled,baseCleared}));
         await page.evaluate(()=>{
           // Reproduce stale inline height after an uploaded photo is removed.
           const field=document.getElementById('image-composer-prompt');
