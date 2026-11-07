@@ -207,7 +207,8 @@ try{
   }));
   // Reproduce the old bug by starting from an already scrolled Image page.
   await x.page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
-  await x.page.click('#image-composer-edit-area');
+  assert.equal(await x.page.locator('#image-composer-edit-area').isVisible(),false,'Retouch is no longer a main-deck action');
+  await x.page.evaluate(()=>document.getElementById('tool-retouch').click());
   await x.page.waitForFunction(()=>document.getElementById('app').classList.contains('retouch-studio-active')&&
     !document.getElementById('precision-source-holder').hidden);
   await retouchTopAndBackButton(x.page);
@@ -291,8 +292,8 @@ try{
   ok('Retouch route, native Back, direct URL and customer preview preserve safe Image state');
   assert.deepEqual(x.errors,[]);await x.context.close();
  }
- // A completed-image viewer must open Retouch even while the source asset is fetched.
- // This catches an accidental busy-state guard that makes the shortcut do nothing.
+ // A completed-image action now enters the shared editor inside the viewer.
+ // Asset fetching must not turn the shortcut into a no-op or route to another page.
  {
   const completed={id:id(880),status:'completed',sourceId:id(881),outputId:id(882),
     settings:{type:'image',provider:'spicy',engine:'seedream',mode:'image',prompt:'Editorial still.',
@@ -300,20 +301,26 @@ try{
     createdAt:Date.now(),estimatedUsd:.02};
   x=await workspace({initial:[completed]});
   await x.page.locator('#history .card[data-state="completed"]').first().click();
+  const viewerURL=x.page.url();
   await x.page.locator('#image-detail-extra summary').click();
   await x.page.locator('#image-detail-edit-area').click();
-  await x.page.waitForFunction(()=>document.getElementById('app').classList.contains('retouch-studio-active')&&
+  await x.page.waitForFunction(()=>document.getElementById('image-lightbox').classList.contains('is-viewer-editing')&&
     !document.getElementById('precision-source-holder').hidden);
-  await x.page.waitForTimeout(100);
-  await retouchTopAndBackButton(x.page);
-  await retouchPanelsAreClear(x.page);
-  assert.match(x.page.url(),/tool=retouch/);
-  assert.match(await x.page.locator('#precision-source-meta').textContent(),/retouch-original/);
+  assert.equal(await x.page.locator('#image-lightbox > #precision-workspace').count(),1,'Reuse the existing editor inside the viewer');
+  assert.equal(await x.page.locator('#precision-tool-brush').getAttribute('aria-pressed'),'true');
+  assert.equal(x.page.url(),viewerURL,'Edit does not navigate away');
+  assert.match(await x.page.locator('#precision-source-meta').textContent(),/viewer-original/);
   assert.equal(count(x,'/api/precision/submit'),0);
+  assert.equal(count(x,'/api/precision/quote'),0);
   assert.equal(count(x,'/api/uploads'),0);
   await x.page.click('#precision-return');
-  await x.page.waitForFunction(()=>new URL(location.href).searchParams.get('tool')==='image');
-  ok('Completed image opens in Retouch without uploading twice or paying');
+  await x.page.waitForFunction(()=>document.getElementById('image-lightbox').open&&
+    !document.getElementById('image-lightbox').classList.contains('is-viewer-editing'));
+  assert.equal(await x.page.locator('#image-detail-edit').isVisible(),true,'Back restores the same viewer');
+  assert.equal(await x.page.locator('#image-lightbox > #precision-workspace').count(),0,'Restore the standalone editor on exit');
+  await x.page.click('#image-lightbox-close');
+  assert.equal(x.page.url(),viewerURL);
+  ok('Completed image opens the contextual editor and returns safely without uploading or paying');
   assert.deepEqual(x.errors,[]);await x.context.close();
  }
  if(!process.env.PV_RETOUCH_NAV_ONLY){

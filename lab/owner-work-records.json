@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T12:11:56.159Z",
+  "updatedAt": "2026-11-07T13:00:48.683Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1608,6 +1608,79 @@
       "blockers": [],
       "doNotRepeat": [
         "Compare the visual result against a natural flash reference before introducing another owner trial."
+      ]
+    },
+    {
+      "id": "image-viewer-replace-edit-actions",
+      "title": "Contextual image viewer Replace and Edit",
+      "component": "PV LAB Image viewer",
+      "status": "needs_verification",
+      "updatedAt": "2026-11-07T13:00:48.683Z",
+      "baselineSha": "d3f66d75791d022a6c482dbd2f069196f202dd32",
+      "reviewedSha": null,
+      "branch": "feat/image-viewer-replace-edit-20261107",
+      "summary": "Approved Replace and Edit sidebar cards above Turn into video; main Image deck Retouch action retired. Both cards reuse the existing precision canvas inside the viewer. Replace stages its reviewed mask and reference in the existing Image deck without a generation or model substitution.",
+      "nextAction": "Review the source PR and normal CI, then verify the exact Cloudflare Pages production assets. No live or paid generation claim.",
+      "files": [
+        "lab/lab.js",
+        "lab/studio.html",
+        "lab/precision-edit.js",
+        "lab/image-viewer-editor.js",
+        "lab/image-viewer-editor.css",
+        "tests/lab-image-replacement-flow-ui.mjs",
+        "tests/lab-first-image-instant-browser.mjs",
+        "tests/lab-image-oneclick-ui.mjs",
+        "lab/IMAGE-REPLACEMENT-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Verification run",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42374844507"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI, precision and replacement unit suites",
+          "result": "passed",
+          "scope": "Provider-free contract, mask, draft and backend regression tests"
+        },
+        {
+          "label": "Precision and replacement browser suites",
+          "result": "passed",
+          "scope": "Mocked existing flows plus contextual viewer Edit/Replace at 390 and 1440 pixels"
+        },
+        {
+          "label": "Image deck regression suites",
+          "result": "failed",
+          "scope": "Prompt paste, Soul parity and standalone Retouch navigation passed. Existing first-image Base width and studio-layout Clerk source-regex failures were reproduced against unchanged application source and remain unmodified."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio",
+        "sourceSha": null,
+        "limitations": [
+          "No production asset check yet.",
+          "No signed-in live paid generation was performed."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "automated_test",
+          "summary": "54 unit tests and focused desktop/mobile viewer, selection and handoff browser suites passed. Separate baseline failures are listed in blockers, not counted as passes.",
+          "scope": "Source branch, mocked network requests only",
+          "limitations": [
+            "Not live-provider evidence."
+          ]
+        }
+      ],
+      "blockers": [
+        "tests/lab-first-image-instant-browser.mjs: idle new/guest base same w:",
+        "tests/lab-studio-layout-ui.mjs: Clerk resources cannot load indefinitely"
+      ],
+      "doNotRepeat": [
+        "Do not recreate a separate editor or add buttons over the photograph.",
+        "Do not change provider, model or billing when opening an action."
       ]
     }
   ]

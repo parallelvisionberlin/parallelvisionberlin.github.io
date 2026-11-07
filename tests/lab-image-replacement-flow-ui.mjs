@@ -21,6 +21,7 @@ applyConfig({enabled:true,falEnabled:true,geminiEnabled:true,imageReplacementEna
 $('app').hidden=false;$('gate').hidden=true;imageEngine='seedream';$('image-engine').value='seedream';setTool('image');moodUI.clear(true);
 await loadHistory();update();finishLabBoot();
 window.__replacementFlow={
+  openResult:async job=>openVideo(job,{scroll:false,detail:true}),
   state:()=>({pending:imageSubmissionPending||customerPriceIntentPending||replacementReviewPending,
     price:customerImagePricing.current().status,settings:settings(),references:references.map(r=>({id:r.id,role:r.role,elementId:r.elementId}))}),
   seed:async(original,identity)=>{
@@ -211,6 +212,57 @@ try {
     assert.equal(requests.some(item => /fal\/controlled|precision\/submit/.test(item.path)), false,
       'The Image replacement must not switch to FLUX or the separate Retouch submission route');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal phone overflow');
+    // The approved sidebar actions reuse the real editor without route changes.
+    await page.evaluate(job=>window.__replacementFlow.openResult(job),savedJob);
+    await page.locator('#image-detail-edit').waitFor({state:'visible'});
+    assert.equal(await page.locator('#image-composer-edit-area').isVisible(),false);
+    assert.equal(await page.locator('.image-detail-inspector #image-detail-replace').count(),1);
+    assert.equal(await page.locator('.image-detail-inspector #image-detail-edit').count(),1);
+    const editCard=await page.locator('#image-detail-edit').boundingBox();
+    const replaceCard=await page.locator('#image-detail-replace').boundingBox();
+    const videoCard=await page.locator('#image-detail-video').boundingBox();
+    assert.ok(Math.abs(editCard.y-replaceCard.y)<2,'Replace and Edit share one row');
+    assert.ok(editCard.y+editCard.height<=videoCard.y,'Both actions stay above Turn into video');
+    const originalURL=page.url(),previousDraft=await page.evaluate(()=>window.__replacementFlow.state());
+    const beforeRequests=requests.length;
+    await page.screenshot({path:`test-results/pv-viewer-actions-${width}.png`});
+    await page.locator('#image-detail-edit').click();
+    await page.waitForFunction(()=>document.querySelector('#precision-tool-brush').getAttribute('aria-pressed')==='true'&&document.querySelector('#image-lightbox').classList.contains('is-viewer-editing'));
+    assert.equal(page.url(),originalURL,'Editing stays inside the current viewer');
+    assert.equal(await page.locator('#image-lightbox #precision-workspace').count(),1,'Move the existing editor; do not duplicate it');
+    assert.equal(requests.slice(beforeRequests).some(r=>r.method==='POST'&&/segment|quote|submit|jobs/.test(r.path)),false,'Opening must not select, quote or generate');
+    const brush=await page.locator('#precision-selection-canvas').boundingBox();
+    assert.ok(brush.width>150&&brush.height>100,'The source remains large enough to select');
+    await page.mouse.move(brush.x+brush.width*.4,brush.y+brush.height*.5);
+    await page.mouse.down();await page.mouse.move(brush.x+brush.width*.5,brush.y+brush.height*.5,{steps:4});await page.mouse.up();
+    assert.equal(await page.locator('#precision-clear-mask').isDisabled(),false);
+    await page.locator('#precision-return').click();
+    assert.equal(await page.locator('#image-detail-edit').isVisible(),true);
+    assert.deepEqual(await page.evaluate(()=>window.__replacementFlow.state()),previousDraft,'Back must not mutate the Image draft');
+    await page.locator('#image-detail-replace').click();
+    await page.waitForFunction(()=>document.querySelector('#precision-tool-magic').getAttribute('aria-pressed')==='true');
+    const selection=await page.locator('#precision-selection-canvas').boundingBox();
+    await page.mouse.click(selection.x+selection.width*.2,selection.y+selection.height*.3);
+    await page.waitForFunction(()=>document.querySelector('#precision-status-text').textContent.includes('Object selected'));
+    assert.equal(segments,3,'Replace requests selection only after an explicit photo click');
+    await page.locator('#viewer-replacement-reference').setInputFiles({name:'reference.png',mimeType:'image/png',buffer:Buffer.from(fixtures.identity,'base64')});
+    await page.locator('#precision-prompt').fill('Keep the original pose and light.');
+    await page.waitForFunction(()=>!document.querySelector('#viewer-replacement-continue').disabled);
+    assert.equal(await page.locator('#precision-generate').isVisible(),false,'Replace cannot accidentally call FLUX');
+    await page.screenshot({path:`test-results/pv-viewer-replace-${width}.png`});
+    page.once('dialog',dialog=>dialog.accept());
+    await page.locator('#viewer-replacement-continue').click();
+    await page.locator('#image-lightbox').waitFor({state:'hidden'});
+    await page.waitForFunction(()=>window.__replacementFlow.state().price==='ready');
+    const viewerDraft=await page.evaluate(()=>window.__replacementFlow.state());
+    assert.equal(viewerDraft.settings.engine,'seedream');
+    assert.equal(viewerDraft.settings.replacement.scope,'person');
+    assert.equal(viewerDraft.settings.replacement.originalSourceId,viewerDraft.references[0].id);
+    assert.deepEqual(viewerDraft.settings.replacement.referenceSourceIds,[viewerDraft.references[1].id]);
+    assert.equal(viewerDraft.references[1].role,'identity');
+    assert.equal(submitted,1,'Moving a viewer selection to Image never submits another job');
+    assert.equal(requests.some(r=>/precision\/(submit|quote)/.test(r.path)),false,'Replace uses the selected Image model, not Retouch pricing or submission');
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'The shared viewer editor fits mobile');
     assert.deepEqual(errors, []);
     await context.close();
     console.log('PASS full Image replacement flow, selected model, explicit action, exact exterior and invalidation ' + width);

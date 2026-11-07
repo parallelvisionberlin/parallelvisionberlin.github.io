@@ -1,0 +1,57 @@
+/* Approved viewer actions. Never place action controls over the photograph. */
+#image-lightbox .image-detail-edit-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+#image-lightbox .image-detail-edit-actions button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:94px;padding:12px 5px;border:1px solid #353636;border-radius:10px;background:#242626;color:#f1f0eb;font:inherit;cursor:pointer}
+#image-lightbox .image-detail-edit-actions button svg{width:24px;height:24px;flex:none}
+#image-lightbox .image-detail-edit-actions strong{font-size:16px;font-weight:650;line-height:1.2}
+#image-lightbox .image-detail-edit-actions small{font-size:10px;line-height:1.35;white-space:normal;text-align:center;font-weight:400}
+#image-lightbox #image-detail-replace{background:#edede6;color:#151616;border-color:#edede6}
+#image-lightbox .image-detail-edit-actions button:disabled{opacity:.4;cursor:default}
+#image-lightbox .image-detail-edit-actions button:focus-visible{outline:2px solid #aaa;outline-offset:3px}
+/* Keep legacy route hooks mounted, but remove the retired deck action in all roles. */
+#image-composer-edit-area,#pv-guest-retouch{display:none!important}
+#image-lightbox.is-viewer-editing>.image-detail-layout{display:none!important}
+#image-lightbox.is-viewer-editing>#image-lightbox-close{display:none!important}
+#image-lightbox.is-viewer-editing>#precision-workspace{display:grid!important;grid-template-columns:minmax(0,1fr) 300px;grid-template-rows:auto auto minmax(0,1fr);gap:12px;min-height:0;height:100%;max-width:none;padding:14px;overflow:hidden;--pe-accent:#edede6}
+#image-lightbox.is-viewer-editing .precision-head{grid-column:1/-1;grid-row:1;padding:0 0 10px;min-width:0}
+#image-lightbox.is-viewer-editing .precision-head h2{font-size:24px;letter-spacing:-.03em}
+#image-lightbox.is-viewer-editing .precision-method,#image-lightbox.is-viewer-editing .precision-access-note{display:none!important}
+#image-lightbox.is-viewer-editing .precision-tools{grid-column:1;grid-row:2;margin:0;flex-wrap:wrap;gap:8px;min-width:0}
+#image-lightbox.is-viewer-editing .precision-board{grid-column:1;grid-row:3;display:flex;min-height:0;height:100%;margin:0}
+#image-lightbox.is-viewer-editing .precision-panel{width:100%;min-height:0}
+#image-lightbox.is-viewer-editing .precision-board>.precision-panel:not(.precision-input-panel){display:none}
+#image-lightbox.is-viewer-editing .has-viewer-result .precision-input-panel{display:none}
+#image-lightbox.is-viewer-editing .has-viewer-result .precision-board>.precision-panel:not(.precision-input-panel){display:flex}
+#image-lightbox.is-viewer-editing .precision-deck{grid-column:2;grid-row:2/4;display:flex;flex-direction:column;align-self:stretch;gap:16px;min-width:0;max-width:none;width:100%;height:100%;margin:0;padding:16px;overflow-y:auto;border:1px solid #363838;border-radius:12px;background:#191b1b}
+#image-lightbox.is-viewer-editing .precision-deck-copy{width:100%;min-width:0}
+#image-lightbox.is-viewer-editing #precision-prompt{width:100%;min-height:130px;max-height:230px;box-sizing:border-box;resize:vertical}
+#image-lightbox.is-viewer-editing .precision-bottom{display:flex;flex-direction:column;gap:18px}
+#image-lightbox.is-viewer-editing .precision-strength{flex-wrap:wrap;justify-content:space-between;min-width:0}
+#image-lightbox.is-viewer-editing .precision-strength input{max-width:100%}
+#image-lightbox.is-viewer-editing #precision-generate{width:100%;margin:0}
+#image-lightbox.is-viewer-editing .precision-deck-meta{display:flex;flex-direction:column;align-items:stretch;gap:10px}
+#image-lightbox.is-viewer-editing .precision-status-text{max-width:100%;overflow-wrap:anywhere}
+#image-lightbox.is-viewer-editing .is-viewer-replace .precision-bottom,#image-lightbox.is-viewer-editing .is-viewer-replace .precision-deck-meta{display:none!important}
+.viewer-replacement-fields[hidden]{display:none!important}
+.viewer-replacement-fields{display:flex;flex-direction:column;gap:12px;font-size:12px}
+.viewer-replacement-fields select{min-height:40px;border:1px solid #484a4a;border-radius:6px;background:#262828;color:#eee;padding:8px;font:inherit}
+.viewer-reference-picker{display:flex;flex-direction:column;align-items:center;gap:10px;position:relative;border:1px dashed #686a6a;padding:16px 10px;border-radius:8px;cursor:pointer;min-width:0}
+.viewer-reference-picker img{max-width:100%;height:110px;object-fit:contain}
+.viewer-reference-picker span{max-width:100%;overflow-wrap:anywhere;text-align:center}
+.viewer-reference-picker input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.viewer-reference-picker:focus-within{outline:2px solid #ccc;outline-offset:2px}
+#viewer-replacement-continue{min-height:46px;background:#edede6;border:1px solid #edede6;border-radius:8px;color:#161717;font:inherit;font-weight:650}
+.viewer-replacement-fields p{margin:0;color:#aeb2b0;font-size:12px;line-height:1.5}
+.viewer-replacement-fields .viewer-replacement-status{color:#f2c1b8;overflow-wrap:anywhere}
+@media(max-width:760px){
+ #image-lightbox.is-viewer-editing>#precision-workspace{display:flex!important;flex-direction:column;height:100%;padding:12px;overflow-y:auto;gap:12px}
+ #image-lightbox.is-viewer-editing .precision-head{flex:none;align-items:flex-start;gap:8px}
+ #image-lightbox.is-viewer-editing .precision-head p{display:none}
+ #image-lightbox.is-viewer-editing #precision-return{min-width:0;padding:10px;font-size:12px}
+ #image-lightbox.is-viewer-editing .precision-tools{order:1;flex:none}
+ #image-lightbox.is-viewer-editing .precision-tool-buttons{flex-wrap:wrap;gap:5px}
+ #image-lightbox.is-viewer-editing .precision-tools button{font-size:11px;padding:8px}
+ #image-lightbox.is-viewer-editing .precision-board{order:2;flex:none;height:340px;min-height:260px}
+ #image-lightbox.is-viewer-editing .precision-deck{order:3;flex:none;height:auto;overflow:visible;padding:14px}
+ #image-lightbox.is-viewer-editing #precision-source-canvas{max-height:260px}
+ #image-lightbox.is-viewer-editing #precision-prompt{min-height:90px}
+}
