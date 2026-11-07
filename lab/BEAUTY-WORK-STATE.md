@@ -1,5 +1,17 @@
 # Beauty Studio and Studios navigation
 
+## 2026-11-07 | 13-look editorial archive: LIVE VERIFIED
+
+- User-requested redesign of only the horizontal Editorial Looks & Moods archive: 13 curated photographic directions (6 original IDs plus Sculptural, Noir, Afterimage, Street Flash, Concrete, Blue Hour and Night Tape), 12 new optimized WebP crops from user-supplied PV/HF/portrait assets and one retained original Beauty close-up. No named third-party photographer images were published.
+- Every card displays a readable title and short visual treatment. Scope-limited `lab/beauty-archive-curation.css` makes the cards taller with restrained caption gradients and partially visible next card. Existing no-arrow wheel, trackpad, drag/inertia, native phone swipe and keyboard behavior retained.
+- All 13 recipes map to distinct existing native Makeup/Hair/Skin/Light/Color IDs and truthful optional directions. All keep identity, outfit and environment intact. Cards are illustrative inspiration, not a wardrobe/location replacement system.
+- PR #891 merged to production-source SHA `5a5e698b27e6ca173921e3bea984ea5bbe726838`; Cloudflare Pages `pvlab-studio` reported successful publication for this exact SHA.
+- Tested browser source: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42318994587; original Image, Beauty, category, Worker quote/idempotency and full Studios/Beauty desktop-mobile checks passed. 13-card asset integrity, native preset bindings, mobile geometry and keyboard final-card assertions included.
+- Independent real custom-domain check: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42319656534. All thirteen image bytes, archive CSS, and guest behavior at 1440/390 matched the release. Guest selection of Night Tape changed native Light to low-key and Color to film without creating paid jobs. No horizontal page overflow or missing cards.
+- Backend/credits/provider/auth/Generate/history/comparison/zoom, HERO, mixed-case heading, favicon and all five Edit Look tabs unchanged. No paid generation was run. Authentic model output fidelity remains untested pending explicit test authorization.
+- This is the current verified archive release; previous notes below are history.
+
+
 ## 2026-11-07 | Category instruction and Original preview follow-up
 
 - Preserves the published PR #887 three-row layout, original hero/title/favicon, all 45 option IDs, approved photographic crops and arrow-free wheel/touch/keyboard/drag behavior. No second geometry redesign.
