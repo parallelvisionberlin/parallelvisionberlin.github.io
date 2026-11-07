@@ -1,5 +1,15 @@
 # Beauty Studio and Studios navigation
 
+## 2026-11-07 | Light-tab visual variety: LIVE VERIFIED
+
+- Follow-up to user's screenshot critique: Side Light and Rim Light felt overly similar to the nearby dark portraits. Replaced **only** those two Light thumbnails with pre-existing photographic crops (Side Light: male portrait with one-sided sculpted illumination; Rim Light: backlit blonde portrait). The other six non-Original Light cards and all Color cards stay unchanged.
+- PR #895 merged as `a5392cfdcb39d3ed5d4c485df47edb08ba49e8e7`. Exactly two new WebP assets, `lab/beauty.html` and `lab/beauty-look-catalog.js` image-reference changes, and `tests/lab-beauty-side-rim-previews.test.mjs`.
+- No new image generation, paid provider requests, or credits. Native settings/IDs/prompt instructions, nine-card geometry, uploaded Original photo, model/ratio/credits/Generate, private results, other Studios, favicon, hero and thirteen-card archive remain untouched.
+- Scoped Image, Beauty, Light/Color and Worker quote/idempotency contracts plus complete intercepted desktop/mobile browser regression passed: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42356745757. Standard Beauty, approved Image and validation CI also passed.
+- Exact Cloudflare app deployment reported success; read-only custom-domain check confirmed both images byte-for-byte and card bindings at `https://pvlab.studio/beauty`: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42357406752.
+- Photographs demonstrate lighting visually; provider output fidelity has not been tested with an actual paid job.
+
+
 ## 2026-11-07 | Five Light/Color corrections: LIVE VERIFIED
 
 - User approved five corrections to the examples previously marked visually misleading: Light **Direct flash**, **High key**; Color **Warm**, **Film tone**, **Soft film**. Five specific pre-existing generated photographs were reused, cropped and optimised as 800x500 WebP. No additional image-generation run.
