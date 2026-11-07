@@ -10,13 +10,13 @@ const css=fs.readFileSync(path.join(repo,'lab/beauty-archive-curation.css'),'utf
 const section=html.match(/<section class="beauty-looks"[\s\S]*?<\/section>/)?.[0]||'';
 const names=[...section.matchAll(/data-look="([a-z-]+)"/g)].map(m=>m[1]);
 const sources=[...section.matchAll(/class="beauty-look-photo" src="([^"]+)"/g)].map(m=>m[1]);
-test('curated archive has 13 independently named, photographed, functional presets',()=>{
- assert.equal(names.length,13);assert.equal(new Set(names).size,13);
+test('curated archive has 20 independently named, photographed, functional presets',()=>{
+ assert.equal(names.length,20);assert.equal(new Set(names).size,20);
  assert.deepEqual(new Set(names),new Set(Object.keys(beautyLookPresets)));
- assert.equal(sources.length,13);assert.equal(new Set(sources).size,13);
+ assert.equal(sources.length,20);assert.equal(new Set(sources).size,20);
  for(const src of sources){assert.match(src,/^\.\/visuals\/beauty\/atelier\/[a-z0-9-.]+\.webp$/);const p=path.join(repo,'lab',src.slice(2));assert.equal(fs.existsSync(p),true,src);assert.ok(fs.statSync(p).size<180000,src)}
- assert.equal((section.match(/<small>/g)||[]).length,13);
- assert.equal((section.match(/aria-pressed="false"/g)||[]).length,13);
+ assert.equal((section.match(/<small>/g)||[]).length,20);
+ assert.equal((section.match(/aria-pressed="false"/g)||[]).length,20);
  assert.match(css,/\.beauty-look-copy small\{display:block/);
  assert.match(section,/aria-description="Scroll, swipe or use left and right arrow keys to browse/);
  assert.doesNotMatch(section,/class="beauty-looks-arrow/);
@@ -30,7 +30,7 @@ test('all looks map only to existing category values, with distinct combinations
   assert.doesNotMatch(look.text,/replace (?:the |their )?(?:clothing|outfit|location)|new accessories/i,id);
   seen.push(keys.map(k=>look[k]).join('/'));
  }
- assert.equal(new Set(seen).size,13,'Each look applies a distinct native configuration');
+ assert.equal(new Set(seen).size,20,'Each look applies a distinct native configuration');
  assert.equal(beautyLookPresets.night.light,'low-key');
  assert.equal(beautyLookPresets.film.color,'film');
  assert.equal(beautyLookPresets.natural.light,'daylight');
@@ -44,5 +44,5 @@ test('publication respects locked ALTER and all original generation controls',()
  assert.match(html,/id="beauty-ratio"/);
  assert.match(html,/id="beauty-resolution"/);
  assert.match(html,/id="beauty-model"/);
- assert.match(html,/13 distinct photographic directions/);
+ assert.match(html,/20 curated photographic directions/);
 });
