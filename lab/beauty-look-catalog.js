@@ -142,49 +142,49 @@ export const beautyLookCatalog={
       "id": "natural",
       "label": "Natural",
       "instruction": "Preserve natural skin texture, pores, freckles and distinctive marks.",
-      "image": "./visuals/beauty/atelier/alter-skin-natural-20261107.webp",
+      "image": "./visuals/beauty/look-natural-20261029.jpg",
       "preview": ""
     },
     {
       "id": "dewy",
       "label": "Dewy",
       "instruction": "Give the skin a subtle dewy finish while preserving pores and natural texture.",
-      "image": "./visuals/beauty/atelier/alter-skin-dewy-20261107.webp",
+      "image": "./visuals/beauty/atelier/skin-natural.webp",
       "preview": ""
     },
     {
       "id": "matte",
       "label": "Matte",
       "instruction": "Give the skin a soft matte finish while preserving pores and natural texture.",
-      "image": "./visuals/beauty/atelier/alter-skin-matte-20261107.webp",
+      "image": "./visuals/beauty/atelier/alter-light-high-key-20261107.webp",
       "preview": ""
     },
     {
       "id": "satin",
       "label": "Satin",
       "instruction": "A subtle satin skin finish; retain pores, freckles and natural complexion.",
-      "image": "./visuals/beauty/atelier/alter-skin-satin-20261107.webp",
+      "image": "./visuals/beauty/atelier/alter-light-flash-20261107.webp",
       "preview": ""
     },
     {
       "id": "refined",
       "label": "Refined",
       "instruction": "Gently refine temporary skin blemishes without smoothing pores, changing identity or removing distinctive marks.",
-      "image": "./visuals/beauty/atelier/alter-skin-refined-20261107.webp",
+      "image": "./visuals/beauty/atelier/alter-light-side-20261107.webp",
       "preview": ""
     },
     {
       "id": "luminous",
       "label": "Luminous",
       "instruction": "Gently luminous skin highlights with visible pores and natural marks; no whitening or plastic smoothing.",
-      "image": "./visuals/beauty/atelier/alter-skin-luminous-20261107.webp",
+      "image": "./visuals/beauty/atelier/alter-light-rim-20261107.webp",
       "preview": ""
     },
     {
       "id": "soft-matte",
       "label": "Soft matte",
       "instruction": "Softly balanced matte skin, retaining pores, freckles and the original complexion.",
-      "image": "./visuals/beauty/atelier/alter-skin-soft-matte-20261107.webp",
+      "image": "./visuals/beauty/atelier/alter-color-warm-20261107.webp",
       "preview": ""
     },
     {
