@@ -266,8 +266,9 @@ test('Image viewer, Copy and History render the public-facing prompt only',()=>{
 
 test('High intensity is genuinely distinct for Cinema, Kodak and Sumi-e',()=>{
   const cinema=prepareMoodPrompt('Portrait','90s-cinema',100,{referenceCount:1});
-  assert.match(cinema.prompt,/dramatic, glossy 1990s feature-film scene/i);
-  assert.match(cinema.prompt,/DO NOT preserve the original flat daylight look/i);
+  assert.match(cinema.prompt,/MAXIMUM BELIEVABLE CINEMA/i);
+  assert.match(cinema.prompt,/Source light is authoritative/i);
+  assert.match(cinema.prompt,/keep the subject naturally integrated with the background/i);
   const gold=prepareMoodPrompt('Portrait','kodak-gold',100,{referenceCount:1});
   assert.match(gold.prompt,/abundant visibly organic 35mm grain/i);
   assert.match(gold.prompt,/Do not turn the face orange/i);
@@ -283,7 +284,7 @@ test('Gallery hover metadata identifies the exact image model',()=>{
   assert.match(src,/meta\.textContent=\[j\.status\.toUpperCase\(\),imageLabel,modelLabel/);
 });
 
-test('90s Cinema thumbnail and applied mood share a film-scan style',()=>{
+test('90s Cinema thumbnail and applied mood share photographic 35mm color',()=>{
   const preset=moodById('90s-cinema');
   assert.equal(preset.preview,'/lab/mood-previews/hd/90s-cinema-clean-final-20261011.jpg');
   for(const intensity of [15,60,100]){
@@ -291,10 +292,37 @@ test('90s Cinema thumbnail and applied mood share a film-scan style',()=>{
     assert.equal(result.error,'');
     assert.match(result.prompt,/35mm/i);
   }
-  assert.match(prepareMoodPrompt('Portrait','90s-cinema',60).prompt,/film-gate edge/i);
-  assert.match(prepareMoodPrompt('Portrait','90s-cinema',100).prompt,/sprocket perforations/i);
+  assert.match(prepareMoodPrompt('Portrait','90s-cinema',60).prompt,/one coherent exposure/i);
+  assert.match(prepareMoodPrompt('Portrait','90s-cinema',100).prompt,/Never create glowing rim outlines/i);
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   assert.ok(css.includes('.moods-look-90s-cinema img{filter:none'));
+});
+
+test('90s Cinema remains natural at all intensities, with distinct stronger photographic grades',()=>{
+  const direction='Preserve the same face, pose, red shorts and outdoor background.';
+  for(const engine of ['seedream','seedreamlite']){
+    const compiled=[];
+    for(const intensity of [15,60,82,100]){
+      const result=prepareMoodPrompt(direction,'90s-cinema',intensity,{engine,referenceCount:1,referenceMode:'base'});
+      assert.equal(result.error,'');
+      assert.equal(result.metadata.moodIntensity,intensity);
+      assert.equal(result.metadata.moodOriginalPrompt,direction);
+      assert.ok(result.prompt.startsWith(direction));
+      assert.match(result.prompt,/Source light is authoritative/i);
+      assert.match(result.prompt,/one coherent exposure/i);
+      assert.match(result.prompt,/CINEMA STRENGTH /);
+      assert.match(result.prompt,/without added film frames, perforations, light leaks or scratches/i);
+      assert.doesNotMatch(result.prompt,/glowing golden backlight where believable|visible sprocket perforations only at the far outer/i);
+      assert.ok(result.prompt.length<=(engine==='seedreamlite'?3000:5000));
+      compiled.push(result.prompt);
+    }
+    assert.equal(new Set(compiled).size,compiled.length,'Intensity levels should produce distinct directions');
+    assert.match(compiled[2],/76–89% \/ STRONG CINEMA/);
+    assert.match(compiled[3],/90–100% \/ MAXIMUM BELIEVABLE CINEMA/);
+  }
+  const withoutBase=prepareMoodPrompt('Two people in a record store','90s-cinema',100,{engine:'seedream',referenceCount:0});
+  assert.equal(withoutBase.error,'');
+  assert.match(withoutBase.prompt,/With text or reference-only input, follow the requested subject/i);
 });
 
 test('Mood intensity control is prominent, responsive and reflects each live setting',()=>{
