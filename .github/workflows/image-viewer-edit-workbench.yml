@@ -20,15 +20,37 @@ jobs:
         with:
           node-version: '22.16.0'
       - name: Apply and verify scoped implementation
+        shell: bash
         run: |
-          if [ -f .github/scripts/viewer-repair.py ]; then
-            python3 .github/scripts/viewer-repair.py
-            node .github/scripts/image-viewer-edit-workbench.mjs 2>&1 | tee /tmp/image-viewer-console.log
-            git diff --check
-            touch /tmp/image-viewer-verified
-          fi
+          set -euo pipefail
+          python3 .github/scripts/viewer-repair.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('.github/scripts/image-viewer-edit-workbench.mjs')
+          s=p.read_text()
+          marker="const log='/tmp/image-viewer-verification.log';"
+          assert s.count(marker)==1
+          fix="""
+          // Keep the guest Base and ratio widths identical to the approved signed-in deck.
+          const surfacePath='lab/image-deck-surface.css';
+          let surface=readFileSync(surfacePath,'utf8');
+          for(const [before,after] of [
+            ['& #image-composer-ratio{','& :is(#image-composer-ratio,#pv-guest-ratio){'],
+            ['& #composer-reference-intent-toggle:not([hidden]){','& :is(#composer-reference-intent-toggle,#pv-guest-base):not([hidden]){']
+          ]){if(surface.split(before).length!==2)throw Error('Unexpected deck baseline');surface=surface.replace(before,after);}
+          writeFileSync(surfacePath,surface);
+          const htmlPath='lab/studio.html';let html=readFileSync(htmlPath,'utf8');
+          html=html.replace(/(image-deck-surface\\.css\\?[^\"]*)\"/,'$1&viewerActions=20261107v1\"');writeFileSync(htmlPath,html);
+          """
+          s=s.replace(marker,fix+'\n'+marker)
+          p.write_text(s)
+          PY
+          node .github/scripts/image-viewer-edit-workbench.mjs 2>&1 | tee /tmp/image-viewer-console.log
+          git diff --check
+          touch /tmp/image-viewer-verified
       - name: Collect scoped source and verification evidence
         if: always()
+        shell: bash
         run: |
           mkdir -p /tmp/image-viewer-context
           cp .github/scripts/image-viewer-edit-workbench.mjs /tmp/image-viewer-context/runner.mjs
@@ -44,12 +66,14 @@ jobs:
           path: /tmp/image-viewer-context/
           retention-days: 1
       - name: Commit only verified source to the feature branch
+        shell: bash
         run: |
-          if [ ! -f /tmp/image-viewer-verified ]; then exit 0; fi
+          set -euo pipefail
+          test -f /tmp/image-viewer-verified
           git config user.name 'PV LAB verification'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          printf '\n## 2026-11-07: contextual viewer Replace and Edit\n\nAdded the approved sidebar cards and retired the main Image deck Retouch action. Both cards reuse the existing precision canvas inside the image viewer. Replace transfers a full-resolution reviewed mask, source and reference to the existing Image deck; it never submits a generation or changes the selected model. Edit retains the existing signed Retouch pricing and submission. Existing sidebar actions stay in place.\n\nProvider-free unit tests and mocked desktop/mobile browser suites passed in the image-viewer implementation workbench before this commit. Production hosting and signed-in paid generation are not verified. No paid provider test was run.\n' >> lab/IMAGE-REPLACEMENT-WORK-STATE.md
-          git add lab/lab.js lab/precision-edit.js lab/studio.html lab/image-viewer-editor.js lab/image-viewer-editor.css lab/IMAGE-REPLACEMENT-WORK-STATE.md tests/lab-image-replacement-flow-ui.mjs tests/lab-first-image-instant-browser.mjs tests/lab-image-oneclick-ui.mjs
+          printf '\n## 2026-11-07: contextual viewer Replace and Edit\n\nAdded the approved sidebar cards and retired the main Image deck Retouch action. Both cards reuse the existing precision canvas inside the image viewer. Replace transfers a full-resolution reviewed mask, source and reference to the existing Image deck; it never submits a generation or changes the selected model. Edit retains the existing signed Retouch pricing and submission. Existing sidebar actions stay in place. Guest Base and aspect-ratio slots now match the existing signed-in widths.\n\nProvider-free unit tests and mocked desktop/mobile browser suites passed in the image-viewer implementation workbench before this commit. Production hosting and signed-in paid generation are not verified. No paid provider test was run.\n' >> lab/IMAGE-REPLACEMENT-WORK-STATE.md
+          git add lab/lab.js lab/precision-edit.js lab/studio.html lab/image-viewer-editor.js lab/image-viewer-editor.css lab/image-deck-surface.css lab/IMAGE-REPLACEMENT-WORK-STATE.md tests/lab-image-replacement-flow-ui.mjs tests/lab-first-image-instant-browser.mjs tests/lab-image-oneclick-ui.mjs
           git rm .github/scripts/image-viewer-edit-workbench.mjs .github/scripts/viewer-repair.py .github/workflows/image-viewer-edit-workbench.yml
           git diff --cached --check
           git commit -m 'feat: add contextual Replace and Edit actions to image viewer'
