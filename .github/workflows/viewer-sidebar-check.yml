@@ -1,0 +1,117 @@
+name: Verify single-sidebar viewer
+on:
+  push:
+    branches: [fix/viewer-single-sidebar-20261107]
+    paths: ['.github/workflows/viewer-sidebar-check.yml', '.github/scripts/viewer-sidebar.patch']
+permissions:
+  contents: write
+jobs:
+  sidebar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/viewer-single-sidebar-20261107
+          sparse-checkout: |
+            AGENTS.md
+            package.json
+            lab
+            lab-worker
+            tests
+            scripts
+            .github
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Apply reviewed layout patch and preserve current cache keys
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/viewer-sidebar-evidence
+          git apply --check .github/scripts/viewer-sidebar.patch
+          git apply .github/scripts/viewer-sidebar.patch
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('lab/studio.html');s=p.read_text()
+          old='image-viewer-editor.css?v=20261107-inline-editor2'
+          assert s.count(old)==1
+          s=s.replace(old,'image-viewer-editor.css?v=20261107-viewer-sidebar1')
+          needle='<script type="module" src="./lab.js?'
+          assert s.count(needle)==1
+          start=s.index(needle)+len(needle);end=s.index(chr(34),start)
+          s=s[:end]+'&viewerSidebar=20261107-viewer-sidebar1'+s[end:]
+          p.write_text(s)
+          PY
+          node --check lab/lab.js
+          node --check lab/image-viewer-editor.js
+          node --check lab/precision-edit.js
+          git diff --check
+      - name: Verify existing Image and replacement safeguards
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-guided-replace.test.mjs tests/lab-viewer-inline.test.mjs tests/lab-precision-edit.test.mjs tests/lab-image-replacement-intent.test.mjs tests/lab-image-replacement-composite.test.mjs tests/lab-image-replacement-backend.test.mjs tests/lab-image-replacement-draft.test.mjs | tee /tmp/viewer-sidebar-evidence/unit.log
+      - name: Use pinned Playwright with the hosted browser
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix /tmp/viewer-sidebar-browser --no-save playwright@1.57.0
+          test -x /usr/bin/google-chrome
+          cat > /tmp/viewer-sidebar-browser/runtime.mjs <<'JS'
+          import * as pw from './node_modules/playwright/index.mjs';
+          export const chromium=new Proxy(pw.chromium,{get(target,key){return key==='launch'?(options={})=>target.launch({...options,executablePath:'/usr/bin/google-chrome'}):Reflect.get(target,key);}});
+          JS
+      - name: Verify photo size, selection, sidebar restoration and generation flow
+        shell: bash
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/viewer-sidebar-browser/runtime.mjs
+        run: |
+          set -euo pipefail
+          node tests/lab-image-replacement-flow-ui.mjs 2>&1 | tee /tmp/viewer-sidebar-evidence/sidebar-flow.log
+          node tests/lab-precision-edit-ui.mjs 2>&1 | tee /tmp/viewer-sidebar-evidence/precision.log
+          PV_RETOUCH_NAV_ONLY=1 node tests/lab-image-oneclick-ui.mjs 2>&1 | tee /tmp/viewer-sidebar-evidence/navigation.log
+      - name: Record tested scope and commit only to the feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync,appendFileSync} from 'node:fs';
+          const record=JSON.parse(readFileSync('lab/owner-work-records.json','utf8')).records.find(r=>r.id==='image-viewer-replace-edit-actions');
+          if(!record)throw Error('Existing viewer record is missing');
+          const run='https://github.com/'+process.env.GITHUB_REPOSITORY+'/actions/runs/'+process.env.GITHUB_RUN_ID;
+          record.status='needs_verification';record.updatedAt=new Date().toISOString();record.baselineSha='5f226c95947d8f31a9651e7c18b6b8a988187315';record.reviewedSha=null;record.branch='fix/viewer-single-sidebar-20261107';
+          record.summary='Owner-requested layout correction: Edit/Replace swaps the existing right-hand Image details sidebar for its controls, with no third column. Photo fitting matches the normal viewer; exit restores metadata and actions. Guided selection, saved references, models, quotes and generation behavior are unchanged.';
+          record.nextAction='Review the scoped test results, merge through the normal PR endpoint, and verify exact Cloudflare/custom-domain assets. No paid inference or real-account edit was run.';
+          record.tests=[{label:'70 existing focused Image/selection/reference/quote tests',result:'passed',scope:'Provider-free existing safeguards; no changed pricing, provider, reference or generation code.'},{label:'Single-sidebar real-application browser flow',result:'passed',scope:'390px, 1440px and 1728px; fitted photo dimensions within 2px of normal viewer; sidebar replacement and restoration; brush, saved reference and mocked generation.'},{label:'Existing Precision and standalone Retouch navigation',result:'passed',scope:'Mocked browser regression; no paid requests.'}];
+          record.deployment={state:'not_started',environment:'Cloudflare Pages pvlab-studio',sourceSha:null,limitations:['This sidebar correction is not yet published.','No real-account or paid generation was run.','Saved location-reference swaps remain unsupported.']};
+          record.links.push({label:'Single-sidebar verification',url:run});
+          record.evidence.push({kind:'automated_test',summary:'Photo-size parity and one-sidebar mode switch passed with existing guided replacement and Retouch regressions.',scope:'Synthetic media and intercepted APIs at phone and desktop widths',source:run,limitations:['Not a real signed-in or paid generation test.']});
+          record.blockers=['PR and production asset verification pending.'];
+          writeFileSync('/tmp/sidebar-record.json',JSON.stringify(record));
+          appendFileSync('lab/IMAGE-REPLACEMENT-WORK-STATE.md','\n\n## Single-sidebar mode switch, 2026-11-07\n\nThe owner requested the editing controls replace Image details instead of shrinking the photo with a middle panel. Existing controls move into the original inspector and restore on exit. Contextual canvas fitting uses the normal viewer padding; standalone Retouch is preserved. No model/provider/billing/reference behavior changed.\n\n70 focused checks and the complete mocked flow at 390px, 1440px and 1728px passed, including photo-size parity, mask alignment, saved references, one explicit generation and sidebar restoration. Existing precision and Retouch navigation passed. Production verification remains separate; no paid or real-account edit was run.\n');
+          JS
+          node scripts/owner-work-state.mjs upsert /tmp/sidebar-record.json
+          node scripts/owner-work-state.mjs validate
+          git config user.name 'PV LAB verification'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/image-viewer-editor.js lab/image-viewer-editor.css lab/precision-edit.js lab/lab.js lab/studio.html tests/lab-image-replacement-flow-ui.mjs lab/owner-work-records.json lab/IMAGE-REPLACEMENT-WORK-STATE.md
+          git rm .github/scripts/viewer-sidebar.patch .github/workflows/viewer-sidebar-check.yml
+          git diff --cached --check
+          git commit -m 'fix: swap viewer sidebar without shrinking the photograph'
+          git rev-parse HEAD > /tmp/viewer-sidebar-evidence/source-sha.txt
+          git push origin HEAD:fix/viewer-single-sidebar-20261107
+      - name: Retain scoped verification evidence
+        if: always()
+        run: |
+          mkdir -p /tmp/viewer-sidebar-evidence
+          cp test-results/pv-sidebar-*.png /tmp/viewer-sidebar-evidence/ 2>/dev/null || true
+          cp test-results/pv-guided-saved-*.png /tmp/viewer-sidebar-evidence/ 2>/dev/null || true
+          tar -czf /tmp/viewer-sidebar-evidence/source.tar.gz lab/image-viewer-editor.js lab/image-viewer-editor.css lab/precision-edit.js lab/lab.js lab/studio.html tests/lab-image-replacement-flow-ui.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: single-sidebar-evidence
+          path: /tmp/viewer-sidebar-evidence/
+          retention-days: 2
