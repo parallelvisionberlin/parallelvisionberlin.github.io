@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T12:11:56.159Z",
+  "updatedAt": "2026-11-07T12:51:07.171Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1608,6 +1608,50 @@
       "blockers": [],
       "doNotRepeat": [
         "Compare the visual result against a natural flash reference before introducing another owner trial."
+      ]
+    },
+    {
+      "id": "owner-seedream-default-1k",
+      "title": "Owner Seedream 1K default",
+      "component": "Image deck",
+      "status": "needs_verification",
+      "updatedAt": "2026-11-07T12:51:07.171Z",
+      "summary": "Owner Seedream Pro keeps 1K across fresh Mood and Inspiration entry; explicit 2K choices survive later Mood selection.",
+      "nextAction": "Complete hosted Image/native checks, merge reviewed source, verify Cloudflare and production lab.js.",
+      "baselineSha": "d3f66d75791d022a6c482dbd2f069196f202dd32",
+      "reviewedSha": null,
+      "branch": "fix/owner-seedream-default-1k-20261107",
+      "files": [
+        "lab/lab.js",
+        "lab/studio.html",
+        "tests/lab-native-mobile-ui.mjs",
+        "lab/IMAGE-PROMPT-WORK-STATE.md"
+      ],
+      "links": [],
+      "tests": [
+        {
+          "label": "Syntax and 11 focused Node tests",
+          "result": "passed",
+          "scope": "Approved Image contract, Seedream/Flash default separation, exact priced Mood handoff."
+        },
+        {
+          "label": "Required Image browser attempts",
+          "result": "not_run",
+          "scope": "Local prompt-paste and first-image blocked by missing Chromium; Studio-layout retains its documented Clerk source assertion. Hosted checks pending."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "Real signed-in owner behavior not observed."
+        ]
+      },
+      "evidence": [],
+      "blockers": [],
+      "doNotRepeat": [
+        "Keep customer defaults and other models unchanged.",
+        "Preserve saved resolutions and settings bound to an existing generation quote."
       ]
     }
   ]

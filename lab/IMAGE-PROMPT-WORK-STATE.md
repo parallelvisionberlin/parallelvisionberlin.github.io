@@ -1,3 +1,13 @@
+## 2026-11-07 | Owner Seedream defaults to 1K
+
+- Request: keep Seedream Pro at 1K by default in the owner Image deck.
+- Baseline main: d3f66d75791d022a6c482dbd2f069196f202dd32. Branch: fix/owner-seedream-default-1k-20261107.
+- The base deck already initializes Seedream Pro at 1K. Stop owner Mood selection, Mood URL entry and native Mood commands from promoting that setting to 2K. Fresh Inspiration and guest-draft handoffs use 1K only for owner Seedream Pro.
+- Explicit 2K selection survives subsequent Mood changes. Preserve customer defaults, other models, saved-draft/History resolutions and the exact 2K settings of a previously priced Mood Generate handoff.
+- Files: lab/lab.js, lab/studio.html cache version, existing native Mood regression and shared Owner work record. No layout, prompt, provider, pricing or generation changes.
+- Local syntax and 11 relevant Node checks pass. Local Image browser suites attempted: prompt-paste/first-image cannot launch because Chromium is absent; Studio-layout stops on its existing Clerk source assertion. Hosted CI and production verification pending.
+- Native regression aligns the owner default with 1K, then explicitly selects 2K for the existing prompt-budget case and verifies that choice survives another Mood.
+
 ## 2026-11-07 | Selected Mood button lettering clearance
 
 - Owner screenshot shows selected Night Flash lettering crowded in the fixed desktop Mood button.
