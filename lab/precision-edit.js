@@ -9,7 +9,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   const rc=resultCanvas.getContext('2d');
   const mask=document.createElement('canvas'),maskCtx=mask.getContext('2d',{willReadFrequently:true});
   const undoStack=[],maxUndo=12,finalizing=new Map();
-  let externalMode=false;
+  let externalMode=false, selectionTargetPrompt='', selectionMetricsCache=undefined;
   let base=null,mode='magic',drawing=false,lastPoint=null,taskBusy=false,pending=null,quoteBusy=false,quoteFailure=false,quoteTimer=null;
   let selected=false,resultBlob=null,resultBitmap=null,disposed=false,workingId=null,session=0;
   let resultJob=null;
@@ -111,7 +111,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     if(base)paintZoom();
   }
   const maskChanged=()=>{
-    editEpoch++;selected=hasSelection();renderMask();
+    selectionMetricsCache=undefined;editEpoch++;selected=hasSelection();renderMask();
     // A previous quote is bound to a specific mask PNG. Never allow it to
     // survive further selection edits, brush strokes or undo.
     pending=null;quoteFailure=false;clearTimeout(quoteTimer);quoteTimer=null;refreshButtons();
@@ -123,6 +123,24 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     // Sample the whole image uniformly. Even a small brush mark is kept.
     let hits=0;for(let i=3;i<image.length;i+=4)if(image[i]>64){hits++;if(hits>2)return true;}
     return false;
+  }
+  function selectionMetrics(){
+    if(!base||!selected||!mask.width||!mask.height)return null;
+    if(selectionMetricsCache!==undefined)return selectionMetricsCache;
+    // Bound a potentially 4 MP scan to ~262k samples, after pointer-up only.
+    const {width,height}=mask, data=maskCtx.getImageData(0,0,width,height).data;
+    const step=Math.max(1,Math.ceil(Math.max(width,height)/512));
+    let left=width,right=-1,top=height,bottom=-1;
+    for(let y=0;y<height;y+=step)for(let x=0;x<width;x+=step){
+      if(data[(y*width+x)*4+3]<65)continue;
+      left=Math.min(left,x);right=Math.max(right,x);
+      top=Math.min(top,y);bottom=Math.max(bottom,y);
+    }
+    selectionMetricsCache=right<left?null:{boxHeight:Math.min(1,(bottom-top+step)/height),boxWidth:Math.min(1,(right-left+step)/width)};
+    return selectionMetricsCache;
+  }
+  function setSelectionTarget(target){
+    selectionTargetPrompt=['face','person','clothing'].includes(target)?target:'';
   }
   function selectMode(next){
     if(!['magic','brush','erase','pan'].includes(next))return;
@@ -259,7 +277,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     setStatus('Selection inverted. Only the purple area will change. Erase over anything else to keep.');
   }
   function resetSelection(){
-    editEpoch++;maskCtx.clearRect(0,0,mask.width,mask.height);
+    selectionMetricsCache=undefined;editEpoch++;maskCtx.clearRect(0,0,mask.width,mask.height);
     undoStack.length=0;selected=false;pending=null;quoteFailure=false;clearTimeout(quoteTimer);quoteTimer=null;
     renderMask();refreshButtons();
     view.dispatchEvent(new Event('precision-selection-change'));
@@ -393,7 +411,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       setStatus('Selecting your subject…');
       const p={x:Math.min(base.width-1,Math.round(point.x*base.width/mask.width)),
         y:Math.min(base.height-1,Math.round(point.y*base.height/mask.height))};
-      const reply=await api('/api/precision/segment',{method:'POST',body:{sourceId,point:p}});
+      const reply=await api('/api/precision/segment',{method:'POST',body:{sourceId,point:p,...(selectionTargetPrompt?{targetPrompt:selectionTargetPrompt}:{})}});
       if(!reply?.requestId||!reply.ticket)throw new Error('Segmentation did not return a request ID.');
       let ready=null;
       for(let attempt=0;attempt<65&&revision===session;attempt++){
@@ -811,7 +829,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   // No source is opened automatically in the normal gallery. This workspace is opt-in.
   reset();
-  return {open,close,isOpen,clearSelection:resetSelection,invertSelection,result:()=>resultJob,setMode:selectMode,setExternalMode,selectionSnapshot,hasSelection:()=>selected,isBusy:()=>taskBusy,preview:()=>{
+  return {open,close,isOpen,selectionMetrics,setSelectionTarget,clearSelection:resetSelection,invertSelection,result:()=>resultJob,setMode:selectMode,setExternalMode,selectionSnapshot,hasSelection:()=>selected,isBusy:()=>taskBusy,preview:()=>{
     if(owner())return;
     host.classList.add('is-precision-active');view.hidden=false;
     refreshButtons();syncPreviewFit();settleRetouchScroll();
