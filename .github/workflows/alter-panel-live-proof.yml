@@ -77,7 +77,7 @@ jobs:
               assert.equal(check.overflow,false);
               if(width>1300){
                 assert.ok(check.panel.w>=Math.min(590,Math.max(460,width*.35))-1,'Edit Look width');
-                assert.ok(check.panel.bottom<=check.look.y+2,'Editor never overlays archive controls');
+                assert.ok(check.panel.bottom<=check.looks.y+2,'Editor never overlays archive controls');
               }
               assert.equal(await page.locator('.beauty-tabs [role="tab"]').count(),5);
               await page.locator('#beauty-generate').click({trial:true});
