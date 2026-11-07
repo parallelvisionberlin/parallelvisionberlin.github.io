@@ -2,12 +2,12 @@
 
 ## Owner Night Flash Photo Finish, 2026-11-07
 
-- Owner only: Image Deck → Moods → Night Flash · Photo Finish → Apply finish. Compare with the Base and download the PNG.
-- In-browser 35mm processing. Same recipe as the owner offline trial, full source dimensions and no new generation or provider call.
-- Merged PR #898 https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/898 at 624b2a324c4885a70d8481d986339dc820c8fe02. Hong Kong Nights and Won Kar Night remain on their existing routes. The production Worker did not require a deployment.
-- 79 scoped tests and hosted Chrome at 390 and 1440 px passed. Synthetic role checks verify owner visibility, customer exclusion, Base/result dimensions, comparison and zero POST requests.
-- Shared Image legacy first-image, Clerk and compact prompt assertions still fail with the previously observed baseline symptoms. CI gates are unchanged.
-- Production Pages deployment 8dc4c894-0a70-42ec-aa17-e8545b321053 verified at the custom domain. Real signed-in owner session remains unverified.
+- Owner only: Image Deck → Moods → Night Flash · Photo Finish. Click the face (or between two faces), Apply finish, compare with the Base or download the PNG.
+- #898 shipped the local 35mm finish. An owner real-photo comparison showed that it mostly dimmed the room and softened fine detail.
+- #901 https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/901 applies stronger localized exposure, faster falloff and full-resolution tonal processing with restrained halation and grain. Browser processing uses the source pixels and preserves the geometry. No provider or Worker deployment.
+- A private check on the submitted portrait made the face brighter than the wall and kept its original 2048×1170 dimensions. A second check on a two-person source preserved both subjects and framing.
+- 79 scoped Node cases and hosted Chrome at 390 and 1440 px passed. Checks cover aim, apply, compare, re-aim, owner visibility, customer exclusion and zero POSTs.
+- Production Pages deployment f5c90ddd-a2be-490f-a05a-93faff158939 at 4fa67404ae926edf23161e93d8187130ffff1990 verified on the custom domain. The revised control was not exercised in a real owner session.
 
 ## Active state, 2026-11-06
 

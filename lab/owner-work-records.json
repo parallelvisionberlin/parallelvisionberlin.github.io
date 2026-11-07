@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07",
+  "updatedAt": "2026-11-07T10:46:56.457Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1479,29 +1479,32 @@
       "title": "Owner Night Flash Photo Finish",
       "component": "Image Deck / Moods",
       "status": "deployed",
-      "updatedAt": "2026-11-07T10:18:20.227Z",
-      "summary": "Owner-only Night Flash Photo Finish works on the current Base in the Image Deck. Compare and download the PNG in the browser. Source framing and dimensions are retained.",
-      "nextAction": "Review the look using an owner session and an owner-selected Base.",
-      "baselineSha": "3c4670a0ac8ca21b27e90bd6bcbc3b6619fbd40b",
-      "reviewedSha": "3167a7b7cc3d53a27fc71e97eeaafe35a85b1cdd",
-      "branch": "codex/owner-night-flash-photo-finish",
+      "updatedAt": "2026-11-07T10:46:56.457Z",
+      "summary": "Owner Night Flash Photo Finish aims an exposure lift and fast ambient falloff at a user-picked point, then applies restrained halation and 35mm grain to the full-resolution Base.",
+      "nextAction": "Evaluate the focused flash on more owner-selected Base photos in Studio.",
+      "baselineSha": "cf0b7aead75a86654df73f1eba6d7220e148958c",
+      "reviewedSha": "df0bc4539ecdc9137608b05811d17e5befc8d612",
+      "branch": "codex/owner-night-flash-focused-light",
       "files": [
         "lab/lab.js",
-        "lab/moods.js",
         "lab/studio.html",
+        "lab/film-finish.css",
         "lab/owner-photo-finish.js",
         "lab/night-flash-photo-renderer.js",
-        "lab/film-renderer.mjs",
         "tests/lab-night-flash-soul-ui.mjs"
       ],
       "links": [
         {
-          "label": "Merged Night Flash only",
+          "label": "Initial Night Flash release",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/898"
         },
         {
+          "label": "Focused flash release",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/901"
+        },
+        {
           "label": "Role and viewport checks",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42363019744"
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42364849250"
         }
       ],
       "tests": [
@@ -1512,36 +1515,36 @@
         },
         {
           "label": "Hosted Chrome 390 and 1440",
-          "scope": "Owner shows finish, customer hides it, upload Base, compare, preserved dimensions and no POST",
+          "scope": "Aim, apply, compare, re-aim, owner visibility and no POST",
           "result": "passed",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42363019744"
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42364849250"
         }
       ],
       "deployment": {
         "state": "verified",
         "environment": "PV LAB Cloudflare Pages",
-        "sourceSha": "624b2a324c4885a70d8481d986339dc820c8fe02",
+        "sourceSha": "4fa67404ae926edf23161e93d8187130ffff1990",
         "evidenceUrl": "https://pvlab.studio/studio?tool=image",
         "limitations": [
-          "Authenticated production owner session was not exercised."
+          "New controls verified in hosted synthetic owner sessions. Owner tried the previous release on a real Base."
         ]
       },
       "evidence": [
         {
           "kind": "fixture",
-          "summary": "Output matches the offline Night Flash trial for the same file and keeps its dimensions.",
-          "scope": "Canvas compositor and hosted synthetic Studio sessions",
+          "summary": "Two private photo comparisons retained source dimensions. The foreground got more exposure and the room fell darker.",
+          "scope": "Actual owner photos and local Canvas emulation",
           "limitations": [
-            "No provider calls or production account session."
+            "No paid generation and no inference."
           ]
         },
         {
           "kind": "production_asset",
-          "summary": "Cloudflare production deployed the merge and the custom domain served matching asset bytes.",
-          "scope": "Studio HTML and Night Flash modules",
+          "summary": "Cloudflare deployment f5c90ddd-a2be-490f-a05a-93faff158939 served the reviewed Night Flash modules and dialog on the custom domain.",
+          "scope": "Studio HTML and assets",
           "source": "https://pvlab.studio/studio?tool=image",
           "limitations": [
-            "Signed-in behavior verified in hosted synthetic sessions only."
+            "The new control was not exercised in a real owner session."
           ]
         }
       ],
