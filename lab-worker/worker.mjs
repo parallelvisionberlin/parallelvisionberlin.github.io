@@ -2043,6 +2043,8 @@ async function route(request,env,ctx) {
       const checkRequest=new Request(request.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:params})});
       await checkCustomerPromptSafety(env,checkRequest);
     }
+    if(params.engine==='klinghf'||/^kling-video\/v3\.0\/pro\//.test(params.model||''))
+      fail(409,'Legacy Higgsfield Kling quotes are disabled. Select Kling 3.0 and review a fresh SpicyAPI price. Nothing submitted.');
     if(params.provider==='higgsfield'&&params.mode==='transform')return json({job:jobView(await submitCharacterTransform(env,owner,q,params,savedPayload,hfDeps()))},202);
     if(params.provider==='higgsfield'&&params.mode==='extend')return json({job:jobView(await submitVideoExtension(env,owner,q,params,savedPayload,hfDeps()))},202);
     if(params.provider==='fal'&&params.type==='image'&&params.mode==='upscale')return json({job:jobView(await submitFalUpscaleQuote(env,owner,q,params,savedPayload))},202);
