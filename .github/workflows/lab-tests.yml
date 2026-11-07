@@ -92,3 +92,24 @@ jobs:
           name: video-card-control-previews
           path: test-results/video-card-controls-*.png
           retention-days: 1
+
+  kling-worker-bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Build exact Worker bundle without deploying
+        run: |
+          cd lab-worker
+          npx --yes wrangler@4 deploy --dry-run --outdir ../.pv-kling-worker-build
+          test -s ../.pv-kling-worker-build/worker.js || test -s ../.pv-kling-worker-build/worker.mjs
+      - name: Upload Worker bundle for direct reviewed Cloudflare deployment
+        uses: actions/upload-artifact@v4
+        with:
+          name: pvlab-kling-903-worker-bundle
+          path: .pv-kling-worker-build/
+          retention-days: 1
+          if-no-files-found: error
