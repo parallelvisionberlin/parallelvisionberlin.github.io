@@ -33,17 +33,17 @@ test('the actual Studio settings compiler sends Night Flash through the Higgsfie
     assert.equal(selected.provider,'higgsfield');assert.equal(selected.engine,'soulpro');
     assert.equal(selected.soulProModel,'soul2');assert.equal(selected.moodId,'night-flash');
     assert.equal(selected.moodOriginalPrompt,raw);assert.equal(selected.seed,'42');
-    assert.equal(selected.prompt,prepareSoulNightFlash(raw,80,{hasBase}).prompt);
+    assert.equal(selected.prompt,prepareSoulNightFlash(raw,100,{hasBase}).prompt);
   }
 });
 
 test('Soul Night Flash supports one base or a described subject, and only this built-in Mood',()=>{
   for(const intensity of [1,34,35,69,70,100]){
     const r=prepareMoodPrompt('Keep the expression.','night-flash',intensity,{engine:'soul2',referenceCount:1});
-    assert.equal(r.error,'');assert.equal(r.metadata.moodIntensity,intensity);
+    assert.equal(r.error,'');assert.equal(r.metadata.moodIntensity,100);
     assert.match(r.prompt,/Relight the existing subject/);assert.match(r.prompt,/exact outfit and skin coverage/);
     assert.match(r.prompt,/Explicit user-authored changes take priority/);
-    assert.equal(r.prompt,prepareSoulNightFlash('Keep the expression.',intensity,{hasBase:true}).prompt);
+    assert.equal(r.prompt,prepareSoulNightFlash('Keep the expression.',100,{hasBase:true}).prompt);
   }
   assert.match(prepareMoodPrompt('','night-flash',80,{engine:'soul2'}).error,/Describe a subject/);
   assert.equal(prepareMoodPrompt('','night-flash',80,{engine:'soul2',referenceCount:1}).error,'');
@@ -51,7 +51,6 @@ test('Soul Night Flash supports one base or a described subject, and only this b
   assert.match(prepareMoodPrompt('Keep this','night-flash',80,{engine:'soul2',referenceCount:2}).error,/one base/);
   assert.match(prepareMoodPrompt('Keep this','night-flash',80,{engine:'soul2',referenceCount:1,referenceMode:'references'}).error,/one base/);
   assert.match(prepareMoodPrompt('Portrait','dreamcore',80,{engine:'soul2'}).error,/supports Night Flash/);
-  assert.notEqual(prepareMoodPrompt('','night-flash',10,{engine:'soul2',referenceCount:1}).prompt,prepareMoodPrompt('','night-flash',100,{engine:'soul2',referenceCount:1}).prompt);
 });
 
 test('Worker rebuilds Night Flash and preserves authored direction for History and Reuse',()=>{

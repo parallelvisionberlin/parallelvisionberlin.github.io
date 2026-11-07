@@ -84,7 +84,8 @@ const ALL_MOODS=Object.freeze([
     "subtle": "1–34%: a restrained but recognizable direct-flash exposure, crisp believable shadows, slightly darker ambient falloff, subtle integrated 35mm grain and richer natural blacks. Keep the source face, outfit, body, pose, original location and framing unchanged.",
     "intense": "76–100%: dramatic physically believable hard frontal flash, luminous sharp subject detail, fast falloff into deep near-black night, punchy real reflective highlights, rich textured shadow pockets and clearly photographic analog 35mm grain. Intensify the light and camera response, not the person. Preserve the exact Base identity, expression, hairstyle, outfit, proportions, pose, subject count, crop and scene structure.",
     "avoid": "changed identity, facial features, expression, outfit, body, pose, crop, location or extra people; plastic or airbrushed skin, smoothing filters, fake gloss, fake paparazzi text, watermarks, tabloid graphics, cyberpunk neon, artificial street replacement, invented rain or cars, hard fake glow, excessive bloom, gritty grunge styling, smeared makeup, CGI or HDR finish, fake film borders, coarse pasted noise, flat grey blacks, crushed face detail, anatomy distortions",
-    "defaultIntensity": 82
+    "defaultIntensity": 100,
+    "fixedIntensity": true
   },
   {
     "id": "fisheye-2000",
@@ -339,6 +340,7 @@ export function imageHistoryCaption(settings={}){
 export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',filmFinish=undefined,moodVariant='original'}={}){
   const original=String(input||'').trim(),mood=moodById(id);
   if(!mood)return {prompt:original,metadata:{},error:''};
+  const intensity=mood.fixedIntensity?mood.defaultIntensity:Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
   if(mood.ownerOnly){
     if(engine!=='soul2')return {prompt:original,metadata:{},error:'Choose PV Soul to test Won Kar Night.'};
     if(referenceCount>1||referenceMode==='references')return {prompt:original,metadata:{},error:'Won Kar Night accepts one Base photograph and an optional trained Soul ID.'};
@@ -347,10 +349,9 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   if(engine==='soul2'){
     if(mood.id!=='night-flash')return {prompt:original,metadata:{},error:'Soul supports Night Flash here. Choose another image model for this Mood.'};
     if(referenceCount>1||referenceMode==='references')return {prompt:original,metadata:{},error:'Soul Night Flash accepts one base photograph and an optional trained Soul ID.'};
-    return prepareSoulNightFlash(original,amount,{hasBase:referenceCount===1});
+    return prepareSoulNightFlash(original,intensity,{hasBase:referenceCount===1});
   }
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Krea 3, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
-  const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
   // Maximum optical reinterpretation is isolated to an actual Base photograph.
   // All lower strengths and text/References Only recipes remain unchanged.
   if(mood.id==='dream-blur'&&intensity===100&&referenceCount>0&&referenceMode!=='references'){
@@ -620,6 +621,7 @@ export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,ch
   const createMoodButton=panel.querySelector('#composer-moods-create');
   const filters=panel.querySelector('#composer-moods-filters');
   const slider=panel.querySelector('#composer-moods-intensity');
+  const intensityLabel=panel.querySelector('label[for="composer-moods-intensity"]');
   const amount=panel.querySelector('#composer-moods-amount');
   const browseCount=panel.querySelector('#composer-moods-browse-count');
   const summary=panel.querySelector('#composer-moods-summary');
@@ -742,7 +744,9 @@ export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,ch
       card.setAttribute('aria-pressed',String(key===selected));
     }
     emptyPersonal.hidden=category!=='My Moods'||personalMoods.length>0;
-    slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected;amount.textContent=intensity+'%';
+    const fixedIntensity=!!moodById(selected)?.fixedIntensity;
+    intensityLabel.hidden=amount.hidden=slider.hidden=fixedIntensity;
+    slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected||fixedIntensity;amount.textContent=intensity+'%';
     finishPanel.hidden=selected!=='hong-kong-nights';
     variationBar.hidden=true; // New generations use a single Hong Kong Nights treatment.
     for(const [id,b] of variationButtons){b.classList.toggle('is-selected',hkVariation===id);b.setAttribute('aria-pressed',String(hkVariation===id));}
@@ -872,8 +876,9 @@ export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,ch
   }
   function clear(silent=false){selected=null;intensity=60;hkVariation='original';finishControls.set();close(!silent);render();if(!silent)onChange();}
   function restore(settings,silent=false){
-    selected=settings?.moodId==='custom'&&typeof settings.customMoodBoardId==='string'?'custom:'+settings.customMoodBoardId:moodById(settings?.moodId)?.id||null;
-    intensity=Math.min(100,Math.max(1,Number(settings?.moodIntensity)||60));
+    const mood=moodById(settings?.moodId);
+    selected=settings?.moodId==='custom'&&typeof settings.customMoodBoardId==='string'?'custom:'+settings.customMoodBoardId:mood?.id||null;
+    intensity=mood?.fixedIntensity?mood.defaultIntensity:Math.min(100,Math.max(1,Number(settings?.moodIntensity)||60));
     hkVariation='original'; // Historic look IDs remain in History; Reuse starts canonical.
     finishControls.set(settings?.filmFinish||(selected==='hong-kong-nights'?HONG_KONG_VARIANTS[hkVariation].filmFinish:HONG_KONG_FILM_FINISH));
     close();render();if(!silent)onChange();
@@ -889,7 +894,7 @@ export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,ch
   }
   function error(engine,prompt,count=0,referenceMode='base'){return enrich(prompt,{engine,referenceCount:count,referenceMode}).error;}
   function sync({visible=true,locked=false}={}){button.hidden=!visible;button.disabled=locked;finishControls.lock(locked);if(!visible||locked)close();if(visible)render();}
-  slider.addEventListener('input',()=>{intensity=Number(slider.value);render();onChange();});
+  slider.addEventListener('input',()=>{if(slider.disabled)return;intensity=Number(slider.value);render();onChange();});
   button.onclick=()=>{if(panel.hidden)open();else close();};
   // Close when clicking anywhere outside the popup; consume that first click
   // so an underlying gallery card or Generate button is not activated.
