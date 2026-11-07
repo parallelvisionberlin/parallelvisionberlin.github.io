@@ -1,3 +1,11 @@
+## 2026-11-07 | Hide transient Image progress below Generate
+
+- Owner screenshot: small “Checking price” / “Submitting…” text underneath the Image Generate button is unwanted.
+- Scoped change: `lab/studio-finish-v2.css` hides only the plain `#image-composer-status` status label, for desktop, phone and native. The existing `.is-import-error` toast stays visible, including actionable import and generation failures.
+- Existing billing quote, credit deductions, backend submission, button `aria-busy`, History progress, the review queue and layout are unchanged. Asset version in `lab/studio.html` is refreshed.
+- Branch: `fix/image-deck-quiet-progress-20261107`. Source staged for PR review; Cloudflare deployment, production visibility and real signed-in generation are not verified in this note.
+- Added approved Image UI contract assertions for quiet progress, error toast retention and Generate busy state. Await CI.
+
 ## 2026-11-06 | Compact prompt and measured desktop card clearance
 
 - Owner references: image(20261106-200556).png and image(20261106-200657).png. Task baseline `24d2b96d4c1b171edfd431f840aa73bcc1f366eb`; PR #876, branch `fix/image-prompt-deck-clearance-20261106`.
