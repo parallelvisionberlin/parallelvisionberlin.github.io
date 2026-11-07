@@ -1,3 +1,10 @@
+## 2026-11-07 | Empty Base prompt retains steady deck geometry
+
+- Owner screenshots taken at 1704×451 and 1673×489 explain their apparent overall position shift: the browser screenshot viewport changed. The deck measures approximately 1120×195 in both captures.
+- Scoped preventative fix for the actual editing state: when a Base/reference image remains attached and the direction is cleared, force the same 44px compact prompt row as a short instruction. This prevents stale textarea height from producing an unexpected increase. Long directions still grow and scroll using existing logic.
+- Changed only `lab/image-deck-surface.css`, its stylesheet cache version in `lab/studio.html`, and one Base-short-to-empty geometry regression in `tests/lab-image-prompt-paste-ui.mjs`. No model, Mood, reference, native, phone, pricing, generation or button changes.
+- Branch `fix/image-base-clear-prompt-stability-20261107`, baseline main `cf0b7aead75a86654df73f1eba6d7220e148958c`. PR checks and production verification tracked separately; screenshot viewport resizing itself remains browser behavior.
+
 ## 2026-11-07 | Hide transient Image progress below Generate
 
 - Owner screenshot: small “Checking price” / “Submitting…” text underneath the Image Generate button is unwanted.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T10:18:20.227Z",
+  "updatedAt": "2026-11-07",
   "handoffs": [
     {
       "id": "owner",
@@ -64,6 +64,49 @@
     }
   ],
   "records": [
+    {
+      "id": "image-base-clear-stability",
+      "title": "Stable Image Base deck after deleting prompt",
+      "component": "Image deck",
+      "status": "needs_verification",
+      "summary": "While Base/reference remains attached, short-to-empty prompt cannot change the reference-deck writing row height. Screenshot viewport size differences remain browser-level.",
+      "nextAction": "Run required Image UI and prompt browser checks; review PR, merge when green, verify Cloudflare Pages and custom-domain stylesheet.",
+      "baselineSha": "cf0b7aead75a86654df73f1eba6d7220e148958c",
+      "reviewedSha": null,
+      "branch": "fix/image-base-clear-prompt-stability-20261107",
+      "files": [
+        "lab/image-deck-surface.css",
+        "lab/studio.html",
+        "tests/lab-image-prompt-paste-ui.mjs",
+        "lab/IMAGE-PROMPT-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Scoped checkpoint",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Base short-to-empty deck geometry",
+          "result": "not_run",
+          "scope": "Desktop reference-attached direction clear retains deck and Generate bounds"
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "No real signed-in production verification."
+        ]
+      },
+      "evidence": [],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not alter responsive positioning, models, generation or existing design."
+      ],
+      "updatedAt": "2026-11-07"
+    },
     {
       "id": "image-quiet-progress",
       "title": "Quiet Image Generate progress",

@@ -33,6 +33,11 @@
     }
     & :is(#image-composer-prompt,#pv-guest-prompt)::placeholder{color:#b9bbb9!important;opacity:1!important}
     &:not(.pv-deck-has-prompt) :is(#image-composer-prompt,#pv-guest-prompt){height:54px!important}
+    /* Empty Base/reference editor must retain its one-line photo-editing height.
+       Prevent a stale inline textarea size from changing the deck when text is deleted. */
+    &:has(#image-composer-references:not([hidden]) .composer-reference-tile):not(.pv-deck-has-prompt) #image-composer-prompt{
+      height:44px!important;min-height:44px!important;max-height:44px!important;
+    }
     & [data-deck-slot="controls"]{
       grid-area:2 / 1!important;display:flex!important;align-items:center!important;
       justify-content:flex-start!important;flex-wrap:nowrap!important;
