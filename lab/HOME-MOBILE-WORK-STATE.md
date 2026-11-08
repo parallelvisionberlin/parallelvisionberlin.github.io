@@ -1,3 +1,16 @@
+## Featured Chrome Desert photo-pack band, 2026-11-08
+- Owner approved Chrome Desert as a thinner homepage interruption, not a replacement for Full Editorial.
+- Source baseline: 62a2b4aa35d07922109dec60c332fe75f5f0fff4.
+- Branch: `design/home-chrome-desert-pack-20261108`.
+- Scope: homepage only. Insert after Image / Video / Upscaler and before the existing `#featured-editorial`; preserve Full Editorial, Creative Studios, Characters, navigation, pricing and generation behavior.
+- New section: `#featured-photo-pack` with Chrome Desert title, 3 Photos label, compact copy, layered Chrome Couture/desert imagery and a text-only `Create in Image` action.
+- CTA opens the existing Image Studio with `mood=chrome-couture`; it selects that curated look and never auto-generates.
+- Desktop target height is 360–440px; phone stacks copy over a 244–270px visual without horizontal overflow.
+- Files: `lab/index.html`, `lab/home-featured-photo-pack.css`, `tests/lab-home-featured-photo-pack.test.mjs`, this checkpoint and the Owner work index.
+- Cache: `home-featured-photo-pack.css?v=20261108-chrome-desert1`.
+- No Full Editorial artwork, video, CTA destination or responsive rules are changed.
+- Deployment state at branch creation: not published. Cloudflare Pages and custom-domain verification remain required after merge.
+
 ## Full Editorial phone composition, 2026-11-01
 - Owner approved mockup exec-8eed8ae8-6b84-4bfa-960b-36eae296bb2f.png: kicker/title above, clear central film, supporting copy and existing CTA below.
 - Source baseline: 778cdd306bef9a1ba945f2f7aa6df77a92948d6d.
