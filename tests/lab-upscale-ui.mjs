@@ -21,7 +21,7 @@ const ORIGIN='http://127.0.0.1:4178',API='https://parallel-vision-lab.parallelvi
 const sourceId='10000000-0000-4000-8000-000000000001',outputId='10000000-0000-4000-8000-000000000002';
 let png,passed=0;
 const ok=name=>{passed++;console.log('PASS '+name);};
-async function workspace(jobs=[],width=1440,{quoteTtlMs=180000,quoteDelayMs=0,quoteTransform=null,customer=false,submitMode='ok'}={}){
+async function workspace(jobs=[],width=1440,{quoteTtlMs=180000,quoteDelayMs=0,quoteTransform=null,customer=false,submitMode='ok',expectConfirmNewCharge=false}={}){
  const context=await browser.newContext({viewport:{width,height:1000},hasTouch:width<781,isMobile:width<781,acceptDownloads:true});const page=await context.newPage();const requests=[],uploads=[],quotes=new Map(),quoteResponses=[];let count=3,quoteCount=88;
  page.on('dialog',async d=>{await d.accept();});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -47,7 +47,7 @@ async function workspace(jobs=[],width=1440,{quoteTtlMs=180000,quoteDelayMs=0,qu
   }
   else if(/^\/api\/jobs\/[^/]+\/reconcile$/.test(path)&&method==='POST'){const id=path.split('/')[3],original=jobs.find(j=>j.id===id);const reconciled={...original,status:'queued',providerTaskId:'synthetic-existing-fal-request'};jobs=jobs.map(j=>j.id===id?reconciled:j);body={job:reconciled,matched:true,message:'Found the existing FAL request. No generation submitted.'};}
   else if(path==='/api/jobs'&&method==='POST'){
-   const quote=quotes.get(data.quoteId);assert.ok(quote,'Submission must use a quote returned to this context');assert.deepEqual(data,{quoteId:quote.id,confirm:true});
+   const quote=quotes.get(data.quoteId);assert.ok(quote,'Submission must use a quote returned to this context');assert.deepEqual(data,{quoteId:quote.id,confirm:true,...(expectConfirmNewCharge?{confirmNewCharge:true}:{})});
    assert.ok(quote.expiresAt>Date.now(),'No expired quote may be submitted');
    if(submitMode==='network'){await route.abort();return;}
    if(submitMode==='rejected'){await route.fulfill({status:422,contentType:'application/json',body:JSON.stringify({error:'Synthetic provider rejected this photograph'})});return;}
@@ -138,25 +138,29 @@ const precisionModel={engine:'topaz-precision',model:'topaz/upscale/image/precis
 const wonderModel={engine:'topaz-wonder',model:'topaz/upscale/image/generative',quality:'Wonder 3.5',credits:37};
 
 try{
- // Reproduce the loaded-image dead button without dispatching a provider call.
+ // Interrupted upscales stay visible without locking the next explicit request.
  const interruptedUpscale={id:'10000000-0000-4000-8000-000000000070',status:'uncertain',
    error:'Submission interrupted before acknowledgement.',createdAt:Date.now(),
    settings:{type:'image',mode:'upscale',provider:'fal',model:'fal-ai/seedvr/upscale/image',
      upscaleEngine:'seedvr2',scale:2,outputFormat:'png',referenceSourceIds:[]}};
- for(const width of [1440,390]){
-   const queued=await workspace([interruptedUpscale],width);
-   await queued.page.click('#tool-upscale');await uploadSmall(queued.page,{expectEnabled:false});
+ for(const width of [390,1440])for(const customer of [false,true]){
+   const queued=await workspace([interruptedUpscale],width,{customer,expectConfirmNewCharge:true});
+   const refresh=async jobs=>{queued.setJobs(jobs);await queued.page.evaluate(()=>window.__labTest.syncHistory());};
+   const notice='An earlier upscale is awaiting confirmation. You can keep working.';
+   const capacity='All image processing slots are busy. Wait for a request to finish.';
+   await queued.page.click('#tool-upscale');await uploadSmall(queued.page);
    assert.equal(await queued.page.locator('#upscale-queue-block').isVisible(),true);
-   assert.match(await queued.page.locator('#upscale-queue-reason').innerText(),/earlier upscale has an unconfirmed result/i);
+   assert.equal(await queued.page.locator('#upscale-queue-reason').innerText(),notice);
    assert.match(await queued.page.locator('#generate').getAttribute('aria-describedby'),/upscale-queue-reason/);
    assert.ok(await queued.page.locator('#upscale-queue-reason').evaluate(el=>el.scrollWidth<=el.clientWidth),'Queue reason wraps inside the phone or desktop deck');
-   assert.ok(await queued.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Queue warning introduces no horizontal overflow');
+   assert.ok(await queued.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Queue notice introduces no horizontal overflow');
    mkdirSync('test-results',{recursive:true});
-   await queued.page.screenshot({path:'test-results/upscaler-queue-blocked-'+width+'.png',fullPage:true});
+   await queued.page.screenshot({path:'test-results/upscaler-queue-recovery-'+width+'-'+(customer?'customer':'owner')+'.png',fullPage:true});
    await queued.page.getByRole('button',{name:'Review Queue',exact:true}).click();
    assert.equal(await queued.page.locator('#active').evaluate(el=>el.open),true);
    assert.equal(await queued.page.locator('#active>summary').evaluate(el=>document.activeElement===el),true);
-   assert.equal(await queued.page.locator('#generate').isDisabled(),true,'Reviewing the queue never clears an uncertain request');
+   assert.equal(await queued.page.locator('#generate').isEnabled(),true,'Reviewing the queue preserves the available Upscale action');
+   assert.equal(queued.historyJobs()[0].status,'uncertain','Reviewing the queue never clears the original request');
    assert.equal(queued.requests.some(r=>r.method==='POST'),false,'Opening Queue makes no reconcile, resolve, upload, quote or generation call');
    await queued.page.locator('#active>summary').click();
    await queued.page.getByRole('tab',{name:'Video',exact:true}).click();
@@ -168,23 +172,60 @@ try{
    assert.equal(await queued.page.locator('#upscale-queue-block').isVisible(),false);
    await queued.page.click('#tool-upscale');
    assert.equal(await queued.page.locator('#upscale-queue-block').isVisible(),true);
-   queued.setJobs([{...interruptedUpscale,status:'resolved'}]);
-   await queued.page.evaluate(()=>window.__labTest.syncHistory());
-   assert.equal(await queued.page.locator('#generate').isEnabled(),true,'A reviewed interruption unlocks the loaded image through normal history refresh');
-   assert.equal(await queued.page.locator('#upscale-queue-block').isVisible(),false);
-   assert.equal(await queued.page.locator('#generate').getAttribute('aria-describedby'),null);
+   for(const status of ['failed','resolved']){
+     await refresh([{...interruptedUpscale,status}]);
+     assert.equal(await queued.page.locator('#generate').isEnabled(),true,status+' history does not lock the loaded image');
+     assert.equal(await queued.page.locator('#upscale-queue-block').isVisible(),false);
+     assert.equal(await queued.page.locator('#generate').getAttribute('aria-describedby'),null);
+   }
    assert.ok(await queued.page.locator('.controls>.generate-zone').evaluate(el=>el.getBoundingClientRect().height<160),'Normal footer remains compact after resolution');
    assert.equal(quoteRequests(queued).length,0);assert.equal(countPaid(queued),0);
-   queued.setJobs(Array.from({length:4},(_,i)=>({...interruptedUpscale,id:'10000000-0000-4000-8000-'+String(80+i).padStart(12,'0'),status:'running',providerTaskId:'synthetic-task-'+i})));
-   await queued.page.evaluate(()=>window.__labTest.syncHistory());
+   const uncertain=Array.from({length:4},(_,i)=>({...interruptedUpscale,id:'10000000-0000-4000-8000-'+String(70+i).padStart(12,'0')}));
+   const active=Array.from({length:4},(_,i)=>({...interruptedUpscale,id:'10000000-0000-4000-8000-'+String(80+i).padStart(12,'0'),status:['submitting','queued','running','running'][i],providerTaskId:'synthetic-task-'+i}));
+   await refresh(uncertain);
+   assert.equal(await queued.page.locator('#generate').isEnabled(),true,'Four uncertain upscales do not consume processing slots');
+   assert.equal(await queued.page.locator('#upscale-queue-reason').innerText(),notice);
+   await refresh([...uncertain,...active.slice(0,3)]);
+   assert.equal(await queued.page.locator('#generate').isEnabled(),true,'Uncertain upscales leave the fourth real processing slot available');
+   await refresh([...uncertain,...active]);
    assert.equal(await queued.page.locator('#generate').isDisabled(),true);
-   assert.match(await queued.page.locator('#upscale-queue-reason').innerText(),/slots are busy/);
-   queued.setJobs([]);await queued.page.evaluate(()=>window.__labTest.syncHistory());
+   assert.equal(await queued.page.locator('#upscale-queue-reason').innerText(),capacity,'Actual processing capacity takes priority over the nonblocking notice');
+   assert.match(await queued.page.locator('#generate').getAttribute('aria-describedby'),/upscale-queue-reason/);
+   await queued.page.getByRole('button',{name:'Review Queue',exact:true}).click();
+   assert.equal(await queued.page.locator('#active').evaluate(el=>el.open),true);
+   assert.equal(await queued.page.locator('#active>summary').evaluate(el=>document.activeElement===el),true);
+   assert.equal(await queued.page.locator('#generate').isDisabled(),true,'Reviewing a full queue does not bypass actual capacity');
+   await queued.page.locator('#active>summary').click();
+   await refresh([]);
    assert.equal(await queued.page.locator('#upscale-queue-block').isVisible(),false);
    assert.equal(await queued.page.locator('#generate').isEnabled(),true);
-   assert.equal(quoteRequests(queued).length,0);assert.equal(countPaid(queued),0);
+   assert.equal(queued.requests.some(r=>r.method==='POST'),false,'Queue review, mode changes and history refresh never submit anything');
+   await refresh([interruptedUpscale]);
+   const confirmations=[],confirmation='An earlier upscale is still awaiting confirmation. This starts a separate upscale and '+(customer?'uses additional credits':'may incur another provider charge')+'. The earlier request will not be retried or cancelled. Continue?';
+   let acceptNewCharge=false;
+   queued.page.removeAllListeners('dialog');
+   queued.page.on('dialog',async dialog=>{
+     confirmations.push({type:dialog.type(),message:dialog.message()});
+     if(acceptNewCharge)await dialog.accept();else await dialog.dismiss();
+   });
+   await queued.page.getByRole('button',{name:'Upscale',exact:true}).click();
+   await queued.page.waitForFunction(()=>window.__labTest.settled());
+   assert.deepEqual(confirmations,[{type:'confirm',message:confirmation}]);
+   assert.equal(queued.requests.some(r=>r.method==='POST'),false,'Declining the new charge makes no upload, quote, generation, reconciliation or resolution POST');
+   assert.equal(await queued.page.locator('#generate').isEnabled(),true);
+   assert.equal(await queued.page.locator('#upscale-queue-reason').innerText(),notice);
+   acceptNewCharge=true;
+   await queued.page.getByRole('button',{name:'Upscale',exact:true}).click();
+   await queued.page.waitForFunction(()=>window.__labTest.settled());
+   assert.deepEqual(confirmations,Array.from({length:2},()=>({type:'confirm',message:confirmation})),'Each fresh action asks for its own separate-charge confirmation');
+   assert.equal(quoteRequests(queued).length,1,'The accepted action obtains exactly one fresh quote');
+   assert.equal(countPaid(queued),1,'The accepted action submits exactly one new job');
+   assert.deepEqual(queued.requests.find(r=>r.path==='/api/jobs'&&r.method==='POST').data,{quoteId:queued.quotes[0].id,confirm:true,confirmNewCharge:true});
+   assert.equal(queued.requests.some(r=>r.method==='POST'&&/\/(reconcile|resolve)$/.test(r.path)),false,'A separately confirmed job never retries or resolves the original request');
+   assert.equal(queued.historyJobs()[0].status,'uncertain','The original uncertain request remains available for background recovery');
+   assert.equal(await queued.page.locator('#quote-dialog').evaluate(el=>el.open),false);
    assert.deepEqual(queued.errors,[]);await queued.context.close();
-   ok('Visible interrupted-upscale reason, safe Queue review, normal unlock and capacity state at '+width+'px');
+   ok('Nonblocking upscale recovery, separate-charge confirmation and actual capacity at '+width+'px for '+(customer?'Customer':'Owner'));
  }
  if(process.env.PV_UPSCALE_QUEUE_SMOKE!=='1'){
  // A quote review can leave the hidden technical disclosure open. Exercise

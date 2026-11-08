@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T18:06:03.311Z",
+  "updatedAt": "2026-11-08T18:50:16Z",
   "handoffs": [
     {
       "id": "owner",
@@ -2326,19 +2326,22 @@
     },
     {
       "id": "upscaler-interrupted-request-feedback",
-      "title": "Upscaler interrupted-request feedback",
+      "title": "Upscaler independent requests and automatic recovery",
       "component": "Image Upscaler",
-      "status": "deployed",
-      "summary": "Explain the disabled Upscale action when an earlier upscale is unconfirmed or the FAL image queue is full; open the existing Queue without submitting anything.",
-      "nextAction": "Existing browser tabs should refresh once to clear their old queue state and load the new feedback.",
-      "baselineSha": "d004356feba9533693a38e8b43c7c8ba6e3a4177",
-      "reviewedSha": "0a3c1bf3ac94bf7411bd0f83454c93df9fd79c24",
-      "branch": "fix/upscale-disabled-source-20261108",
+      "status": "needs_verification",
+      "summary": "Keep an interrupted image upscale isolated from later work, safely refund newly proven unsent preparations, and reconcile original provider requests without retrying paid generation.",
+      "nextAction": "Run existing owner/customer browser checks, then publish and independently verify the Worker and Studio assets.",
+      "baselineSha": "96b8c759029ede389a6ffb20339506cbebef930a",
+      "reviewedSha": null,
+      "branch": "fix/upscale-workflow-recovery-20261108",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
-        "lab/upscale-studio-v5.css",
+        "lab-worker/worker.mjs",
+        "lab-worker/upscale-recovery.mjs",
         "tests/lab-upscale-ui.mjs",
+        "tests/lab-worker.test.mjs",
+        "tests/lab-upscale-recovery.test.mjs",
         "lab/UPSCALE-WORK-STATE.md"
       ],
       "links": [
@@ -2353,75 +2356,47 @@
       ],
       "tests": [
         {
-          "label": "Approved Image UI contract",
-          "scope": "Six locked Image interface contracts; no Image design changes",
-          "result": "passed",
-          "source": "tests/lab-approved-image-ui-contract.test.mjs"
-        },
-        {
-          "label": "JavaScript syntax",
-          "scope": "Changed lab/lab.js parses with Node",
+          "label": "Focused existing safeguards",
+          "scope": "Approved Image UI, FAL queue/recovery, pricing, wallet, finance and auth: 54 checks",
           "result": "passed"
         },
         {
-          "label": "Upscaler queue browser regression",
-          "scope": "48 full browser groups and 12 smoke groups; includes 1440px/390px interrupted-state, capacity, Queue review, normal unlock and mode isolation.",
+          "label": "Backend recovery and financial regression",
+          "scope": "205 backend/auth/wallet/pricing/recovery checks, including dispatch/cleanup race, exactly-once refund, same-quote idempotency, cross-tool continuation and stale archive protection",
           "result": "passed",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42502720973"
+          "source": "tests/lab-upscale-recovery.test.mjs"
+        },
+        {
+          "label": "Owner/customer browser regression",
+          "scope": "390px and1440px nonblocking recovery, separate-charge confirmation and actual capacity",
+          "result": "not_run",
+          "source": "tests/lab-upscale-ui.mjs"
         }
       ],
       "deployment": {
-        "state": "verified",
-        "environment": "pvlab.studio / Cloudflare Pages",
-        "sourceSha": "5b68b7a15d56c46eff4119fa264bd5ac14bd7a78",
+        "state": "not_started",
+        "environment": "pvlab.studio / Cloudflare Pages and parallel-vision-lab Worker",
+        "sourceSha": null,
         "limitations": [
-          "Production assets and public DOM verified; signed-in affected behavior was tested with synthetic fixtures.",
-          "The actual account interruption was separately resolved and re-read in the backend. No paid generation was submitted for verification."
-        ],
-        "observedAt": "2026-11-08T17:07:47Z",
-        "evidenceUrl": "https://pvlab.studio/studio?tool=upscale"
+          "The earlier feedback patch is live; this automatic recovery follow-up is still under verification."
+        ]
       },
       "evidence": [
         {
-          "kind": "source",
-          "summary": "The existing queue guard blocks a new FAL upscale while an earlier FAL upscale remains uncertain.",
-          "scope": "Image Upscaler button state",
-          "source": "lab/lab.js",
+          "kind": "documented",
+          "summary": "Prior feedback repair #936 and account review remain documented in the scoped handoff. They did not provide automatic recovery.",
+          "scope": "Previously published repair, separate from this new candidate",
+          "source": "lab/UPSCALE-WORK-STATE.md",
           "limitations": []
         },
         {
-          "kind": "documented",
-          "summary": "A reported stale pre-dispatch interruption was reviewed with deployed code and the retained original quote, then closed using an exact guarded update. A separate read confirmed zero active jobs and preserved source and spending history.",
-          "scope": "One operational interruption; no new generation or refund",
+          "kind": "source",
+          "summary": "All 85 deployed Worker source-map modules match the current baseline. Recovery modifies only the documented upscale handling.",
+          "scope": "Production baseline preservation",
           "source": "lab/UPSCALE-WORK-STATE.md",
           "limitations": [
-            "Does not establish a newly completed upscale in the user browser."
+            "Does not establish that the new recovery has been published."
           ]
-        },
-        {
-          "kind": "fixture",
-          "summary": "Blocked and cleared queue states passed at desktop and phone sizes; Review Queue performs no POST or generation. Screenshots inspected.",
-          "scope": "Synthetic browser scenarios; not a signed-in live paid generation",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42502720973",
-          "limitations": []
-        },
-        {
-          "kind": "production_asset",
-          "summary": "Scoped release verifier returned LIVE_VERIFIED for lab.js v20261108-upscale-queue1 and upscale-studio-v5.css v20261108-queue-block1 against exact merge5b68b7a; production browser confirms both version keys and the conditional queue markup.",
-          "scope": "pvlab.studio published frontend assets",
-          "observedAt": "2026-11-08T17:07:47Z",
-          "source": "https://pvlab.studio/studio?tool=upscale",
-          "limitations": [
-            "The production browser was signed out."
-          ]
-        },
-        {
-          "kind": "deployment",
-          "summary": "Cloudflare Pages production check128800348200 succeeded for reviewed merge5b68b7a15d56c46eff4119fa264bd5ac14bd7a78.",
-          "scope": "pvlab-studio / main",
-          "observedAt": "2026-11-08T17:07:47Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/936",
-          "limitations": []
         }
       ],
       "blockers": [],
@@ -2430,7 +2405,7 @@
         "Do not clear ambiguous or fresh interrupted submissions without checking provider-dispatch evidence.",
         "Keep draft PR #928 content-decline wording separate."
       ],
-      "updatedAt": "2026-11-08T17:07:47Z"
+      "updatedAt": "2026-11-08T18:50:16Z"
     }
   ]
 }

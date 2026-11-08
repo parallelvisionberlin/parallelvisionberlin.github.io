@@ -1,5 +1,29 @@
 # PV LAB Premium Upscale work state
 
+## Independent requests and automatic recovery / 2026-11-08
+- Objective: an interrupted Image upscale must not leave a customer unable to continue working or depend on the owner noticing the account.
+- Baseline: main `96b8c75`; branch `fix/upscale-workflow-recovery-20261108`.
+- The earlier #936 feedback repair is retained below as history; that change explained the lock but did not remove the underlying dependency.
+- Only unconfirmed SeedVR2/Topaz image upscales leave active slot and interruption counts. Genuine in-flight capacity, other providers' guards, wallet limits and per-quote idempotency remain enforced.
+- Starting a separate upscale while one is unconfirmed requires an explicit additional-charge confirmation; no automatic generation or retry occurs.
+- The earlier request, original source, quote, reserved credits and financial history remain independently reviewable.
+- New server-marked preparations claim dispatch atomically with the exact provider input. A timeout cleanup that wins first prevents late dispatch and returns customer credits once through existing refund triggers.
+- Legacy or potentially submitted requests cannot be declared unsubmitted merely because no provider ID was saved.
+- Bounded background recovery checks a known provider task or matches the retained exact input against provider history; no match, ambiguity or provider errors retain the original reservation.
+- Recovery runs independently of other scheduled maintenance, including when the user is offline; the open Studio also refreshes review status.
+- Frontend: nonblocking explanation, existing Review Queue control, ordinary active-capacity feedback, and fresh History after a rejected/stale submission attempt.
+- Scope: `lab/lab.js`, `lab/studio.html`, `lab-worker/worker.mjs`, `lab-worker/upscale-recovery.mjs`, existing Upscaler/Worker tests and focused recovery tests.
+- New entry cache version: `20261108-upscale-recovery1`; backend health capability: `upscaleRecovery: 20261108-independent1`.
+- Production baseline verification: all 85 original source-map modules exactly match this baseline; live bindings/settings will be inherited, not reconstructed.
+- Live read at implementation time found zero currently uncertain FAL image upscales. No customer media or identifiers are included here.
+- Local approved Image, provider queue/recovery, pricing, wallet, finance and auth checks: 54 passed.
+- Browser coverage is prepared for owner/customer at 390px/1440px: continue working, separate-charge consent, no POST on decline/review, real capacity, completed review and mode isolation.
+- Final backend/auth/wallet/pricing/recovery verification: 205/205 passed; independent review approved dispatch/refund races, exact recovery leases and recovery-only output-key isolation.
+- Pending: existing browser CI and separate Worker/Pages publication verification.
+- No real paid generation, new customer account, purchase, speculative refund or retry was performed for verification.
+- Limit: unconfirmed paid outcomes keep their credit reservation until provider evidence resolves them; available balance and genuine in-flight capacity still apply.
+- Status: implementation under verification; no claim that this recovery release is live yet.
+
 ## Interrupted request feedback / 2026-11-08
 - Objective: explain why a loaded Image Upscaler can have a disabled action and provide direct access to the existing Queue.
 - Verified source baseline: main `d004356feba9533693a38e8b43c7c8ba6e3a4177`.

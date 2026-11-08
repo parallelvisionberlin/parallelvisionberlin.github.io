@@ -605,20 +605,20 @@ function syncNoticePlacement(){
 function syncUpscaleQueueBlock(){
   const block=$('upscale-queue-block'),reason=$('upscale-queue-reason'),generate=$('generate');
   const active=tool==='upscale'&&owner&&videoUpscaler?.mode()!=='video'&&!assetLibrary?.active()&&!fashionActive&&!retouchActive;
-  const blocked=active&&submissionBlocked();
-  block.hidden=!blocked;
+  const blocked=active&&submissionBlocked(),review=active&&activeJobs.some(isUpscaleReviewJob);
+  block.hidden=!blocked&&!review;
   if(blocked){
-    const interrupted=activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===currentProvider()&&(!isFalUpscale()||j.settings?.mode==='upscale'));
+    const interrupted=activeJobs.some(j=>j.status==='uncertain'&&!isUpscaleReviewJob(j)&&jobProvider(j)===currentProvider()&&(!isFalUpscale()||j.settings?.mode==='upscale'));
     reason.textContent=interrupted?'An earlier upscale has an unconfirmed result. Review it in Queue before starting another.':'All image processing slots are busy. Wait for a request to finish.';
-  }else reason.textContent='';
+  }else reason.textContent=review?'An earlier upscale is awaiting confirmation. You can keep working.':'';
   $('upscale-review-queue').disabled=busy;
   const descriptions=new Set((generate.getAttribute('aria-describedby')||'').split(/\s+/).filter(Boolean));
-  if(blocked)descriptions.add(reason.id);else descriptions.delete(reason.id);
+  if(blocked||review)descriptions.add(reason.id);else descriptions.delete(reason.id);
   if(descriptions.size)generate.setAttribute('aria-describedby',[...descriptions].join(' '));
   else generate.removeAttribute('aria-describedby');
 }
 $('upscale-review-queue').onclick=()=>{
-  if(busy||tool!=='upscale'||videoUpscaler?.mode()==='video'||!submissionBlocked())return;
+  if(busy||tool!=='upscale'||videoUpscaler?.mode()==='video'||(!submissionBlocked()&&!activeJobs.some(isUpscaleReviewJob)))return;
   $('active').open=true;
   $('active').querySelector('summary').focus();
 };
@@ -3800,11 +3800,20 @@ $('upscale-check-price').onclick=()=>action(async()=>{
   }catch(e){if(epoch===sessionEpoch){upscalePriceMessage='The price could not be checked. Try the price check again. Nothing was submitted.';}throw e;}
 });
 // Image Generate and Upscale authorize a paid request on click. Video keeps the quote dialog.
-async function submitQuotedGeneration(q, expectedEpoch=epoch) {
+async function submitQuotedGeneration(q, expectedEpoch=epoch, confirmNewCharge=false) {
   if(!owner||epoch!==expectedEpoch)throw new Error('Session changed.');
   if(!q||!Number.isFinite(q.expiresAt)||Date.now()>=q.expiresAt)throw new Error('Quote expired. No generation submitted. Please try again.');
   // Retain the same quote ID through the session-safe request helper. Never reprice/retry a paid task here.
-  const data=await api(q.provider==='Higgsfield'&&q.settings?.type==='image'?'/api/higgsfield/generate':'/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});
+  let data;
+  try{
+    data=await api(q.provider==='Higgsfield'&&q.settings?.type==='image'?'/api/higgsfield/generate':'/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true,...(confirmNewCharge?{confirmNewCharge:true}:{})}});
+  }catch(error){
+    // A different tab can enter review while this quote is being prepared.
+    // Refresh that account's queue without replaying the paid request.
+    if(q.settings?.mode==='upscale'&&q.settings?.provider==='fal'&&owner&&epoch===expectedEpoch)
+      await syncHistory().catch(()=>{});
+    throw error;
+  }
   if(q.settings?.type==='image'&&moodDiscoveryOpen)setMoodDiscoveryOpen(false);
   if($('quote-dialog').open)$('quote-dialog').close();
   resetPreview();setActive(data.job);surfaceHistoryJob(data.job);
@@ -3855,6 +3864,8 @@ $('generate').onclick=async()=>{if(tool==='image')return submitImageSnapshot();
   if(submissionBlocked())throw new Error('An active-job limit or an interrupted request blocks another generation. Check History.');
   const selectedTool=tool,sessionEpoch=epoch;
   if(selectedTool==='upscale'&&isFalUpscale()){
+    const confirmNewCharge=activeJobs.some(isUpscaleReviewJob);
+    if(confirmNewCharge&&!confirm('An earlier upscale is still awaiting confirmation. This starts a separate upscale and '+(customerMode?'uses additional credits':'may incur another provider charge')+'. The earlier request will not be retried or cancelled. Continue?'))return;
     updateUpscalePrice();
     let checked=upscaleQuote;
     if(!checked||upscaleQuoteNeedsCheck||checked.key!==upscalePriceKey()){
@@ -3869,7 +3880,7 @@ $('generate').onclick=async()=>{if(tool==='image')return submitImageSnapshot();
     }
     const usedManualEstimate=checked.manual===true,reviewKey=checked.key;
     invalidateUpscalePrice('Submitting Premium Upscale with the checked estimate. If interrupted, refresh History before another attempt.');
-    await submitQuotedGeneration(checked.quote,sessionEpoch);
+    await submitQuotedGeneration(checked.quote,sessionEpoch,confirmNewCharge);
     if(usedManualEstimate)requireUpscaleManualReview(reviewKey,'Estimate used. Check price & size again before another upscale.');
     else clearUpscalePrice();
     return;
@@ -3931,17 +3942,18 @@ $('confirm-generation').onclick=async()=>{
 function limitFor(kind){const n=Number(config.concurrency?.[kind]);return Number.isInteger(n)&&n>0?n:1;}
 function currentProvider(){if(tool==='image'&&imageEngine==='soul'&&soul.isKrea())return 'fal';if(tool==='video'&&engine==='seedance'&&['extend','transform'].includes(mode))return 'higgsfield';if(tool==='image'&&['kling','krea3'].includes(imageEngine))return 'fal';if(isSoul2())return 'higgsfield';return isFalUpscale()?'fal':tool==='image'&&['gemini','gemini21'].includes(imageEngine)?'gemini':tool==='image'&&['fal','soulpro'].includes(imageEngine)?'fal':tool==='video'&&['h3maxfal','omni'].includes(engine)?'fal':'spicy';}
 function jobProvider(j){const s=j?.settings||{};if(s.provider==='openrouter')return 'openrouter';if(s.provider==='higgsfield')return 'higgsfield';return s.provider==='gemini'||s.engine==='gemini'||String(s.model||'').startsWith('gemini-')?'gemini':s.provider==='fal'||['fal','soulpro','h3maxfal','omni'].includes(s.engine)||String(s.model||'').startsWith('fal-ai/')?'fal':'spicy';}
+function isUpscaleReviewJob(j){return j?.status==='uncertain'&&j.settings?.type==='image'&&j.settings?.mode==='upscale'&&jobProvider(j)==='fal'&&['fal-ai/seedvr/upscale/image','topaz/upscale/image/precision','topaz/upscale/image/generative'].includes(j.settings.model);}
 function submissionBlocked(){
   const kind=tool==='upscale'?'image':tool,provider=currentProvider(),falUpscale=tool==='upscale'&&provider==='fal';
   // An unconfirmed Gemini request retains its own reserved credits and History
   // record, but customers can explicitly start a NEW paid image after review.
   const customerGemini=customerMode&&provider==='gemini';
-  const interrupted=!customerGemini&&activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===provider&&(!falUpscale||j.settings?.mode==='upscale'));
-  const active=activeJobs.filter(j=>{const jobKind=j.settings?.type==='image'?'image':'video',backgroundBatch=j.settings?.provider==='gemini'&&j.settings?.processing==='batch';return slotStates.has(j.status)&&!(customerGemini&&j.status==='uncertain')&&jobKind===kind&&!backgroundBatch&&jobProvider(j)===provider;}).length;
+  const interrupted=!customerGemini&&activeJobs.some(j=>j.status==='uncertain'&&!isUpscaleReviewJob(j)&&jobProvider(j)===provider&&(!falUpscale||j.settings?.mode==='upscale'));
+  const active=activeJobs.filter(j=>{const jobKind=j.settings?.type==='image'?'image':'video',backgroundBatch=j.settings?.provider==='gemini'&&j.settings?.processing==='batch';return slotStates.has(j.status)&&!isUpscaleReviewJob(j)&&!(customerGemini&&j.status==='uncertain')&&jobKind===kind&&!backgroundBatch&&jobProvider(j)===provider;}).length;
   const preparing=tool==='image'?fastImageHandoff.slots(provider):0;
   return interrupted||active+preparing>=(provider==='higgsfield'?2:limitFor(kind));
 }
-function schedulePoll(delay=10000){clearTimeout(timer);timer=null;if(owner&&activeJobs.some(j=>j.status!=='uncertain')&&!polling)timer=setTimeout(poll,delay);}
+function schedulePoll(delay=10000){clearTimeout(timer);timer=null;const working=activeJobs.some(j=>j.status!=='uncertain'),review=activeJobs.some(isUpscaleReviewJob);if(owner&&(working||review)&&!polling)timer=setTimeout(poll,working?delay:Math.max(delay,30000));}
 function setActiveJobs(list){
   activeJobs=[...new Map((list||[]).filter(j=>j&&activeStates.has(j.status)).map(j=>[j.id,j])).values()];
   activeJob=activeJobs.find(j=>j.status==='uncertain')||activeJobs[0]||null;
@@ -3954,7 +3966,7 @@ function setActiveJobs(list){
   ].filter(Boolean).join(' · ')||'0 jobs';
   $('active').classList.toggle('has-uncertain',uncertainCount>0);
   const queueSummary=$('active').querySelector('summary');
-  const queueHint=uncertainCount?uncertainCount+' interrupted request'+(uncertainCount===1?'':'s')+'. Open Queue to review before submitting another generation.':activeJobs.length?activeJobs.length+' generation request'+(activeJobs.length===1?'':'s')+' in Queue.':'Show live generation queue';
+  const queueHint=uncertainCount?uncertainCount+' request'+(uncertainCount===1?'':'s')+' awaiting confirmation. Open Queue for details.':activeJobs.length?activeJobs.length+' generation request'+(activeJobs.length===1?'':'s')+' in Queue.':'Show live generation queue';
   queueSummary.title=queueHint;
   queueSummary.setAttribute('aria-label',queueHint);
   if(!activeJobs.length)$('active').open=false;
@@ -3963,7 +3975,7 @@ function setActiveJobs(list){
   const spicyImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='spicy').length;
   const geminiRunning=activeJobs.filter(j=>slotStates.has(j.status)&&j.status!=='uncertain'&&j.settings?.type==='image'&&jobProvider(j)==='gemini'&&j.settings?.processing!=='batch').length;
   const geminiInterrupted=activeJobs.filter(j=>j.status==='uncertain'&&j.settings?.type==='image'&&jobProvider(j)==='gemini').length;
-  const falImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='fal').length;
+  const falImages=activeJobs.filter(j=>slotStates.has(j.status)&&!isUpscaleReviewJob(j)&&j.settings?.type==='image'&&jobProvider(j)==='fal').length;
   const videos=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type!=='image').length;
   $('active-status').textContent='Seedream '+spicyImages+' / '+limitFor('image')+' · Nano '+geminiRunning+' / '+limitFor('image')+(geminiInterrupted?' · '+geminiInterrupted+(customerMode?' Nano result(s) to review':' old Nano interrupted'):'')+(batchImages?' · '+batchImages+' Nano batch queued':'')+' · Controlled Pose '+falImages+' / '+limitFor('image')+' · videos '+videos+' / '+limitFor('video')+(saving?' · '+saving+' saving (no generation slot)':'');
   const labels={submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving to private archive',uncertain:customerMode?'Result unconfirmed; original credits under review':'Interrupted: check provider before another attempt'};
@@ -3984,7 +3996,7 @@ function setActiveJobs(list){
 function setActive(job){if(!job)return;setActiveJobs([...activeJobs.filter(j=>j.id!==job.id),job]);frameMaker?.onJob(job);videoUpscaler?.onJob(job);}
 async function poll(){
   if(!owner||!activeJobs.length||polling)return;
-  const startedEpoch=epoch,snapshot=activeJobs.filter(j=>j.status!=='uncertain');
+  const startedEpoch=epoch,snapshot=activeJobs.filter(j=>j.status!=='uncertain'||isUpscaleReviewJob(j));
   if(!snapshot.length)return;
   clearTimeout(timer);timer=null;polling=true;
   try{
