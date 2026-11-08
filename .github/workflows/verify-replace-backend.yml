@@ -1,0 +1,87 @@
+name: PV LAB Replace backend release preflight
+on:
+  push:
+    branches: [verify/replace-audit-published-20261108]
+    paths: ['.github/workflows/verify-replace-backend.yml']
+permissions:
+  contents: read
+concurrency:
+  group: pv-lab-replace-backend-preflight
+  cancel-in-progress: false
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 64b9e080df47854a6b5ee1fde1451ddc0fed3058
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Run existing production deployment test gate unchanged
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {spawnSync} from 'node:child_process';
+          const y=readFileSync('.github/workflows/deploy-lab-worker.yml','utf8');
+          const a=y.indexOf('      - name: Test private My Moods and Worker syntax');
+          const b=y.indexOf('      - name:',a+20);
+          const section=y.slice(a,b);
+          const commands=section.split('        run: |\n')[1]?.split('\n').filter(l=>l.startsWith('          ')).map(l=>l.slice(10)).join('\n');
+          if(!commands||!commands.includes('tests/lab-worker.test.mjs'))throw Error('Missing original deployment test gate');
+          const r=spawnSync('bash',['-euo','pipefail','-c',commands],{encoding:'utf8',maxBuffer:20*1024*1024});
+          writeFileSync('/tmp/pv-lab-release-tests.log',(r.stdout||'')+(r.stderr||''));
+          const lines=(r.stdout||'').split('\n');
+          console.log(lines.filter(l=>/^# (tests|pass|fail)|^not ok /.test(l)).join('\n'));
+          if(r.status!==0){
+            for(let i=0;i<lines.length;i++)if(/^not ok /.test(lines[i]))console.log(lines.slice(i,i+30).join('\n'));
+            console.error((r.stderr||'').slice(-4000));process.exit(r.status||1);
+          }
+          console.log('EXISTING_DEPLOYMENT_TEST_GATE_PASSED');
+          JS
+      - name: Focused Replace and new backend safety checks
+        if: always()
+        shell: bash
+        run: |
+          node --test tests/lab-precision-edit.test.mjs tests/lab-image-replacement-backend.test.mjs tests/lab-image-replacement-composite.test.mjs tests/lab-viewer-scope.test.mjs tests/lab-guided-replace.test.mjs tests/lab-viewer-inline.test.mjs tests/lab-kling-spicy.test.mjs tests/lab-owner-operations.test.mjs
+      - name: Inspect live backend metadata without deployment or database queries
+        if: always()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os,json,urllib.request,urllib.error,hashlib,email,email.policy
+          token=''.join(os.environ['CLOUDFLARE_API_TOKEN'].split())
+          print('::add-mask::'+token)
+          root='https://api.cloudflare.com/client/v4/accounts/a40ce1725295563a7b7db9fc3160480a/workers/scripts/parallel-vision-lab'
+          def get(suffix,raw=False):
+            req=urllib.request.Request(root+suffix,headers={'Authorization':'Bearer '+token,'Accept':'application/json'})
+            try:
+              with urllib.request.urlopen(req,timeout=25) as r:
+                data=r.read();kind=r.headers.get('Content-Type','')
+            except urllib.error.HTTPError as e:raise RuntimeError('Read-only request HTTP '+str(e.code)) from None
+            if raw:return data,kind
+            j=json.loads(data)
+            if not j.get('success'):raise RuntimeError('Cloudflare read-only API rejected the request')
+            return j['result']
+          d=get('/deployments')
+          ds=d.get('deployments',[]) if isinstance(d,dict) else d
+          ds=sorted(ds,key=lambda x:x.get('created_on',''),reverse=True)
+          for x in ds[:3]:print('LIVE_DEPLOYMENT',json.dumps({k:x.get(k) for k in ['id','created_on','source','versions']}))
+          s=get('/settings')
+          bs=s.get('bindings',[])
+          print('LIVE_BINDINGS',json.dumps([{'name':b.get('name'),'type':b.get('type')} for b in bs]))
+          public_flags=['LAB_CUSTOMER_SIGNUPS_ENABLED','LAB_STUDIO_AUTH_ENABLED','LAB_WELCOME_CREDITS_ENABLED','LAB_IMAGE_TRIAL_ENABLED','LAB_FREE_TRIAL_PAUSED','LAB_PUBLIC_GENERATION_ENABLED','LAB_CHECKOUT_ENABLED','LAB_CUSTOMER_HIGGSFIELD_ENABLED','LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED']
+          print('LIVE_PUBLIC_FLAGS',json.dumps({b['name']:b.get('text') for b in bs if b.get('name') in public_flags}))
+          print('LIVE_COMPATIBILITY',s.get('compatibility_date'),s.get('compatibility_flags'))
+          raw,kind=get('',True)
+          msg=email.message_from_bytes(('Content-Type: '+kind+'\r\nMIME-Version: 1.0\r\n\r\n').encode()+raw,policy=email.policy.default)
+          code='\n'.join((p.get_payload(decode=True) or b'').decode('utf8','ignore') for p in msg.walk() if not p.is_multipart()) if msg.is_multipart() else raw.decode('utf8','ignore')
+          print('LIVE_CODE_SHA256',hashlib.sha256(raw).hexdigest())
+          for label,needle in [('semantic_selection','Unsupported targeted selection'),('image_replacement','replacement'),('kling_spicy','kling-video/v3'),('soul_image_edit','image-to-image')]:print('LIVE_CAPABILITY',label,needle in code)
+          print('READ_ONLY_PREFLIGHT_COMPLETE: no deployment, migrations, customer queries or paid provider calls')
+          PY
