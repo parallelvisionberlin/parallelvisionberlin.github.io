@@ -1,0 +1,33 @@
+name: Prepare Location reference and quote status fix
+on:
+  push:
+    branches: [fix/location-reference-status-20261108]
+    paths: ['.github/workflows/prepare-location-status.yml', 'scripts/prepare-location-status.py']
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Capture public source only, no media or credentials
+        run: |
+          python3 - <<'PY'
+          import pathlib,subprocess,zipfile
+          files=subprocess.check_output(['git','ls-files'],text=True).splitlines()
+          with zipfile.ZipFile('location-status-source.zip','w',zipfile.ZIP_DEFLATED) as z:
+            for name in files:
+              p=pathlib.Path(name)
+              if p.suffix not in {'.js','.mjs','.cjs','.css','.html','.json','.toml','.md','.yml','.yaml','.py'}:continue
+              if '/' in name and not name.startswith(('lab/','lab-worker/','tests/','scripts/','.github/')):continue
+              if any(part in {'visuals','assets','node_modules'} for part in p.parts):continue
+              if p.stat().st_size>2000000:continue
+              z.write(p,name)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: location-status-public-source
+          path: location-status-source.zip
+          retention-days: 1
