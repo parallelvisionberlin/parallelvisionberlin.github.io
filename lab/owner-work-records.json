@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T11:58:01.089Z",
+  "updatedAt": "2026-11-08T12:13:47Z",
   "handoffs": [
     {
       "id": "owner",
@@ -2181,6 +2181,75 @@
         "Do not recreate a separate editor or add buttons over the photograph.",
         "Do not change provider, model or billing when opening an action.",
         "Do not silently reuse a Face mask when switching to Whole person; force a new selection and quote."
+      ]
+    },
+    {
+      "id": "image-upscale-decline-copy",
+      "title": "Image Upscaler content decline message",
+      "component": "Upscaler",
+      "status": "needs_verification",
+      "updatedAt": "2026-11-08T12:13:47Z",
+      "summary": "Name the image upscale model in content refusals and remove prompt-editing advice in the notice, History card and detail. The customer notice uses the existing credit-return eligibility rule.",
+      "nextAction": "Review the candidate and run the scoped Upscaler browser workflow. Verify Cloudflare Pages source bytes and a signed-in incident separately after publication.",
+      "baselineSha": "a9fea323389712162ae36cb5ecbe355d2680e147",
+      "reviewedSha": null,
+      "branch": "fix/upscaler-decline-message-20261108",
+      "files": [
+        "lab/lab.js",
+        "lab/studio.html",
+        "tests/lab-upscale-ui.mjs"
+      ],
+      "links": [
+        {
+          "label": "Upscaler handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI contract",
+          "result": "passed",
+          "scope": "Six existing contract tests; Image prompt wording and deck behavior."
+        },
+        {
+          "label": "Worker Upscaler checks",
+          "result": "passed",
+          "scope": "Three existing SeedVR2 and Topaz checks for quote, definite rejection and prompt-free reuse."
+        },
+        {
+          "label": "Upscaler notice logic",
+          "result": "passed",
+          "scope": "Seven local assertions against the source functions for model names, credit eligibility, content/transport distinction and Image/Video isolation."
+        },
+        {
+          "label": "Upscaler browser regression",
+          "result": "not_run",
+          "scope": "Immediate owner and polled customer decline cases in the existing suite. Local Chromium could not start."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio",
+        "sourceSha": null,
+        "limitations": [
+          "Exact production bytes and real-account behavior require separate verification."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Refusal copy uses the submitted job model, with source reuse in History. Routing, providers, pricing and the credit ledger are outside this patch.",
+          "scope": "Frontend candidate",
+          "source": "lab/lab.js",
+          "limitations": [
+            "No production job or wallet entry was independently observed."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not submit a paid generation to validate copy.",
+        "Do not infer provider policy or ledger settlement from the screenshot."
       ]
     }
   ]

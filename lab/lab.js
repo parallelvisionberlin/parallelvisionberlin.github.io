@@ -613,7 +613,15 @@ function isContentRestriction(message){
   const reason=String(message||'');
   return /content[_\s-]*policy[_\s-]*violation|flagged by (?:a )?content (?:checker|filter)|(?:content|safety)[_\s-]*(?:checker|filter)[_\s-]*(?:blocked|rejected|flagged)|(?:blocked|rejected|flagged) (?:by|for|due to) (?:a |the )?(?:content|safety|moderation)|moderation[_\s-]*(?:rejected|blocked|failed)|\bNSFW\b|prohibited (?:sexual |adult )?content|sexual(?:ly)? explicit content (?:is )?not allowed|\b(?:blocked|rejected|refused|denied|flagged)\b.{0,120}\b(?:content|safety)[_\s-]*(?:moderation|policy|filter|guidelines)\b|\b(?:content|safety)[_\s-]*(?:moderation|policy|filter|guidelines)\b.{0,120}\b(?:blocked|rejected|refused|denied|flagged|violation)\b|unsafe[_\s-]*content/i.test(reason);
 }
+function isImageUpscale(job){
+  return job?.settings?.type==='image'&&job.settings.mode==='upscale';
+}
 function contentRestrictionGuidance(job){
+  if(isImageUpscale(job)){
+    const engine=upscaleMode(job.settings);
+    const label=engine==='seedvr2'?UPSCALE_MODEL_UI.seedvr2.brand:UPSCALE_MODELS[engine].name;
+    return label+' declined this image under its content guidelines.';
+  }
   const label=job?.settings?.type==='video'?videoLabel(job.settings):galleryImageModelName(job);
   return label+" couldn't process this request under its content guidelines. Try a different direction or explore another model.";
 }
@@ -621,6 +629,10 @@ function jobCreditsReturned(job){
   return !!(customerMode&&job?.status==='failed'&&Number(job.creditCost)>0);
 }
 function jobCreditNotice(job){return jobCreditsReturned(job)?'Credits restored':customerMode&&job?.status==='uncertain'?'Request pending review':'';}
+function upscaleRestrictionNotice(job){
+  const credit=jobCreditNotice(job);
+  return contentRestrictionGuidance(job)+(credit?' '+credit+'.':'');
+}
 function imageFailureHeading(message){
   const reason=String(message||'').replace(/^Generation failed:\s*/i,'');
   if(isContentRestriction(reason))return 'Not with this model.';
@@ -3801,6 +3813,10 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
     notify('');
   }else{
     const destination=q.settings.mode==='upscale'?'Upscaled images below and Assets':'History';
+    if(isImageUpscale(data.job)&&data.job.status==='failed'&&isContentRestriction(data.job.error)){
+      notify(upscaleRestrictionNotice(data.job),true);
+      return;
+    }
     notify(failed?([jobCreditNotice(data.job), (isContentRestriction(data.job.error)?'The selected model declined this request under its content guidelines. Edit your prompt or explore another model in History.':data.job.error||(q.settings.mode==='upscale'?'The upscale was not confirmed. Check Queue and Upscaled images before trying again.':'The generation was not confirmed. Check History before another attempt.'))].filter(Boolean).join('. ')):
       (['image','upscale'].includes(q.settings.mode)?(q.settings.mode==='upscale'?'Upscale requested.':'Image requested.')+(customerMode?' '+wallet.jobCharge(q)+' reserved. Results appear in '+destination+'.':q.priceIsEstimate?' Estimated provider charge: '+money(q.estimatedUsd)+' USD. Not a guaranteed maximum. Results appear in '+destination+'.':' Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in '+destination+'.'):''),failed);
   }
@@ -3984,7 +4000,9 @@ async function poll(){
       if(chosen&&chosen.settings?.mode==='upscale'&&!hasResult(chosen))upscaleResultUI.finishedWithoutResult();
        if(show&&hasResult(chosen))await openVideo(chosen,{scroll:false,justFinished:chosen.settings?.mode==='upscale'});
       const ready=finished.filter(hasResult).length,failed=finished.filter(j=>j.status==='failed');
-      if(failed.length)notify(isContentRestriction(failed[0].error)?'This model declined the request under its content guidelines. Your prompt is saved in History. Edit it or explore another model.':'Generation failed: '+(failed.length>1?failed.length+' jobs failed. ':'')+(failed[0].error||'The provider did not return an image. Check History.'),true);
+      const failure=isImageUpscale(chosen)&&chosen.status==='failed'?chosen:failed[0];
+      if(isImageUpscale(failure)&&isContentRestriction(failure.error))notify(upscaleRestrictionNotice(failure),true);
+      else if(failed.length)notify(isContentRestriction(failed[0].error)?'This model declined the request under its content guidelines. Your prompt is saved in History. Edit it or explore another model.':'Generation failed: '+(failed.length>1?failed.length+' jobs failed. ':'')+(failed[0].error||'The provider did not return an image. Check History.'),true);
       // Successful results are already available in the viewer and History; avoid a redundant toast.
       else if(!ready)notify(isContentRestriction(finished[0].error)?'This model declined the request under its content guidelines. Edit the prompt or choose another model in History.':finished[0].error||'No output file was returned. Nothing is available to download.',true);
     }
@@ -4367,6 +4385,9 @@ function showImageDetail(job,hasOutput,loading=false){
   stage.classList.toggle('is-content-restricted',contentRestricted);
   $('image-lightbox-content-notice').hidden=!contentRestricted;
   $('image-lightbox-content-description').textContent=contentRestricted?contentRestrictionGuidance(job):'';
+  const upscale=isImageUpscale(job);
+  $('image-lightbox-content-prompt').hidden=upscale;
+  $('image-lightbox-content-edit').textContent=upscale?'Reuse image':'Reuse prompt';
   $('image-lightbox-content-credits').hidden=!jobCreditsReturned(job);
   $('image-lightbox-unavailable').hidden=hasOutput||loading||contentRestricted;
   $('image-lightbox-unavailable').textContent=job.status==='uncertain'?'Provider status is unknown. Nothing will be resubmitted automatically.':job.status==='draft'?'Saved draft. Choose Reuse to continue editing.':'No finished output file is available for this record.';
@@ -5244,13 +5265,17 @@ function renderCards(jobs,{upsert=false}={}){
         const kicker=document.createElement('small');kicker.className='content-restriction-kicker';kicker.textContent='PV LAB / CONTENT GUIDELINES';
         const title=document.createElement('strong');title.textContent='Not with this model.';
         const detail=document.createElement('p');detail.className='content-restriction-copy';detail.textContent=contentRestrictionGuidance(j);
-        const edit=button('Reuse prompt',()=>restore(j));edit.classList.add('content-restriction-edit');
+        const upscale=isImageUpscale(j);
+        const edit=button(upscale?'Reuse image':'Reuse prompt',()=>restore(j));edit.classList.add('content-restriction-edit');
         const foot=document.createElement('div');foot.className='content-restriction-foot';
-        const saved=document.createElement('small');saved.textContent='Your prompt is saved.';foot.append(saved);
+        if(!upscale){
+          const saved=document.createElement('small');saved.textContent='Your prompt is saved.';foot.append(saved);
+        }
         if(jobCreditsReturned(j)){
           const refunded=document.createElement('small');refunded.className='content-restriction-credits';refunded.textContent='Credits returned';foot.append(refunded);
         }
-        empty.append(kicker,title,detail,edit,foot);
+        empty.append(kicker,title,detail,edit);
+        if(foot.childElementCount)empty.append(foot);
       }else{
         const title=document.createElement('strong'),detail=document.createElement('span');
         title.textContent=finishingReplacement?'Finish replacement':j.settings.mode==='soul-id-training'&&j.status==='completed'?'Soul ID ready':j.status==='draft'?'Saved draft':j.status==='failed'?imageFailureHeading(j.error):j.status==='uncertain'?'Status unknown':activeStates.has(j.status)?({submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving'}[j.status]||'Result pending'):ready?'Video saved':j.status==='completed'?'Output unavailable':'No result';

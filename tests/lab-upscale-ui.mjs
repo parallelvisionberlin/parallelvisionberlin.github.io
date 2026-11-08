@@ -51,8 +51,13 @@ async function workspace(jobs=[],width=1440,{quoteTtlMs=180000,quoteDelayMs=0,qu
    assert.ok(quote.expiresAt>Date.now(),'No expired quote may be submitted');
    if(submitMode==='network'){await route.abort();return;}
    if(submitMode==='rejected'){await route.fulfill({status:422,contentType:'application/json',body:JSON.stringify({error:'Synthetic provider rejected this photograph'})});return;}
-   body={job:{id:'10000000-0000-4000-8000-'+String(90+requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length).padStart(12,'0'),status:submitMode==='failed'?'failed':'queued',error:submitMode==='failed'?'Synthetic provider rejected this photograph':undefined,settings:quote.settings,sourceId:quote.sourceId,createdAt:Date.now()}};
+   const contentError='fal.ai: content_policy_violation';
+   const declined=submitMode==='declined';
+   const willDecline=submitMode==='declined-after-poll';
+   body={job:{id:'10000000-0000-4000-8000-'+String(90+requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length).padStart(12,'0'),status:declined||submitMode==='failed'?'failed':'queued',error:declined?contentError:submitMode==='failed'?'Synthetic provider rejected this photograph':undefined,settings:quote.settings,sourceId:quote.sourceId,createdAt:Date.now(),creditCost:customer?quote.creditCost:undefined}};
+   if(declined||willDecline)jobs.push({...body.job,status:'failed',error:contentError});
   }
+  else if(submitMode==='declined-after-poll'&&/^\/api\/jobs\/[^/]+$/.test(path)&&method==='GET')body={job:jobs.find(j=>j.id===path.split('/')[3])};
   else if(path.startsWith('/api/assets/')){await route.fulfill({status:200,contentType:'image/png',body:png});return;}
   else {await route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({error:'Unmocked request '+path})});return;}
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
@@ -390,6 +395,33 @@ try{
  await imageAdvanced(x.page);assert.equal(await x.page.locator('#notice').evaluate(el=>el.nextElementSibling?.id),'archive-rest-anchor');
  await x.page.click('#tool-video');await x.page.click('#mode-start');assert.equal(await x.page.locator('#last-upload').isVisible(),true);
  assert.deepEqual(x.errors,[]);ok('Image and Video still work after Upscale');await x.context.close();
+ for(const customer of [false,true]){
+  const submitMode=customer?'declined-after-poll':'declined';
+  x=await workspace([],customer?390:1440,{customer,submitMode});
+  await x.page.click('#tool-upscale');await uploadSmall(x.page);
+  if(!customer)await selectModel(x.page,'Topaz Wonder 3.5');
+  await upscale(x);
+  const model=customer?'ByteDance Premium':'Topaz Wonder 3.5';
+  const message=model+' declined this image under its content guidelines.';
+  await x.page.waitForFunction(text=>document.querySelector('#notice').textContent.includes(text),message);
+  assert.equal(await x.page.locator('#notice').textContent(),message+(customer?' Credits restored.':''));
+  assert.equal(await x.page.locator('#notice').isVisible(),true);
+  const card=x.page.locator('.card[data-job="'+x.historyJobs()[0].id+'"]');
+  assert.equal(await card.locator('.content-restriction-copy').textContent(),message);
+  assert.equal(await card.getByRole('button',{name:'Reuse image',exact:true}).count(),1);
+  assert.doesNotMatch(await card.locator('.history-no-result').textContent(),/prompt/i);
+  assert.equal(await card.locator('.content-restriction-credits').count(),customer?1:0);
+  await card.press('Enter');
+  await x.page.locator('#image-lightbox').waitFor({state:'visible'});
+  assert.equal(await x.page.locator('#image-lightbox-content-edit').textContent(),'Reuse image');
+  assert.equal(await x.page.locator('#image-lightbox-content-description').textContent(),message);
+  assert.equal(await x.page.locator('#image-lightbox-content-prompt').isVisible(),false);
+  assert.equal(await x.page.locator('#image-lightbox-content-credits').isVisible(),customer);
+  assert.equal(countPaid(x),1);assert.equal(quoteRequests(x).length,1);
+  assert.deepEqual(x.errors,[]);
+  ok(model+' '+submitMode+' names the model, preserves the source, and shows eligible credit status');
+  await x.context.close();
+ }
  if(process.env.PV_UPSCALE_NOTICE_SMOKE!=='1'){
   x=await workspace();await x.page.click('#tool-upscale');await uploadSmall(x.page);
   let q=await upscale(x);assertQuoted(q,seedModel);assert.equal(q.estimatedUsd,.001);
