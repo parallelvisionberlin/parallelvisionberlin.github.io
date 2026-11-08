@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T16:56:54Z",
+  "updatedAt": "2026-11-08T17:07:47Z",
   "handoffs": [
     {
       "id": "owner",
@@ -2310,11 +2310,11 @@
       "id": "upscaler-interrupted-request-feedback",
       "title": "Upscaler interrupted-request feedback",
       "component": "Image Upscaler",
-      "status": "needs_verification",
+      "status": "deployed",
       "summary": "Explain the disabled Upscale action when an earlier upscale is unconfirmed or the FAL image queue is full; open the existing Queue without submitting anything.",
-      "nextAction": "Finish the focused desktop/mobile regression, publish the reviewed frontend patch and verify exact production assets.",
+      "nextAction": "Existing browser tabs should refresh once to clear their old queue state and load the new feedback.",
       "baselineSha": "d004356feba9533693a38e8b43c7c8ba6e3a4177",
-      "reviewedSha": null,
+      "reviewedSha": "0a3c1bf3ac94bf7411bd0f83454c93df9fd79c24",
       "branch": "fix/upscale-disabled-source-20261108",
       "files": [
         "lab/lab.js",
@@ -2327,6 +2327,10 @@
         {
           "label": "Scoped Upscaler handoff",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
+        },
+        {
+          "label": "PR #936",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/936"
         }
       ],
       "tests": [
@@ -2343,18 +2347,21 @@
         },
         {
           "label": "Upscaler queue browser regression",
-          "scope": "1440px and 390px; interrupted/capacity feedback, Review Queue without writes, mode isolation and normal history unlock",
-          "result": "not_run",
-          "source": "tests/lab-upscale-ui.mjs"
+          "scope": "48 full browser groups and 12 smoke groups; includes 1440px/390px interrupted-state, capacity, Queue review, normal unlock and mode isolation.",
+          "result": "passed",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42502720973"
         }
       ],
       "deployment": {
-        "state": "not_started",
+        "state": "verified",
         "environment": "pvlab.studio / Cloudflare Pages",
-        "sourceSha": null,
+        "sourceSha": "5b68b7a15d56c46eff4119fa264bd5ac14bd7a78",
         "limitations": [
-          "The operational queue repair is complete; the frontend message is not yet published."
-        ]
+          "Production assets and public DOM verified; signed-in affected behavior was tested with synthetic fixtures.",
+          "The actual account interruption was separately resolved and re-read in the backend. No paid generation was submitted for verification."
+        ],
+        "observedAt": "2026-11-08T17:07:47Z",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=upscale"
       },
       "evidence": [
         {
@@ -2372,17 +2379,40 @@
           "limitations": [
             "Does not establish a newly completed upscale in the user browser."
           ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "Blocked and cleared queue states passed at desktop and phone sizes; Review Queue performs no POST or generation. Screenshots inspected.",
+          "scope": "Synthetic browser scenarios; not a signed-in live paid generation",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42502720973",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Scoped release verifier returned LIVE_VERIFIED for lab.js v20261108-upscale-queue1 and upscale-studio-v5.css v20261108-queue-block1 against exact merge5b68b7a; production browser confirms both version keys and the conditional queue markup.",
+          "scope": "pvlab.studio published frontend assets",
+          "observedAt": "2026-11-08T17:07:47Z",
+          "source": "https://pvlab.studio/studio?tool=upscale",
+          "limitations": [
+            "The production browser was signed out."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "Cloudflare Pages production check128800348200 succeeded for reviewed merge5b68b7a15d56c46eff4119fa264bd5ac14bd7a78.",
+          "scope": "pvlab-studio / main",
+          "observedAt": "2026-11-08T17:07:47Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/936",
+          "limitations": []
         }
       ],
-      "blockers": [
-        "Local Chromium launch is unavailable; existing GitHub Actions must verify the browser regression."
-      ],
+      "blockers": [],
       "doNotRepeat": [
         "Do not retry a paid generation to test the button.",
         "Do not clear ambiguous or fresh interrupted submissions without checking provider-dispatch evidence.",
         "Keep draft PR #928 content-decline wording separate."
       ],
-      "updatedAt": "2026-11-08T16:56:54Z"
+      "updatedAt": "2026-11-08T17:07:47Z"
     }
   ]
 }

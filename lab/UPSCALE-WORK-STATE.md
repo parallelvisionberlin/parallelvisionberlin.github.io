@@ -17,10 +17,20 @@
 - No authentication guard or generation limit was changed; this was not automatic cleanup of fresh or ambiguous provider requests.
 - Local JavaScript syntax and approved Image UI contract: 6/6 pass.
 - Focused browser regression covers 1440px/390px: loaded image plus interrupted job, Queue opening without API writes, mode isolation, resolved history unlock, full capacity and compact normal footer.
-- Local Chromium cannot launch (SIGABRT / ptrace denied). Browser validation is pending in the existing Upscaler CI; no local browser pass is claimed.
-- Application publication: not yet published. The account recovery is separate from this UI change.
+- Local Chromium cannot launch (SIGABRT / ptrace denied); actual browser validation ran in GitHub Actions.
+- Upscaler CI run `42502720973` passed 48 full browser groups and 12 smoke groups, plus Image/Video parity and Assets visibility.
+- Blocked-queue screenshots were inspected at 1440px and 390px. Approved Image UI, Video Upscaler and static validations passed.
+- Other existing CI failures were reviewed in unchanged Video badge, Base-width, Clerk and guest-layout fixtures; no tests or safeguards were weakened.
+- Reviewed candidate: `0a3c1bf3ac94bf7411bd0f83454c93df9fd79c24`; PR #936 merged as `5b68b7a15d56c46eff4119fa264bd5ac14bd7a78`.
+- Application publication: Cloudflare production check `128800348200` succeeded for the exact merge.
+- Scoped release verifier returned `LIVE_VERIFIED` for both versioned JavaScript and CSS.
+- Live CSS SHA-256: `75053f38119c2b5e0876f4d4edb9489de3bda2d7e9b7de65ef5a2a8e6f7aaf2e`.
+- Live JavaScript SHA-256: `f0fdba78d39829766fff78c2e70adee1854aea7ff4f53dcfed52c30775e7205c`.
+- Production browser confirms both new version keys and the conditional Review Queue markup.
+- Live browser was signed out; backend account recovery and synthetic signed-in browser tests are separate evidence. No paid generation was submitted.
 - Existing draft PR #928 remains separate and unchanged; it concerns content-decline messaging after submission.
-- Next action: complete focused desktop/mobile regression, save the reviewed patch and verify publication separately if released.
+- Status: account interruption resolved; interface fix published and verified. Existing tabs need one refresh.
+- Next action: none for this repair.
 
 ## Footer state repair / 2026-11-04
 - Objective: preserve the approved Upscaler layout across upload, processing and Clear; show only the Upscale action.
