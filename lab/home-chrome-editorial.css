@@ -1,0 +1,168 @@
+/* Owner-approved Chrome Desert homepage feature. Scope every rule to this
+   section; legacy Full Editorial sizing remains untouched for other pages. */
+#featured-editorial.pv-chrome-editorial {
+  --chrome-ivory: #eadfce;
+  position: relative;
+  isolation: isolate;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  height: auto !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  margin: 0;
+  padding: clamp(40px, 4.5vw, 76px) clamp(22px, 3.4vw, 64px);
+  overflow: hidden;
+  color: var(--chrome-ivory);
+  background: #090a0b !important;
+  border-block: 1px solid rgba(234, 223, 206, .12);
+  font-family: DM, 'Helvetica Neue', Arial, sans-serif;
+}
+#featured-editorial.pv-chrome-editorial::before,
+#featured-editorial.pv-chrome-editorial::after { content: none; }
+#featured-editorial.pv-chrome-editorial .chrome-editorial__inner {
+  display: grid;
+  grid-template-columns: minmax(0, .36fr) minmax(0, .64fr);
+  grid-template-areas: 'heading art' 'action art';
+  grid-template-rows: 1fr auto;
+  align-items: center;
+  column-gap: clamp(12px, 2vw, 36px);
+  width: 100%;
+  max-width: 1640px;
+  margin-inline: auto;
+}
+#featured-editorial.pv-chrome-editorial .chrome-editorial__heading {
+  grid-area: heading;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  padding-block: 20px;
+}
+#featured-editorial.pv-chrome-editorial .chrome-editorial__kicker {
+  display: block;
+  margin: 0 0 clamp(30px, 4vw, 64px);
+  font: 600 11px/1.6 DM, 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: .23em;
+  color: #c6bfb4;
+  text-transform: uppercase;
+}
+#featured-editorial.pv-chrome-editorial h2 {
+  position: relative;
+  width: min(100%, 420px);
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0;
+  font: 900 4rem/1 sans-serif !important;
+  letter-spacing: 0 !important;
+  color: var(--chrome-ivory);
+}
+/* The original approved lettering is vector artwork, like the PV LAB logo.
+   Real heading text remains available to screen readers, search and no-CSS. */
+#featured-editorial.pv-chrome-editorial .chrome-editorial__title-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+#featured-editorial.pv-chrome-editorial .chrome-editorial__title-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 356 / 305;
+}
+#featured-editorial.pv-chrome-editorial .chrome-editorial__art {
+  grid-area: art;
+  min-width: 0;
+  margin: 0;
+}
+#featured-editorial.pv-chrome-editorial .chrome-editorial__art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1048 / 870;
+  object-fit: contain;
+}
+#featured-editorial.pv-chrome-editorial .chrome-editorial__action {
+  grid-area: action;
+  align-self: start;
+  min-width: 0;
+  padding-block: 14px clamp(28px, 4vw, 64px);
+}
+#featured-editorial.pv-chrome-editorial .chrome-editorial__description {
+  max-width: 290px;
+  margin: 0 0 28px;
+  color: #c6bfb4;
+  font: 400 15px/1.65 DM, 'Helvetica Neue', Arial, sans-serif;
+}
+#featured-editorial.pv-chrome-editorial .pv-feature-button {
+  display: inline-flex !important;
+  position: static !important;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: auto !important;
+  max-width: 100%;
+  min-width: min(260px, 100%);
+  min-height: 56px !important;
+  margin: 0 !important;
+  padding: 16px 26px !important;
+  border: 1px solid #eadfce !important;
+  border-radius: 6px;
+  color: #121211 !important;
+  background: #eadfce !important;
+  font: 700 14px/1.4 DM, 'Helvetica Neue', Arial, sans-serif !important;
+  letter-spacing: .025em;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: normal;
+  cursor: pointer;
+  box-shadow: none !important;
+  transform: none !important;
+}
+#featured-editorial.pv-chrome-editorial .pv-feature-button::after { content: none; }
+#featured-editorial.pv-chrome-editorial .pv-feature-button:hover {
+  color: #090a0b !important;
+  background: #fff4e6 !important;
+  border-color: #fff4e6 !important;
+}
+#featured-editorial.pv-chrome-editorial .pv-feature-button:focus-visible {
+  outline: 2px solid #fff4e6;
+  outline-offset: 6px;
+}
+@media (max-width: 760px) {
+  #featured-editorial.pv-chrome-editorial {
+    padding: 38px 22px 42px;
+  }
+  #featured-editorial.pv-chrome-editorial .chrome-editorial__inner {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'heading' 'art' 'action';
+    grid-template-rows: auto auto auto;
+    gap: 25px;
+    max-width: 560px;
+  }
+  #featured-editorial.pv-chrome-editorial .chrome-editorial__heading {
+    padding: 0;
+  }
+  #featured-editorial.pv-chrome-editorial .chrome-editorial__kicker {
+    margin-bottom: 24px;
+    font-size: 10px;
+    letter-spacing: .19em;
+  }
+  #featured-editorial.pv-chrome-editorial h2 { width: min(80%, 310px); }
+  #featured-editorial.pv-chrome-editorial .chrome-editorial__action {
+    padding: 0;
+  }
+  #featured-editorial.pv-chrome-editorial .chrome-editorial__description {
+    max-width: 340px;
+    margin-bottom: 22px;
+  }
+  #featured-editorial.pv-chrome-editorial .pv-feature-button {
+    width: 100% !important;
+  }
+}
