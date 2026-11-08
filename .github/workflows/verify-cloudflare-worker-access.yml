@@ -1,0 +1,78 @@
+name: Verify Cloudflare Worker access (read only)
+
+on:
+  push:
+    branches: [verify/replace-audit-published-20261108]
+    paths: ['.github/workflows/verify-cloudflare-worker-access.yml']
+  workflow_dispatch:
+
+# This check never checks out code, installs packages, deploys a Worker,
+# changes permissions or secrets, reads customer data, or executes SQL.
+permissions: {}
+
+jobs:
+  verify-access:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check token status and metadata access without changing production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, sys
+          import urllib.request, urllib.error
+
+          raw = os.environ.get('CLOUDFLARE_API_TOKEN', '')
+          token = ''.join(raw.split())
+          if not token:
+              print('TOKEN_CHECK: repository secret is empty or unavailable to this run.')
+              sys.exit(1)
+          print('::add-mask::' + token)
+          account = 'a40ce1725295563a7b7db9fc3160480a'
+          worker = 'parallel-vision-lab'
+          database = '36e13edc-1557-48a3-a49c-08bbc0f9618f'
+          origin = 'https://api.cloudflare.com/client/v4'
+
+          def get(path):
+              request = urllib.request.Request(origin + path, method='GET', headers={
+                  'Authorization': 'Bearer ' + token,
+                  'Accept': 'application/json',
+                  'User-Agent': 'PV-LAB-read-only-access-check/1.0',
+              })
+              try:
+                  with urllib.request.urlopen(request, timeout=20) as response:
+                      result = json.load(response)
+              except urllib.error.HTTPError as error:
+                  # Never print API bodies, authorization headers or secret bytes.
+                  raise RuntimeError('Read-only request rejected with HTTP ' + str(error.code)) from None
+              except Exception:
+                  raise RuntimeError('Read-only request could not be completed; credential validity not established.') from None
+              if result.get('success') is not True:
+                  codes = [str(item.get('code', 'unknown')) for item in result.get('errors', [])]
+                  raise RuntimeError('API returned failure; error code(s): ' + ', '.join(codes))
+              return result.get('result')
+
+          try:
+              status = get('/user/tokens/verify')
+              if not isinstance(status, dict) or status.get('status') != 'active':
+                  raise RuntimeError('Token verification did not report active status.')
+              print('TOKEN_CHECK: ACTIVE. GitHub supplied a valid Cloudflare token.')
+
+              scripts = get('/accounts/' + account + '/workers/scripts')
+              if not isinstance(scripts, list) or not any(item.get('id') == worker for item in scripts if isinstance(item, dict)):
+                  raise RuntimeError('Expected Worker was not found in the authorized account.')
+              print('WORKER_ACCESS: CONFIRMED for parallel-vision-lab (metadata read only).')
+
+              db = get('/accounts/' + account + '/d1/database/' + database)
+              if not isinstance(db, dict) or db.get('uuid') != database:
+                  raise RuntimeError('Expected D1 database metadata was not returned.')
+              print('DATABASE_ACCESS: CONFIRMED for parallel-vision-lab (metadata only; no SQL).')
+              print('RESULT: READ_ONLY_ACCESS_VERIFIED. No deployment, migration, generation, or permission change performed.')
+              print('LIMIT: This validates token activity and resource access, not a production write or deployment readiness.')
+          except RuntimeError as error:
+              print('ACCESS_CHECK_FAILED: ' + str(error))
+              sys.exit(1)
+          PY
