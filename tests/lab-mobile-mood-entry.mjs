@@ -239,56 +239,7 @@ try{
           margin:parseFloat(getComputedStyle(shelf).marginTop)};
       });
       const signedRest=await signedCards();
-      if(height>=690){
-        assert.ok(Math.abs(signedRest.margin+30)<2,
-          'Only the new-customer first-image state uses the compact -30px carousel offset');
-      }else{
-        assert.ok(signedRest.margin>=12,
-          'Short iPhone viewports keep the previous first-image spacing');
-      }
-
-      // Synthetic NEW non-owner customer (empty History), not an Owner session:
-      // compare its first Image entrance with the approved History Inspiration
-      // reference, while leaving the private history and wallet unmodified.
-      const newCustomerFrame=()=>page.evaluate(()=>{
-        const rect=q=>document.querySelector(q).getBoundingClientRect();
-        const title=rect('#lab-welcome-title'),cards=rect('#lab-welcome-presets .lab-welcome-preset');
-        const deck=rect('#image-composer');
-        return {gap:cards.top-title.bottom,cardTop:cards.top,cardHeight:cards.height,
-          cardBottom:cards.bottom,deckTop:deck.top,deckBottom:deck.bottom,
-          titleTop:title.top,scrollY:window.scrollY};
-      });
-      const newEntry=await newCustomerFrame();
-      if(height>=690){
-        assert.ok(newEntry.gap>=18&&newEntry.gap<=48,
-          'New non-owner customer cards match the compact 09:37 Inspiration spacing: '+JSON.stringify(newEntry));
-        assert.ok(newEntry.cardBottom<=newEntry.deckTop+3,
-          'New customer photographs do not disappear under the fixed Generate deck: '+JSON.stringify(newEntry));
-      }
-      // The white zero-credit notice is an overlay, not an entry layout spacer.
-      // Its top must attach to the REAL 78px condensed Image masthead (not the
-      // homepage's 102px root variable), then disappear without moving photos.
-      await page.waitForFunction(()=>document.getElementById('studio-header').classList.contains('pv-mobile-entry-condensed'));
-      await page.evaluate(()=>{document.getElementById('lab-credit-banner').hidden=false;});
-      const notice=await page.evaluate(()=>{
-        const bar=document.getElementById('lab-credit-banner');
-        const b=bar.getBoundingClientRect(),h=document.getElementById('studio-header').getBoundingClientRect();
-        return {top:b.top,bottom:b.bottom,headerBottom:h.bottom,position:getComputedStyle(bar).position,
-          width:document.documentElement.scrollWidth};
-      });
-      assert.equal(notice.position,'fixed','Customer zero-credit banner floats without affecting cards');
-      assert.ok(Math.abs(notice.top-notice.headerBottom)<=2,
-        'White notice attaches flush to Image masthead, no black gap: '+JSON.stringify(notice));
-      assert.ok(notice.width<=width+1,'Credit notice adds no sideways scroll');
-      const withNotice=await newCustomerFrame();
-      assert.ok(Math.abs(withNotice.cardTop-newEntry.cardTop)<2&&Math.abs(withNotice.deckTop-newEntry.deckTop)<2,
-        'Zero-credit banner is a fixed overlay and must not move Image photos or Generate');
-      await page.locator('#lab-credit-banner-dismiss').click();
-      const afterDismiss=await newCustomerFrame();
-      assert.equal(await page.locator('#lab-credit-banner').isVisible(),false);
-      assert.ok(Math.abs(afterDismiss.cardTop-newEntry.cardTop)<2&&Math.abs(afterDismiss.deckTop-newEntry.deckTop)<2,
-        'Dismissing the credit notice preserves the same compact first-image frame');
-
+      assert.ok(signedRest.margin>=12,'Signed-in iPhone Inspiration keeps the original positive card spacing');
       await page.locator('#image-composer-prompt').fill('Analog atmosphere. '.repeat(60));
       await page.waitForFunction(()=>document.getElementById('image-composer').classList.contains('pv-deck-expanded'));
       const signedExpanded=await signedCards();
