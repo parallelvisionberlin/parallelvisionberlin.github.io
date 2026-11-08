@@ -1,0 +1,36 @@
+name: Replace pinned source audit
+on:
+  push:
+    branches: [fix/replace-masked-edit-audit-20261108]
+    paths: [.github/workflows/replace-audit-source.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 96b8c759029ede389a6ffb20339506cbebef930a
+          persist-credentials: false
+      - name: Archive only tracked application source and regression tests
+        run: |
+          python3 - <<'PY'
+          import subprocess,pathlib,tarfile
+          paths=subprocess.check_output(['git','ls-files'],text=True).splitlines()
+          prefixes=('lab/','lab-worker/','tests/','scripts/','.github/scripts/','.github/workflows/')
+          extensions={'.js','.mjs','.cjs','.json','.css','.html','.md','.toml','.yml','.yaml','.py','.sql'}
+          selected=[p for p in paths if p in ('AGENTS.md','package.json','package-lock.json') or (p.startswith(prefixes) and pathlib.Path(p).suffix in extensions and '/visuals/' not in p and '/assets/' not in p)]
+          with tarfile.open('replacement-source.tar.gz','w:gz') as archive:
+            for p in selected:archive.add(p,arcname=p,recursive=False)
+          pathlib.Path('source-commit.txt').write_text(subprocess.check_output(['git','rev-parse','HEAD'],text=True))
+          print('Public source files:',len(selected))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: replacement-pinned-source
+          path: |
+            replacement-source.tar.gz
+            source-commit.txt
+          retention-days: 1
