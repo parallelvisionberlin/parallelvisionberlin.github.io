@@ -88,3 +88,5 @@ try{
   assert.deepEqual(errors,[]);console.log('SAM_CLICK_BROWSER_PASS',width);await page.close();
  }
 }finally{await browser.close();await new Promise(r=>server.close(r));}
+
+await import('./lab-selection-regions-ui.mjs');

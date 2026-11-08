@@ -5,7 +5,7 @@ export function createSelectionFeedback({holder,stage}){
     const style=document.createElement('style');style.id='pv-selection-feedback-style';
     style.textContent=`
       .pv-selection-feedback[hidden],.pv-selection-click-ring[hidden]{display:none!important}
-      .pv-selection-feedback{position:absolute;z-index:9;top:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:9px;max-width:calc(100% - 28px);box-sizing:border-box;padding:9px 13px;border:1px solid #ffffff26;border-radius:8px;background:#141416ed;color:#f4f1f5;font:550 12px/1.4 inherit;pointer-events:none;box-shadow:0 3px 18px #0003}
+      .pv-selection-feedback{position:absolute;z-index:9;top:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:9px;max-width:calc(100% - 28px);box-sizing:border-box;padding:9px 13px;border:1px solid #ffffff26;border-radius:8px;background:#141416ed;color:#f4f1f5;font-family:inherit;font-weight:550;font-size:12px;line-height:1.4;pointer-events:none;box-shadow:0 3px 18px #0003}
       .pv-selection-feedback>i{width:13px;height:13px;flex:0 0 13px;border:1.5px solid #ffffff40;border-top-color:#e1d4f1;border-radius:50%;animation:pv-selection-spin .85s linear infinite}
       .pv-selection-feedback.is-error{border-color:#c6a5a56b}
       .pv-selection-feedback.is-error>i{display:none}

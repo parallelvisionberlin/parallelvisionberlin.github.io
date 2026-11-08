@@ -1,5 +1,5 @@
 import {REPLACEMENT_KINDS,replacementKind,viewerLibraryEntries,loadViewerReference,createViewerReferenceCache,guidanceLearned,rememberGuidance} from './viewer-replacement-library.js?v=20261108-reference-cache1';
-import {CHARACTER_SCOPES,replacementScope,selectionTarget,scopeInstruction,selectionAdvisory} from './viewer-selection-scope.js?v=20261107-scope1';
+import {CHARACTER_SCOPES,replacementScope,selectionTarget,scopeInstruction,selectionAdvisory} from './viewer-selection-scope.js?v=20261108-regions1';
 // Edit in the existing image viewer. Selection is local; only Generate may submit.
 export function createImageViewerEditor({editor, onPrepare, onResult, notify, getSavedReferences=async()=>[], readReference, renderReference, getReferenceLimit=()=>10, account=()=>null, session=()=>null}) {
   const $ = id => document.getElementById(id);
@@ -65,11 +65,13 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
   const selectedCard=document.createElement('div');selectedCard.className='viewer-selected-reference';selectedCard.hidden=true;
   selectedCard.innerHTML='<div class="viewer-selected-cover"></div><div><strong></strong><small></small></div><button type="button" aria-label="Remove replacement reference">×</button>';
   const locationNote=document.createElement('p');locationNote.className='viewer-location-note';locationNote.hidden=true;
-  locationNote.textContent='Select the background to change, or select the people to keep and invert the selection. Saved location references are not supported by the current server; describe the new setting below.';
-  const invert=document.createElement('button');invert.type='button';invert.className='viewer-invert';invert.textContent='Select background instead';invert.hidden=true;
-  invert.addEventListener('click',()=>{if(!submitting&&!editor.isBusy())editor.invertSelection?.();});
+  locationNote.textContent='Select the whole background, then review that all people are protected. Use Keep object for props. Saved location references are not supported by the current server; describe the new setting below.';
+  const invert=document.createElement('button');invert.type='button';invert.className='viewer-invert';invert.textContent='Select whole background';invert.hidden=true;
+  invert.addEventListener('click',()=>{if(!submitting&&!editor.isBusy())void editor.selectBackground?.();});
+  const keepObject=document.createElement('button');keepObject.type='button';keepObject.className='viewer-invert';keepObject.textContent='Keep object';keepObject.hidden=true;keepObject.setAttribute('aria-pressed','false');
+  keepObject.addEventListener('click',()=>{if(submitting||editor.isBusy()||!editor.hasSelection())return;const protect=editor.getSelectionTarget?.()!=='protect-object';editor.setSelectionTarget(protect?'protect-object':'background');editor.setMode('magic');status.textContent=protect?'Click an object to keep unchanged.':'Click the photo to select the whole background again.';refresh();});
   // The replacement panel follows the approved order: type, saved reference, prompt, Generate.
-  directionLabel.before(hint);directionLabel.after(kinds,characterModes,selectionAdvice,library,selectedCard,locationNote,invert);
+  directionLabel.before(hint);directionLabel.after(kinds,characterModes,selectionAdvice,library,selectedCard,locationNote,invert,keepObject);
   const uploadRow=fields.querySelector('.viewer-reference-row');
   const uploadHome=document.createComment('viewer upload row home');uploadRow.before(uploadHome);
   selectedCard.querySelector('button').addEventListener('click',()=>{
@@ -182,7 +184,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
     if(!active)return;
     workspace.classList.toggle('has-viewer-reference',!!reference||loadingReference);
     sidebar.classList.toggle('has-viewer-reference',!!reference||loadingReference);
-    kind.hidden=isReplace()||!reference;remove.hidden=!reference||!!savedReference;generate.hidden=!reference;
+    kind.hidden=isReplace()||!reference;remove.hidden=!reference||!!savedReference;generate.hidden=!reference&&!loadingReference;
     selectedCard.hidden=!savedReference&&!loadingSavedReference;preview.hidden=!reference||!!savedReference;
     const chosen=editor.hasSelection(),type=replacementKind(scope.value),mode=$('precision-tool-magic').getAttribute('aria-pressed')==='true'?'magic':$('precision-tool-brush').getAttribute('aria-pressed')==='true'?'brush':'other';
     const characterMode=isReplace()&&scope.value==='person', effective=replacementScope(scope.value,characterScope), metrics=chosen?editor.selectionMetrics?.():null;
@@ -192,8 +194,9 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
     const incompleteCharacterMask=Boolean(advisory);
     workspace.dataset.selectionTool=mode;workspace.classList.toggle('has-guided-selection',chosen);
     sidebar.classList.toggle('has-guided-selection',chosen);
-    guide.hidden=!isReplace()||chosen||!helpOpen;guide.classList.toggle('is-compact',learned);
-    guide.querySelector('strong').textContent=scopeInstruction(scope.value,characterScope,mode==='brush');
+    const protecting=isReplace()&&scope.value==='location'&&editor.getSelectionTarget?.()==='protect-object';
+    guide.hidden=!isReplace()||(chosen&&!protecting)||!helpOpen||editor.isBusy();guide.classList.toggle('is-compact',learned||protecting);
+    guide.querySelector('strong').textContent=protecting?'Click an object to keep unchanged.':scopeInstruction(scope.value,characterScope,mode==='brush');
     guide.querySelector('p').textContent=scope.value==='person'?(characterScope==='face'?'Only the purple face area changes.':'Use Brush or Erase to refine the complete visible silhouette.'):'The purple selection is the only area that can change.';
     characterModes.hidden=!characterMode;
     for(const b of characterModes.querySelectorAll('[data-viewer-character-scope]')){b.setAttribute('aria-pressed',String(b.dataset.viewerCharacterScope===characterScope));b.disabled=submitting||editor.isBusy()||loadingReference;}
@@ -206,13 +209,15 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
       prompt.placeholder=characterMode&&characterScope==='face'?'Describe the new face…':type.placeholder;
       for(const button of kinds.children){button.setAttribute('aria-pressed',String(button.dataset.viewerKind===scope.value));button.disabled=submitting||editor.isBusy()||loadingReference;}
     }
-    locationNote.hidden=invert.hidden=!isReplace()||scope.value!=='location';invert.disabled=!chosen||submitting||editor.isBusy();
+    locationNote.hidden=invert.hidden=keepObject.hidden=!isReplace()||scope.value!=='location';invert.disabled=submitting||editor.isBusy();
+    keepObject.disabled=!chosen||submitting||editor.isBusy();keepObject.setAttribute('aria-pressed',String(protecting));
+    selectedCard.setAttribute('aria-busy',String(loadingReference));
     input.disabled=submitting||loadingReference||isReplace()&&scope.value==='location';
     if(isReplace())uploadRow.querySelector('label').classList.toggle('is-unavailable',scope.value==='location');
     scope.disabled=remove.disabled=submitting;
     if(!isReplace())input.disabled=submitting;
     generate.disabled=submitting||loadingReference||quoting||uncertain||!quote||!editor.hasSelection()||editor.isBusy()||incompleteCharacterMask;
-    generate.textContent=submitting?'Generating…':quote?'Generate · '+quote.label:'Generate';
+    generate.textContent=submitting?'Generating…':loadingReference?'Loading references…':quoting?'Checking price…':quote?'Generate · '+quote.label:'Generate';
   }
   function invalidate() {
     ++quoteRevision; quote=null; quoting=false; clearTimeout(quoteTimer); quoteTimer=null;
@@ -263,6 +268,8 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
   remove.addEventListener('click',()=>{if(submitting)return;clearReference();editor.setExternalMode(false);invalidate();});
   scope.addEventListener('change',invalidate); prompt.addEventListener('input',invalidate);
   workspace.addEventListener('precision-selection-change',invalidate);
+  workspace.addEventListener('precision-selection-target-change',refresh);
+  workspace.addEventListener('precision-selection-busy',event=>{refresh();if(event.detail?.changed&&!editor.isBusy())invalidate();});
   generate.addEventListener('click',async()=>{
     if(generate.disabled||!quote)return;
     const prepared=quote, ticket=revision, version=quoteRevision;
@@ -313,7 +320,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
     editor.close();editor.setExternalMode(false);home.after(workspace);uploadHome.after(uploadRow);
     for(const [node,marker] of moves.reverse()){marker.after(node);marker.remove();}moves.length=0;
     for(const [node,text] of labels)node.textContent=text;labels.clear();title.remove();help.remove();sidebar.remove();
-    dialog.classList.remove('is-viewer-editing');workspace.classList.remove('has-viewer-reference','is-guided-replace','has-guided-selection');guide.hidden=kinds.hidden=hint.hidden=library.hidden=selectedCard.hidden=locationNote.hidden=invert.hidden=characterModes.hidden=selectionAdvice.hidden=true;++libraryTicket;
+    dialog.classList.remove('is-viewer-editing');workspace.classList.remove('has-viewer-reference','is-guided-replace','has-guided-selection');guide.hidden=kinds.hidden=hint.hidden=library.hidden=selectedCard.hidden=locationNote.hidden=invert.hidden=keepObject.hidden=characterModes.hidden=selectionAdvice.hidden=true;++libraryTicket;
     editor.setSelectionTarget('');
     workspace.setAttribute('aria-label',original.title);fields.hidden=options.hidden=true;options.open=false;
     back.textContent=original.back;back.setAttribute('aria-label',original.backLabel);back.removeAttribute('title');
