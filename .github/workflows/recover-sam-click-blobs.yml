@@ -1,0 +1,34 @@
+name: Read tested selection patch hashes
+on:
+  push:
+    branches: [verify/replace-audit-published-20261108]
+    paths: [.github/workflows/recover-sam-click-blobs.yml]
+permissions:
+  contents: read
+jobs:
+  hashes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 2e22f94384000d7854b67f01db8f9296a7619400
+          persist-credentials: false
+      - name: Reconstruct the tested files and report content-addressed hashes only
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import pathlib,subprocess,textwrap
+          y=pathlib.Path('.github/workflows/prepare-sam-click-fix.yml').read_text()
+          a=y.index('      - name: Apply exact reviewed selection patches');b=y.index('      - name:',a+20)
+          block=textwrap.dedent(y[a:b].split('        run: |\n',1)[1])
+          script=block.split("python3 - <<'PY'\n",1)[1].rsplit('\nPY',1)[0]
+          exec(compile(script,'reviewed-selection-patch','exec'))
+          expected={'lab/precision-edit.js':'a4f26f460c4de2db9566dfa1f342f384fd08d0a6','lab-worker/precision-edit.mjs':'0cd8855a59ec004931fae0780fb8920928b91e44'}
+          for path in ['lab/precision-edit.js','lab-worker/precision-edit.mjs','lab/lab.js','lab/studio.html','.github/workflows/pv-lab-precision-edit-ui.yml']:
+            h=subprocess.check_output(['git','hash-object',path],text=True).strip()
+            if path in expected:assert h==expected[path],'Tested source mismatch: '+path
+            print('TESTED_BLOB',path,h)
+          print('BASE_TREE',subprocess.check_output(['git','rev-parse','HEAD^{tree}'],text=True).strip())
+          print('Read-only reconstruction complete. No remote files, production resources or paid requests changed.')
+          PY
