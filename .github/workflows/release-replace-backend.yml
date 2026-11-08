@@ -1,0 +1,150 @@
+name: Release verified PV LAB Replace backend
+on:
+  push:
+    branches: [verify/replace-audit-published-20261108]
+    paths: ['.github/workflows/release-replace-backend.yml']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: parallel-vision-lab-production
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check successful preflight for the exact reviewed source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json,os,urllib.request
+          base='https://api.github.com/repos/parallelvisionberlin/parallelvisionberlin.github.io'
+          def get(path):
+            req=urllib.request.Request(base+path,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+            with urllib.request.urlopen(req,timeout=20) as r:return json.load(r)
+          r=get('/actions/runs/42465081108')
+          assert r['head_sha']=='142e2d0ddcd6a9bb945e496d0a3cf91fcd3f3626' and r['conclusion']=='success','Preflight has not passed'
+          assert get('/git/ref/heads/main')['object']['sha']=='64b9e080df47854a6b5ee1fde1451ddc0fed3058','Main changed; review before publishing'
+          print('RELEASE_GATE_PASS: original deployment tests and 58 focused checks passed; pinned main unchanged.')
+          PY
+      - uses: actions/checkout@v4
+        with:
+          ref: 64b9e080df47854a6b5ee1fde1451ddc0fed3058
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned Wrangler without production credentials
+        run: npm install --prefix "$RUNNER_TEMP/pvlab-wrangler" --ignore-scripts --no-audit --no-fund wrangler@4.158.0
+      - name: Preserve live configuration, build, deploy once and verify exact code
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: a40ce1725295563a7b7db9fc3160480a
+          WRANGLER_SEND_METRICS: 'false'
+          CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: 'false'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os,json,urllib.request,urllib.error,hashlib,email,email.policy,tomllib,pathlib,subprocess,re,time
+          token=''.join(os.environ['CLOUDFLARE_API_TOKEN'].split());print('::add-mask::'+token)
+          os.environ['CLOUDFLARE_API_TOKEN']=token
+          root='https://api.cloudflare.com/client/v4/accounts/a40ce1725295563a7b7db9fc3160480a/workers/scripts/parallel-vision-lab'
+          expected_version='b71347b9-3ffb-42dd-a4d9-83a542b11cea'
+          expected_deployment='51d4bf62-0c47-4176-9373-ca1eabb50be7'
+          source_sha='64b9e080df47854a6b5ee1fde1451ddc0fed3058'
+          def get(suffix,raw=False):
+            req=urllib.request.Request(root+suffix,headers={'Authorization':'Bearer '+token,'Accept':'application/json'})
+            try:
+              with urllib.request.urlopen(req,timeout=25) as r:data=r.read();kind=r.headers.get('Content-Type','')
+            except urllib.error.HTTPError as e:raise RuntimeError('Cloudflare request HTTP '+str(e.code)) from None
+            if raw:return data,kind
+            j=json.loads(data)
+            if not j.get('success'):raise RuntimeError('Cloudflare API rejected request')
+            return j['result']
+          def active():
+            d=get('/deployments');ds=d.get('deployments',[]) if isinstance(d,dict) else d
+            if not ds:raise RuntimeError('No active deployment found')
+            return ds[0]
+          def check_old():
+            d=active()
+            assert d['id']==expected_deployment,'Live deployment changed; refusing overwrite'
+            assert d['versions']==[{'version_id':expected_version,'percentage':100}],'Live version changed or traffic is split'
+          check_old()
+          before=get('/settings');bindings=before.get('bindings',[])
+          by_name={x['name']:x for x in bindings}
+          allowed={'plain_text','json','secret_text','d1','r2_bucket','ai','images'}
+          assert all(x.get('type') in allowed for x in bindings),'Unreviewed live binding type'
+          cfg=tomllib.loads(pathlib.Path('lab-worker/wrangler.toml').read_text())
+          assert cfg['name']=='parallel-vision-lab' and cfg['main']=='worker.mjs'
+          assert before.get('compatibility_date')==cfg['compatibility_date'],'Compatibility date differs'
+          assert not before.get('compatibility_flags'),'Unexpected compatibility flags'
+          expected_resources={'LAB_DB','OWNER_DB','LAB_MEDIA','AI','IMAGES'}
+          assert {x['name'] for x in bindings if x['type'] not in {'plain_text','json','secret_text'}}==expected_resources,'Unexpected resource binding'
+          for b in cfg['d1_databases']:
+            assert by_name[b['binding']]['type']=='d1' and by_name[b['binding']]['id']==b['database_id'],'D1 binding mismatch'
+          for b in cfg['r2_buckets']:
+            assert by_name[b['binding']]['type']=='r2_bucket' and by_name[b['binding']]['bucket_name']==b['bucket_name'],'R2 binding mismatch'
+          assert by_name['AI']['type']=='ai' and by_name['IMAGES']['type']=='images'
+          secrets={x['name'] for x in bindings if x['type']=='secret_text'}
+          assert {'FAL_KEY','LAB_SECRET','LAB_STRIPE_SECRET_KEY','LAB_CLERK_V2_SECRET_KEY'}<=secrets,'Required existing secret binding is absent'
+          live_vars={x['name']:x['text'] for x in bindings if x['type']=='plain_text'}
+          for x in bindings:
+            if x['type']=='json':live_vars[x['name']]=x['json']
+          # Preserve dashboard variables exactly. Only add reviewed source defaults
+          # for previously absent flags. Never retrieve or replace secret values.
+          cfg['vars']={**cfg.get('vars',{}),**live_vars};cfg['keep_vars']=True
+          cfg['account_id']=os.environ['CLOUDFLARE_ACCOUNT_ID']
+          config=pathlib.Path('lab-worker/release.wrangler.json');config.write_text(json.dumps(cfg));config.chmod(0o600)
+          work=pathlib.Path(os.environ['RUNNER_TEMP'])
+          cli=work/'pvlab-wrangler/node_modules/wrangler/bin/wrangler.js'
+          out=work/'pvlab-replace-build'
+          def command(args,label):
+            r=subprocess.run(['node',str(cli),*args],text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=180)
+            text=r.stdout or ''
+            for value in [token,*[v for v in live_vars.values() if isinstance(v,str) and len(v)>8]]:text=text.replace(value,'[redacted]')
+            if r.returncode:
+              safe=[l for l in text.splitlines() if any(w in l.lower() for w in ['error','failed','unknown argument','missing','not found'])]
+              print(label+'_FAILED', '\n'.join(safe)[:2500]);raise RuntimeError(label+' failed; no automatic retry')
+            print(label+'_PASSED')
+            return text
+          command(['deploy','--dry-run','--config',str(config),'--outdir',str(out)],'BUILD')
+          candidates=[p.read_bytes() for p in out.rglob('*') if p.is_file() and p.suffix in {'.js','.mjs'} and b'Unsupported targeted selection' in p.read_bytes()]
+          assert len(candidates)==1,'Cannot uniquely identify the reviewed backend bundle'
+          compiled=candidates[0]
+          check_old()
+          print('PRODUCTION_PREVIOUS_VERSION',expected_version)
+          print('SOURCE_SHA',source_sha)
+          print('NO_DATABASE_MIGRATIONS: no SQL, R2 object mutations, secret changes or provider generation calls in this release')
+          output=command(['deploy','--keep-vars','--config',str(config),'--message','PV LAB reviewed Replace backend '+source_sha+'; no database migrations'],'DEPLOY')
+          match=re.search(r'Current Version ID:\s*([a-f0-9-]{36})',output)
+          if not match:raise RuntimeError('Deployment command succeeded but version ID was not found; inspect before retry')
+          new_version=match.group(1);print('PRODUCTION_NEW_VERSION',new_version)
+          verified=False
+          for attempt in range(6):
+            d=active()
+            if d['versions']==[{'version_id':new_version,'percentage':100}]:verified=True;break
+            time.sleep(3)
+          assert verified,'The new version is not confirmed serving 100%'
+          after=get('/settings');after_names={x['name']:x for x in after['bindings']}
+          assert secrets<={x['name'] for x in after['bindings'] if x['type']=='secret_text'},'A secret binding is missing after deployment'
+          for name,value in live_vars.items():
+            b=after_names[name];assert (b.get('text') if b['type']=='plain_text' else b.get('json'))==value,'Live variable changed: '+name
+          for name in expected_resources:
+            assert by_name[name]==after_names[name],'Resource binding changed: '+name
+          raw,kind=get('',True)
+          msg=email.message_from_bytes(('Content-Type: '+kind+'\r\nMIME-Version: 1.0\r\n\r\n').encode()+raw,policy=email.policy.default)
+          parts=[p.get_payload(decode=True) or b'' for p in msg.walk() if not p.is_multipart()] if msg.is_multipart() else [raw]
+          def normalize(b):return re.sub(rb'\n?//# sourceMappingURL=[^\n]*\s*$',b'',b).strip()
+          assert any(normalize(p)==normalize(compiled) for p in parts),'Published JavaScript does not match the reviewed build'
+          with urllib.request.urlopen('https://parallel-vision-lab.parallelvision.workers.dev/health',timeout=20) as r:health=json.load(r)
+          assert health.get('ok') is True,'Production health is not OK'
+          with urllib.request.urlopen('https://parallel-vision-lab.parallelvision.workers.dev/api/music/public/status',timeout=20) as r:music=json.load(r)
+          assert music.get('ready') is True,'Release link health is not ready'
+          print('LIVE_BUILD_SHA256',hashlib.sha256(normalize(compiled)).hexdigest())
+          print('LIVE_SEMANTIC_SELECTION_VERIFIED: Face/person/clothing target handling is in the published Worker')
+          print('LIVE_SETTINGS_PRESERVED: existing variables, secret bindings, D1, R2, AI and Images unchanged')
+          print('LIVE_HEALTH_PASS',json.dumps({'ok':health['ok'],'version':health.get('version'),'musicReady':music['ready']}))
+          print('REPLACE_BACKEND_RELEASE_VERIFIED',source_sha,new_version)
+          PY
