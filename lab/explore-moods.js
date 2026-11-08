@@ -45,8 +45,14 @@ function initialize(){
   const resultImg=$('mc-look-result-image'),resultLoading=$('mc-look-result-loading');
   const resultActions=$('mc-look-result-actions');
   const prepay=$('mc-look-prepay'),paymentCodes=new Set(['TRIAL_PAUSED','INSUFFICIENT_CREDITS']);
+  function trackJourney(event,detail='none'){
+    if(navigator.doNotTrack==='1'||navigator.globalPrivacyControl===true||navigator.webdriver===true)return;
+    void generationService().then(client=>client.trackJourney?.(event,detail)).catch(()=>{});
+  }
+  prepay.querySelector('.mc-prepay-buy')?.addEventListener('click',()=>trackJourney('offer_clicked'));
   $('mc-look-prepay-back').onclick=()=>close();
   function showPrepayOffer(){
+    trackJourney('offer_viewed');
     prepay.hidden=false;
     dialog.classList.add('is-prepay-offer');
     dialog.classList.remove('is-generation-blocked');
@@ -64,6 +70,7 @@ function initialize(){
   resultPack.querySelector('.mc-credit-buy')?.addEventListener('click',()=>{
     if(!resultNeedsCredits)return;
     void generationService().then(client=>client.trackMoodOffer?.('offer_clicked')).catch(()=>{});
+    trackJourney('offer_clicked');
   });
   let runSerial=0,activeJobId=null,resultURL=null,resultBlob=null,resultOutputId=null,waitNoteTimer=null;
   function clearResult(){
@@ -353,6 +360,7 @@ function initialize(){
     try{validateMoodHandoff({file:input});}
     catch(error){showUploadError(input,error);return false;}
     clearPhoto();file=input;
+    trackJourney('photo_added');
     fileURL=URL.createObjectURL(file);
     const photo=document.createElement('img');photo.id='mc-look-file-preview';photo.className='mc-look-file-preview';
     photo.alt='Chosen photo to transform';photo.src=fileURL;
@@ -365,6 +373,7 @@ function initialize(){
   function showMood(selected,photo=null){
     if(!selected||busy)return;
     clearResult();resetPrice();mood=selected;moodVariant='original';renderVariation();clearPhoto();direction.value='';status.textContent='';
+    trackJourney('mood_selected',selected.id==='berlin-rave'?'berlin-rave':'other');
     const preview=$('mc-look-preview');
     preview.dataset.moodId=selected.id;
     // Reuse the gallery's HD image while the untouched original decodes offscreen.
@@ -477,6 +486,7 @@ function initialize(){
   });
   generate.onclick=()=>void (async()=>{
     if(!hasGenerationInput()||busy)return;
+    trackJourney('generate_clicked');
     if(needsSignIn||paymentCodes.has(blockedCode)){showPrepayOffer();return;}
     if(blockedCode)return;
     const stamp=priceRevision,serial=++runSerial;
