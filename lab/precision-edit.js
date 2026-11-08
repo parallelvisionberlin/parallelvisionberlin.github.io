@@ -1,5 +1,5 @@
 import {SAM_CANDIDATE_LIMIT,SAM_CLICK_MISS,samClickCandidate,preferSamCandidate,samForegroundCandidate,samBackgroundCandidate} from './sam-click-mask.js?v=20261108-regions1';
-import {createSelectionFeedback} from './selection-feedback.js?v=20261108-regions1';
+import {createSelectionFeedback} from './selection-feedback.js?v=20261108-picker1';
 /* Precision Edit: large base canvas, SAM 3 point segmentation, mask brushes,
    non-destructive FLUX inpainting and original-pixel client-side compositing. */
 export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,owner,falReady,magicReady=falReady,customer=()=>false,onJob,onExit}){
