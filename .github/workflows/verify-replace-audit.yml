@@ -1,0 +1,52 @@
+name: Verify audited Replace release
+on:
+  push:
+    branches: [verify/replace-audit-published-20261108]
+    paths: ['.github/workflows/verify-replace-audit.yml']
+permissions:
+  contents: read
+  checks: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 2}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22.16.0'}
+      - name: Verify Cloudflare production and exact source bytes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import {verifyRelease,productionUrl} from './.github/scripts/verify-pvlab-release.mjs';
+          import {execFileSync} from 'node:child_process';
+          import {createHash} from 'node:crypto';
+          const sha='4edc1437e032ae4de0229113d93febff86a034bc';
+          const source=asset=>execFileSync('git',['show',sha+':'+asset]);
+          const hash=blob=>createHash('sha256').update(blob).digest('hex');
+          const html=source('lab/studio.html').toString();
+          const refs=[...html.matchAll(/<(?:script|link)\b[^>]*\b(?:src|href)=["']([^"']+)["']/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'),productionUrl));
+          const entry=refs.find(x=>x.pathname==='/lab.js');
+          if(!entry||!entry.searchParams.has('replaceAudit'))throw Error('Expected Replace audit version not published');
+          const main=await verifyRelease({sha,asset:'lab/lab.js',version:entry.searchParams.get('v'),sourceBytes:source('lab/lab.js')});
+          console.log('MAIN',main);
+          if(main.state!=='LIVE_VERIFIED')throw Error(main.state);
+          const modulePairs=[
+            ['lab/lab.js','lab/image-viewer-editor.js'],
+            ['lab/image-viewer-editor.js','lab/viewer-replacement-library.js']
+          ];
+          for(const [parent,child] of modulePairs){
+            const name=child.split('/').at(-1).replace(/\./g,'\\.');
+            const match=source(parent).toString().match(new RegExp("from\\s+['\\\"](\\./"+name+"\\?[^'\\\"]+)['\\\"]"));
+            if(!match)throw Error('Missing versioned import '+parent+' '+child);
+            const uri=new URL(match[1],new URL('/'+parent.slice(4),productionUrl));
+            const response=await fetch(uri,{cache:'no-store',signal:AbortSignal.timeout(15000)});
+            if(!response.ok)throw Error('Could not load '+child+': '+response.status);
+            const bytes=Buffer.from(await response.arrayBuffer());
+            if(hash(bytes)!==hash(source(child)))throw Error('LIVE_BYTES_MISMATCH '+child);
+            console.log('LIVE_VERIFIED',child,hash(bytes));
+          }
+          console.log('REPLACE_AUDIT_PRODUCTION_VERIFIED',sha);
+          JS
