@@ -1,0 +1,71 @@
+name: ALTER makeup photo asset inspection
+on:
+  push:
+    branches: [feature/alter-makeup-16-editorial-20261108]
+    paths: [.github/workflows/alter-makeup-photo-review.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download four newly generated high-resolution photo contact sheets
+        run: |
+          mkdir -p /tmp/alter-makeup
+          curl --fail --location --silent --show-error --retry 2 'https://d8j0ntlcm91z4.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/hf_20261108_094401_ac2f9c04-5528-4bad-b781-5fcc59cd02ea.png' -o /tmp/alter-makeup/sheet-0.png
+          curl --fail --location --silent --show-error --retry 2 'https://d8j0ntlcm91z4.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/hf_20261108_094402_c22028bd-1610-4dc8-a3dd-8caf5cf6f90d.png' -o /tmp/alter-makeup/sheet-1.png
+          curl --fail --location --silent --show-error --retry 2 'https://d8j0ntlcm91z4.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/hf_20261108_094402_c8a3111c-1f84-4762-9127-f4cff5fa784d.png' -o /tmp/alter-makeup/sheet-2.png
+          curl --fail --location --silent --show-error --retry 2 'https://d8j0ntlcm91z4.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/hf_20261108_094402_434d64b9-44a9-4ab9-b9a6-bc19275f47e8.png' -o /tmp/alter-makeup/sheet-3.png
+          python3 -m pip install --quiet Pillow
+      - name: Crop and inspect 16 different makeup portraits
+        run: |
+          python3 - <<'PY'
+          from PIL import Image,ImageDraw,ImageFont,ImageOps,ImageStat,ImageFilter
+          from pathlib import Path
+          import json,zipfile,hashlib
+          root=Path('/tmp/alter-makeup');out=root/'assets';out.mkdir()
+          groups=[
+           ['natural','soft-glam','soft-nude','rose'],
+           ['editorial','bold','graphic-liner','vinyl-black'],
+           ['metallic','shimmer','crystal','wet-look'],
+           ['smoky','monochrome-taupe','bronze','deep-plum']
+          ]
+          records=[];preview=Image.new('RGB',(4*280,4*235),(13,13,13));d=ImageDraw.Draw(preview)
+          for i,g in enumerate(groups):
+           source=Image.open(root/f'sheet-{i}.png').convert('RGB')
+           W,H=source.size
+           assert W>=1024 and H>=1024,('Sheet too small',i,(W,H))
+           for j,name in enumerate(g):
+            x=j%2;y=j//2
+            # Crop 1% inset to exclude any composite boundary while retaining faces.
+            crop=source.crop((round(W*(x*.5+.01)),round(H*(y*.5+.01)),round(W*((x+1)*.5-.01)),round(H*((y+1)*.5-.01))))
+            assert crop.width>=475 and crop.height>=475,(name,crop.size)
+            fname=f'alter-makeup-{name}-20261108.webp'
+            crop.save(out/fname,format='WEBP',quality=90,method=6)
+            data=(out/fname).read_bytes()
+            assert 12000<len(data)<350000,(name,len(data))
+            avg=ImageStat.Stat(crop).stddev
+            assert max(avg)>25,(name,avg)
+            records.append(dict(name=name,size=crop.size,bytes=len(data),sha256=hashlib.sha256(data).hexdigest()))
+            cx=(i%4)*280;cy=j*235
+            thumb=ImageOps.fit(crop,(270,205),method=Image.Resampling.LANCZOS,centering=(.5,.45))
+            preview.paste(thumb,(cx+5,cy+5))
+            d.text((cx+8,cy+214),name,fill=(240,240,240))
+          preview.save(root/'makeup-contact-preview.jpg',quality=87)
+          (root/'manifest.json').write_text(json.dumps(records,indent=2))
+          with zipfile.ZipFile(root/'makeup-photo-assets.zip','w',zipfile.ZIP_DEFLATED) as z:
+           for p in out.glob('*.webp'):z.write(p,arcname=p.name)
+           z.write(root/'manifest.json',arcname='manifest.json')
+           z.write(root/'makeup-contact-preview.jpg',arcname='makeup-contact-preview.jpg')
+          print('Makeup tiles:');print(json.dumps(records,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alter-makeup-photo-crops
+          path: |
+            /tmp/alter-makeup/makeup-photo-assets.zip
+            /tmp/alter-makeup/makeup-contact-preview.jpg
+            /tmp/alter-makeup/manifest.json
+          retention-days: 3
