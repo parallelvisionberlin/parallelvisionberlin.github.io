@@ -1324,10 +1324,6 @@
         {
           "label": "Full isolated regression",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42312800540"
-        },
-        {
-          "label": "Production evidence",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42313460601"
         }
       ],
       "tests": [
