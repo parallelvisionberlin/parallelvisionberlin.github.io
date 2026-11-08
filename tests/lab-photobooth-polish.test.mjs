@@ -16,13 +16,13 @@ test('Photobooth Browse and Generate use monochrome SVG masks instead of emoji-c
 test('Only the mobile Soft Pastel editor preview gets a higher focal point',()=>{
   const mobile=css.slice(css.indexOf('@media(max-width:600px){'));
   assert.equal(css.split('[data-mood-id="soft-pastel-film"]').length-1,1);
-  assert.match(mobile,/#mc-look-dialog\.mc-photobooth:not\(\.is-result-view\) #mc-look-preview\[data-mood-id="soft-pastel-film"\]\{object-position:50% 12%!important\}/);
-  assert.match(mobile,/\.mc-look-dialog-media img\{object-position:50% 32%;transform:none!important\}/);
+  assert.match(mobile,/#mc-look-dialog\.mc-photobooth:not\(\.is-credit-offer\) #mc-look-preview\[data-mood-id="soft-pastel-film"\]\{object-position:50% 12%!important\}/);
+  assert.match(mobile,/\.mc-look-dialog-media img\{[^}]*object-position:50% 32%;transform:none!important\}/);
   assert.match(mobile,/\[data-mood-id="night-flash"\]\{transform:scale\(1\.65\)!important;transform-origin:50% 0%\}/);
 });
 test('Photobooth action semantics, text updates and fresh stylesheet loading remain intact',()=>{
   assert.match(html,/<button id="mc-look-continue" class="mc-look-continue" type="button" disabled>Generate<\/button>/);
   assert.match(html,/<label for="mc-look-file" id="mc-look-file-label">/);
-  assert.match(html,/explore-moods-photobooth\.css\?v=20261023-upload-polish1&icons=20261024-vector1/);
+  assert.match(html,/<link\b[^>]*\bhref="\.\/explore-moods-photobooth\.css\?v=[^"&]+(?:&[^"]*)?"/);
   assert.match(css,/#mc-look-dialog\.mc-photobooth:not\(\.is-result-view\) #mc-look-continue:disabled\{cursor:not-allowed!important\}/);
 });

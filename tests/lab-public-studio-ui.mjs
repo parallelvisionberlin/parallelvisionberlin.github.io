@@ -107,6 +107,7 @@ const state=window.__publicAccount||=(()=>{
   }};return state;
 })();
 export const isNativeLab=()=>false;
+export const accountBootstrapMessage=error=>error?.message||'Test account setup failed.';
 export const loadLabAccount=async()=>{const role=window.__publicInitialRole||sessionStorage.getItem('pv-test-role');if(role&&!state.account.isSignedIn)await state.authorize(role);return state.account;};
 `;
 const server=http.createServer((req,res)=>{
@@ -334,7 +335,7 @@ try{
     await page.locator('#tool-image').click();await settled(page,'image');
     await page.locator('#tool-explore-moods').click();
     await page.waitForURL('**/lab/moods');
-    await page.getByRole('heading',{name:/Explore Moods/}).waitFor({state:'visible'});
+    await page.getByRole('heading',{name:/^Mood Atlas\b/}).waitFor({state:'visible'});
     await page.goBack();await settled(page,'image');
     // Guest upload entry must authenticate before the shared uploader sees a File.
     await page.locator('#tool-upscale').click();await settled(page,'upscale');
@@ -380,7 +381,7 @@ try{
         await fullPage(page,`test-results/studio-${role}-${route}-${width}.png`);
         if(route==='upscale'){
           await page.locator('#tool-explore-moods').click();await page.waitForURL('**/lab/moods');
-          await page.getByRole('heading',{name:/Explore Moods/}).waitFor({state:'visible'});
+          await page.getByRole('heading',{name:/^Mood Atlas\b/}).waitFor({state:'visible'});
           await page.goBack();await settled(page,route,true);
         }
         const privateField={video:'#prompt',retouch:'#precision-prompt',fashion:'#fashion-studio #direction'}[route];

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {labMetaPurchasePayload,sendLabMetaPurchase,PV_LAB_META_PIXEL_ID} from '../lab-worker/meta-capi.mjs';
 
 test('PV LAB uses its own Pixel ID, separate from Nina',()=>{

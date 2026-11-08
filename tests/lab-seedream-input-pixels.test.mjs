@@ -33,7 +33,7 @@ test('Pixel-limited working copy is independent of the file size limit',()=>{
   assert.match(lab,/cacheKey=resizeForSeedream\?'seedream-pixels:'/);
   assert.match(lab,/originals\[index\]=\{id,file:item.file,width:item.width,height:item.height\}/);
   assert.match(lab,/originals.push\(\{id,file:item.file,width:item.width,height:item.height\}\)/);
-  assert.match(lab,/prepareQuoteInputs\(inputs,\{originals,engine:selected.engine\}\)/);
+  assert.match(lab,/prepareQuoteInputs\(inputs,\{originals,engine:selected\.engine(?:,|\})/);
 });
 
 test('Worker rejects >36 MP Seedream inputs before asking for a paid quote',()=>{

@@ -157,9 +157,18 @@ try{
     assert.ok(compiled.includes(ref.note),'Compiled provider prompt includes note '+i);
   });
   assert.match(await page.locator('#reference-list .reference-element-item').last().innerText(),/8 attached \/ 8 saved photos/);
-  await page.locator('.composer-element-tile').first().locator('.composer-reference-remove').click();
+  async function removeReferenceFromTile(tile){
+    await tile.hover();
+    await tile.locator('.composer-reference-remove').click();
+  }
+  const roomTile=page.locator('.composer-element-tile').filter({hasText:'@MyRoom'});
+  await removeReferenceFromTile(roomTile);
   await page.waitForFunction(()=>document.querySelectorAll('.composer-element-tile').length===1);
   assert.match(await page.locator('.composer-element-tile').first().innerText(),/@Nina FOK/);
+  const afterRemoval=await page.evaluate(()=>window.__elementInputs());
+  assert.deepEqual(afterRemoval.roles.map(ref=>ref.elementId),Array(8).fill(nina.id),
+    'Removing the room leaves all eight Character photos attached');
+  const firstPhotoTile=page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile)').first();
   // Exercise the real empty-direction assembly and Base controls at both widths.
   for(const width of [1440,390]){
     await page.setViewportSize({width,height:900});
@@ -172,7 +181,7 @@ try{
     const firstBase=await page.evaluate(()=>window.__elementInputs());
     assert.equal(firstBase.roles[0].role,'base');
     assert.ok(firstBase.roles.slice(1).every(ref=>ref.role==='identity'));
-    await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
+    await removeReferenceFromTile(firstPhotoTile);
     const withoutBase=await page.evaluate(()=>window.__elementInputs());
     assert.equal(withoutBase.roles.length,8);
     assert.ok(withoutBase.roles.every(ref=>ref.role==='identity'),'Removing Base must never turn a Character photo into Base');
@@ -199,8 +208,8 @@ try{
     nina.refs.forEach((ref,i)=>assert.equal(replacedBase.roles.filter(ref=>ref.elementId===nina.id)[i].note,ref.note));
     assert.ok((await page.locator('#reference-guidance-text').textContent()).length<=5000);
     assert.equal(await page.locator('#image-composer-generate').isEnabled(),true);
-    await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
-    await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
+    await removeReferenceFromTile(firstPhotoTile);
+    await removeReferenceFromTile(firstPhotoTile);
     console.log('PASS '+width+'px Base replacement and empty direction preserve all eight full Character notes');
   }
   await page.setViewportSize({width:1440,height:900});
