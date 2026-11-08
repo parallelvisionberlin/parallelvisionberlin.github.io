@@ -16,6 +16,7 @@ test('16 makeup cards use matching distinct high-resolution local images and bac
   if(option.id==='keep')continue;
   const p=new URL('../lab/'+option.image.slice(2),import.meta.url);
   assert.ok(statSync(p).size>11000,option.id);
+  assert.match(option.image,/-20261108-v2\.webp$/);
   const b=readFileSync(p);
   assert.equal(b.subarray(0,4).toString(),'RIFF');
   assert.equal(b.subarray(8,12).toString(),'WEBP');
