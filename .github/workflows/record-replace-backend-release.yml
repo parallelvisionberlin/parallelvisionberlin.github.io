@@ -21,7 +21,7 @@ jobs:
         shell: bash
         run: |
           python3 - <<'PY'
-          import json,os,urllib.request,pathlib,datetime,subprocess,base64
+          import json,os,urllib.request,pathlib,datetime,subprocess
           base='https://api.github.com/repos/parallelvisionberlin/parallelvisionberlin.github.io'
           head='64b9e080df47854a6b5ee1fde1451ddc0fed3058'
           proof='https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42465480595'
@@ -43,25 +43,27 @@ jobs:
           r['blockers']=['Complex whole-person output quality remains unresolved: the current Seedream path does not receive a true inpainting mask.','Real-account selection and paid-provider result quality were not tested in this release.','The reported failed job raw output and mask remain unexamined.']
           r['deployment']={'state':'verified','sourceSha':head,'environment':'Cloudflare Pages pvlab.studio frontend; Cloudflare Worker parallel-vision-lab','observedAt':now,'evidenceUrl':proof,'limitations':['Frontend publication retains prior PR #926 proof. Worker version '+version+' is separately verified.','No real signed-in or paid-generation test was run. Whole-person mask-aware generation remains unresolved.','The first release job ended on a Python HTTP 403 health probe AFTER code deployment and exact-code/settings checks passed. A separate read-only curl health and active-version verification passed; no second deployment occurred.']}
           r['tests'].append({'label':'Worker release gate and live backend','result':'passed','scope':'447 existing deployment tests and 58 focused tests; exact compiled Worker match; active version verified; /health and music public status HTTP 200. No SQL migrations or provider jobs.'})
-          if len(r['links'])<20 and not any(x['url']==proof for x in r['links']):r['links'].append({'label':'Face/Whole person backend live proof', 'url':proof})
+          if len(r['links'])<20 and not any(x['url']==proof for x in r['links']):r['links'].append({'label':'Face/Whole person backend live proof','url':proof})
           r['evidence'].append({'kind':'production_asset','summary':'Published pinned reviewed Worker code; confirmed version '+version+' serving 100%, semantic selection present, public health HTTP 200, and existing settings/resources preserved.','scope':'parallel-vision-lab backend, no database migrations or paid inference','source':proof,'observedAt':now,'limitations':['Does not establish image quality or a real signed-in selection result.']})
           j['updatedAt']=now;p.write_text(json.dumps(j,ensure_ascii=False,indent=2)+'\n')
           q=pathlib.Path('lab/IMAGE-REPLACEMENT-WORK-STATE.md');text=q.read_text()
-          note='''## Latest release status, 2026-11-08 (supersedes historical credential/deployment blockers)
-
-- Existing GitHub Cloudflare token was verified active with expected Worker/D1 access. No replacement, rotation or permission changes were needed. Earlier missing/unusable-token notes below were incorrect.
-- Reviewed source `64b9e080df47854a6b5ee1fde1451ddc0fed3058` passed all 447 tests from the existing production deployment gate plus 58 focused replacement/backend tests.
-- Code-only Worker deployment completed at 09:01:30 UTC, version `e939d968-afd1-4432-a9ed-a7a128a472b2`, serving 100% of traffic. Rollback predecessor: `b71347b9-3ffb-42dd-a4d9-83a542b11cea`.
-- Face/person/clothing semantic target forwarding is now present in production. The downloaded compiled code matched the reviewed build. Existing live variable values, secret bindings, D1/R2/AI/Images bindings were preserved. No SQL migrations or paid provider calls were executed.
-- Initial deployment job reported failure only at the final Python health probe (HTTP 403), after deploy and code/settings assertions passed. Separate read-only curl verification with the application Origin and verifier User-Agent returned HTTP 200 for `/health` and `/api/music/public/status`, and independently confirmed the active version and semantic code. Do not rerun the deployment based on that initial red job.
-- Preflight: '''+preflight+'''
-- Deployment: '''+release+'''
-- Successful live verification: '''+proof+'''
-- Remaining: one real signed-in Whole person selection review; genuine mask-aware identity generation and output quality remain unresolved. Do not claim the bad Alma replacement or complex overlap quality is fixed. No paid image was generated during release verification.
-
-## Historical implementation and release notes
-
-'''
+          note='\n'.join([
+            '## Latest release status, 2026-11-08 (supersedes historical credential/deployment blockers)',
+            '',
+            '- Existing GitHub Cloudflare token was verified active with expected Worker/D1 access. No replacement, rotation or permission changes were needed. Earlier missing/unusable-token notes below were incorrect.',
+            '- Reviewed source `'+head+'` passed all 447 tests from the existing production deployment gate plus 58 focused replacement/backend tests.',
+            '- Code-only Worker deployment completed at 09:01:30 UTC, version `'+version+'`, serving 100% of traffic. Rollback predecessor: `b71347b9-3ffb-42dd-a4d9-83a542b11cea`.',
+            '- Face/person/clothing semantic target forwarding is now present in production. The downloaded compiled code matched the reviewed build. Existing live variable values, secret bindings, D1/R2/AI/Images bindings were preserved. No SQL migrations or paid provider calls were executed.',
+            '- Initial deployment job reported failure only at the final Python health probe (HTTP 403), after deploy and code/settings assertions passed. Separate read-only curl verification returned HTTP 200 for /health and /api/music/public/status, and independently confirmed the active version and semantic code. Do not rerun the deployment based on that initial red job.',
+            '- Preflight: '+preflight,
+            '- Deployment: '+release,
+            '- Successful live verification: '+proof,
+            '- Remaining: one real signed-in Whole person selection review; genuine mask-aware identity generation and output quality remain unresolved. Do not claim the bad Alma replacement or complex overlap quality is fixed. No paid image was generated during release verification.',
+            '',
+            '## Historical implementation and release notes',
+            '',
+            ''
+          ])
           assert text.startswith('# Image replacement flow\n')
           q.write_text('# Image replacement flow\n\n'+note+text.split('\n',1)[1].lstrip())
           subprocess.run(['node','scripts/owner-work-state.mjs','validate'],check=True)
