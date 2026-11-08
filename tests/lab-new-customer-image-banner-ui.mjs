@@ -127,6 +127,29 @@ async function run(width,height){
     await page.evaluate(()=>document.getElementById('app').classList.remove('pv-moods-discovery-open'));
     assert.ok(Math.abs((await frame()).cardTop-before.cardTop)<2,
       'Returning to first Image restores the exact compact geometry');
+    // The approved 09:37 reference includes a selected Mood and expanded
+    // prompt. Protect that state too: no title collision, card resizing,
+    // hidden photography or a Generate button pushed beneath browser chrome.
+    await page.locator('#image-composer-prompt').fill(
+      'A cinematic fashion editorial with natural texture and controlled light. '.repeat(24));
+    await page.waitForFunction(()=>
+      document.getElementById('image-composer').classList.contains('pv-deck-expanded'));
+    const expanded=await frame();
+    assert.ok(Math.abs(expanded.cardHeight-before.cardHeight)<2,
+      'Selecting a long direction never shrinks the original Mood cards');
+    if(height>=690){
+      assert.ok(expanded.gap>=16,
+        'Long prompt does not pull Mood cards into the title: '+JSON.stringify(expanded));
+      assert.ok(expanded.cardBottom<=expanded.deckTop+3,
+        'Long prompt must leave all of both photographs above the fixed deck: '+JSON.stringify(expanded));
+    }
+    assert.ok(expanded.deckBottom<=height+2,
+      'Generate stays inside the viewport with long direction: '+JSON.stringify(expanded));
+    await page.locator('#image-composer-prompt').fill('');
+    await page.evaluate(()=>document.activeElement?.blur?.());
+    const restored=await frame();
+    assert.ok(Math.abs(restored.cardTop-before.cardTop)<2,
+      'Clearing long direction returns to original first-image geometry');
     if(height>=690){
       await page.mouse.wheel(0,500);
       assert.equal(await page.evaluate(()=>window.scrollY),0,
