@@ -113,6 +113,7 @@ export async function processAccountClosures(env,verifyBilling){
     if(tables.has('lab_clerk_migration_codes'))statements.push(env.LAB_DB.prepare('DELETE FROM lab_clerk_migration_codes WHERE canonical_id=?').bind(id));
     if(tables.has('lab_customer_contacts'))statements.push(env.LAB_DB.prepare('DELETE FROM lab_customer_contacts WHERE customer_id=?').bind(id));
     if(tables.has('lab_signup_welcome_emails'))statements.push(env.LAB_DB.prepare('DELETE FROM lab_signup_welcome_emails WHERE customer_id=?').bind(id));
+    if(tables.has('lab_customer_journey'))statements.push(env.LAB_DB.prepare('DELETE FROM lab_customer_journey WHERE customer_id=?').bind(id));
     statements.push(env.LAB_DB.prepare("UPDATE lab_account_closures SET state='deleted',completed_at=? WHERE customer_id=?").bind(Date.now(),id));
     await env.LAB_DB.batch(statements);
     }catch{failed=true;}
