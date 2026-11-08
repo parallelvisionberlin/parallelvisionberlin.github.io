@@ -1,0 +1,64 @@
+name: Prepare scoped Replace region fixes
+on:
+  push:
+    branches: [fix/replace-outfit-background-feedback-20261108]
+    paths: ['.github/workflows/prepare-replace-regions.yml']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22.16.0'}
+      - name: Apply baseline-checked scoped changes
+        run: python3 scripts/prepare-replace-regions-20261108.py
+      - name: Existing UI, billing, private-source and segmentation checks
+        run: |
+          node --check lab/precision-edit.js
+          node --check lab/image-viewer-editor.js
+          node --check lab-worker/precision-edit.mjs
+          node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-sam-click-mask.test.mjs tests/lab-precision-edit.test.mjs tests/lab-guided-replace.test.mjs tests/lab-viewer-scope.test.mjs tests/lab-viewer-inline.test.mjs tests/lab-image-replacement-backend.test.mjs tests/lab-image-replacement-composite.test.mjs
+          node --test tests/lab-worker.test.mjs
+      - name: Install isolated browser runner
+        run: |
+          npm install --prefix "$RUNNER_TEMP/pv-browser" --no-audit --no-fund playwright@1.56.1
+          "$RUNNER_TEMP/pv-browser/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Verify visible loading, clicked outfit, whole environment, protected objects and existing flows
+        env:
+          PV_PLAYWRIGHT_MODULE: ${{ runner.temp }}/pv-browser/node_modules/playwright/index.mjs
+        run: |
+          node tests/lab-sam-click-mask-ui.mjs
+          node tests/lab-precision-edit-ui.mjs
+          node tests/lab-image-replacement-flow-ui.mjs
+      - name: Commit only the tested non-workflow files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os,json,pathlib,urllib.request,subprocess
+          root='https://api.github.com/repos/parallelvisionberlin/parallelvisionberlin.github.io'
+          head=os.environ['GITHUB_SHA'];branch='fix/replace-outfit-background-feedback-20261108'
+          def api(path,method='GET',data=None):
+            req=urllib.request.Request(root+path,method=method,data=None if data is None else json.dumps(data).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+            with urllib.request.urlopen(req,timeout=30) as r:return json.load(r)
+          assert api('/git/ref/heads/'+branch)['object']['sha']==head,'Branch moved; do not overwrite'
+          paths=['lab/precision-edit.js','lab-worker/precision-edit.mjs','lab/viewer-selection-scope.js','lab/image-viewer-editor.js','lab/selection-feedback.js','lab/lab.js','lab/studio.html','tests/lab-viewer-scope.test.mjs','tests/lab-sam-click-mask.test.mjs','tests/lab-sam-click-mask-ui.mjs']
+          changed=set(subprocess.check_output(['git','diff','--name-only'],text=True).splitlines())
+          assert changed==set(paths),'Unexpected changed files: '+str(changed)
+          entries=[]
+          for path in paths:
+            blob=api('/git/blobs','POST',{'content':pathlib.Path(path).read_text(),'encoding':'utf-8'})
+            entries.append({'path':path,'mode':'100644','type':'blob','sha':blob['sha']})
+          entries.append({'path':'scripts/prepare-replace-regions-20261108.py','mode':'100644','type':'blob','sha':None})
+          old=api('/git/commits/'+head)
+          tree=api('/git/trees','POST',{'base_tree':old['tree']['sha'],'tree':entries})
+          commit=api('/git/commits','POST',{'message':'Fix outfit targeting, whole-background protection and immediate selection feedback','tree':tree['sha'],'parents':[head]})
+          assert api('/git/ref/heads/'+branch)['object']['sha']==head,'Branch changed during validation'
+          api('/git/refs/heads/'+branch,'PATCH',{'sha':commit['sha'],'force':False})
+          print('TESTED_REGION_FIX_COMMIT',commit['sha'])
+          print('No deployments, customer operations or paid provider calls were performed.')
+          PY
