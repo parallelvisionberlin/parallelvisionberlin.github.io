@@ -16,7 +16,7 @@ import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache
 import {loadLabAccount,accountBootstrapMessage} from './native-account.js?v=20261103-browser-bootstrap1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261107-scope1';
-import {createImageViewerEditor} from './image-viewer-editor.js?v=20261107-scope1';
+import {createImageViewerEditor} from './image-viewer-editor.js?v=20261108-loading-safety1';
 import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261102-local-currency';
 import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&creditPurchaseFlow=20261104v1&partnerMenu=20261027-bellini1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1&cookies=20261101-v1&conversionFlow=20261102-1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1&creditPurchaseFlow=20261104v1';
@@ -955,7 +955,7 @@ async function fetchCustomerImagePrice(s,check){
     let inputs={sourceId:sourceMode?originals[0]?.id||null:null,lastSourceId:null,
       referenceSourceIds:sourceMode?[]:originals.map(item=>item.id)};
     if(provider==='spicy'){
-      inputs=await prepareQuoteInputs(inputs,{originals,engine:selected.engine});check();
+      inputs=await prepareQuoteInputs(inputs,{originals,engine:selected.engine,onProgress:s.onProgress,detached:!!s.onProgress});check();
       if(!inputs)throw new Error('Price checking was cancelled. Nothing was charged.');
       const reply=await api('/api/quotes',{method:'POST',
         body:{...inputs,settings:selected,...(count>1?{count}:{})}});
@@ -4582,14 +4582,33 @@ async function stageViewerReplacement(selection){
   if(!destinations.length||destinations.length>9||destinations.some(ref=>!ref?.file))throw Error('Choose valid replacement photographs.');
   if(destinations.some(ref=>ref.label?.elementCategory&&ref.label.elementCategory!==({face:'characters',person:'characters',outfit:'outfits',object:'props'}[selection.scope])))
     throw Error('The saved reference does not match the selected replacement type.');
-  const proposed=[{file:selection.file},...destinations];
+  const proposed=[{file:selection.file,id:selection.id},...destinations];
   const issue=modelImageInputIssue(model,proposed);if(issue)throw Error(issue);
   const ratio=selection.width/selection.height,choices=[...$('ratio').options].map(o=>o.value);
   const crop=choices.includes('auto')?'auto':choices.find(value=>{const [w,h]=value.split(':').map(Number);return w>0&&h>0&&Math.abs(w/h/ratio-1)<=.01;});
   if(!crop)throw Error('This model cannot preserve this crop. Choose a model with Auto aspect ratio.');
   const inspected=[];
+  async function inspectReplacementSource(item){
+    if(!item.id)return inspectImage(item.file);
+    // A private saved asset was already validated on upload. Measure its original
+    // dimensions without creating a preview + thumbnail for all eight views.
+    const candidate=item.file;
+    if(!candidate?.size||candidate.size>20*1024*1024||!['image/png','image/jpeg','image/webp'].includes(candidate.type))
+      throw Error('A saved reference is missing or exceeds the supported image limits.');
+    const {width,height}=await imageDimensions(candidate);
+    if(Math.min(width,height)<240||Math.max(width,height)>12000||Math.max(width/height,height/width)>8)
+      throw Error('A saved reference has unsupported dimensions.');
+    return {file:candidate,id:item.id,width,height,url:null,thumbUrl:null};
+  }
   try{
-    for(const item of proposed){inspected.push(await inspectImage(item.file));check();}
+    for(let start=0;start<proposed.length;start+=3){
+      const batch=await Promise.allSettled(proposed.slice(start,start+3).map(inspectReplacementSource));
+      for(const result of batch)if(result.status==='fulfilled')inspected.push(result.value);
+      const failed=batch.find(result=>result.status==='rejected');
+      if(failed)throw failed.reason;
+      check();
+      selection.onProgress?.('Preparing '+Math.min(start+batch.length,proposed.length)+' / '+proposed.length+' source photographs. Nothing submitted.');
+    }
     if(inspected[0].file!==selection.file)throw Error('The original must remain unchanged for lossless replacement.');
     const originalId=selection.id||await uploadAsset(selection.file);check();
     const referenceIds=[];
@@ -4598,13 +4617,15 @@ async function stageViewerReplacement(selection){
     }
     const maskSourceId=await uploadAsset(new File([selection.mask],'replacement-selection.png',{type:'image/png'}));check();
     const selected={type:'image',engine:model,processing:'normal',referenceMode:'base',mode:'image',
-      prompt:'Replace the selected '+selection.scope+' using the provided reference.'+(selection.direction?' '+selection.direction:''),
+      prompt:'Replace the selected '+selection.scope+' using the provided reference. Keep the original camera, perspective, lighting, and the other people exactly as they are. Preserve every overlapping hand, arm, contact point, and visible garment unless it is within the purple selection and explicitly requested. Do not invent or relocate limbs, tattoos, accessories, faces, or extra subjects. Fit the new identity to the original pose and photograph.'+(selection.direction?' '+selection.direction:''),
       resolution,aspectRatio:crop,outputFormat:'png',exactPrompt:false,
       referenceRoles:[{name:'Original image',role:'base',note:'',target:''},...destinations.map(ref=>({...ref.label,name:ref.label?.name||'Replacement reference',role:selection.scope==='person'&&ref.label?.role==='body'?'body':roles[selection.scope],note:ref.label?.note||'',target:ref.label?.target||''}))],
       replacement:{version:1,originalSourceId:originalId,maskSourceId,scope:selection.scope,referenceSourceIds:referenceIds}};
     const inputs={sourceId:null,lastSourceId:null,referenceSourceIds:[originalId,...referenceIds]};
     const chosen=inspected.map((item,i)=>({file:item.file,id:inputs.referenceSourceIds[i],width:item.width,height:item.height}));
-    const priced=await fetchCustomerImagePrice({settings:selected,count:1,chosen,sourceMode:false,provider,disableAutoMoodReferences:true},check);check();
+    selection.onProgress?.('Checking the exact credit price and preparing references…');
+    const priced=await fetchCustomerImagePrice({settings:selected,count:1,chosen,sourceMode:false,provider,disableAutoMoodReferences:true,
+      onProgress:(phase,detail)=>selection.onProgress?.(phase+(detail?': '+detail:''))},check);check();
     if(!Number.isSafeInteger(priced?.credits)||priced.credits<1||!Number.isFinite(priced.expiresAt)||priced.expiresAt<=Date.now()+15000)
       throw Error('A valid price could not be confirmed. Nothing was charged.');
     const bound=priced.quotes?.[0];

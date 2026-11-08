@@ -11,7 +11,7 @@ function fixture({provider='spicy',badQuote=false,networkFailure=false}={}){
  const controls={resolution:{value:'1k'},ratio:{options:[{value:'auto'},{value:'4:3'}]}};
  const state={owner:true,epoch:1,imageEngine:provider==='fal'?'krea3':provider==='gemini'?'gemini':'seedream',currentProvider:()=>provider,$:id=>controls[id],busy:false,imageSubmissionPending:false,
    config:{imageReplacementEnabled:true},tool:'image',customerImageProviderReady:()=>true,customerMode:true,customerGenerationReady:true,customerCreditBalance:100,
-   modelImageInputIssue:()=>null,inspectImage:async file=>({file,width:640,height:480}),uploadAsset:async file=>{uploads.push(file);return 'asset-'+uploads.length;},
+   modelImageInputIssue:()=>null,inspectImage:async file=>({file,width:640,height:480}),imageDimensions:async()=>({width:640,height:480}),uploadAsset:async file=>{uploads.push(file);return 'asset-'+uploads.length;},
    File,Date:{now:()=>clock},releaseReference:()=>{},activeStates:new Set(['queued']),slotStates:new Set(['queued']),activeJobs:[],limitFor:()=>4,jobProvider:()=>provider,
    money:n=>'$'+n.toFixed(2),confirm:()=>true,setActive:job=>recorded.push(job),surfaceHistoryJob:job=>recorded.push(job),refreshHistorySoon:()=>{},
    imageReplacement:{finalize:async job=>({...job,settings:{...job.settings,replacementFinalized:true}})},
@@ -82,4 +82,22 @@ test('Face scope quotes face-only metadata rather than full-person physique',asy
  assert.match(priced[0].settings.prompt,/selected face/);
  assert.equal(priced[0].settings.referenceRoles[1].role,'identity');
  assert.equal(f.requests.length,0,'Pricing is not paid generation');
+});
+
+test('saved sources do not re-render preview thumbnails before quote, and progress never submits a job',async()=>{
+ const f=fixture(),notices=[];
+ f.selection.onProgress=message=>notices.push(message);
+ f.selection.references=Array.from({length:8},(_,i)=>({
+   file:new File(['view'],'view-'+i+'.png',{type:'image/png'}),id:'saved-'+i,
+   label:{role:i===7?'body':'identity',note:'view note '+i,elementCategory:'characters'}
+ }));
+ let unnecessaryPreviews=0,dimensions=0;
+ f.state.inspectImage=async()=>{unnecessaryPreviews++;throw Error('Private saved sources should not make thumbs');};
+ f.state.imageDimensions=async()=>{dimensions++;return {width:640,height:480};};
+ const result=await f.prepare();
+ assert.equal(unnecessaryPreviews,0);
+ assert.equal(dimensions,9,'Original and eight owned references are measured without preview rendering');
+ assert.ok(notices.some(x=>/Preparing 9 \/ 9/.test(x)));
+ assert.ok(notices.some(x=>/Checking the exact credit price/.test(x)));
+ assert.equal(result.label,'35 credits');assert.equal(f.requests.length,0);
 });

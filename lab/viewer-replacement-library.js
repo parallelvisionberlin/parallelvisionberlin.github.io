@@ -24,7 +24,7 @@ export function viewerLibraryEntries(items,kindId,tab='saved'){
     return refs.length?[{...item,category:kind.category,title:item.name||'Saved references',refs,legacyPack:true}]:[];
   }).filter(item=>item.refs.length);
 }
-export async function loadViewerReference(item,kindId,{read,limit,isCurrent,direction=''}){
+export async function loadViewerReference(item,kindId,{read,limit,isCurrent,direction='',onProgress=()=>{}}){
   const kind=replacementKind(kindId==='face'?'person':kindId);
   if(item?.category!==kind.category)throw Error('Choose a matching saved reference.');
   const capacity=Math.max(0,limit-1); // The original photo always occupies the first slot.
@@ -35,19 +35,61 @@ export async function loadViewerReference(item,kindId,{read,limit,isCurrent,dire
     ?item.refs.map((ref,i)=>ref?.id&&ref.role!=='body'?i:null).filter(i=>i!==null).slice(0,capacity)
     :elementAttachmentIndices(item,direction,capacity);
   if(!indices.length)throw Error('This model has no compatible identity reference for a face replacement.');
-  const refs=[];
-  // Bounded sequential reads: no burst of eight full-size private image downloads.
-  for(const i of indices){
-    if(!isCurrent())throw Error('The image session changed.');
-    const ref=item.refs[i],file=await read(ref.id,(item.title||'Reference')+'-'+(i+1));
-    if(!isCurrent())throw Error('The image session changed.');
-    refs.push({file,id:ref.id,label:{...ref,name:ref.name||item.title,
-      role:kindId==='person'&&ref.role==='body'?'body':kind.role,
-      elementId:item.id,elementName:item.title,elementCategory:kind.category,elementView:i,elementCount:item.refs.length,
-      note:elementReferenceNote(item,i)}});
-  }
+  // Three bounded workers reduce latency without a burst of eight full-size
+  // private photos. Keep result order and authored view notes exactly intact.
+  const refs=new Array(indices.length);
+  let next=0,completed=0,failure=null;
+  const worker=async()=>{
+    while(!failure){
+      if(!isCurrent()){failure=Error('The image session changed.');return;}
+      const position=next++;
+      if(position>=indices.length)return;
+      const i=indices[position],ref=item.refs[i];
+      try{
+        const file=await read(ref.id,(item.title||'Reference')+'-'+(i+1));
+        if(!isCurrent())throw Error('The image session changed.');
+        refs[position]={file,id:ref.id,label:{...ref,name:ref.name||item.title,
+          role:kindId==='person'&&ref.role==='body'?'body':kind.role,
+          elementId:item.id,elementName:item.title,elementCategory:kind.category,elementView:i,elementCount:item.refs.length,
+          note:elementReferenceNote(item,i)}};
+        completed++;
+        onProgress(completed,indices.length);
+      }catch(error){failure=error;return;}
+    }
+  };
+  await Promise.all(Array.from({length:Math.min(3,indices.length)},()=>worker()));
+  if(failure)throw failure;
+  if(!isCurrent())throw Error('The image session changed.');
   return {name:item.title,kind:kindId,count:refs.length,total:item.refs.length,refs};
 }
 export function guidedHelpKey(account){return 'pv:replace-guidance:v1:'+String(account||'guest');}
 export function guidanceLearned(storage,account){try{return storage?.getItem(guidedHelpKey(account))==='1';}catch{return false;}}
 export function rememberGuidance(storage,account){try{storage?.setItem(guidedHelpKey(account),'1');}catch{}}
+
+/**
+ * Session-only LRU for already-owned reference photos. Nothing is persisted,
+ * and every account switch clears private bytes before the next read.
+ */
+export function createViewerReferenceCache({read,account,maxBytes=20*1024*1024,maxEntries=12}){
+  const cached=new Map();let owner=null,bytes=0;
+  const clear=()=>{cached.clear();bytes=0;owner=null;};
+  async function get(id,name){
+    const current=String(account()||'guest');
+    if(owner!==current){cached.clear();bytes=0;owner=current;}
+    if(cached.has(id)){
+      const file=cached.get(id);cached.delete(id);cached.set(id,file);return file;
+    }
+    const file=await read(id,name);
+    if(String(account()||'guest')!==current)throw Error('The image session changed.');
+    if(!file?.size)throw Error('The saved reference is unavailable.');
+    if(file.size<=maxBytes){
+      while(cached.size&&(cached.size>=maxEntries||bytes+file.size>maxBytes)){
+        const first=cached.keys().next().value;
+        bytes-=cached.get(first).size;cached.delete(first);
+      }
+      cached.set(id,file);bytes+=file.size;
+    }
+    return file;
+  }
+  return {get,clear};
+}

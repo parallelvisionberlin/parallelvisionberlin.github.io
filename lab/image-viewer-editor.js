@@ -1,4 +1,4 @@
-import {REPLACEMENT_KINDS,replacementKind,viewerLibraryEntries,loadViewerReference,guidanceLearned,rememberGuidance} from './viewer-replacement-library.js?v=20261107-guided-replace1';
+import {REPLACEMENT_KINDS,replacementKind,viewerLibraryEntries,loadViewerReference,createViewerReferenceCache,guidanceLearned,rememberGuidance} from './viewer-replacement-library.js?v=20261108-reference-cache1';
 import {CHARACTER_SCOPES,replacementScope,selectionTarget,scopeInstruction,selectionAdvisory} from './viewer-selection-scope.js?v=20261107-scope1';
 // Edit in the existing image viewer. Selection is local; only Generate may submit.
 export function createImageViewerEditor({editor, onPrepare, onResult, notify, getSavedReferences=async()=>[], readReference, renderReference, getReferenceLimit=()=>10, account=()=>null, session=()=>null}) {
@@ -34,7 +34,8 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
   let quoteRevision=0, quote=null, quoteTimer=null, quoting=false, submitting=false, uncertain=false, returnFocus=null;
   let lastResult=null, referenceRevision=0, actionMode='edit', savedReference=null, libraryItems=[], libraryTab='saved', characterScope='face';
   const localStorage=()=>{try{return window.localStorage;}catch{return null;}};
-  let libraryTicket=0, libraryOpen=false, loadingReference=false, learned=false, helpOpen=true, ownerSession=null;
+  let libraryTicket=0, libraryOpen=false, loadingReference=false, loadingSavedReference=null, learned=false, helpOpen=true, ownerSession=null;
+  const privateReferences=createViewerReferenceCache({read:readReference,account});
   const paths={person:'<circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/>',outfit:'<path d="m8 3-6 4 3 5 3-2v12h8V10l3 2 3-5-6-4c-1 3-7 3-8 0Z"/>',object:'<path d="m12 2 9 5v10l-9 5-9-5V7Zm0 10v10M3 7l9 5 9-5M8 4l9 5"/>',location:'<path d="m2 20 7-13 5 8 3-6 5 11H2Z"/>'};
   const icon=name=>'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">'+paths[name]+'</svg>';
   const guide=document.createElement('div');guide.className='viewer-selection-guide';guide.hidden=true;
@@ -71,7 +72,15 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
   directionLabel.before(hint);directionLabel.after(kinds,characterModes,selectionAdvice,library,selectedCard,locationNote,invert);
   const uploadRow=fields.querySelector('.viewer-reference-row');
   const uploadHome=document.createComment('viewer upload row home');uploadRow.before(uploadHome);
-  selectedCard.querySelector('button').addEventListener('click',()=>remove.click());
+  selectedCard.querySelector('button').addEventListener('click',()=>{
+    if(loadingReference){
+      ++referenceRevision;loadingReference=false;loadingSavedReference=null;
+      editor.setExternalMode(false);clearReference();invalidate();renderLibrary();refresh();
+      status.textContent='Reference loading cancelled. Nothing was charged.';
+      return;
+    }
+    remove.click();
+  });
   help.addEventListener('click',()=>{helpOpen=!helpOpen;refresh();});
   for(const button of library.querySelectorAll('[data-viewer-tab]'))button.addEventListener('click',()=>{libraryTab=button.dataset.viewerTab;renderLibrary();});
   function isReplace(){return actionMode==='replace';}
@@ -111,19 +120,41 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
   }
   async function chooseSaved(item){
     if(submitting||loadingReference||scope.value==='location')return;
+    clearReference();
     const ticket=revision,load=++referenceRevision,selectedKind=scope.value;
     const current=()=>active&&ticket===revision&&load===referenceRevision&&session()===ownerSession;
-    loadingReference=true;editor.setExternalMode(true);invalidate();status.textContent='Loading saved reference…';refresh();renderLibrary();
+    loadingReference=true;loadingSavedReference=item;editor.setExternalMode(true);invalidate();
+    selectedCard.querySelector('strong').textContent=item.title;
+    selectedCard.querySelector('small').textContent='Preparing '+item.refs.length+' saved photos…';
+    const cover=selectedCard.querySelector('.viewer-selected-cover');
+    cover.replaceChildren();renderReference?.(cover,item.refs[0]?.id);
+    status.textContent='Loading saved references. Nothing has been generated or charged.';
+    refresh();for(const card of library.querySelectorAll('.viewer-library-card'))card.disabled=true;
     try{
-      const bundle=await loadViewerReference(item,selectedKind==='person'&&characterScope==='face'?'face':selectedKind,{read:readReference,limit:getReferenceLimit(),isCurrent:current,direction:prompt.value.trim()});
+      const bundle=await loadViewerReference(item,selectedKind==='person'&&characterScope==='face'?'face':selectedKind,{
+        read:privateReferences.get,limit:getReferenceLimit(),isCurrent:current,direction:prompt.value.trim(),
+        onProgress:(done,total)=>{
+          if(!current())return;
+          selectedCard.querySelector('small').textContent='Loading '+done+' / '+total+' reference photos…';
+          status.textContent='Loading '+done+' of '+total+' photos. No generation submitted.';
+        }
+      });
       if(!current())return;
-      clearReference();savedReference=bundle;reference=bundle.refs[0].file;
-      const cover=selectedCard.querySelector('.viewer-selected-cover');renderReference?.(cover,bundle.refs[0].id);
+      savedReference=bundle;reference=bundle.refs[0].file;
       selectedCard.querySelector('strong').textContent=bundle.name;
       selectedCard.querySelector('small').textContent=bundle.count+' photo'+(bundle.count===1?'':'s')+' · '+replacementKind(selectedKind).label;
-      libraryOpen=false;library.hidden=true;editor.setExternalMode(true);status.textContent='';invalidate();
-    }catch(error){if(active&&ticket===revision)status.textContent=error.message;}
-    finally{if(active&&ticket===revision){loadingReference=false;editor.setExternalMode(!!reference);if(reference)invalidate();refresh();}}
+      libraryOpen=false;library.hidden=true;editor.setExternalMode(true);
+    }catch(error){
+      if(current()){
+        loadingSavedReference=null;status.textContent='Could not load the saved Character. Nothing was charged. '+error.message;
+      }
+    }finally{
+      if(current()){
+        loadingReference=false;loadingSavedReference=null;editor.setExternalMode(!!reference);
+        if(reference){invalidate();status.textContent=editor.hasSelection()?'Preparing the exact credit price…':'Reference ready. Select the area to replace.';}
+        refresh();if(libraryOpen)renderLibrary();
+      }
+    }
   }
   function markLearned(){if(isReplace()&&session()===ownerSession)rememberGuidance(localStorage(),account());}
 
@@ -152,10 +183,13 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
     workspace.classList.toggle('has-viewer-reference',!!reference||loadingReference);
     sidebar.classList.toggle('has-viewer-reference',!!reference||loadingReference);
     kind.hidden=isReplace()||!reference;remove.hidden=!reference||!!savedReference;generate.hidden=!reference;
-    selectedCard.hidden=!savedReference;preview.hidden=!reference||!!savedReference;
+    selectedCard.hidden=!savedReference&&!loadingSavedReference;preview.hidden=!reference||!!savedReference;
     const chosen=editor.hasSelection(),type=replacementKind(scope.value),mode=$('precision-tool-magic').getAttribute('aria-pressed')==='true'?'magic':$('precision-tool-brush').getAttribute('aria-pressed')==='true'?'brush':'other';
     const characterMode=isReplace()&&scope.value==='person', effective=replacementScope(scope.value,characterScope), metrics=chosen?editor.selectionMetrics?.():null;
     const advisory=characterMode&&chosen?selectionAdvisory(scope.value,characterScope,metrics):null;
+    // Do not offer a paid generation with a face-sized Whole person mask (or
+    // an oversized Face mask). Geometry is a conservative warning, not anatomy recognition.
+    const incompleteCharacterMask=Boolean(advisory);
     workspace.dataset.selectionTool=mode;workspace.classList.toggle('has-guided-selection',chosen);
     sidebar.classList.toggle('has-guided-selection',chosen);
     guide.hidden=!isReplace()||chosen||!helpOpen;guide.classList.toggle('is-compact',learned);
@@ -177,7 +211,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
     if(isReplace())uploadRow.querySelector('label').classList.toggle('is-unavailable',scope.value==='location');
     scope.disabled=remove.disabled=submitting;
     if(!isReplace())input.disabled=submitting;
-    generate.disabled=submitting||loadingReference||quoting||uncertain||!quote||!editor.hasSelection()||editor.isBusy();
+    generate.disabled=submitting||loadingReference||quoting||uncertain||!quote||!editor.hasSelection()||editor.isBusy()||incompleteCharacterMask;
     generate.textContent=submitting?'Generating…':quote?'Generate · '+quote.label:'Generate';
   }
   function invalidate() {
@@ -190,21 +224,25 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
   async function prepare() {
     quoteTimer=null;
     if(!active||!reference||!editor.hasSelection()||editor.isBusy()||submitting||uncertain)return;
+    const maskWarning=isReplace()&&scope.value==='person'?selectionAdvisory('person',characterScope,editor.selectionMetrics?.()):null;
+    if(maskWarning){status.textContent='Refine the purple selection before paying. '+maskWarning.text;refresh();return;}
     const ticket=revision, version=quoteRevision, destination=reference, direction=prompt.value.trim(), selectedScope=replacementScope(scope.value,characterScope);
     const current=()=>active&&ticket===revision&&version===quoteRevision&&destination===reference;
-    quoting=true; refresh();
+    quoting=true;status.textContent='Validating the selection and checking the credit price…';refresh();
     try {
       const selection=await editor.selectionSnapshot(); if(!current())return;
-      const prepared=await onPrepare({...selection,reference:destination,scope:selectedScope,direction,references:savedReference?.refs,isCurrent:current});
+      const prepared=await onPrepare({...selection,reference:destination,scope:selectedScope,direction,references:savedReference?.refs,isCurrent:current,
+        onProgress:message=>{if(current())status.textContent=message;}});
       if(!current()||!selection.selectionCurrent())return;
       quote=prepared;
+      status.textContent=selectedScope==='person'?'Price ready. Whole-person swaps in overlapping poses may show seams with this model. Check the result before reusing it.':'Price ready. Generate only when the selection looks right.';
       clearTimeout(quoteTimer);
       quoteTimer=setTimeout(invalidate,Math.max(1000,prepared.expiresAt-Date.now()-15000));
-    } catch(error) { if(current())status.textContent=error.message; }
+    } catch(error) { if(current())status.textContent='Could not prepare this edit. No generation was charged. '+error.message; }
     finally { if(current()){quoting=false;refresh();} }
   }
   function clearReference() {
-    ++referenceRevision;savedReference=null;selectedCard.hidden=true;reference=null; input.value=''; preview.hidden=true; preview.removeAttribute('src');
+    ++referenceRevision;savedReference=null;loadingSavedReference=null;selectedCard.hidden=true;reference=null; input.value=''; preview.hidden=true; preview.removeAttribute('src');
     if(referenceURL)URL.revokeObjectURL(referenceURL); referenceURL=null;
   }
   input.addEventListener('change',async()=>{
@@ -271,7 +309,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
   }
   function close() {
     if(!active)return false;
-    ++revision;++quoteRevision;active=false;loadingReference=false;quote=null;quoting=false;clearTimeout(quoteTimer);quoteTimer=null;
+    ++revision;++quoteRevision;++referenceRevision;active=false;loadingReference=false;loadingSavedReference=null;quote=null;quoting=false;clearTimeout(quoteTimer);quoteTimer=null;
     editor.close();editor.setExternalMode(false);home.after(workspace);uploadHome.after(uploadRow);
     for(const [node,marker] of moves.reverse()){marker.after(node);marker.remove();}moves.length=0;
     for(const [node,text] of labels)node.textContent=text;labels.clear();title.remove();help.remove();sidebar.remove();
@@ -283,7 +321,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
     if(dialog.open&&returnFocus?.isConnected)returnFocus.focus({preventScroll:true});
     return true;
   }
-  function reset(){close();libraryItems=[];ownerSession=null;sourceId=null;clearReference();uncertain=false;status.textContent='';}
+  function reset(){close();libraryItems=[];ownerSession=null;sourceId=null;clearReference();privateReferences.clear();uncertain=false;status.textContent='';}
   dialog.addEventListener('cancel',event=>{if(active){event.preventDefault();close();}});
   dialog.addEventListener('close',()=>{if(!dialog.open)close();});
   return {open,close,reset,active:()=>active};

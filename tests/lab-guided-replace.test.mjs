@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {viewerLibraryEntries,loadViewerReference,guidanceLearned,rememberGuidance} from '../lab/viewer-replacement-library.js';
+import {viewerLibraryEntries,loadViewerReference,createViewerReferenceCache,guidanceLearned,rememberGuidance} from '../lab/viewer-replacement-library.js';
 const refs=Array.from({length:8},(_,i)=>({id:'photo-'+i,name:'Angle '+i,role:i===7?'body':'identity',note:'Authored note '+i}));
 const item={id:'20000000-0000-4000-8000-000000000099',name:'PVSCENE1|characters|Alma',title:'Alma',category:'characters',refs};
 test('the existing private category and photo-pack library remain separate',()=>{
@@ -21,7 +21,8 @@ test('a small model limit fails before any private-photo load instead of droppin
 });
 test('changing the account or closing the editor cancels a saved bundle',async()=>{
  let active=true,reads=0;
- await assert.rejects(loadViewerReference(item,'person',{read:async()=>{reads++;active=false;return new File(['x'],'x');},limit:10,isCurrent:()=>active}),/session changed/);assert.equal(reads,1);
+ await assert.rejects(loadViewerReference(item,'person',{read:async()=>{reads++;active=false;return new File(['x'],'x');},limit:10,isCurrent:()=>active}),/session changed/);
+ assert.ok(reads>=1&&reads<=3,'A cancelled load stops scheduling new downloads, allowing at most three in-flight');
 });
 test('a Location is never silently used as an Object',async()=>{
  await assert.rejects(loadViewerReference({...item,category:'locations'},'object',{read:async()=>{},limit:10,isCurrent:()=>true}),/matching/);
@@ -32,4 +33,56 @@ test('guidance stores one account-scoped completion flag and handles unavailable
  assert.equal(guidanceLearned(storage,'one'),true);assert.equal(guidanceLearned(storage,'two'),false);
  assert.deepEqual([...data.values()],['1']);assert.equal(guidanceLearned({getItem(){throw Error('blocked');}},'one'),false);
  assert.doesNotThrow(()=>rememberGuidance({setItem(){throw Error('blocked');}},'one'));
+});
+
+test('saved reference loading is bounded, progress-aware and ordered despite uneven download times',async()=>{
+ const delays=[35,8,19,1,12,3,24,2];
+ let inFlight=0,peak=0;const progress=[];
+ const loaded=await loadViewerReference(item,'person',{
+   read:async id=>{
+     inFlight++;peak=Math.max(peak,inFlight);
+     await new Promise(resolve=>setTimeout(resolve,delays[Number(id.split('-')[1])]));
+     inFlight--;
+     return new File(['image'],id,{type:'image/png'});
+   },
+   limit:10,isCurrent:()=>true,onProgress:(done,total)=>progress.push([done,total])
+ });
+ assert.equal(peak,3,'At most three full-sized private photo requests are in flight');
+ assert.deepEqual(loaded.refs.map(x=>x.id),refs.map(x=>x.id),'Responses stay in authored saved-view order');
+ assert.deepEqual(progress.map(x=>x[0]),[1,2,3,4,5,6,7,8]);
+ assert.ok(progress.every(x=>x[1]===8));
+});
+test('reference loader refuses to keep issuing downloads after a failed owned asset',async()=>{
+ let calls=0;
+ await assert.rejects(loadViewerReference(item,'person',{
+   read:async id=>{calls++;if(id==='photo-0')throw Error('private asset unavailable');await new Promise(resolve=>setTimeout(resolve,4));return new File(['a'],id);},
+   limit:10,isCurrent:()=>true
+ }),/private asset unavailable/);
+ assert.ok(calls<=3,'No unbounded retries or eight-image downloads after failure');
+});
+
+test('private reference cache reuses photos only inside the same account and evicts by bytes',async()=>{
+ let current='owner-one',reads=0;
+ const source=async(id)=>{reads++;return new File(['12345'],id,{type:'image/png'});};
+ const cache=createViewerReferenceCache({read:source,account:()=>current,maxBytes:10,maxEntries:2});
+ const first=await cache.get('a','a');
+ assert.equal(await cache.get('a','again'),first);
+ assert.equal(reads,1,'Same account reuses downloaded private file without new request');
+ await cache.get('b','b');await cache.get('c','c');
+ await cache.get('a','a');
+ assert.equal(reads,4,'LRU is bounded to the two most recent assets');
+ current='owner-two';
+ const second=await cache.get('a','a');
+ assert.notEqual(second,first,'An account change never reuses another user’s private photo');
+ assert.equal(reads,5);
+ cache.clear();await cache.get('a','a');
+ assert.equal(reads,6,'Reset drops private memory cache');
+});
+test('pending private download never enters cache after account switch',async()=>{
+ let current='account-a',finish,reads=0;
+ const cache=createViewerReferenceCache({read:async()=>{reads++;return new Promise(r=>finish=r);},account:()=>current});
+ const pending=cache.get('private-image','private-image');
+ current='account-b';finish(new File(['photo'],'private-image',{type:'image/png'}));
+ await assert.rejects(pending,/session changed/);
+ assert.equal(reads,1);
 });
