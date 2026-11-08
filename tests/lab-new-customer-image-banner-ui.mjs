@@ -81,7 +81,7 @@ async function run(width,height){
     const before=await frame();
     assert.equal(await page.locator('#history .card[data-kind="image"]').count(),0,
       'Synthetic external customer has no saved History and no Owner privileges');
-    if(height>=690){
+    if(height>=640){
       assert.ok(Math.abs(before.margin+30)<2,
         'Only new/empty-History customer uses the compact carousel margin: '+JSON.stringify(before));
       assert.ok(before.gap>=18&&before.gap<=48,
@@ -137,7 +137,7 @@ async function run(width,height){
     const expanded=await frame();
     assert.ok(Math.abs(expanded.cardHeight-before.cardHeight)<2,
       'Selecting a long direction never shrinks the original Mood cards');
-    if(height>=690){
+    if(height>=640){
       assert.ok(expanded.gap>=16,
         'Long prompt does not pull Mood cards into the title: '+JSON.stringify(expanded));
       assert.ok(expanded.cardBottom<=expanded.deckTop+3,
@@ -150,7 +150,7 @@ async function run(width,height){
     const restored=await frame();
     assert.ok(Math.abs(restored.cardTop-before.cardTop)<2,
       'Clearing long direction returns to original first-image geometry');
-    if(height>=690){
+    if(height>=640){
       await page.mouse.wheel(0,500);
       assert.equal(await page.evaluate(()=>window.scrollY),0,
         'The approved mobile first-image frame remains viewport-locked');
@@ -167,7 +167,7 @@ async function run(width,height){
 }
 
 try{
-  for(const [width,height] of [[320,740],[390,844],[430,932],[390,600]])
+  for(const [width,height] of [[320,740],[390,844],[430,932],[390,660],[390,600]])
     await run(width,height);
 }finally{
   await browser.close();
