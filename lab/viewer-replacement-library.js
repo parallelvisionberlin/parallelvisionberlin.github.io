@@ -65,3 +65,31 @@ export async function loadViewerReference(item,kindId,{read,limit,isCurrent,dire
 export function guidedHelpKey(account){return 'pv:replace-guidance:v1:'+String(account||'guest');}
 export function guidanceLearned(storage,account){try{return storage?.getItem(guidedHelpKey(account))==='1';}catch{return false;}}
 export function rememberGuidance(storage,account){try{storage?.setItem(guidedHelpKey(account),'1');}catch{}}
+
+/**
+ * Session-only LRU for already-owned reference photos. Nothing is persisted,
+ * and every account switch clears private bytes before the next read.
+ */
+export function createViewerReferenceCache({read,account,maxBytes=20*1024*1024,maxEntries=12}){
+  const cached=new Map();let owner=null,bytes=0;
+  const clear=()=>{cached.clear();bytes=0;owner=null;};
+  async function get(id,name){
+    const current=String(account()||'guest');
+    if(owner!==current){cached.clear();bytes=0;owner=current;}
+    if(cached.has(id)){
+      const file=cached.get(id);cached.delete(id);cached.set(id,file);return file;
+    }
+    const file=await read(id,name);
+    if(String(account()||'guest')!==current)throw Error('The image session changed.');
+    if(!file?.size)throw Error('The saved reference is unavailable.');
+    if(file.size<=maxBytes){
+      while(cached.size&&(cached.size>=maxEntries||bytes+file.size>maxBytes)){
+        const first=cached.keys().next().value;
+        bytes-=cached.get(first).size;cached.delete(first);
+      }
+      cached.set(id,file);bytes+=file.size;
+    }
+    return file;
+  }
+  return {get,clear};
+}
