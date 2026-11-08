@@ -101,7 +101,7 @@ save(p,s)
 
 p='lab/image-viewer-editor.js';s=Path(p).read_text()
 s=once(s,"./viewer-selection-scope.js?v=20261107-scope1","./viewer-selection-scope.js?v=20261108-regions1")
-s=once(s,"  locationNote.textContent='Select the background to change, or select the people to keep and invert the selection. Saved location references are not supported by the current server; describe the new setting below.';", "  locationNote.textContent='Select the whole background, then review that all people are protected. Use Keep object for props. Saved location references are not yet supported; describe the new setting below.';")
+s=once(s,"  locationNote.textContent='Select the background to change, or select the people to keep and invert the selection. Saved location references are not supported by the current server; describe the new setting below.';", "  locationNote.textContent='Select the whole background, then review that all people are protected. Use Keep object for props. Saved location references are not supported by the current server; describe the new setting below.';")
 s=once(s,"invert.textContent='Select background instead'", "invert.textContent='Select whole background'")
 s=once(s,"  invert.addEventListener('click',()=>{if(!submitting&&!editor.isBusy())editor.invertSelection?.();});", "  invert.addEventListener('click',()=>{if(!submitting&&!editor.isBusy())void editor.selectBackground?.();});\n  const keepObject=document.createElement('button');keepObject.type='button';keepObject.className='viewer-invert';keepObject.textContent='Keep object';keepObject.hidden=true;keepObject.setAttribute('aria-pressed','false');\n  keepObject.addEventListener('click',()=>{if(submitting||editor.isBusy()||!editor.hasSelection())return;const protect=editor.getSelectionTarget?.()!=='protect-object';editor.setSelectionTarget(protect?'protect-object':'background');editor.setMode('magic');status.textContent=protect?'Click an object to keep unchanged.':'Click the photo to select the whole background again.';refresh();});")
 s=once(s,'directionLabel.after(kinds,characterModes,selectionAdvice,library,selectedCard,locationNote,invert);','directionLabel.after(kinds,characterModes,selectionAdvice,library,selectedCard,locationNote,invert,keepObject);')
@@ -115,6 +115,15 @@ s=once(s,'invert.hidden=characterModes.hidden=selectionAdvice.hidden=true;', 'in
 save(p,s)
 
 p='lab/selection-feedback.js';s=Path(p).read_text();s=once(s,'font:550 12px/1.4 inherit;','font-family:inherit;font-weight:550;font-size:12px;line-height:1.4;');save(p,s)
+p='lab/reference-guidance.js';s=Path(p).read_text()
+s=once(s,"import {hongKongReferenceCount,hongKongReferenceError,hongKongReferenceGuidance} from './hong-kong-reference-policy.js?hkBalanced=20261023v1&hkCinema=20261025v1';", "import {hongKongReferenceCount,hongKongReferenceError,hongKongReferenceGuidance} from './hong-kong-reference-policy.js?hkBalanced=20261023v1&hkCinema=20261025v1';\nimport {compactReviewedReplacementPrompt} from './viewer-replacement-prompt.js?v=20261108-compact1';")
+s=once(s,'''  const roles=labels.map(normalizeReferenceLabel);
+  // Also use the concise role map when a user supplies General/Identity photos''', '''  const roles=labels.map(normalizeReferenceLabel);
+  const reviewedPrompt=compactReviewedReplacementPrompt(direction,roles,settings,replacementReferenceGuidance(settings));
+  if(reviewedPrompt!==null)return reviewedPrompt;
+  // Also use the concise role map when a user supplies General/Identity photos''')
+save(p,s)
+
 p='lab/lab.js';s=Path(p).read_text();s=once(s,'./precision-edit.js?v=20261108-click1','./precision-edit.js?v=20261108-regions1');s=once(s,'./image-viewer-editor.js?v=20261108-loading-safety1','./image-viewer-editor.js?v=20261108-regions1');save(p,s)
 p='lab/studio.html';s=Path(p).read_text();s=once(s,'&clickSelection=20261108-click1','&clickSelection=20261108-click1&selectionRegions=20261108-regions1');save(p,s)
 
