@@ -6,6 +6,8 @@ on:
     paths:
       - 'lab/lab.js'
       - 'lab/precision-edit.js'
+      - 'lab/sam-click-mask.js'
+      - 'tests/lab-sam-click-mask*'
       - 'lab/image-viewer-editor.*'
       - 'lab/viewer-guided-replace.css'
       - 'lab/viewer-replacement-library.js'
@@ -26,6 +28,8 @@ on:
     paths:
       - 'lab/lab.js'
       - 'lab/precision-edit.js'
+      - 'lab/sam-click-mask.js'
+      - 'tests/lab-sam-click-mask*'
       - 'lab/image-viewer-editor.*'
       - 'lab/viewer-guided-replace.css'
       - 'lab/viewer-replacement-library.js'
@@ -72,7 +76,8 @@ jobs:
       - name: Verify Magic Select, masking, price authorization, compositing and mobile layout
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-precision-check/node_modules/playwright/index.mjs
-        run: node tests/lab-sam-click-mask-ui.mjs
+        run: |
+          node tests/lab-sam-click-mask-ui.mjs
           node tests/lab-precision-edit-ui.mjs
       - name: Verify Image replacement selection and complete Studio flow
         env:
