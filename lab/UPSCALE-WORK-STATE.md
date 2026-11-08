@@ -1,5 +1,27 @@
 # PV LAB Premium Upscale work state
 
+## Interrupted request feedback / 2026-11-08
+- Objective: explain why a loaded Image Upscaler can have a disabled action and provide direct access to the existing Queue.
+- Verified source baseline: main `d004356feba9533693a38e8b43c7c8ba6e3a4177`.
+- Confirmed cause: one uncertain FAL upscale blocks later FAL upscales through the existing `submissionBlocked()` guard.
+- The amber Queue dot indicates that state; the Upscaler previously omitted the adjacent explanation.
+- Added a compact conditional reason and Review Queue control beside Upscale, with an accessible description on the disabled action.
+- Show a distinct full-capacity explanation; hide the block when resolved or outside Image Upscale.
+- Review Queue only opens and focuses the existing queue; it never submits, retries, resolves, quotes or charges.
+- Preserve the source, model settings, disabled-state safeguards, normal footer, hidden optional price controls and all other studios.
+- Files: `lab/lab.js`, `lab/studio.html`, `lab/upscale-studio-v5.css`, `tests/lab-upscale-ui.mjs`.
+- Cache keys: entry `20261108-upscale-queue1`, Upscaler CSS `20261108-queue-block1`.
+- The reported operational interruption was independently confirmed as preceding paid provider dispatch using the intact original quote and actual deployed Worker code.
+- A guarded one-record operational review closed that stale interruption; a subsequent read confirmed no active jobs, retained original source/history and no new provider task.
+- The operational review retained the spending record and did not claim a provider refund.
+- No authentication guard or generation limit was changed; this was not automatic cleanup of fresh or ambiguous provider requests.
+- Local JavaScript syntax and approved Image UI contract: 6/6 pass.
+- Focused browser regression covers 1440px/390px: loaded image plus interrupted job, Queue opening without API writes, mode isolation, resolved history unlock, full capacity and compact normal footer.
+- Local Chromium cannot launch (SIGABRT / ptrace denied). Browser validation is pending in the existing Upscaler CI; no local browser pass is claimed.
+- Application publication: not yet published. The account recovery is separate from this UI change.
+- Existing draft PR #928 remains separate and unchanged; it concerns content-decline messaging after submission.
+- Next action: complete focused desktop/mobile regression, save the reviewed patch and verify publication separately if released.
+
 ## Footer state repair / 2026-11-04
 - Objective: preserve the approved Upscaler layout across upload, processing and Clear; show only the Upscale action.
 - PR #833 merged as `068ebbf4b8f80d2292e8d7d90d0e2886b8edd792`.

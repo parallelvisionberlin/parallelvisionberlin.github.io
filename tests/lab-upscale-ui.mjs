@@ -13,7 +13,7 @@ const boot=source.indexOf("try{clerk=await loadLabAccount();");
 const bootEnd=source.indexOf("\n// Soul composer:",boot);
 assert.ok(boot>0&&bootEnd>boot,'Preserve the current image composer after replacing only Clerk bootstrap');
 const testSource=source.slice(0,boot)+source.slice(bootEnd)+
-  `clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;customerMode=new URLSearchParams(location.search).has('customer');ownerAccount=!customerMode;customerGenerationReady=true;customerBillingReady=true;customerCreditBalance=1000;userId='test';if(customerMode)wallet.connect({customer:true,balanceCredits:1000,billingReady:true});config={enabled:true,falEnabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock,animateImage,settled:()=>!busy&&!imageSubmissionPending&&!fastImageHandoff.active()};`;
+  `clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;customerMode=new URLSearchParams(location.search).has('customer');ownerAccount=!customerMode;customerGenerationReady=true;customerBillingReady=true;customerCreditBalance=1000;userId='test';if(customerMode)wallet.connect({customer:true,balanceCredits:1000,billingReady:true});config={enabled:true,falEnabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock,animateImage,syncHistory,settled:()=>!busy&&!imageSubmissionPending&&!fastImageHandoff.active()};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve('.','.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(resolve('.')+sep)||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.webp':'image/webp','.jpg':'image/jpeg','.woff2':'font/woff2'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4178,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -59,15 +59,16 @@ async function workspace(jobs=[],width=1440,{quoteTtlMs=180000,quoteDelayMs=0,qu
  });
  await page.goto(ORIGIN+'/lab/studio.html?tool=image'+(customer?'&customer=1':''));await page.waitForFunction(()=>!!window.__labTest);
  if(!png)png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=320;const x=c.getContext('2d');x.fillStyle='#353b40';x.fillRect(0,0,320,320);x.fillStyle='#aaa49a';x.fillRect(70,70,180,180);return c.toDataURL('image/png').split(',')[1];}),'base64');
- return {page,context,requests,uploads,quotes:quoteResponses,errors,historyJobs:()=>structuredClone(jobs)};
+ return {page,context,requests,uploads,quotes:quoteResponses,errors,historyJobs:()=>structuredClone(jobs),setJobs:list=>{jobs=structuredClone(list);}};
 }
 const countPaid=x=>x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length;
 const quoteRequests=x=>x.requests.filter(r=>r.path==='/api/quotes');
-const uploadSmall=async page=>{
+const uploadSmall=async (page,{expectEnabled=true}={})=>{
  const chooser=page.waitForEvent('filechooser');
  await page.getByRole('button',{name:'Upload an image to upscale',exact:true}).click();
  await (await chooser).setFiles({name:'test-scene.png',mimeType:'image/png',buffer:png});
- await page.waitForFunction(()=>!document.querySelector('#generate').disabled);
+ await page.waitForFunction(()=>!document.querySelector('#preview').hidden&&document.querySelector('#preview').naturalWidth>0&&window.__labTest.settled());
+ assert.equal(await page.locator('#generate').isEnabled(),expectEnabled);
  assert.equal(await page.locator('#preview').isVisible(),true);
  assert.match(await page.locator('#filemeta').innerText(),/320 × 320/);
 };
@@ -137,6 +138,55 @@ const precisionModel={engine:'topaz-precision',model:'topaz/upscale/image/precis
 const wonderModel={engine:'topaz-wonder',model:'topaz/upscale/image/generative',quality:'Wonder 3.5',credits:37};
 
 try{
+ // Reproduce the loaded-image dead button without dispatching a provider call.
+ const interruptedUpscale={id:'10000000-0000-4000-8000-000000000070',status:'uncertain',
+   error:'Submission interrupted before acknowledgement.',createdAt:Date.now(),
+   settings:{type:'image',mode:'upscale',provider:'fal',model:'fal-ai/seedvr/upscale/image',
+     upscaleEngine:'seedvr2',scale:2,outputFormat:'png',referenceSourceIds:[]}};
+ for(const width of [1440,390]){
+   const queued=await workspace([interruptedUpscale],width);
+   await queued.page.click('#tool-upscale');await uploadSmall(queued.page,{expectEnabled:false});
+   assert.equal(await queued.page.locator('#upscale-queue-block').isVisible(),true);
+   assert.match(await queued.page.locator('#upscale-queue-reason').innerText(),/earlier upscale has an unconfirmed result/i);
+   assert.match(await queued.page.locator('#generate').getAttribute('aria-describedby'),/upscale-queue-reason/);
+   assert.ok(await queued.page.locator('#upscale-queue-reason').evaluate(el=>el.scrollWidth<=el.clientWidth),'Queue reason wraps inside the phone or desktop deck');
+   assert.ok(await queued.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Queue warning introduces no horizontal overflow');
+   mkdirSync('test-results',{recursive:true});
+   await queued.page.screenshot({path:'test-results/upscaler-queue-blocked-'+width+'.png',fullPage:true});
+   await queued.page.getByRole('button',{name:'Review Queue',exact:true}).click();
+   assert.equal(await queued.page.locator('#active').evaluate(el=>el.open),true);
+   assert.equal(await queued.page.locator('#active>summary').evaluate(el=>document.activeElement===el),true);
+   assert.equal(await queued.page.locator('#generate').isDisabled(),true,'Reviewing the queue never clears an uncertain request');
+   assert.equal(queued.requests.some(r=>r.method==='POST'),false,'Opening Queue makes no reconcile, resolve, upload, quote or generation call');
+   await queued.page.locator('#active>summary').click();
+   await queued.page.getByRole('tab',{name:'Video',exact:true}).click();
+   assert.equal(await queued.page.locator('#upscale-queue-block').isVisible(),false);
+   assert.equal(await queued.page.locator('#generate').getAttribute('aria-describedby'),null);
+   await queued.page.getByRole('tab',{name:'Image',exact:true}).click();
+   assert.equal(await queued.page.locator('#upscale-queue-block').isVisible(),true);
+   await queued.page.click('#tool-image');
+   assert.equal(await queued.page.locator('#upscale-queue-block').isVisible(),false);
+   await queued.page.click('#tool-upscale');
+   assert.equal(await queued.page.locator('#upscale-queue-block').isVisible(),true);
+   queued.setJobs([{...interruptedUpscale,status:'resolved'}]);
+   await queued.page.evaluate(()=>window.__labTest.syncHistory());
+   assert.equal(await queued.page.locator('#generate').isEnabled(),true,'A reviewed interruption unlocks the loaded image through normal history refresh');
+   assert.equal(await queued.page.locator('#upscale-queue-block').isVisible(),false);
+   assert.equal(await queued.page.locator('#generate').getAttribute('aria-describedby'),null);
+   assert.ok(await queued.page.locator('.controls>.generate-zone').evaluate(el=>el.getBoundingClientRect().height<160),'Normal footer remains compact after resolution');
+   assert.equal(quoteRequests(queued).length,0);assert.equal(countPaid(queued),0);
+   queued.setJobs(Array.from({length:4},(_,i)=>({...interruptedUpscale,id:'10000000-0000-4000-8000-'+String(80+i).padStart(12,'0'),status:'running',providerTaskId:'synthetic-task-'+i})));
+   await queued.page.evaluate(()=>window.__labTest.syncHistory());
+   assert.equal(await queued.page.locator('#generate').isDisabled(),true);
+   assert.match(await queued.page.locator('#upscale-queue-reason').innerText(),/slots are busy/);
+   queued.setJobs([]);await queued.page.evaluate(()=>window.__labTest.syncHistory());
+   assert.equal(await queued.page.locator('#upscale-queue-block').isVisible(),false);
+   assert.equal(await queued.page.locator('#generate').isEnabled(),true);
+   assert.equal(quoteRequests(queued).length,0);assert.equal(countPaid(queued),0);
+   assert.deepEqual(queued.errors,[]);await queued.context.close();
+   ok('Visible interrupted-upscale reason, safe Queue review, normal unlock and capacity state at '+width+'px');
+ }
+ if(process.env.PV_UPSCALE_QUEUE_SMOKE!=='1'){
  // A quote review can leave the hidden technical disclosure open. Exercise
  // that retained state through real upload, mocked processing and Clear.
  for(const width of [1920,1440,390]){
@@ -631,6 +681,7 @@ try{
   assert.equal(await x.page.locator('#upscale-model-menu').isVisible(),true,'Outside clicks do not dismiss an inline model group');
   assert.equal(x.uploads.length,0);assert.equal(countPaid(x),0);assert.equal(quoteRequests(x).length,0);assert.deepEqual(x.errors,[]);
   ok('Keyboard selects nested Precision quality, wraps between models and leaves inline cards visible with zero paid side effects');await x.context.close();
+ }
  }
  console.log('BROWSER_CHECKS_PASSED='+passed);
 }finally{await browser.close();await new Promise(r=>server.close(r));}
