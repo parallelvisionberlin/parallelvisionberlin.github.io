@@ -37,6 +37,7 @@ const results=await api('/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query
   EXISTS(SELECT 1 FROM lab_trial_program_controls WHERE id=1 AND welcome_enabled=0 AND free_generation_enabled=1) AS signup_closed_existing_wallets_usable,
   EXISTS(SELECT 1 FROM sqlite_master WHERE type='trigger' AND name='lab_trial_pause_new_welcome_claims' AND sql LIKE '%lab_image_trial_controls%' AND sql LIKE '%welcome_enabled=0%') AS image_trial_only_welcome_exception,
   (SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' AND name IN ('lab_trial_pause_unpaid_job_inserts','lab_trial_pause_unpaid_job_activation') AND sql LIKE '%delta_credits=40%' AND sql LIKE '%$.type%' AND sql LIKE '%$.mode%' AND sql NOT LIKE '%lab_generation_finance%')=2 AS image_balance_database_guards,
+  (SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' AND name IN ('lab_intro_image_only_insert','lab_intro_image_only_activate') AND sql LIKE '%delta_credits=40%' AND sql LIKE '%purchase%' AND sql LIKE '%$.mode%')=2 AS complimentary_image_only_guards,
   NOT EXISTS(SELECT 1 FROM lab_customers WHERE balance_credits<0) AS no_negative_balances,
   NOT EXISTS(SELECT 1 FROM lab_customers c WHERE c.balance_credits != COALESCE((SELECT SUM(e.delta_credits) FROM lab_credit_entries e WHERE e.customer_id=c.id),0)) AS wallet_ledger_reconciles,
   NOT EXISTS(SELECT 1 FROM lab_credit_entries e JOIN lab_customers c ON c.id=e.customer_id WHERE e.reference='welcome:'||c.id AND c.created_at>=1793487600000 AND e.delta_credits<>40) AS new_welcome_amount_exactly_40,
