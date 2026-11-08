@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T17:07:47Z",
+  "updatedAt": "2026-11-08T18:06:03.311Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1835,12 +1835,12 @@
       "title": "Contextual image viewer Replace and Edit",
       "component": "PV LAB Image viewer",
       "status": "deployed",
-      "updatedAt": "2026-11-08T15:18:25.154Z",
+      "updatedAt": "2026-11-08T18:06:03.311Z",
       "baselineSha": "ca2fee15ea86b5abfe84627acc247d178d8752dc",
-      "reviewedSha": "49677f7317a7b9cfbdae86bcb49d02ae1eac97ca",
-      "branch": "fix/replace-outfit-background-feedback-20261108",
-      "summary": "PR #933 published: visible Magic Select waiting/failure feedback; click-matched Outfit selection; whole-background Location selection protecting recognized people with Keep object; compact automatic 8-photo Character prompt without dropping authored notes. Code-only Worker and frontend verified, existing credits and image-gen provider unchanged.",
-      "nextAction": "One signed-in, unpaid selection review can validate actual SAM results. No Cloudflare/token task remains. Complex character replacement quality is still unresolved because Seedream does not receive the mask for generation; do not encourage further paid overlap tests until a mask-aware path is evaluated.",
+      "reviewedSha": "95be60a358232bb080d2ac02fdb33a923f9634f1",
+      "branch": "fix/replace-picker-progress-20261108",
+      "summary": "PR #937 separates mode selection from Choose/Change Character, adds visible scan feedback, separates reference preparation from pricing, and prepares private viewer inputs with at most two concurrent workers. All eight Character photos and existing payment/selection safeguards retained. Generated whole-person quality remains unresolved.",
+      "nextAction": "No owner token/settings work. Use the explicit saved-reference button after refresh. Before another whole-person quality claim, inspect original/mask/raw/composite and evaluate an explicitly priced mask-aware multi-reference edit path; do not silently switch the customer model or discard references.",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
@@ -1869,7 +1869,9 @@
         "lab/reference-guidance.js",
         "tests/lab-selection-regions-ui.mjs",
         "tests/lab-selection-regions.test.mjs",
-        "tests/lab-viewer-replacement-prompt.test.mjs"
+        "tests/lab-viewer-replacement-prompt.test.mjs",
+        "lab/viewer-reference-preparation.js",
+        "tests/lab-viewer-reference-preparation.test.mjs"
       ],
       "links": [
         {
@@ -1987,18 +1989,24 @@
           "scope": "Normal Precision browser CI, unit and approved Image UI checks; 113 Worker integration tests; exact Cloudflare Pages modules, guarded code-only Worker deployment and public health verified.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493484108",
           "observedAt": "2026-11-08T15:18:25.154Z"
+        },
+        {
+          "label": "Explicit picker, visible selection and bounded reference preparation",
+          "result": "passed",
+          "scope": "Preparation run 42507405923 and normal Precision browser regression 42507802439; synthetic desktop/mobile, eight references, source dimensions, cancellation, quotes, no duplicate inference.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42508211622",
+          "observedAt": "2026-11-08T18:06:03.311Z"
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "49677f7317a7b9cfbdae86bcb49d02ae1eac97ca",
-        "environment": "Cloudflare Pages pvlab.studio frontend; Cloudflare Worker parallel-vision-lab",
-        "observedAt": "2026-11-08T15:18:25.154Z",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493484108",
+        "sourceSha": "95be60a358232bb080d2ac02fdb33a923f9634f1",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-08T18:06:03.311Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42508211622",
         "limitations": [
-          "Exact source/compiled frontend and Worker bytes verified, Worker version c29ec785-50f5-4b47-b354-548100036241 serving 100%.",
-          "No signed-in real-provider selection or paid generation after this release; synthetic browser/Worker checks alone do not prove selection quality.",
-          "Masked generation and saved Location references remain unimplemented."
+          "Frontend exact asset bytes verified; no Worker/backend deployment in this change.",
+          "No paid inference; no claim of improved replacement image quality or a particular real latency."
         ]
       },
       "evidence": [
@@ -2204,12 +2212,22 @@
             "No real SAM segmentation tested against the user's photo.",
             "The bad Alma composite remains an unresolved quality failure."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Merged #937 exact custom-domain JavaScript and CSS bytes verified.",
+          "scope": "Viewer picker, selection feedback and private source preparation only.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42508211622",
+          "observedAt": "2026-11-08T18:06:03.311Z",
+          "limitations": [
+            "Not an output-quality test."
+          ]
         }
       ],
       "blockers": [
-        "Actual fal.ai region/garment segmentation quality on this owner's photo has not been verified by a real signed-in test.",
-        "Saved Location image references are still not supported by the current replacement generation API.",
-        "Unmasked Seedream replacement of overlapping people can introduce cutout seams and altered limbs; the previous paid Alma output has not been repaired."
+        "Whole-person generator still uses unmasked Seedream plus final compositing. User result shows a pasted head/hair boundary; not fixed by UI changes.",
+        "Real-account end-to-end preparation latency is not measured by synthetic tests.",
+        "Saved Location generation references remain unsupported."
       ],
       "doNotRepeat": [
         "Do not recreate a separate editor or add buttons over the photograph.",
