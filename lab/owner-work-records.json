@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T22:14:23.474Z",
+  "updatedAt": "2026-11-08T22:16:18.088Z",
   "handoffs": [
     {
       "id": "owner",
@@ -80,7 +80,12 @@
         "tests/lab-home-featured-photo-pack.test.mjs",
         "lab/HOME-MOBILE-WORK-STATE.md"
       ],
-      "links": [],
+      "links": [
+        {
+          "label": "Scoped homepage checkpoint",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/HOME-MOBILE-WORK-STATE.md"
+        }
+      ],
       "tests": [
         {
           "label": "Chrome Desert homepage feature regression",
