@@ -1,4 +1,4 @@
-import {REPLACEMENT_KINDS,replacementKind,viewerLibraryEntries,loadViewerReference,guidanceLearned,rememberGuidance} from './viewer-replacement-library.js?v=20261107-guided-replace1';
+import {REPLACEMENT_KINDS,replacementKind,viewerLibraryEntries,loadViewerReference,createViewerReferenceCache,guidanceLearned,rememberGuidance} from './viewer-replacement-library.js?v=20261108-reference-cache1';
 import {CHARACTER_SCOPES,replacementScope,selectionTarget,scopeInstruction,selectionAdvisory} from './viewer-selection-scope.js?v=20261107-scope1';
 // Edit in the existing image viewer. Selection is local; only Generate may submit.
 export function createImageViewerEditor({editor, onPrepare, onResult, notify, getSavedReferences=async()=>[], readReference, renderReference, getReferenceLimit=()=>10, account=()=>null, session=()=>null}) {
@@ -35,6 +35,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
   let lastResult=null, referenceRevision=0, actionMode='edit', savedReference=null, libraryItems=[], libraryTab='saved', characterScope='face';
   const localStorage=()=>{try{return window.localStorage;}catch{return null;}};
   let libraryTicket=0, libraryOpen=false, loadingReference=false, loadingSavedReference=null, learned=false, helpOpen=true, ownerSession=null;
+  const privateReferences=createViewerReferenceCache({read:readReference,account});
   const paths={person:'<circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/>',outfit:'<path d="m8 3-6 4 3 5 3-2v12h8V10l3 2 3-5-6-4c-1 3-7 3-8 0Z"/>',object:'<path d="m12 2 9 5v10l-9 5-9-5V7Zm0 10v10M3 7l9 5 9-5M8 4l9 5"/>',location:'<path d="m2 20 7-13 5 8 3-6 5 11H2Z"/>'};
   const icon=name=>'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">'+paths[name]+'</svg>';
   const guide=document.createElement('div');guide.className='viewer-selection-guide';guide.hidden=true;
@@ -131,7 +132,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
     refresh();for(const card of library.querySelectorAll('.viewer-library-card'))card.disabled=true;
     try{
       const bundle=await loadViewerReference(item,selectedKind==='person'&&characterScope==='face'?'face':selectedKind,{
-        read:readReference,limit:getReferenceLimit(),isCurrent:current,direction:prompt.value.trim(),
+        read:privateReferences.get,limit:getReferenceLimit(),isCurrent:current,direction:prompt.value.trim(),
         onProgress:(done,total)=>{
           if(!current())return;
           selectedCard.querySelector('small').textContent='Loading '+done+' / '+total+' reference photos…';
@@ -320,7 +321,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
     if(dialog.open&&returnFocus?.isConnected)returnFocus.focus({preventScroll:true});
     return true;
   }
-  function reset(){close();libraryItems=[];ownerSession=null;sourceId=null;clearReference();uncertain=false;status.textContent='';}
+  function reset(){close();libraryItems=[];ownerSession=null;sourceId=null;clearReference();privateReferences.clear();uncertain=false;status.textContent='';}
   dialog.addEventListener('cancel',event=>{if(active){event.preventDefault();close();}});
   dialog.addEventListener('close',()=>{if(!dialog.open)close();});
   return {open,close,reset,active:()=>active};
