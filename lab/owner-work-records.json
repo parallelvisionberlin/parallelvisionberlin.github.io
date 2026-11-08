@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T07:40:02.106Z",
+  "updatedAt": "2026-11-08T09:08:52Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1835,12 +1835,12 @@
       "title": "Contextual image viewer Replace and Edit",
       "component": "PV LAB Image viewer",
       "status": "deployed",
-      "updatedAt": "2026-11-08T07:40:02.106Z",
+      "updatedAt": "2026-11-08T09:08:52Z",
       "baselineSha": "ca2fee15ea86b5abfe84627acc247d178d8752dc",
-      "reviewedSha": "4edc1437e032ae4de0229113d93febff86a034bc",
+      "reviewedSha": "64b9e080df47854a6b5ee1fde1451ddc0fed3058",
       "branch": "fix/replace-loading-and-quality-20261108",
-      "summary": "Audited PV LAB Replace: three-at-a-time reference downloads and account-isolated memory cache; immediate saved Character progress, safe cancellation and price feedback; saved asset dimension-only quote checks; incomplete Face/Whole-person masks blocked before paid Generate; conservative preservation prompt. Original-pixel compositor and existing billing retained.",
-      "nextAction": "Frontend verified live with exact source asset hashes. The generation provider still does not accept the selection as a true inpainting mask. Owner should restore Cloudflare Worker deployment token and run a controlled masked-provider comparison before selling whole-person replacements as reliable. The failed job's raw output/mask remain unexamined.",
+      "summary": "Guided Replace/Edit and faster saved Character loading are published. The previously pending Face/Whole person semantic SAM selection backend is deployed and code/live health verified. Complex overlapping-person replacement quality remains unresolved.",
+      "nextAction": "Verify one Whole person torso selection in the signed-in viewer. Then evaluate true mask-aware identity generation and inspect the failed job raw output/mask before another complex paid replacement. Existing Cloudflare token is valid; no replacement is needed.",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
@@ -1930,6 +1930,10 @@
         {
           "label": "Replace audit live verification",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42459529984"
+        },
+        {
+          "label": "Face/Whole person backend live proof",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42465480595"
         }
       ],
       "tests": [
@@ -1947,18 +1951,23 @@
           "label": "Exact production asset integrity",
           "result": "passed",
           "scope": "Cloudflare Pages merge SHA and live custom domain match lab.js, image-viewer-editor.js and viewer-replacement-library.js bytes."
+        },
+        {
+          "label": "Worker release gate and live backend",
+          "result": "passed",
+          "scope": "447 unchanged deployment tests and 58 focused tests; exact compiled Worker match; active version verified; both public health endpoints HTTP 200. No migrations or paid generation."
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "4edc1437e032ae4de0229113d93febff86a034bc",
-        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-08T07:40:02.106Z",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42459529984",
+        "sourceSha": "64b9e080df47854a6b5ee1fde1451ddc0fed3058",
+        "environment": "Cloudflare Pages pvlab.studio frontend; Cloudflare Worker parallel-vision-lab",
+        "observedAt": "2026-11-08T09:08:52Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42465480595",
         "limitations": [
-          "Static frontend code/DOM verified; not a signed-in user or paid-provider generation.",
-          "Cloudflare Worker SAM semantic selection and mask-aware generation are NOT verified live.",
-          "Existing unmasked Seedream generation may still create seams and pose/occlusion defects; no quality claim."
+          "Frontend retains prior PR #926 publication proof. Worker version e939d968-afd1-4432-a9ed-a7a128a472b2 separately verified.",
+          "No real signed-in or paid-generation test. Whole-person output quality remains unresolved.",
+          "First release job failed at its Python HTTP 403 health probe after deployment and code/settings checks passed. Separate curl health and active-version verification passed; no second deployment."
         ]
       },
       "evidence": [
@@ -2133,12 +2142,22 @@
           "limitations": [
             "Cannot validate quality for the user's original failed provider result."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Pinned reviewed Worker published as e939d968-afd1-4432-a9ed-a7a128a472b2 serving 100%; semantic selection code and live health verified; existing variables/resources preserved.",
+          "scope": "parallel-vision-lab code-only release",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42465480595",
+          "observedAt": "2026-11-08T09:08:52Z",
+          "limitations": [
+            "No real signed-in or paid-provider quality test."
+          ]
         }
       ],
       "blockers": [
-        "Production Worker still requires a valid private CLOUDFLARE_API_TOKEN for reviewed SAM point+text selection; no Worker release performed.",
-        "True inpainting-aware identity replacement provider not yet integrated or quality-tested; cannot guarantee whole-person fidelity.",
-        "Specific bad paid job raw output, source mask and asset not available for authenticated inspection in this session."
+        "Current Seedream replacement still lacks a true inpainting-mask input; seams and overlapping limbs remain unresolved.",
+        "Real signed-in selection and paid-provider quality were not tested in this release.",
+        "The failed Alma job raw output and mask remain unexamined."
       ],
       "doNotRepeat": [
         "Do not recreate a separate editor or add buttons over the photograph.",

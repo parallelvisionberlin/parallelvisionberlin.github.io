@@ -1,5 +1,19 @@
 # Image replacement flow
 
+## Latest verified backend release: 2026-11-08
+
+- Supersedes historical credential blockers below: the existing Cloudflare token is active and has expected Worker/D1 access. No rotation or permission changes were needed. Earlier missing/unusable-token claims were incorrect.
+- Reviewed source: `64b9e080df47854a6b5ee1fde1451ddc0fed3058`. All 447 existing deployment-gate tests and 58 focused tests passed.
+- Code-only release at 09:01:30 UTC. Worker version `e939d968-afd1-4432-a9ed-a7a128a472b2` serves 100%. Previous rollback version: `b71347b9-3ffb-42dd-a4d9-83a542b11cea`.
+- Face/person/clothing semantic selection is now deployed. Published compiled code matched the reviewed build. Existing variable values, secrets and D1/R2/AI/Images bindings were preserved. No database migrations or paid generation calls.
+- The first release job failed only on its final Python health probe (HTTP 403), AFTER deployment and code/settings assertions passed. Separate read-only curl probes returned HTTP 200 and confirmed the active version. Do not redeploy because of the first red job.
+- Preflight: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42465081108
+- Deployment: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42465335692
+- Successful verification: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42465480595
+- Remaining: real signed-in Whole person selection review; true mask-aware replacement generation and actual output quality. The failed Alma result is not fixed or quality-verified.
+
+## Historical implementation and release notes
+
 ## Current implementation on 2026-11-06
 
 - Baseline `aea3dcd040e688150de576e09f6a001e2232c1d6`. Initial audit is preserved in commit `4c4a519`.
