@@ -21,7 +21,8 @@ test('a small model limit fails before any private-photo load instead of droppin
 });
 test('changing the account or closing the editor cancels a saved bundle',async()=>{
  let active=true,reads=0;
- await assert.rejects(loadViewerReference(item,'person',{read:async()=>{reads++;active=false;return new File(['x'],'x');},limit:10,isCurrent:()=>active}),/session changed/);assert.equal(reads,1);
+ await assert.rejects(loadViewerReference(item,'person',{read:async()=>{reads++;active=false;return new File(['x'],'x');},limit:10,isCurrent:()=>active}),/session changed/);
+ assert.ok(reads>=1&&reads<=3,'A cancelled load stops scheduling new downloads, allowing at most three in-flight');
 });
 test('a Location is never silently used as an Object',async()=>{
  await assert.rejects(loadViewerReference({...item,category:'locations'},'object',{read:async()=>{},limit:10,isCurrent:()=>true}),/matching/);
@@ -32,4 +33,30 @@ test('guidance stores one account-scoped completion flag and handles unavailable
  assert.equal(guidanceLearned(storage,'one'),true);assert.equal(guidanceLearned(storage,'two'),false);
  assert.deepEqual([...data.values()],['1']);assert.equal(guidanceLearned({getItem(){throw Error('blocked');}},'one'),false);
  assert.doesNotThrow(()=>rememberGuidance({setItem(){throw Error('blocked');}},'one'));
+});
+
+test('saved reference loading is bounded, progress-aware and ordered despite uneven download times',async()=>{
+ const delays=[35,8,19,1,12,3,24,2];
+ let inFlight=0,peak=0;const progress=[];
+ const loaded=await loadViewerReference(item,'person',{
+   read:async id=>{
+     inFlight++;peak=Math.max(peak,inFlight);
+     await new Promise(resolve=>setTimeout(resolve,delays[Number(id.split('-')[1])]));
+     inFlight--;
+     return new File(['image'],id,{type:'image/png'});
+   },
+   limit:10,isCurrent:()=>true,onProgress:(done,total)=>progress.push([done,total])
+ });
+ assert.equal(peak,3,'At most three full-sized private photo requests are in flight');
+ assert.deepEqual(loaded.refs.map(x=>x.id),refs.map(x=>x.id),'Responses stay in authored saved-view order');
+ assert.deepEqual(progress.map(x=>x[0]),[1,2,3,4,5,6,7,8]);
+ assert.ok(progress.every(x=>x[1]===8));
+});
+test('reference loader refuses to keep issuing downloads after a failed owned asset',async()=>{
+ let calls=0;
+ await assert.rejects(loadViewerReference(item,'person',{
+   read:async id=>{calls++;if(id==='photo-0')throw Error('private asset unavailable');await new Promise(resolve=>setTimeout(resolve,4));return new File(['a'],id);},
+   limit:10,isCurrent:()=>true
+ }),/private asset unavailable/);
+ assert.ok(calls<=3,'No unbounded retries or eight-image downloads after failure');
 });
