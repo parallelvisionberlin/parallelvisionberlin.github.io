@@ -1,0 +1,61 @@
+name: Verify deployed Replace backend (no writes)
+on:
+  push:
+    branches: [verify/replace-audit-published-20261108]
+    paths: ['.github/workflows/verify-replace-backend-live.yml']
+permissions: {}
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Confirm public health without deployment or generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in health api/music/public/status; do
+            code="$(curl --silent --show-error --connect-timeout 5 --max-time 20 -D /tmp/pvlab-health-headers -o /tmp/pvlab-health-body -w '%{http_code}' -H 'Accept: application/json' -H 'Origin: https://pvlab.studio' -A 'PV-LAB-release-verifier/1.0' "https://parallel-vision-lab.parallelvision.workers.dev/$path")"
+            echo "PUBLIC_ENDPOINT $path HTTP $code"
+            HTTP_CODE="$code" ENDPOINT="$path" python3 - <<'PY'
+          import json,os,pathlib,re
+          text=pathlib.Path('/tmp/pvlab-health-body').read_text(errors='replace')
+          headers=pathlib.Path('/tmp/pvlab-health-headers').read_text(errors='replace')
+          try:
+            j=json.loads(text)
+            print('PUBLIC_RESULT',json.dumps({k:j[k] for k in ['ok','ready','version','ownerOperations','error','message'] if k in j})[:1200])
+          except Exception:
+            title=re.search(r'<title>(.*?)</title>',text,re.I|re.S)
+            print('PUBLIC_RESPONSE_TITLE',title.group(1)[:160] if title else 'Non-JSON response')
+            print('PUBLIC_RESPONSE_TYPE', '\n'.join(x for x in headers.splitlines() if x.lower().startswith(('content-type:','cf-mitigated:','server:'))))
+            raise SystemExit(1)
+          assert os.environ['HTTP_CODE']=='200','Public endpoint is not HTTP 200'
+          assert (j.get('ok') is True) if os.environ['ENDPOINT']=='health' else (j.get('ready') is True),'Health not ready'
+          PY
+          done
+      - name: Confirm active production version and semantic selection code
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json,os,urllib.request,email,email.policy,hashlib
+          token=''.join(os.environ['CLOUDFLARE_API_TOKEN'].split());print('::add-mask::'+token)
+          root='https://api.cloudflare.com/client/v4/accounts/a40ce1725295563a7b7db9fc3160480a/workers/scripts/parallel-vision-lab'
+          def get(suffix,raw=False):
+            req=urllib.request.Request(root+suffix,headers={'Authorization':'Bearer '+token,'Accept':'application/json'})
+            with urllib.request.urlopen(req,timeout=20) as r:data=r.read();kind=r.headers.get('Content-Type','')
+            if raw:return data,kind
+            j=json.loads(data);assert j.get('success') is True;return j['result']
+          d=get('/deployments')['deployments'][0]
+          assert d['versions']==[{'version_id':'e939d968-afd1-4432-a9ed-a7a128a472b2','percentage':100}],'Unexpected active version'
+          raw,kind=get('',True)
+          msg=email.message_from_bytes(('Content-Type: '+kind+'\r\nMIME-Version: 1.0\r\n\r\n').encode()+raw,policy=email.policy.default)
+          parts=[p.get_payload(decode=True) or b'' for p in msg.walk() if not p.is_multipart()] if msg.is_multipart() else [raw]
+          code=b'\n'.join(parts)
+          assert b'Unsupported targeted selection' in code,'Semantic selection validation is missing'
+          assert b'targetPrompt' in code and b'clothing' in code,'Semantic prompt code missing'
+          print('LIVE_VERSION',d['versions'][0]['version_id'])
+          print('LIVE_DEPLOYED_AT',d['created_on'])
+          print('LIVE_CODE_SHA256',hashlib.sha256(code).hexdigest())
+          print('REPLACE_BACKEND_LIVE_VERIFIED: public health passed, active version matches, semantic selection published; no production writes or paid inference in this verification')
+          PY
