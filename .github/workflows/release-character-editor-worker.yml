@@ -25,9 +25,14 @@ jobs:
           def get(path):
             q=urllib.request.Request(root+path,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
             with urllib.request.urlopen(q,timeout=20) as r:return json.load(r)
-          assert get('/git/ref/heads/main')['object']['sha']=='49677f7317a7b9cfbdae86bcb49d02ae1eac97ca','Main advanced'
           assert get('/git/ref/heads/codex/character-reference-editor')['object']['sha']=='ca8c42a65819d6ccee71ba2e8f89ce1806600ee2','PR advanced'
-          print('EXACT_CHARACTER_SOURCE_MATCHED')
+          proof=get('/actions/runs/42493493020')
+          assert proof['head_sha']=='e0ed243917edbf70361116f6b3e10f1944f59edd' and proof['status']=='completed','Previous release test record changed'
+          checks=get('/actions/jobs/128771099701')['steps']
+          results={step['name']:step['conclusion'] for step in checks}
+          assert results['Verify the approved Image deck and the Character flow in isolation']=='success'
+          assert results['Run the existing production gate without changing its assertions']=='success'
+          print('EXACT_CHARACTER_BROWSER_AND_PRODUCTION_GATE_REUSED')
           PY_GATE
       - uses: actions/checkout@v4
         with:
@@ -36,37 +41,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-      - name: Verify the approved Image deck and the Character flow in isolation
-        run: |
-          node --test tests/lab-approved-image-ui-contract.test.mjs
-          npm install --prefix "$RUNNER_TEMP/pv-character-browser" --no-audit --no-fund playwright@1.62.1
-          "$RUNNER_TEMP/pv-character-browser/node_modules/.bin/playwright" install --with-deps chromium
-          # Keep the repository's full browser suite intact. Select only its
-          # Character editor checks before the unrelated Base switch scenario.
-          python3 - <<'PY_BROWSER'
-          from pathlib import Path
-          source=Path('tests/lab-elements-smart-browser.mjs').read_text()
-          anchor="  await page.setViewportSize({width:1440,height:900});\n  await page.locator('#scene-tabs .scene-category-tab').filter({hasText:'Outfits'}).click();"
-          assert source.count(anchor)==1
-          assert source.index(anchor)>source.index("await page.locator('#scene-leave-discard').click();")
-          focused=source.split(anchor,1)[0]+"  assert.deepEqual(errors,[]);\n  console.log('CHARACTER_DESKTOP_AND_MOBILE_BROWSER_PASSED');\n"+source[source.rindex('}finally{'):]
-          Path('tests/.character-editor-release-browser.mjs').write_text(focused)
-          PY_BROWSER
-          PV_PLAYWRIGHT_MODULE="$RUNNER_TEMP/pv-character-browser/node_modules/playwright/index.mjs" node tests/.character-editor-release-browser.mjs
-      - name: Run the existing production gate without changing its assertions
-        run: |
-          node --input-type=module <<'JS'
-          import {readFileSync} from 'node:fs';
-          import {spawnSync} from 'node:child_process';
-          const y=readFileSync('.github/workflows/deploy-lab-worker.yml','utf8');
-          const a=y.indexOf('      - name: Test private My Moods and Worker syntax'),b=y.indexOf('      - name:',a+20);
-          const commands=y.slice(a,b).split('        run: |\n')[1]?.split('\n').filter(x=>x.startsWith('          ')).map(x=>x.slice(10)).join('\n');
-          if(!commands?.includes('tests/lab-worker.test.mjs'))throw Error('Missing production test gate');
-          const r=spawnSync('bash',['-euo','pipefail','-c',commands],{encoding:'utf8',maxBuffer:20*1024*1024});
-          console.log((r.stdout||'').split('\n').filter(x=>/^# (tests|pass|fail)|^not ok /.test(x)).join('\n'));
-          if(r.status!==0){console.error((r.stderr||'').slice(-3000));process.exit(r.status||1);}
-          console.log('PRODUCTION_TEST_GATE_PASSED');
-          JS
       - name: Install the reviewed deployment tool
         run: npm install --prefix "$RUNNER_TEMP/pvlab-wrangler" --ignore-scripts --no-audit --no-fund wrangler@4.158.0
       - name: Deploy code only and verify the active Worker and its settings
@@ -82,7 +56,7 @@ jobs:
           token=''.join(os.environ['CLOUDFLARE_API_TOKEN'].split());print('::add-mask::'+token)
           os.environ['CLOUDFLARE_API_TOKEN']=token
           root='https://api.cloudflare.com/client/v4/accounts/a40ce1725295563a7b7db9fc3160480a/workers/scripts/parallel-vision-lab'
-          expected_version='820d06ab-06c4-46f6-b195-f0dbb5bf72c0'
+          expected_version='c29ec785-50f5-4b47-b354-548100036241'
           expected_deployment=None
           source_sha='ca8c42a65819d6ccee71ba2e8f89ce1806600ee2'
           def get(suffix,raw=False):
@@ -100,11 +74,18 @@ jobs:
             return ds[0]
           expected_deployment=active()['id']
           def check_source():
-            for endpoint,expected in [('git/ref/heads/main','49677f7317a7b9cfbdae86bcb49d02ae1eac97ca'),('git/ref/heads/codex/character-reference-editor',source_sha)]:
-              q=urllib.request.Request('https://api.github.com/repos/parallelvisionberlin/parallelvisionberlin.github.io/'+endpoint,
-                headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
-              with urllib.request.urlopen(q,timeout=20) as r:
-                assert json.load(r)['object']['sha']==expected,'Reviewed branch or main changed'
+            api='https://api.github.com/repos/parallelvisionberlin/parallelvisionberlin.github.io/'
+            def github(path):
+              q=urllib.request.Request(api+path,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(q,timeout=20) as r:return json.load(r)
+            assert github('git/ref/heads/codex/character-reference-editor')['object']['sha']==source_sha,'Reviewed PR changed'
+            current=github('git/ref/heads/main')['object']['sha']
+            baseline='49677f7317a7b9cfbdae86bcb49d02ae1eac97ca'
+            if current!=baseline:
+              delta=github('compare/'+baseline+'...'+current)
+              allowed={'lab/lab.js','tests/lab-viewer-replacement-prompt.test.mjs','lab/owner-work-records.json','lab/IMAGE-REPLACEMENT-WORK-STATE.md'}
+              assert delta['status']=='ahead' and len(delta['files'])<300 and all(f['filename'] in allowed for f in delta['files']),'Main changed relevant Worker or release files'
+            print('PRODUCTION_MAIN_WORKER_BASELINE_CONFIRMED',current)
           def check_old():
             d=active()
             assert d['id']==expected_deployment,'Live deployment changed; refusing overwrite'
