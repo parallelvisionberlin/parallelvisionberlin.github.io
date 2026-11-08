@@ -1,3 +1,4 @@
+import {prepareViewerReferenceImages} from './viewer-reference-preparation.js?v=20261108-picker1';
 import {soulNightFlashQuoteMatches} from './night-flash-soul.js?v=20261106v1&wonKarNight=20261106v1&ownerNightFlash=20261107v1';
 import {replacementIntent,replacementIntentIssue} from './image-replacement-intent.js?v=20261106-replacement1';
 import {createImageReplacement} from './image-replacement.js?v=20261106-replacement1';
@@ -15,8 +16,8 @@ import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount,accountBootstrapMessage} from './native-account.js?v=20261103-browser-bootstrap1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
-import {createPrecisionEditor} from './precision-edit.js?v=20261108-regions1';
-import {createImageViewerEditor} from './image-viewer-editor.js?v=20261108-regions1';
+import {createPrecisionEditor} from './precision-edit.js?v=20261108-picker1';
+import {createImageViewerEditor} from './image-viewer-editor.js?v=20261108-picker1';
 import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261102-local-currency';
 import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&creditPurchaseFlow=20261104v1&partnerMenu=20261027-bellini1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1&cookies=20261101-v1&conversionFlow=20261102-1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1&creditPurchaseFlow=20261104v1';
@@ -975,8 +976,9 @@ async function fetchCustomerImagePrice(s,check){
     let inputs={sourceId:sourceMode?originals[0]?.id||null:null,lastSourceId:null,
       referenceSourceIds:sourceMode?[]:originals.map(item=>item.id)};
     if(provider==='spicy'){
-      inputs=await prepareQuoteInputs(inputs,{originals,engine:selected.engine,onProgress:s.onProgress,detached:!!s.onProgress});check();
+      inputs=await prepareQuoteInputs(inputs,{originals,engine:selected.engine,onProgress:s.onProgress,detached:!!s.onProgress,viewerReplacement:s.viewerReplacement===true,checkCurrent:check});check();
       if(!inputs)throw new Error('Price checking was cancelled. Nothing was charged.');
+      s.onProgress?.('Checking price','Images ready; requesting the confirmed price. No generation submitted.');
       const reply=await api('/api/quotes',{method:'POST',
         body:{...inputs,settings:selected,...(count>1?{count}:{})}});
       check();
@@ -4644,7 +4646,7 @@ async function stageViewerReplacement(selection){
     const inputs={sourceId:null,lastSourceId:null,referenceSourceIds:[originalId,...referenceIds]};
     const chosen=inspected.map((item,i)=>({file:item.file,id:inputs.referenceSourceIds[i],width:item.width,height:item.height}));
     selection.onProgress?.('Checking the exact credit price and preparing references…');
-    const priced=await fetchCustomerImagePrice({settings:selected,count:1,chosen,sourceMode:false,provider,disableAutoMoodReferences:true,
+    const priced=await fetchCustomerImagePrice({settings:selected,count:1,chosen,sourceMode:false,provider,disableAutoMoodReferences:true,viewerReplacement:true,
       onProgress:(phase,detail)=>selection.onProgress?.(phase+(detail?': '+detail:''))},check);check();
     if(!Number.isSafeInteger(priced?.credits)||priced.credits<1||!Number.isFinite(priced.expiresAt)||priced.expiresAt<=Date.now()+15000)
       throw Error('A valid price could not be confirmed. Nothing was charged.');
@@ -4909,7 +4911,9 @@ async function prepareQuoteInputs(inputs,snapshot=null){
   const originals=snapshot?snapshot.originals:tool==='upscale'||isReinterpret()?[{id:inputs.sourceId,file}]:imageEngine==='soul'&&tool==='image'?[]:references;
   const selectedEngine=snapshot?.engine??(tool==='image'?imageEngine:null);
   const transferSourceIds=[];
-  for(const item of originals){
+  const checkPreparation=()=>{if(epoch!==sessionEpoch||!owner)throw new Error('Session changed.');snapshot?.checkCurrent?.();};
+  const prepareOne=async(item)=>{
+    checkPreparation();
     // Dimensions are known from inspectImage. If a legacy input omitted them,
     // decode it before quoting rather than silently passing through an unsafe ID.
     const seedreamInput=['seedream','seedreamlite'].includes(selectedEngine)&&(snapshot?true:tool==='image');
@@ -4923,7 +4927,7 @@ async function prepareQuoteInputs(inputs,snapshot=null){
     const pixels=seedreamInput?Number(prepareItem.width)*Number(prepareItem.height):0;
     const resizeForSeedream=pixels>SEEDREAM_INPUT_MAX_PIXELS;
     if(!resizeForSeedream&&item.file.size<=PROVIDER_IMAGE_LIMIT){
-      transferSourceIds.push(item.id);continue;
+      checkPreparation();return item.id;
     }
     const cacheKey=resizeForSeedream?'seedream-pixels:'+item.id:item.id;
     let copy=workingCopies.get(cacheKey);
@@ -4938,13 +4942,18 @@ async function prepareQuoteInputs(inputs,snapshot=null){
       const prepared=seedreamInput
         ?await seedreamPreparer.forSubmission(prepareItem)
         :(resizeForSeedream?await seedreamWorkingCopy(item.file):await providerWorkingCopy(item.file));
-      if(epoch!==sessionEpoch||!owner)throw new Error('Session changed.');
-      const id=await uploadAsset(prepared);copy={id,at:Date.now()};
+      checkPreparation();
+      const id=await uploadAsset(prepared);checkPreparation();copy={id,at:Date.now()};
       workingCopies.set(cacheKey,copy);
     }
-    transferSourceIds.push(copy.id);
+    checkPreparation();return copy.id;
+  };
+  if(snapshot?.viewerReplacement){
+    transferSourceIds.push(...await prepareViewerReferenceImages(originals,prepareOne,{check:checkPreparation,onProgress:snapshot.onProgress}));
+  }else{
+    for(const item of originals)transferSourceIds.push(await prepareOne(item));
   }
-  if(epoch!==sessionEpoch||!owner)throw new Error('Session changed.');
+  checkPreparation();
   return {...inputs,transferSourceIds};
 }
 async function upscaleImage(job){
