@@ -1,4 +1,4 @@
-name: Prepare scoped Replace region fixes
+name: Prepare scoped Replace region and Character prompt budget fixes
 on:
   push:
     branches: [fix/replace-outfit-background-feedback-20261108]
@@ -18,10 +18,11 @@ jobs:
         run: python3 scripts/prepare-replace-regions-20261108.py
       - name: Existing UI, billing, private-source and segmentation checks
         run: |
+          node --check lab/reference-guidance.js
           node --check lab/precision-edit.js
           node --check lab/image-viewer-editor.js
           node --check lab-worker/precision-edit.mjs
-          node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-sam-click-mask.test.mjs tests/lab-precision-edit.test.mjs tests/lab-guided-replace.test.mjs tests/lab-viewer-scope.test.mjs tests/lab-viewer-inline.test.mjs tests/lab-image-replacement-backend.test.mjs tests/lab-image-replacement-composite.test.mjs
+          node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-viewer-replacement-prompt.test.mjs tests/lab-sam-click-mask.test.mjs tests/lab-precision-edit.test.mjs tests/lab-guided-replace.test.mjs tests/lab-viewer-scope.test.mjs tests/lab-viewer-inline.test.mjs tests/lab-image-replacement-backend.test.mjs tests/lab-image-replacement-composite.test.mjs
           node --test tests/lab-worker.test.mjs
       - name: Install isolated browser runner
         run: |
@@ -46,7 +47,7 @@ jobs:
             req=urllib.request.Request(root+path,method=method,data=None if data is None else json.dumps(data).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
             with urllib.request.urlopen(req,timeout=30) as r:return json.load(r)
           assert api('/git/ref/heads/'+branch)['object']['sha']==head,'Branch moved; do not overwrite'
-          paths=['lab/precision-edit.js','lab-worker/precision-edit.mjs','lab/viewer-selection-scope.js','lab/image-viewer-editor.js','lab/selection-feedback.js','lab/lab.js','lab/studio.html','tests/lab-viewer-scope.test.mjs','tests/lab-sam-click-mask.test.mjs','tests/lab-sam-click-mask-ui.mjs']
+          paths=['lab/reference-guidance.js','lab/precision-edit.js','lab-worker/precision-edit.mjs','lab/viewer-selection-scope.js','lab/image-viewer-editor.js','lab/selection-feedback.js','lab/lab.js','lab/studio.html','tests/lab-viewer-scope.test.mjs','tests/lab-sam-click-mask.test.mjs','tests/lab-sam-click-mask-ui.mjs']
           changed=set(subprocess.check_output(['git','diff','--name-only'],text=True).splitlines())
           assert changed==set(paths),'Unexpected changed files: '+str(changed)
           entries=[]
@@ -62,3 +63,5 @@ jobs:
           print('TESTED_REGION_FIX_COMMIT',commit['sha'])
           print('No deployments, customer operations or paid provider calls were performed.')
           PY
+
+# Retry after aligning Location wording with existing browser contract and testing the eight-reference prompt budget.
