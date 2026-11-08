@@ -285,6 +285,24 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
     return ownerGenerationReviewRoute(request,env,owner);
   if(['/api/admin/customers/inspect','/api/admin/customers/inspect-thumbnail','/api/admin/customers/inspect-media'].includes(path))
     return ownerQualityReviewRoute(request,env,owner);
+  if(path==='/api/admin/customer-journey'&&method==='GET'){
+    const days=Number(url.searchParams.get('days')||'7');
+    if(days!==7&&days!==30)fail(400,'Choose 7 or 30 days.');
+    const now=Date.now(),start=now-days*86400000;
+    const [events,signup,first]=await Promise.all([
+      all(env,`SELECT event,COUNT(DISTINCT customer_id) AS accounts,
+        COALESCE(SUM(event_count),0) AS interactions
+        FROM lab_customer_journey
+        WHERE last_at>=? GROUP BY event ORDER BY accounts DESC,event`,start),
+      one(env,'SELECT COUNT(*) AS accounts FROM lab_customers WHERE created_at>=?',start),
+      one(env,'SELECT MIN(first_at) AS firstAt FROM lab_customer_journey')
+    ]);
+    return json({days,observedAt:now,firstTrackedAt:first?.firstAt||null,
+      newAccounts:Number(signup?.accounts)||0,
+      events:events.map(e=>({event:e.event,accounts:Number(e.accounts)||0,
+        interactions:Number(e.interactions)||0})),
+      note:'Client-reported first-party milestones, unique accounts per action. Purchases and finished jobs must be verified in their authoritative ledgers. No historical backfill or campaign attribution.'});
+  }
   if(path==='/api/admin/traffic'&&method==='GET'){
     const days=Number(url.searchParams.get('days')||'7');
     return json(await labTrafficReport(env,{days}));
@@ -416,7 +434,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
       WHERE c.id=?`,customerId);
     if(!customer)fail(404,'Customer not found.');
-    const [jobCounts,creditTotals,jobs,entries,archivedFinance]=await Promise.all([
+    const [jobCounts,creditTotals,jobs,entries,archivedFinance,journey]=await Promise.all([
       one(env,`SELECT COUNT(*) AS totalJobs,
         COALESCE(SUM(CASE WHEN last_state IN ('completed','reconstructed_completed') THEN 1 ELSE 0 END),0) AS completedJobs,
         COALESCE(SUM(CASE WHEN last_state='failed' THEN 1 ELSE 0 END),0) AS failedJobs,
@@ -443,7 +461,10 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
           ELSE estimated_microusd/1000000.0 END AS exposureUsd,
         CASE WHEN settled_cost_usd IS NOT NULL THEN 'settled' WHEN last_state IN ('failed','unknown') THEN 'unconfirmed' ELSE 'estimate' END AS costKind
         FROM lab_generation_finance WHERE customer_id=? AND deleted_at IS NOT NULL
-        ORDER BY created_at DESC,job_id DESC LIMIT 50`,customerId)
+        ORDER BY created_at DESC,job_id DESC LIMIT 50`,customerId),
+      all(env,`SELECT event,surface,detail,first_at AS firstAt,last_at AS lastAt,event_count AS count
+        FROM lab_customer_journey WHERE customer_id=?
+        ORDER BY last_at DESC LIMIT 60`,customerId)
     ]);
     // Return only curated metadata. Never expose prompts, reference URLs or private media.
     const safe=value=>typeof value==='string'?value.slice(0,120):'';
@@ -473,12 +494,12 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       creditsCharged:Number(creditTotals?.creditsCharged)||0,
       creditsRefunded:Number(creditTotals?.creditsRefunded)||0,
       netCreditsSpent:(Number(creditTotals?.creditsCharged)||0)-(Number(creditTotals?.creditsRefunded)||0)
-    },jobs:history,archivedFinance,entries:entries.map(e=>({createdAt:e.createdAt,credits:e.credits,kind:e.kind,
+    },jobs:history,archivedFinance,journey,entries:entries.map(e=>({createdAt:e.createdAt,credits:e.credits,kind:e.kind,
       description:e.kind==='adjustment'&&e.reference?.startsWith('welcome:')?'Welcome credits':
         e.kind==='adjustment'&&e.reference?.startsWith('voucher:')?'Voucher credits':
         e.kind==='adjustment'&&e.reference?.startsWith('referral:')?'Referral credits':
         descriptions[e.kind]||'Credit movement'})),
-      limits:{jobs:50,entries:80,archivedFinance:50}});
+      limits:{jobs:50,entries:80,archivedFinance:50,journey:60}});
   }
   if(path==='/api/admin/vouchers/redemptions'&&method==='GET'){
     const code=codeOf(url.searchParams.get('code'));
