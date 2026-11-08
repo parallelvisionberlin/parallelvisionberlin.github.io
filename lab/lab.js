@@ -54,6 +54,15 @@ const $=id=>document.getElementById(id), activeStates=new Set(['submitting','que
 let customerVideoProfile={},customerCreditBalance=0;
 let clerk, owner=false, ownerAccount=false, customerMode=false, customerGenerationReady=false, customerTrialGenerationPaused=false, customerBillingReady=false, customerImagePricing=null, videoPricing=null, videoPriceClickPending=false, imageRatioExplicit=false, soulRatioExplicit=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
 let imageSubmissionPending=false,imageSubmissionStage='Sending…',customerPriceIntentPending=false;
+const journeyEventTime=new Map();
+function trackStudioJourney(event,detail='none'){
+  if(!customerMode||!owner||navigator.doNotTrack==='1'||navigator.globalPrivacyControl===true||navigator.webdriver===true)return;
+  const key=event+':'+detail,now=Date.now();
+  if(now-(journeyEventTime.get(key)||0)<30000)return;
+  journeyEventTime.set(key,now);
+  // Authenticated, first-party and best-effort. Never delay a creative action.
+  void api('/api/customer/journey-event',{method:'POST',body:{event,surface:'studio',detail}}).catch(()=>{});
+}
 let imageReplacement=null,replacementReviewPending=false;
 let frameMaker=null;
 const fastImageHandoff=createImageSubmitHandoff();
@@ -453,6 +462,7 @@ const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-compo
   onChange:change=>{
     if(change?.selectedMood||!moodUI.active())inspirationMoodId=null;
     // A Mood selection must not override the user's explicit 1K/2K choice.
+    if(change?.selectedMood&&moodUI.selected())trackStudioJourney('mood_selected',moodUI.selected()==='berlin-rave'?'berlin-rave':'other');
     autoPreview=null;update();
     // Bypass the generic typing debounce on an intentional Mood selection.
     if(change?.selectedMood)customerImagePricing?.prime();
@@ -2378,11 +2388,12 @@ for(const [copy,real] of [
 $('composer-review-queue').onclick=()=>{$('active').open=true;$('active').scrollIntoView({behavior:'smooth',block:'start'});$('active').querySelector('summary')?.focus();};
 $('image-composer-generate').onclick=()=>{
   if(busy||tool!=='image')return;
+  trackStudioJourney('generate_clicked');
   // Show prices only after the customer's explicit Generate click, keeping
   // the editor and references intact. Never attempt unpaid provider work.
   if(customerMode&&customerBillingReady&&window.__PV_LAB_NATIVE__!==1&&
      (customerCreditBalance<=0||customerTrialGenerationPaused&&!customerGenerationReady)){
-    void pricingOverlay.open();
+    void openPricingMeasured();
     return;
   }
   $('generate').click();
@@ -3172,7 +3183,7 @@ $('soul-mood-dialog').addEventListener('cancel',event=>{
 $('soul-mood-dialog').addEventListener('close',()=>{
   if(owner&&tool==='image')$('image-composer-model').focus({preventScroll:true});
 });
-$('image-engine').onchange=()=>{if(busy)return;closeComposerAddMenu();closeComposerLibrary();const value=$('image-engine').value;imageRatioExplicit=false;soulRatioExplicit=false;imageEngine=['flash','kling','qwen3','krea3','zspicy','seedreamlite','gemini21'].includes(value)?value:value==='gemini'?'gemini':value==='soulpro'?'soulpro':value==='soul'?'soul':value==='fal'?'fal':'seedream';if(imageEngine==='kling'&&imageReferenceMode==='references')imageReferenceMode='base';poseMapSourceId=null;$('pose-preview-status').textContent='';if(imageEngine==='gemini21')imageProcessing='normal';$('image-processing').value=imageProcessing;setTool('image');renderReferences();prewarmSeedreamDeck();if(ownerSoulMoodMismatch()){$('soul-mood-name').textContent=moodById(moodUI.selected()).name;moodUI.close();$('soul-mood-dialog').showModal();}if(imageEngine==='zspicy')$('image-composer-prompt').focus({preventScroll:true});};
+$('image-engine').onchange=()=>{if(busy)return;closeComposerAddMenu();closeComposerLibrary();const value=$('image-engine').value;imageRatioExplicit=false;soulRatioExplicit=false;imageEngine=['flash','kling','qwen3','krea3','zspicy','seedreamlite','gemini21'].includes(value)?value:value==='gemini'?'gemini':value==='soulpro'?'soulpro':value==='soul'?'soul':value==='fal'?'fal':'seedream';trackStudioJourney('model_selected',imageEngine);if(imageEngine==='kling'&&imageReferenceMode==='references')imageReferenceMode='base';poseMapSourceId=null;$('pose-preview-status').textContent='';if(imageEngine==='gemini21')imageProcessing='normal';$('image-processing').value=imageProcessing;setTool('image');renderReferences();prewarmSeedreamDeck();if(ownerSoulMoodMismatch()){$('soul-mood-name').textContent=moodById(moodUI.selected()).name;moodUI.close();$('soul-mood-dialog').showModal();}if(imageEngine==='zspicy')$('image-composer-prompt').focus({preventScroll:true});};
 $('image-processing').onchange=()=>{if(busy)return;imageProcessing=$('image-processing').value==='batch'?'batch':'normal';setTool('image');};
 function updateSoulProModelUi(){
   $('hf-settings').hidden=soulProModel!=='soul2';$('soul-pro-reference-profile').hidden=soulProModel==='soul2';
@@ -3230,7 +3241,7 @@ async function api(path,options={}) {
         const generating=imageSubmissionPending||customerPriceIntentPending||
           busy&&(tool==='video'||tool==='upscale');
         if(generating&&options.method==='POST'&&!path.startsWith('/api/billing/')&&!path.startsWith('/api/customer/')){
-          void pricingOverlay.open();
+          void openPricingMeasured();
           creditPurchaseOpened=true;
         }
       }
@@ -3499,6 +3510,7 @@ async function addReferences(list,ids=[],labels=[]){
       $('reference-list').setAttribute('aria-busy','false');
       const attachedName=labels[0]?.elementName;
       $('reference-progress').textContent=added?(attachedName?'Character '+attachedName+' attached.':'Reference images ready.'):'';
+      if(added&&selectedTool==='image')trackStudioJourney('photo_added');
       update();
       // Load every thumbnail first; prewarming must not delay the next preview
       // behind an expensive 34 MP decode/encode in the image-worker queue.
@@ -3806,11 +3818,11 @@ $('generate').onclick=async()=>{if(tool==='image')return submitImageSnapshot();
   if(customerMode&&tool==='video'){
     if(!customerGenerationReady){
       const access=customerVideoAccess();
-      if(access.pricing)void pricingOverlay.open({oneTime:true});
+      if(access.pricing)void openPricingMeasured({oneTime:true});
       else notify(access.message,true);
       return;
     }
-    if(customerBillingReady&&customerCreditBalance<=0){void pricingOverlay.open({oneTime:true});return;}
+    if(customerBillingReady&&customerCreditBalance<=0){void openPricingMeasured({oneTime:true});return;}
   }
   const missingInput=missingVideoInputAction();
   if(missingInput){$(missingInput.inputId).click();return;}
@@ -5440,15 +5452,16 @@ $('history-delete-selected').onclick=()=>action(async()=>{
 function finishLabBoot(){window.__pvLabFinishBoot?.();document.documentElement.classList.remove('pv-studio-route-pending');}
 function lock(){imageViewerEditor.reset();imageReplacement?.reset();replacementReviewPending=false;videoUpscaler?.reset();videoPricing?.reset();$('app').removeAttribute('data-guest-preview');const pvStrip=$('pv-video-detail-reference-strip');if(pvStrip){pvStrip.replaceChildren();pvStrip.dataset.key='';}const pvRefPanel=$('pv-video-detail-references');if(pvRefPanel)pvRefPanel.hidden=true;sceneLibrary?.reset();setMoodDiscoveryOpen(false);customerPriceIntentPending=false;customerImagePricing?.reset();packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerVideoProfile={};customerCreditBalance=0;customerGenerationReady=false;customerTrialGenerationPaused=false;customerBillingReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';syncImagePreviewAccount();soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();clearStoredToolSources();clearStoredToolReferences();mediaRefs.clear();frameMaker?.clear();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;videoHistoryAutoSuppressed=false;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();$('pv-guest-closed-state').hidden=true;finishLabBoot();}
 const pricingOverlay=createPricingOverlay({
-  buy:(sku,report)=>wallet.buyPlan(sku,report),
+  buy:(sku,report)=>{trackStudioJourney('offer_clicked');return wallet.buyPlan(sku,report);},
   getAccount:()=>({signedIn:owner,customer:customerMode}),
   onSignIn:()=>$('signin')?.click()
 });
+function openPricingMeasured(options){trackStudioJourney('offer_viewed');return pricingOverlay.open(options);}
 const wallet=createCustomerWallet({
   api,notify,onBalance:value=>{customerCreditBalance=Number(value)||0;studioAccount.updateBalance(value);},
   beforeCheckout:async()=>{if(customerMode&&tool==='image'&&!fashionActive)await saveImageForMoods({returnReason:'checkout'});},
   onClosed:async()=>{lock();await clerk.signOut();},
-  openPricing:options=>pricingOverlay.open(options)
+  openPricing:options=>openPricingMeasured(options)
 });
 videoPricing=createCustomerImagePricing({snapshot:videoCreditSnapshot,quote:fetchVideoCreditPrice,changed:()=>update()});
 customerImagePricing=createCustomerImagePricing({snapshot:imageCreditQuoteSnapshot,quote:fetchCustomerImagePrice,changed:()=>update()});
@@ -5520,6 +5533,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     restoreGuestImageDraft();
     window.__pvLabBootStage?.('Workspace ready');
     finishLabBoot();
+    if(customerMode)trackStudioJourney('studio_opened');
     // Character landing intent opens the existing authenticated Elements dialog.
     // No provider call, upload, or paid generation happens on navigation.
     if(owner&&tool==='image'&&requestedRoute==='image'&&
@@ -5637,7 +5651,7 @@ async function submitImageSnapshot(){
   if(busy||imageSubmissionPending||customerPriceIntentPending||!owner||!hasInput()||submissionBlocked()||fastImageHandoff.has(currentImageSubmissionKey()))return;
   if(customerMode&&customerBillingReady&&window.__PV_LAB_NATIVE__!==1&&
      (customerCreditBalance<=0||customerTrialGenerationPaused&&!customerGenerationReady)){
-    void pricingOverlay.open();return;
+    void openPricingMeasured();return;
   }
   const replacementIssue=tool==='image'&&imageReferenceMode==='base'?replacementIntentIssue($('prompt').value,referenceRoles()):'';
   if(replacementIssue){notify(replacementIssue,true);return;}
@@ -5689,7 +5703,7 @@ async function submitImageSnapshot(){
     }catch(error){
       if(!owner||epoch!==priceEpoch)return;
       customerPriceIntentPending=false;
-      if(owner&&error.code==='PV_LAB_CREDITS_REQUIRED'&&!error.creditPurchaseOpened)void pricingOverlay.open({oneTime:true});
+      if(owner&&error.code==='PV_LAB_CREDITS_REQUIRED'&&!error.creditPurchaseOpened)void openPricingMeasured({oneTime:true});
       if(owner&&error.code!=='PV_LAB_CREDITS_REQUIRED')notify('Image price could not be confirmed. '+error.message,true);
       update();return;
     }
@@ -5697,7 +5711,7 @@ async function submitImageSnapshot(){
   if(customerMode&&Number.isSafeInteger(customerPriced?.credits)&&customerPriced.credits>customerCreditBalance){
     customerPriceIntentPending=false;
     clearImageComposerNotice();
-    void pricingOverlay.open({oneTime:true});
+    void openPricingMeasured({oneTime:true});
     update();return;
   }
   const sessionEpoch=epoch,provider=currentProvider();
@@ -5881,7 +5895,7 @@ async function submitImageSnapshot(){
       // A definitive wallet rejection did not submit this image. Leave only
       // the purchase window, without inventing a failed/uncertain History job.
       feedback?.finish();clearImageComposerNotice();
-      if(!e.creditPurchaseOpened)void pricingOverlay.open({oneTime:true});
+      if(!e.creditPurchaseOpened)void openPricingMeasured({oneTime:true});
     }else{
       feedback?.fail(e,dispatched);
       notify((submitted?submitted+' request(s) recorded. ':'')+(e.name==='AbortError'?'Request interrupted. Check History before retrying.':e.message),true);
