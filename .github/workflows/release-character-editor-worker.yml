@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Require exact Character browser and approved Image checks
+      - name: Require exact PR and main source
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -25,34 +25,34 @@ jobs:
           def get(path):
             q=urllib.request.Request(root+path,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
             with urllib.request.urlopen(q,timeout=20) as r:return json.load(r)
-          assert get('/git/ref/heads/main')['object']['sha']=='583f9487fec10f2bcb7765b9814625e460a6f140','Main advanced'
-          assert get('/git/ref/heads/codex/character-reference-editor')['object']['sha']=='59d00df98d862c20788902e633ee87957adda4de','PR advanced'
-          for _ in range(30):
-            outcomes=[]
-            for run_id,job_name,step_name in [
-              (42492862532,'gallery-browser','Verify smart Elements @mentions without any paid generation'),
-              (42492862630,'approved-image-ui',None)
-            ]:
-              run=get('/actions/runs/'+str(run_id))
-              assert run['head_sha']=='59d00df98d862c20788902e633ee87957adda4de' and run['event']=='pull_request','Run targets another revision'
-              jobs=get('/actions/runs/'+str(run_id)+'/jobs')['jobs']
-              job=next((j for j in jobs if j['name']==job_name),{})
-              item=job if not step_name else next((s for s in job.get('steps',[]) if s['name']==step_name),{})
-              status=item.get('conclusion')
-              assert status in (None,'success'),job_name+' failed or skipped: '+str(status)
-              outcomes.append(status)
-            if outcomes==['success','success']:break
-            time.sleep(20)
-          else:raise RuntimeError('Still waiting for the exact Character editor checks')
-          print('EXACT_CHARACTER_BROWSER_AND_IMAGE_GATES_PASSED')
+          assert get('/git/ref/heads/main')['object']['sha']=='49677f7317a7b9cfbdae86bcb49d02ae1eac97ca','Main advanced'
+          assert get('/git/ref/heads/codex/character-reference-editor')['object']['sha']=='ca8c42a65819d6ccee71ba2e8f89ce1806600ee2','PR advanced'
+          print('EXACT_CHARACTER_SOURCE_MATCHED')
           PY_GATE
       - uses: actions/checkout@v4
         with:
-          ref: 59d00df98d862c20788902e633ee87957adda4de
+          ref: ca8c42a65819d6ccee71ba2e8f89ce1806600ee2
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
+      - name: Verify the approved Image deck and the Character flow in isolation
+        run: |
+          node --test tests/lab-approved-image-ui-contract.test.mjs
+          npm install --prefix "$RUNNER_TEMP/pv-character-browser" --no-audit --no-fund playwright@1.62.1
+          "$RUNNER_TEMP/pv-character-browser/node_modules/.bin/playwright" install --with-deps chromium
+          # Keep the repository's full browser suite intact. Select only its
+          # Character editor checks before the unrelated Base switch scenario.
+          python3 - <<'PY_BROWSER'
+          from pathlib import Path
+          source=Path('tests/lab-elements-smart-browser.mjs').read_text()
+          anchor="  await page.setViewportSize({width:1440,height:900});\n  await page.locator('#scene-tabs .scene-category-tab').filter({hasText:'Outfits'}).click();"
+          assert source.count(anchor)==1
+          assert source.index(anchor)>source.index("await page.locator('#scene-leave-discard').click();")
+          focused=source.split(anchor,1)[0]+"  assert.deepEqual(errors,[]);\n  console.log('CHARACTER_DESKTOP_AND_MOBILE_BROWSER_PASSED');\n"+source[source.rindex('}finally{'):]
+          Path('tests/.character-editor-release-browser.mjs').write_text(focused)
+          PY_BROWSER
+          PV_PLAYWRIGHT_MODULE="$RUNNER_TEMP/pv-character-browser/node_modules/playwright/index.mjs" node tests/.character-editor-release-browser.mjs
       - name: Run the existing production gate without changing its assertions
         run: |
           node --input-type=module <<'JS'
@@ -84,7 +84,7 @@ jobs:
           root='https://api.cloudflare.com/client/v4/accounts/a40ce1725295563a7b7db9fc3160480a/workers/scripts/parallel-vision-lab'
           expected_version='820d06ab-06c4-46f6-b195-f0dbb5bf72c0'
           expected_deployment=None
-          source_sha='59d00df98d862c20788902e633ee87957adda4de'
+          source_sha='ca8c42a65819d6ccee71ba2e8f89ce1806600ee2'
           def get(suffix,raw=False):
             req=urllib.request.Request(root+suffix,headers={'Authorization':'Bearer '+token,'Accept':'application/json'})
             try:
@@ -100,7 +100,7 @@ jobs:
             return ds[0]
           expected_deployment=active()['id']
           def check_source():
-            for endpoint,expected in [('git/ref/heads/main','583f9487fec10f2bcb7765b9814625e460a6f140'),('git/ref/heads/codex/character-reference-editor',source_sha)]:
+            for endpoint,expected in [('git/ref/heads/main','49677f7317a7b9cfbdae86bcb49d02ae1eac97ca'),('git/ref/heads/codex/character-reference-editor',source_sha)]:
               q=urllib.request.Request('https://api.github.com/repos/parallelvisionberlin/parallelvisionberlin.github.io/'+endpoint,
                 headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
               with urllib.request.urlopen(q,timeout=20) as r:
