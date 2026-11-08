@@ -1,0 +1,94 @@
+name: Verify published Replace picker and progress
+on:
+  push:
+    branches: [verify/replace-picker-progress-20261108]
+    paths: [.github/workflows/verify-replace-picker-progress.yml]
+permissions:
+  contents: write
+  checks: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 95be60a358232bb080d2ac02fdb33a923f9634f1
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: {node-version: '22.16.0'}
+      - name: Verify normal Cloudflare publication and exact served bytes without deployment
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import {verifyRelease,productionUrl} from './.github/scripts/verify-pvlab-release.mjs';
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const sha='95be60a358232bb080d2ac02fdb33a923f9634f1';
+          const hash=b=>createHash('sha256').update(b).digest('hex');
+          const html=readFileSync('lab/studio.html','utf8');
+          const urls=[...html.matchAll(/<(?:script|link)\b[^>]*\b(?:src|href)=["']([^"']+)["']/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'),productionUrl));
+          const entry=urls.find(u=>u.pathname==='/lab.js');
+          if(entry?.searchParams.get('replacePicker')!=='20261108-picker1')throw Error('Missing versioned viewer entrypoint');
+          let proof;
+          for(let attempt=0;attempt<6;attempt++){
+            proof=await verifyRelease({sha,asset:'lab/lab.js',version:entry.searchParams.get('v'),sourceBytes:readFileSync('lab/lab.js')});
+            if(proof.state==='LIVE_VERIFIED')break;
+            console.log('PUBLICATION_CHECK',proof.state);
+            if(attempt<5)await new Promise(resolve=>setTimeout(resolve,45000));
+          }
+          if(proof.state!=='LIVE_VERIFIED')throw Error('Not verified: '+proof.state);
+          for(const [path,url] of [
+            ['lab/image-viewer-editor.js','/image-viewer-editor.js?v=20261108-picker1'],
+            ['lab/precision-edit.js','/precision-edit.js?v=20261108-picker1'],
+            ['lab/selection-feedback.js','/selection-feedback.js?v=20261108-picker1'],
+            ['lab/viewer-reference-preparation.js','/viewer-reference-preparation.js?v=20261108-picker1'],
+            ['lab/viewer-guided-replace.css','/viewer-guided-replace.css?v=20261108-picker1']
+          ]){
+            const response=await fetch(new URL(url,productionUrl),{cache:'no-store',signal:AbortSignal.timeout(20000)});
+            if(!response.ok)throw Error('Missing public asset '+path);
+            const actual=Buffer.from(await response.arrayBuffer());
+            if(hash(actual)!==hash(readFileSync(path)))throw Error('Published asset differs: '+path);
+            console.log('LIVE_VERIFIED',path,hash(actual));
+          }
+          console.log('REPLACE_PICKER_PROGRESS_PUBLICATION_VERIFIED',sha);
+          JS
+      - name: Record actual publication and remaining generation-quality blocker
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib,datetime,subprocess,urllib.request
+          root='https://api.github.com/repos/parallelvisionberlin/parallelvisionberlin.github.io';head='95be60a358232bb080d2ac02fdb33a923f9634f1'
+          proof=root.replace('api.github.com/repos/','github.com/')+'/actions/runs/'+os.environ['GITHUB_RUN_ID']
+          def api(path,method='GET',data=None):
+            r=urllib.request.Request(root+path,method=method,data=None if data is None else json.dumps(data).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+            with urllib.request.urlopen(r,timeout=30) as response:return json.load(response)
+          assert api('/git/ref/heads/main')['object']['sha']==head,'Main changed; do not overwrite newer work'
+          now=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z')
+          p=pathlib.Path('lab/owner-work-records.json');j=json.loads(p.read_text());r=next(x for x in j['records'] if x['id']=='image-viewer-replace-edit-actions')
+          r['updatedAt']=now;r['reviewedSha']=head;r['status']='deployed';r['branch']='fix/replace-picker-progress-20261108'
+          r['summary']='PR #937 separates mode selection from Choose/Change Character, adds visible scan feedback, separates reference preparation from pricing, and prepares private viewer inputs with at most two concurrent workers. All eight Character photos and existing payment/selection safeguards retained. Generated whole-person quality remains unresolved.'
+          r['nextAction']='No owner token/settings work. Use the explicit saved-reference button after refresh. Before another whole-person quality claim, inspect original/mask/raw/composite and evaluate an explicitly priced mask-aware multi-reference edit path; do not silently switch the customer model or discard references.'
+          r['blockers']=['Whole-person generator still uses unmasked Seedream plus final compositing. User result shows a pasted head/hair boundary; not fixed by UI changes.','Real-account end-to-end preparation latency is not measured by synthetic tests.','Saved Location generation references remain unsupported.']
+          r['deployment']={'state':'verified','sourceSha':head,'environment':'Cloudflare Pages pvlab-studio / pvlab.studio','observedAt':now,'evidenceUrl':proof,'limitations':['Frontend exact asset bytes verified; no Worker/backend deployment in this change.','No paid inference; no claim of improved replacement image quality or a particular real latency.']}
+          r['tests'].append({'label':'Explicit picker, visible selection and bounded reference preparation','result':'passed','scope':'Preparation run 42507405923 and normal Precision browser regression 42507802439; synthetic desktop/mobile, eight references, source dimensions, cancellation, quotes, no duplicate inference.','source':proof,'observedAt':now})
+          r['evidence'].append({'kind':'production_asset','summary':'Merged #937 exact custom-domain JavaScript and CSS bytes verified.','scope':'Viewer picker, selection feedback and private source preparation only.','source':proof,'observedAt':now,'limitations':['Not an output-quality test.']})
+          for path in ['lab/viewer-reference-preparation.js','tests/lab-viewer-reference-preparation.test.mjs']:
+            if path not in r['files']:r['files'].append(path)
+          j['updatedAt']=now;p.write_text(json.dumps(j,ensure_ascii=False,indent=2)+'\n')
+          q=pathlib.Path('lab/IMAGE-REPLACEMENT-WORK-STATE.md');old=q.read_text();assert old.startswith('# Image replacement flow\n')
+          note='\n'.join(['## Latest verified viewer update, 2026-11-08','', '- PR #937 merged as `'+head+'`; exact public frontend files verified: '+proof, '- Modes only change mode. Choose Character / Change Character opens the existing private library explicitly. Outfit/Object use the same dedicated affordance.', '- Magic Select shows an in-photo scan sweep and larger position ring; reduced-motion users retain the status without the animation. No fake mask, fake percent or extra inference.', '- File loading, Preparing images (completed / total), Checking price, and priced Generate are separate actual stages. Viewer input optimization/upload runs at most two tasks concurrently and retains all photos/order/notes, source limits and stale-session checks.', '- Synthetic desktop/mobile and existing quote/payment/selection regressions passed. No paid generation or live-account latency benchmark. No backend, provider, price, database or credential change.', '- The reported whole-person replacement is still unacceptable: a hard new hair/head boundary with retained light-hair edges is visible in the screenshot. Do not present UI publication as a quality repair.', '- Core remaining task: inspect original/mask/raw/composite, integrate and quality-test a mask-aware multi-reference route with exact pricing and exterior protection. fal GPT Image 2 Edit documents mask_url plus up to 16 inputs, so source + eight Character photos fit its documented capacity, but this endpoint has NOT been integrated or tested here. Native mask guidance may not follow exact boundaries; retain output validation. Provider docs: https://fal.ai/models/openai/gpt-image-2/edit/api and https://developers.openai.com/api/docs/guides/image-generation .', '- No further user settings or paid retry is required for this frontend change.','', '## Previous release history',''])
+          q.write_text('# Image replacement flow\n\n'+note+'\n'+old.split('\n',1)[1].lstrip())
+          subprocess.run(['node','scripts/owner-work-state.mjs','validate'],check=True)
+          entries=[]
+          for path in [str(p),str(q)]:
+            b=api('/git/blobs','POST',{'content':pathlib.Path(path).read_text(),'encoding':'utf-8'});entries.append({'path':path,'mode':'100644','type':'blob','sha':b['sha']})
+          prev=api('/git/commits/'+head);tree=api('/git/trees','POST',{'base_tree':prev['tree']['sha'],'tree':entries})
+          commit=api('/git/commits','POST',{'message':'[CF-Pages-Skip] Record verified Replace picker/progress and unresolved output quality','tree':tree['sha'],'parents':[head]})
+          assert api('/git/ref/heads/main')['object']['sha']==head,'Main moved; preserve newer work'
+          api('/git/refs/heads/main','PATCH',{'sha':commit['sha'],'force':False})
+          print('SCOPED_RECORD_SAVED',commit['sha'])
+          PY
