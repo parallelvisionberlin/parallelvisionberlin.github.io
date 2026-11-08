@@ -25,8 +25,8 @@ jobs:
           sha256sum lab/visuals/beauty/atelier/hero.webp lab/beauty-editorial-final.css lab/beauty-flow-refinement.css lab/beauty-panel-widen-20261107.css lab/beauty-gallery-20261107.css > /tmp/alter-makeup-locked.sha256
       - name: Apply scoped 16-makeup upgrade using approved portrait reference assets
         run: |
-          curl --fail --silent --show-error --location 'https://at.adobe.com/HV9RTKKFG5vmXLJQ' -o /tmp/alter-makeup-package.zip
-          echo '489c568c83e3f16f96101d6fc6b924d727bcbad089ffb1f66094c1e01e408c86  /tmp/alter-makeup-package.zip' | sha256sum --check
+          curl --fail --silent --show-error --location 'https://at.adobe.com/KqVjyezd5PIEX0vL' -o /tmp/alter-makeup-package.zip
+          echo '7e9ae8567803e3849c818cdadf3d0e7d5ee9074cca227a01be25cc84f6aabd52  /tmp/alter-makeup-package.zip' | sha256sum --check
           mkdir -p /tmp/alter-makeup-package
           unzip -q /tmp/alter-makeup-package.zip -d /tmp/alter-makeup-package
           python3 /tmp/alter-makeup-package/apply.py
