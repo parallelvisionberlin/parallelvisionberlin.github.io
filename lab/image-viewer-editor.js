@@ -34,7 +34,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
   let quoteRevision=0, quote=null, quoteTimer=null, quoting=false, submitting=false, uncertain=false, returnFocus=null;
   let lastResult=null, referenceRevision=0, actionMode='edit', savedReference=null, libraryItems=[], libraryTab='saved', characterScope='face';
   const localStorage=()=>{try{return window.localStorage;}catch{return null;}};
-  let libraryTicket=0, libraryOpen=false, loadingReference=false, learned=false, helpOpen=true, ownerSession=null;
+  let libraryTicket=0, libraryOpen=false, loadingReference=false, loadingSavedReference=null, learned=false, helpOpen=true, ownerSession=null;
   const paths={person:'<circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/>',outfit:'<path d="m8 3-6 4 3 5 3-2v12h8V10l3 2 3-5-6-4c-1 3-7 3-8 0Z"/>',object:'<path d="m12 2 9 5v10l-9 5-9-5V7Zm0 10v10M3 7l9 5 9-5M8 4l9 5"/>',location:'<path d="m2 20 7-13 5 8 3-6 5 11H2Z"/>'};
   const icon=name=>'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">'+paths[name]+'</svg>';
   const guide=document.createElement('div');guide.className='viewer-selection-guide';guide.hidden=true;
@@ -71,7 +71,15 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
   directionLabel.before(hint);directionLabel.after(kinds,characterModes,selectionAdvice,library,selectedCard,locationNote,invert);
   const uploadRow=fields.querySelector('.viewer-reference-row');
   const uploadHome=document.createComment('viewer upload row home');uploadRow.before(uploadHome);
-  selectedCard.querySelector('button').addEventListener('click',()=>remove.click());
+  selectedCard.querySelector('button').addEventListener('click',()=>{
+    if(loadingReference){
+      ++referenceRevision;loadingReference=false;loadingSavedReference=null;
+      editor.setExternalMode(false);clearReference();invalidate();renderLibrary();refresh();
+      status.textContent='Reference loading cancelled. Nothing was charged.';
+      return;
+    }
+    remove.click();
+  });
   help.addEventListener('click',()=>{helpOpen=!helpOpen;refresh();});
   for(const button of library.querySelectorAll('[data-viewer-tab]'))button.addEventListener('click',()=>{libraryTab=button.dataset.viewerTab;renderLibrary();});
   function isReplace(){return actionMode==='replace';}
@@ -111,19 +119,41 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
   }
   async function chooseSaved(item){
     if(submitting||loadingReference||scope.value==='location')return;
+    clearReference();
     const ticket=revision,load=++referenceRevision,selectedKind=scope.value;
     const current=()=>active&&ticket===revision&&load===referenceRevision&&session()===ownerSession;
-    loadingReference=true;editor.setExternalMode(true);invalidate();status.textContent='Loading saved reference…';refresh();renderLibrary();
+    loadingReference=true;loadingSavedReference=item;editor.setExternalMode(true);invalidate();
+    selectedCard.querySelector('strong').textContent=item.title;
+    selectedCard.querySelector('small').textContent='Preparing '+item.refs.length+' saved photos…';
+    const cover=selectedCard.querySelector('.viewer-selected-cover');
+    cover.replaceChildren();renderReference?.(cover,item.refs[0]?.id);
+    status.textContent='Loading saved references. Nothing has been generated or charged.';
+    refresh();renderLibrary();
     try{
-      const bundle=await loadViewerReference(item,selectedKind==='person'&&characterScope==='face'?'face':selectedKind,{read:readReference,limit:getReferenceLimit(),isCurrent:current,direction:prompt.value.trim()});
+      const bundle=await loadViewerReference(item,selectedKind==='person'&&characterScope==='face'?'face':selectedKind,{
+        read:readReference,limit:getReferenceLimit(),isCurrent:current,direction:prompt.value.trim(),
+        onProgress:(done,total)=>{
+          if(!current())return;
+          selectedCard.querySelector('small').textContent='Loading '+done+' / '+total+' reference photos…';
+          status.textContent='Loading '+done+' of '+total+' photos. No generation submitted.';
+        }
+      });
       if(!current())return;
-      clearReference();savedReference=bundle;reference=bundle.refs[0].file;
-      const cover=selectedCard.querySelector('.viewer-selected-cover');renderReference?.(cover,bundle.refs[0].id);
+      savedReference=bundle;reference=bundle.refs[0].file;
       selectedCard.querySelector('strong').textContent=bundle.name;
       selectedCard.querySelector('small').textContent=bundle.count+' photo'+(bundle.count===1?'':'s')+' · '+replacementKind(selectedKind).label;
-      libraryOpen=false;library.hidden=true;editor.setExternalMode(true);status.textContent='';invalidate();
-    }catch(error){if(active&&ticket===revision)status.textContent=error.message;}
-    finally{if(active&&ticket===revision){loadingReference=false;editor.setExternalMode(!!reference);if(reference)invalidate();refresh();}}
+      libraryOpen=false;library.hidden=true;editor.setExternalMode(true);
+    }catch(error){
+      if(current()){
+        loadingSavedReference=null;status.textContent='Could not load the saved Character. Nothing was charged. '+error.message;
+      }
+    }finally{
+      if(current()){
+        loadingReference=false;loadingSavedReference=null;editor.setExternalMode(!!reference);
+        if(reference){invalidate();status.textContent=editor.hasSelection()?'Preparing the exact credit price…':'Reference ready. Select the area to replace.';}
+        refresh();renderLibrary();
+      }
+    }
   }
   function markLearned(){if(isReplace()&&session()===ownerSession)rememberGuidance(localStorage(),account());}
 
@@ -152,7 +182,7 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
     workspace.classList.toggle('has-viewer-reference',!!reference||loadingReference);
     sidebar.classList.toggle('has-viewer-reference',!!reference||loadingReference);
     kind.hidden=isReplace()||!reference;remove.hidden=!reference||!!savedReference;generate.hidden=!reference;
-    selectedCard.hidden=!savedReference;preview.hidden=!reference||!!savedReference;
+    selectedCard.hidden=!savedReference&&!loadingSavedReference;preview.hidden=!reference||!!savedReference;
     const chosen=editor.hasSelection(),type=replacementKind(scope.value),mode=$('precision-tool-magic').getAttribute('aria-pressed')==='true'?'magic':$('precision-tool-brush').getAttribute('aria-pressed')==='true'?'brush':'other';
     const characterMode=isReplace()&&scope.value==='person', effective=replacementScope(scope.value,characterScope), metrics=chosen?editor.selectionMetrics?.():null;
     const advisory=characterMode&&chosen?selectionAdvisory(scope.value,characterScope,metrics):null;
@@ -192,19 +222,20 @@ export function createImageViewerEditor({editor, onPrepare, onResult, notify, ge
     if(!active||!reference||!editor.hasSelection()||editor.isBusy()||submitting||uncertain)return;
     const ticket=revision, version=quoteRevision, destination=reference, direction=prompt.value.trim(), selectedScope=replacementScope(scope.value,characterScope);
     const current=()=>active&&ticket===revision&&version===quoteRevision&&destination===reference;
-    quoting=true; refresh();
+    quoting=true;status.textContent='Validating the selection and checking the credit price…';refresh();
     try {
       const selection=await editor.selectionSnapshot(); if(!current())return;
       const prepared=await onPrepare({...selection,reference:destination,scope:selectedScope,direction,references:savedReference?.refs,isCurrent:current});
       if(!current()||!selection.selectionCurrent())return;
       quote=prepared;
+      status.textContent='Price ready. Generate only when the selection looks right.';
       clearTimeout(quoteTimer);
       quoteTimer=setTimeout(invalidate,Math.max(1000,prepared.expiresAt-Date.now()-15000));
-    } catch(error) { if(current())status.textContent=error.message; }
+    } catch(error) { if(current())status.textContent='Could not prepare this edit. No generation was charged. '+error.message; }
     finally { if(current()){quoting=false;refresh();} }
   }
   function clearReference() {
-    ++referenceRevision;savedReference=null;selectedCard.hidden=true;reference=null; input.value=''; preview.hidden=true; preview.removeAttribute('src');
+    ++referenceRevision;savedReference=null;loadingSavedReference=null;selectedCard.hidden=true;reference=null; input.value=''; preview.hidden=true; preview.removeAttribute('src');
     if(referenceURL)URL.revokeObjectURL(referenceURL); referenceURL=null;
   }
   input.addEventListener('change',async()=>{
