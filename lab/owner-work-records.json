@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-07T23:26:00.000Z",
+  "updatedAt": "2026-11-08T07:40:02.106Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1839,12 +1839,12 @@
       "title": "Contextual image viewer Replace and Edit",
       "component": "PV LAB Image viewer",
       "status": "deployed",
-      "updatedAt": "2026-11-07T23:13:39.319Z",
-      "baselineSha": "14344317b16ad840d1c57290fc2fc927e17d1f59",
-      "reviewedSha": "01753ca93c4bde1f9a37906ccd59a420e5bc3394",
-      "branch": "feat/replace-scope-face-whole-20261107",
-      "summary": "Explicit Face/Whole person Character replacement scopes. Face and full person have separate instructions and reference handling, switching scope invalidates old mask/price, and conservative mask-extent warnings allow Brush or deliberate reselection. Existing external-pixel fidelity, billing and Image draft remain unchanged.",
-      "nextAction": "Frontend is live and exact public asset bytes are verified. SAM 3 point+semantic hints in Worker source require a separate authorized manual Worker deployment and production health check; existing production SAM remains point-based. Real-account/paid-result quality not verified.",
+      "updatedAt": "2026-11-08T07:40:02.106Z",
+      "baselineSha": "ca2fee15ea86b5abfe84627acc247d178d8752dc",
+      "reviewedSha": "4edc1437e032ae4de0229113d93febff86a034bc",
+      "branch": "fix/replace-loading-and-quality-20261108",
+      "summary": "Audited PV LAB Replace: three-at-a-time reference downloads and account-isolated memory cache; immediate saved Character progress, safe cancellation and price feedback; saved asset dimension-only quote checks; incomplete Face/Whole-person masks blocked before paid Generate; conservative preservation prompt. Original-pixel compositor and existing billing retained.",
+      "nextAction": "Frontend verified live with exact source asset hashes. The generation provider still does not accept the selection as a true inpainting mask. Owner should restore Cloudflare Worker deployment token and run a controlled masked-provider comparison before selling whole-person replacements as reliable. The failed job's raw output/mask remain unexamined.",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
@@ -1926,35 +1926,43 @@
         {
           "label": "Face and Whole person live asset verification",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42424109922"
+        },
+        {
+          "label": "Replace audit PR #926",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/926"
+        },
+        {
+          "label": "Replace audit live verification",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42459529984"
         }
       ],
       "tests": [
         {
-          "label": "Approved Image UI and focused scope/unit checks",
+          "label": "Focused Image UI contract and unit tests",
           "result": "passed",
-          "scope": "Face/Whole scope, saved identity/full Character views, bounding-mask hints, selection invalidation and approved Image UI contract."
+          "scope": "Existing viewer, Character cache account isolation, three concurrent reads, cancellation, reference order and quote safeguards."
         },
         {
-          "label": "Precision Edit and replacement browser/Worker checks",
+          "label": "Precision & replacement browser tests",
           "result": "passed",
-          "scope": "Masked exterior pixels, quote/submit safeguards, explicit paid generation, and combined point/text mock. Synthetic desktop and mobile fixtures, no real inference."
+          "scope": "Mocked desktop/mobile complete replacement, original-pixel exterior preservation, quoted provider/credits, staged submission, History and Retouch navigation."
         },
         {
-          "label": "Public asset integrity",
+          "label": "Exact production asset integrity",
           "result": "passed",
-          "scope": "Actual pvlab.studio production HTML and SHA-256 bytes for six scoped frontend files match exact Cloudflare deployment source."
+          "scope": "Cloudflare Pages merge SHA and live custom domain match lab.js, image-viewer-editor.js and viewer-replacement-library.js bytes."
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "01753ca93c4bde1f9a37906ccd59a420e5bc3394",
+        "sourceSha": "4edc1437e032ae4de0229113d93febff86a034bc",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-07T23:13:39.319Z",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42424109922",
+        "observedAt": "2026-11-08T07:40:02.106Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42459529984",
         "limitations": [
-          "Frontend only. Semantic point-plus-target SAM 3 Worker change remains undeployed; current production selection remains point-based.",
-          "Synthetic browser/API tests and public asset byte checks do not verify a real signed-in or paid-provider generation.",
-          "Saved Location references remain unsupported."
+          "Static frontend code/DOM verified; not a signed-in user or paid-provider generation.",
+          "Cloudflare Worker SAM semantic selection and mask-aware generation are NOT verified live.",
+          "Existing unmasked Seedream generation may still create seams and pose/occlusion defects; no quality claim."
         ]
       },
       "evidence": [
@@ -2109,10 +2117,32 @@
           "limitations": [
             "Real image quality and live paid account flow not verified."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Scoped PR #926 Cloudflare merge and exact public asset SHA-256 comparison succeeded.",
+          "scope": "lab/lab.js, lab/image-viewer-editor.js, lab/viewer-replacement-library.js",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42459529984",
+          "observedAt": "2026-11-08T07:40:02.106Z",
+          "limitations": [
+            "Not a paid inference or account behavior test."
+          ]
+        },
+        {
+          "kind": "automated_test",
+          "summary": "Bounded loading, account-isolated LRU, selection guard, safe quote and full mocked UI regressions passed.",
+          "scope": "PR #926 source and synthetic browser fixtures",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/926",
+          "observedAt": "2026-11-08T07:40:02.106Z",
+          "limitations": [
+            "Cannot validate quality for the user's original failed provider result."
+          ]
         }
       ],
       "blockers": [
-        "Separate Cloudflare Worker deployment for semantic Face/person segmentation is pending authorized Worker credentials; do not silently treat this as deployed."
+        "Production Worker still requires a valid private CLOUDFLARE_API_TOKEN for reviewed SAM point+text selection; no Worker release performed.",
+        "True inpainting-aware identity replacement provider not yet integrated or quality-tested; cannot guarantee whole-person fidelity.",
+        "Specific bad paid job raw output, source mask and asset not available for authenticated inspection in this session."
       ],
       "doNotRepeat": [
         "Do not recreate a separate editor or add buttons over the photograph.",
