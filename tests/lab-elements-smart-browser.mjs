@@ -137,7 +137,13 @@ try{
   const angles=page.locator('#scene-character-angles');
   assert.deepEqual(await angles.locator('strong').allTextContents(),['Face front','Face profile','Full body front','Full body back']);
   assert.equal(await angles.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),2);
-  assert.equal(await page.locator('#scene-library-dialog .scene-main').evaluate(el=>el.scrollWidth<=el.clientWidth),true);
+  const editorWidth=await page.locator('#scene-library-dialog .scene-main').evaluate(el=>({
+    scroll:el.scrollWidth,client:el.clientWidth,
+    closeRight:el.querySelector('#scene-close').getBoundingClientRect().right,
+    editorRight:el.getBoundingClientRect().right
+  }));
+  assert.ok(editorWidth.scroll<=editorWidth.client&&editorWidth.closeRight<=editorWidth.editorRight,
+    'The mobile editor and its close button fit: '+JSON.stringify(editorWidth));
   const profileChooser=page.waitForEvent('filechooser');
   await page.getByRole('button',{name:'Add Face profile photo'}).click();
   await (await profileChooser).setFiles({name:'profile.webp',mimeType:'image/webp',buffer:media});

@@ -816,8 +816,11 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   box-sizing:border-box;align-items:flex-start;justify-content:space-between;
   height:auto;min-height:100px;padding:18px 24px 0;
 }
+#scene-library-dialog:has(#scene-create:not([hidden])) .scene-header>div:first-child{
+  min-width:0;
+}
 #scene-library-dialog:has(#scene-create:not([hidden])) .scene-header-actions{
-  flex:0 0 35px;
+  flex:0 0 auto;
 }
 #scene-library-dialog:has(#scene-create:not([hidden])) .scene-header-actions .scene-search-label{
   display:none;
