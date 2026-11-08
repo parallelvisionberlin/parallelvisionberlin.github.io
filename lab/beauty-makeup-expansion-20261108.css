@@ -1,0 +1,22 @@
+/* PV LAB ALTER | Makeup presets expansion | 8 Nov 2026.
+   Scoped only to Makeup: no hero, title, gallery, other tab or generation layout changes. */
+#beauty-panel-makeup .beauty-choice-list {
+  grid-template-rows: none;
+  grid-auto-rows: clamp(114px, 12vh, 130px);
+  align-content: start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #ffffff5a transparent;
+  scroll-padding-block: 8px;
+  mask-image: linear-gradient(to bottom,#000 0%,#000 calc(100% - 17px),transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom,#000 0%,#000 calc(100% - 17px),transparent 100%);
+}
+#beauty-panel-makeup .beauty-choice-list::-webkit-scrollbar { width: 5px; }
+#beauty-panel-makeup .beauty-choice-list::-webkit-scrollbar-thumb { background: #8888; border-radius: 8px; }
+#beauty-panel-makeup .beauty-choice-list > button { min-height: 0; }
+@media (max-width:700px) {
+ #beauty-panel-makeup .beauty-choice-list { grid-auto-rows: 86px; }
+}
+@media (prefers-reduced-motion:reduce) { #beauty-panel-makeup .beauty-choice-list { scroll-behavior:auto; } }

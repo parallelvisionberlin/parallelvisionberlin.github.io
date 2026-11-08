@@ -12,56 +12,105 @@ export const beautyLookCatalog={
       "id": "natural",
       "label": "Natural",
       "instruction": "Subtle natural makeup.",
-      "image": "./visuals/beauty/atelier/makeup-1.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-natural-20261108.webp",
       "preview": ""
     },
     {
       "id": "editorial",
       "label": "Editorial",
       "instruction": "Editorial makeup with a considered, photographic finish.",
-      "image": "./visuals/beauty/atelier/makeup-2.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-editorial-20261108.webp",
       "preview": ""
     },
     {
       "id": "soft-glam",
       "label": "Soft glam",
       "instruction": "Soft glam makeup, softly defined eyes and restrained gloss.",
-      "image": "./visuals/beauty/atelier/makeup-3.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-soft-glam-20261108.webp",
       "preview": ""
     },
     {
       "id": "bold",
       "label": "Bold",
       "instruction": "Bold fashion makeup with intentional colour and definition.",
-      "image": "./visuals/beauty/atelier/makeup-4.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-bold-20261108.webp",
       "preview": ""
     },
     {
       "id": "metallic",
       "label": "Metallic",
       "instruction": "Reflective metallic fashion eyeshadow, precise edges and a believable photographed finish.",
-      "image": "./visuals/beauty/atelier/makeup-5.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-metallic-20261108.webp",
       "preview": ""
     },
     {
       "id": "smoky",
       "label": "Smoky",
       "instruction": "Smoky charcoal eye makeup with softly diffused edges and realistic photographic texture.",
-      "image": "./visuals/beauty/atelier/makeup-smoky.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-smoky-20261108.webp",
       "preview": ""
     },
     {
       "id": "shimmer",
       "label": "Shimmer",
       "instruction": "Fine reflective shimmer on the eyelids, precise highlights and a restrained editorial finish.",
-      "image": "./visuals/beauty/atelier/makeup-shimmer.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-shimmer-20261108.webp",
       "preview": ""
     },
     {
       "id": "rose",
       "label": "Rose gloss",
       "instruction": "Muted rose-toned eye makeup with a subtle glossy finish, preserving realistic skin texture.",
-      "image": "./visuals/beauty/atelier/makeup-rose.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-rose-20261108.webp",
+      "preview": ""
+    },
+    {
+      "id": "graphic",
+      "label": "Graphic liner",
+      "instruction": "Clean graphic winged eyeliner with sharp, intentional black edges; preserve eye shape and natural skin.",
+      "image": "./visuals/beauty/atelier/alter-makeup-graphic-20261108.webp",
+      "preview": ""
+    },
+    {
+      "id": "wet-lid",
+      "label": "Wet lid",
+      "instruction": "Editorial wet-look eyelids with translucent reflective gloss and natural skin texture.",
+      "image": "./visuals/beauty/atelier/alter-makeup-wet-lid-20261108.webp",
+      "preview": ""
+    },
+    {
+      "id": "crystal",
+      "label": "Crystal",
+      "instruction": "Fine crystal-like makeup accents around the eyelids, restrained and precisely placed; no facial jewellery or new accessories.",
+      "image": "./visuals/beauty/atelier/alter-makeup-crystal-20261108.webp",
+      "preview": ""
+    },
+    {
+      "id": "bronze",
+      "label": "Bronze",
+      "instruction": "Warm burnished bronze eyeshadow, softly sculpted eyelids and a believable photographed finish.",
+      "image": "./visuals/beauty/atelier/alter-makeup-bronze-20261108.webp",
+      "preview": ""
+    },
+    {
+      "id": "plum",
+      "label": "Deep plum",
+      "instruction": "Deep plum eyeshadow with nuanced purple-brown shading, refined edges and natural realistic skin.",
+      "image": "./visuals/beauty/atelier/alter-makeup-plum-20261108.webp",
+      "preview": ""
+    },
+    {
+      "id": "nude",
+      "label": "Soft nude",
+      "instruction": "Barely-there nude makeup in softly blended taupe and natural skin tones.",
+      "image": "./visuals/beauty/atelier/alter-makeup-nude-20261108.webp",
+      "preview": ""
+    },
+    {
+      "id": "vinyl",
+      "label": "Vinyl black",
+      "instruction": "Black vinyl-finish eye makeup with glossy reflective eyelids and controlled edges, preserving facial anatomy.",
+      "image": "./visuals/beauty/atelier/alter-makeup-vinyl-20261108.webp",
       "preview": ""
     }
   ],

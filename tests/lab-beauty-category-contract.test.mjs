@@ -6,7 +6,7 @@ import {beautyLookCatalog as catalog,beautyLookPresets as recipes} from '../lab/
 const html=readFileSync(new URL('../lab/beauty.html',import.meta.url),'utf8');
 const defaults={makeup:'keep',hair:'keep',skin:'natural',light:'keep',color:'keep',strength:50};
 for(const [category,options] of Object.entries(catalog))test('ALTER '+category+': labels and all nine exact instructions match quoted settings',()=>{
- assert.equal(options.length,9);assert.equal(new Set(options.map(o=>o.id)).size,9);
+ assert.equal(options.length,category==='makeup'?16:9);assert.equal(new Set(options.map(o=>o.id)).size,options.length);
  for(const o of options){
   assert.ok(html.includes(`data-beauty-choice="beauty-${category}" data-value="${o.id}"`));
   assert.ok(html.includes(`aria-label="${category[0].toUpperCase()+category.slice(1)}: ${o.label.replaceAll('&','&amp;').replaceAll('"','&quot;')}"`));
