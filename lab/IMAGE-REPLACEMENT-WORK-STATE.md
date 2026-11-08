@@ -1,5 +1,16 @@
 # Image replacement flow
 
+## Latest clicked-subject fix, 2026-11-08
+
+- PR #927, reviewed source `8ac47aa373faff31d3d57459e1c9c4ae7b4df942`. Frontend and Worker version `820d06ab-06c4-46f6-b195-f0dbb5bf72c0` published and independently verified by exact bytes/health.
+- Removes automatic mask inversion. Every accepted mask must contain the clicked foreground. Face/Whole person retrieve at most eight separate semantic masks in one inference, then match the actual click instead of a guessed detection ID. Wrong or unclear masks leave the prior selection intact.
+- Outfit/Object retain their existing single-mask requests. Signed candidate tickets, account ownership, metered quotas, private mask storage, bounded downloads and no automatic paid retries are covered by regression tests. No database migration.
+- Regression checks include left/right provider-order reversal, Whole person from face click, background rejection, alpha masks, holes, browser zoom, mobile/desktop and existing Retouch/replacement flows.
+- Evidence: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42477972132
+- The existing token is valid. No owner credential or Cloudflare configuration task remains. Actual model result quality and true mask-aware identity generation remain separate unresolved work. No paid provider calls during this release.
+
+## Earlier release notes
+
 ## Latest verified backend release: 2026-11-08
 
 - Supersedes historical credential blockers below: the existing Cloudflare token is active and has expected Worker/D1 access. No rotation or permission changes were needed. Earlier missing/unusable-token claims were incorrect.

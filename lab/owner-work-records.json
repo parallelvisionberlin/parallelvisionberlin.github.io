@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T09:08:52Z",
+  "updatedAt": "2026-11-08T11:58:01.089Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1835,12 +1835,12 @@
       "title": "Contextual image viewer Replace and Edit",
       "component": "PV LAB Image viewer",
       "status": "deployed",
-      "updatedAt": "2026-11-08T09:08:52Z",
+      "updatedAt": "2026-11-08T11:58:01.089Z",
       "baselineSha": "ca2fee15ea86b5abfe84627acc247d178d8752dc",
-      "reviewedSha": "64b9e080df47854a6b5ee1fde1451ddc0fed3058",
-      "branch": "fix/replace-loading-and-quality-20261108",
-      "summary": "Guided Replace/Edit and faster saved Character loading are published. The previously pending Face/Whole person semantic SAM selection backend is deployed and code/live health verified. Complex overlapping-person replacement quality remains unresolved.",
-      "nextAction": "Verify one Whole person torso selection in the signed-in viewer. Then evaluate true mask-aware identity generation and inspect the failed job raw output/mask before another complex paid replacement. Existing Cloudflare token is valid; no replacement is needed.",
+      "reviewedSha": "8ac47aa373faff31d3d57459e1c9c4ae7b4df942",
+      "branch": "fix/replace-click-target-20261108",
+      "summary": "PR #927 fixes wrong-person Face selection and the Whole person inverted background. Character masks are matched to the actual foreground click; missed candidates fail without modifying the previous selection. Outfit and Object request behavior remains unchanged. Frontend and code-only Worker publication verified.",
+      "nextAction": "Confirm Face/Whole person selection once in the signed-in viewer after refresh. No token changes or deployment actions required from owner. Separately audit genuine mask-aware replacement generation; the prior bad Alma result is not fixed by this selection release.",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
@@ -1860,7 +1860,10 @@
         "lab-worker/precision-edit.mjs",
         "tests/lab-viewer-scope.test.mjs",
         "tests/lab-worker.test.mjs",
-        "tests/lab-precision-edit.test.mjs"
+        "tests/lab-precision-edit.test.mjs",
+        "lab/sam-click-mask.js",
+        "tests/lab-sam-click-mask.test.mjs",
+        "tests/lab-sam-click-mask-ui.mjs"
       ],
       "links": [
         {
@@ -1956,18 +1959,24 @@
           "label": "Worker release gate and live backend",
           "result": "passed",
           "scope": "447 unchanged deployment tests and 58 focused tests; exact compiled Worker match; active version verified; both public health endpoints HTTP 200. No migrations or paid generation."
+        },
+        {
+          "label": "Clicked subject selection regression and publication",
+          "result": "passed",
+          "scope": "66 focused checks and 113 Worker tests in preparation; permanent PR Precision workflow passed real mouse/zoom synthetic left-right scenes plus existing editor flows; existing production gate passed; exact frontend and Worker build/health verified.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42477972132",
+          "observedAt": "2026-11-08T11:58:01.089Z"
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "64b9e080df47854a6b5ee1fde1451ddc0fed3058",
-        "environment": "Cloudflare Pages pvlab.studio frontend; Cloudflare Worker parallel-vision-lab",
-        "observedAt": "2026-11-08T09:08:52Z",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42465480595",
+        "sourceSha": "8ac47aa373faff31d3d57459e1c9c4ae7b4df942",
+        "environment": "pvlab.studio Cloudflare Pages and parallel-vision-lab Worker",
+        "observedAt": "2026-11-08T11:58:01.089Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42477972132",
         "limitations": [
-          "Frontend retains prior PR #926 publication proof. Worker version e939d968-afd1-4432-a9ed-a7a128a472b2 separately verified.",
-          "No real signed-in or paid-generation test. Whole-person output quality remains unresolved.",
-          "First release job failed at its Python HTTP 403 health probe after deployment and code/settings checks passed. Separate curl health and active-version verification passed; no second deployment."
+          "Worker version 820d06ab-06c4-46f6-b195-f0dbb5bf72c0 and exact public browser bytes verified.",
+          "No real-account or paid-provider generation; this is a selection-routing fix, not a replacement-quality claim."
         ]
       },
       "evidence": [
@@ -2152,12 +2161,21 @@
           "limitations": [
             "No real signed-in or paid-provider quality test."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Merged PR #927; code-only Worker published and exact compiled bytes, live health and public frontend modules verified.",
+          "scope": "Face and Whole person click targeting; no migrations, provider jobs, layout or credit-rule changes.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42477972132",
+          "observedAt": "2026-11-08T11:58:01.089Z",
+          "limitations": [
+            "Synthetic masks validate application routing only, not model output quality."
+          ]
         }
       ],
       "blockers": [
-        "Current Seedream replacement still lacks a true inpainting-mask input; seams and overlapping limbs remain unresolved.",
-        "Real signed-in selection and paid-provider quality were not tested in this release.",
-        "The failed Alma job raw output and mask remain unexamined."
+        "Real-provider mask quality on the user photo is not tested by the synthetic regression suite.",
+        "Unmasked Seedream replacement quality for overlapping people remains unresolved."
       ],
       "doNotRepeat": [
         "Do not recreate a separate editor or add buttons over the photograph.",
