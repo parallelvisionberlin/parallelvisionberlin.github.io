@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T15:21:01Z",
+  "updatedAt": "2026-11-08T16:56:54Z",
   "handoffs": [
     {
       "id": "owner",
@@ -2305,6 +2305,84 @@
         "Keep existing photo IDs, notes and attachment order when assigning angles. Never auto-classify legacy references or create a second pack during editing.",
         "Preserve the existing eight-photo cap, Visual Profile requirements and model reference capacity checks."
       ]
+    },
+    {
+      "id": "upscaler-interrupted-request-feedback",
+      "title": "Upscaler interrupted-request feedback",
+      "component": "Image Upscaler",
+      "status": "needs_verification",
+      "summary": "Explain the disabled Upscale action when an earlier upscale is unconfirmed or the FAL image queue is full; open the existing Queue without submitting anything.",
+      "nextAction": "Finish the focused desktop/mobile regression, publish the reviewed frontend patch and verify exact production assets.",
+      "baselineSha": "d004356feba9533693a38e8b43c7c8ba6e3a4177",
+      "reviewedSha": null,
+      "branch": "fix/upscale-disabled-source-20261108",
+      "files": [
+        "lab/lab.js",
+        "lab/studio.html",
+        "lab/upscale-studio-v5.css",
+        "tests/lab-upscale-ui.mjs",
+        "lab/UPSCALE-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Scoped Upscaler handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI contract",
+          "scope": "Six locked Image interface contracts; no Image design changes",
+          "result": "passed",
+          "source": "tests/lab-approved-image-ui-contract.test.mjs"
+        },
+        {
+          "label": "JavaScript syntax",
+          "scope": "Changed lab/lab.js parses with Node",
+          "result": "passed"
+        },
+        {
+          "label": "Upscaler queue browser regression",
+          "scope": "1440px and 390px; interrupted/capacity feedback, Review Queue without writes, mode isolation and normal history unlock",
+          "result": "not_run",
+          "source": "tests/lab-upscale-ui.mjs"
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "pvlab.studio / Cloudflare Pages",
+        "sourceSha": null,
+        "limitations": [
+          "The operational queue repair is complete; the frontend message is not yet published."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "The existing queue guard blocks a new FAL upscale while an earlier FAL upscale remains uncertain.",
+          "scope": "Image Upscaler button state",
+          "source": "lab/lab.js",
+          "limitations": []
+        },
+        {
+          "kind": "documented",
+          "summary": "A reported stale pre-dispatch interruption was reviewed with deployed code and the retained original quote, then closed using an exact guarded update. A separate read confirmed zero active jobs and preserved source and spending history.",
+          "scope": "One operational interruption; no new generation or refund",
+          "source": "lab/UPSCALE-WORK-STATE.md",
+          "limitations": [
+            "Does not establish a newly completed upscale in the user browser."
+          ]
+        }
+      ],
+      "blockers": [
+        "Local Chromium launch is unavailable; existing GitHub Actions must verify the browser regression."
+      ],
+      "doNotRepeat": [
+        "Do not retry a paid generation to test the button.",
+        "Do not clear ambiguous or fresh interrupted submissions without checking provider-dispatch evidence.",
+        "Keep draft PR #928 content-decline wording separate."
+      ],
+      "updatedAt": "2026-11-08T16:56:54Z"
     }
   ]
 }
