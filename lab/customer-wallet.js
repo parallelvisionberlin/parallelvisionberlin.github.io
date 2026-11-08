@@ -54,7 +54,11 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     try{
       await beforeCheckout();
       if(!account||current!==accountEpoch)return false;
-      // Only forward voluntary analytics consent; Stripe remains the payment authority.
+      // First-party checkout intent, not a verified Stripe purchase. Never log
+       // creative content, or make this measurement block a purchase.
+       if(navigator.doNotTrack!=='1'&&navigator.globalPrivacyControl!==true&&navigator.webdriver!==true)
+         void api('/api/customer/journey-event',{method:'POST',body:{event:'checkout_clicked',surface:'billing'}}).catch(()=>{});
+       // Only forward voluntary analytics consent; Stripe remains the payment authority.
       const consent=metaConsentGranted();
       const data=await api('/api/billing/checkout',{method:'POST',body:consent?{sku,metaConsent:true,...metaPixelIdentifiers()}:{sku}});
       if(!account||current!==accountEpoch)return false;
