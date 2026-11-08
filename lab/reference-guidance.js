@@ -1,6 +1,7 @@
 // Shared by the image UI and Worker so the preview matches the submitted prompt.
 import {imageQualityGuidance,referenceRoleAdvisories} from './prompt-quality.js?photoOnlyAnatomy=20261022v1';
 import {hongKongReferenceCount,hongKongReferenceError,hongKongReferenceGuidance} from './hong-kong-reference-policy.js?hkBalanced=20261023v1&hkCinema=20261025v1';
+import {compactReviewedReplacementPrompt} from './viewer-replacement-prompt.js?v=20261108-compact1';
 export {referenceRoleAdvisories};
 // No-direction Base only: protect identity, pose and visible anatomy before any subtle refinement.
 // Explicit edits, Moods and assigned reference roles are not restricted by this fallback.
@@ -151,6 +152,8 @@ export function compileImagePrompt(direction,labels=[],settings={}){
   // the complete provider prompt beyond 5,000 characters.
   // Custom references-only workflows keep their detailed role map.
   const roles=labels.map(normalizeReferenceLabel);
+  const reviewedPrompt=compactReviewedReplacementPrompt(direction,roles,settings,replacementReferenceGuidance(settings));
+  if(reviewedPrompt!==null)return reviewedPrompt;
   // Also use the concise role map when a user supplies General/Identity photos
   // in References Only along with the four canonical Dream Blur optical photos.
   // Every custom role/note and the complete authored Mood are preserved.

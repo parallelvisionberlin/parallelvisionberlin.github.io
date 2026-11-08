@@ -85,16 +85,16 @@ function harness(){
  };
  return {route,poll,calls,puts,assets,get submitted(){return submitted},get reserved(){return reserved},restore:()=>{globalThis.fetch=fetchBefore;}};
 }
-test('Face and person make exactly one bounded candidate request with no guessed detection id',async()=>{
+test('Face, person and clothing make exactly one bounded candidate request with no guessed detection id',async()=>{
  const h=harness();try{
-  for(const targetPrompt of ['face','person']){
+  for(const targetPrompt of ['face','person','clothing']){
    const r=await h.route({sourceId,point:{x:125,y:120},targetPrompt,candidateMasks:true});assert.equal(r.status,202);
    const q=await r.json();assert.equal(q.candidateMasks,true);
    const payload=JSON.parse(h.calls.at(-1).options.body);
    assert.deepEqual(payload.point_prompts,[]);assert.equal(payload.prompt,targetPrompt);
    assert.equal(payload.return_multiple_masks,true);assert.equal(payload.max_masks,8);
   }
-  assert.equal(h.submitted,2);assert.equal(h.reserved,2);
+  assert.equal(h.submitted,3);assert.equal(h.reserved,3);
  }finally{h.restore()}
 });
 test('candidate retrieval preserves private ownership, tamper-proof tickets, cached masks and quota',async()=>{
@@ -110,7 +110,7 @@ test('candidate retrieval preserves private ownership, tamper-proof tickets, cac
   assert.equal(h.submitted,1);assert.equal(h.reserved,1,'Polling and trying other masks do not purchase a second segmentation');
  }finally{h.restore()}
 });
-test('Outfit and Object retain their exact existing single-mask requests',async()=>{
+test('Legacy Outfit and Object retain their existing single-mask request compatibility',async()=>{
  const h=harness();try{
   for(const targetPrompt of ['clothing','']){
    const q=await (await h.route({sourceId,point:{x:25,y:30},targetPrompt})).json();
@@ -124,7 +124,7 @@ test('Outfit and Object retain their exact existing single-mask requests',async(
 test('unsupported candidate requests fail before reserving a paid selection',async()=>{
  const h=harness();try{
   await assert.rejects(h.route({sourceId,targetPrompt:'person',candidateMasks:true}),e=>e.status===400);
-  await assert.rejects(h.route({sourceId,point:{x:25,y:30},targetPrompt:'clothing',candidateMasks:true}),e=>e.status===400);
+  await assert.rejects(h.route({sourceId,point:{x:25,y:30},targetPrompt:'object',candidateMasks:true}),e=>e.status===400);
   assert.equal(h.reserved,0);assert.equal(h.submitted,0);
  }finally{h.restore()}
 });
@@ -133,4 +133,17 @@ test('client no longer guesses inverse foreground or requests detection id 1 for
  assert.doesNotMatch(source,/255-values\[i\]|if\(!hit&&count/);
  assert.match(source,/if\(!best\)throw Error\(SAM_CLICK_MISS\)/);
  assert.match(source,/candidateMasks\?\{candidateMasks:true\}/);
+});
+
+import './lab-selection-regions.test.mjs';
+test('explicit whole-background action requests all people once without a guessed click',async()=>{
+ const h=harness();try{
+  const q=await(await h.route({sourceId,targetPrompt:'person',candidateMasks:true,selectBackground:true})).json();
+  const body=JSON.parse(h.calls.at(-1).options.body);
+  assert.equal(body.prompt,'person');assert.deepEqual(body.point_prompts,[]);assert.equal(body.max_masks,8);
+  assert.equal(q.candidateMasks,true);assert.equal(h.reserved,1);assert.equal(h.submitted,1);
+  const masks=await(await h.poll(q)).json();assert.equal(masks.maskSourceIds.length,2);
+  await assert.rejects(h.route({sourceId,targetPrompt:'clothing',candidateMasks:true,selectBackground:true}),e=>e.status===400);
+  assert.equal(h.submitted,1,'Invalid background scopes never buy another request');
+ }finally{h.restore();}
 });
