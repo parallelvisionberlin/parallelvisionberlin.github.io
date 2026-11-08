@@ -77,8 +77,9 @@ test('migration is repeatable and keeps welcome claims closed',async t=>{
   f.env.LAB_IMAGE_TRIAL_ENABLED='true';await ensureCustomer(f.env,id);
   assert.equal(f.one('SELECT COUNT(*) AS n FROM lab_welcome_claims WHERE customer_id=?',id).n,0);
 });
-test('read-only production audit detects a welcome credit inserted after closure',async t=>{
+test('read-only production audit detects ineligible gift after reopening',async t=>{
   const f=fixture(t);
+  f.db.exec(read('migrations/0061-resume-40-credit-image-trial.sql'));
   const source=readFileSync(new URL('../.github/scripts/verify-lab-image-trial-live.mjs',import.meta.url),'utf8');
   const sql=source.match(/const results=await api\([^,]+,`([\s\S]*?)`\);/)[1];
   assert.match(sql.trim(),/^SELECT\b/);
@@ -89,6 +90,32 @@ test('read-only production audit detects a welcome credit inserted after closure
   f.run('INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES(?,?,?,?,?,?)',
     'welcome:'+id,id,40,'adjustment','welcome:'+id,closed+1);
   const audit=f.one(sql);
-  assert.equal(audit.no_welcome_credits_after_closure,0);
+  assert.equal(audit.only_eligible_40_credit_grants_after_pause,0);
   assert.equal(audit.wallet_ledger_reconciles,1,'Reconciliation alone does not detect a wrongly granted gift');
+});
+
+test('reopened image trial grants 40 once, excludes old signups and verified email aliases',async t=>{
+  const f=fixture(t);
+  f.db.exec(read('migrations/0061-resume-40-credit-image-trial.sql'));
+  f.env.LAB_IMAGE_TRIAL_ENABLED='true';
+  const old='user_BeforeNovemberCampaign';
+  const oldTime=Date.parse('2026-10-31T22:00:00Z');
+  f.run('INSERT INTO lab_customers(id,clerk_subject,created_at,updated_at) VALUES(?,?,?,?)',old,old,oldTime,oldTime);
+  f.verified(old,'old-trial@example.com');await ensureCustomer(f.env,old);
+  assert.equal(f.one('SELECT balance_credits n FROM lab_customers WHERE id=?',old).n,0);
+  const fresh='user_ResumedNovemberTrial';
+  await ensureCustomer(f.env,fresh);
+  f.verified(fresh,'campaign.plus+first@gmail.com');
+  await ensureCustomer(f.env,fresh);await ensureCustomer(f.env,fresh);
+  assert.equal(f.one('SELECT balance_credits n FROM lab_customers WHERE id=?',fresh).n,40);
+  assert.equal(f.one('SELECT COUNT(*) n FROM lab_welcome_claims WHERE customer_id=?',fresh).n,1);
+  f.job(fresh,'new_trial_image');
+  assert.equal(f.one('SELECT balance_credits n FROM lab_customers WHERE id=?',fresh).n,20);
+  f.job(fresh,'new_trial_image_two');
+  assert.equal(f.one('SELECT balance_credits n FROM lab_customers WHERE id=?',fresh).n,0);
+  assert.throws(()=>f.job(fresh,'third_trial_image'),/Insufficient PV Lab credits/i);
+  const alias='user_ResumedAlias';
+  await ensureCustomer(f.env,alias);
+  f.verified(alias,'campaignplus+second@googlemail.com');await ensureCustomer(f.env,alias);
+  assert.equal(f.one('SELECT balance_credits n FROM lab_customers WHERE id=?',alias).n,0);
 });
