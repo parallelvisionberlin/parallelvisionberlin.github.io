@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {viewerLibraryEntries,loadViewerReference,guidanceLearned,rememberGuidance} from '../lab/viewer-replacement-library.js';
+import {viewerLibraryEntries,loadViewerReference,createViewerReferenceCache,guidanceLearned,rememberGuidance} from '../lab/viewer-replacement-library.js';
 const refs=Array.from({length:8},(_,i)=>({id:'photo-'+i,name:'Angle '+i,role:i===7?'body':'identity',note:'Authored note '+i}));
 const item={id:'20000000-0000-4000-8000-000000000099',name:'PVSCENE1|characters|Alma',title:'Alma',category:'characters',refs};
 test('the existing private category and photo-pack library remain separate',()=>{
@@ -59,4 +59,30 @@ test('reference loader refuses to keep issuing downloads after a failed owned as
    limit:10,isCurrent:()=>true
  }),/private asset unavailable/);
  assert.ok(calls<=3,'No unbounded retries or eight-image downloads after failure');
+});
+
+test('private reference cache reuses photos only inside the same account and evicts by bytes',async()=>{
+ let current='owner-one',reads=0;
+ const source=async(id)=>{reads++;return new File(['12345'],id,{type:'image/png'});};
+ const cache=createViewerReferenceCache({read:source,account:()=>current,maxBytes:10,maxEntries:2});
+ const first=await cache.get('a','a');
+ assert.equal(await cache.get('a','again'),first);
+ assert.equal(reads,1,'Same account reuses downloaded private file without new request');
+ await cache.get('b','b');await cache.get('c','c');
+ await cache.get('a','a');
+ assert.equal(reads,4,'LRU is bounded to the two most recent assets');
+ current='owner-two';
+ const second=await cache.get('a','a');
+ assert.notEqual(second,first,'An account change never reuses another user’s private photo');
+ assert.equal(reads,5);
+ cache.clear();await cache.get('a','a');
+ assert.equal(reads,6,'Reset drops private memory cache');
+});
+test('pending private download never enters cache after account switch',async()=>{
+ let current='account-a',finish,reads=0;
+ const cache=createViewerReferenceCache({read:async()=>{reads++;return new Promise(r=>finish=r);},account:()=>current});
+ const pending=cache.get('private-image','private-image');
+ current='account-b';finish(new File(['photo'],'private-image',{type:'image/png'}));
+ await assert.rejects(pending,/session changed/);
+ assert.equal(reads,1);
 });
