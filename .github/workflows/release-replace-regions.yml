@@ -1,0 +1,119 @@
+name: Publish guarded Outfit and Location selection fix
+on:
+  push:
+    branches: [verify/replace-regions-20261108]
+    paths: [.github/workflows/release-replace-regions.yml]
+permissions:
+  contents: write
+  actions: read
+  checks: read
+concurrency:
+  group: parallel-vision-lab-production
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Require reviewed PR tests and unchanged merged source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json,os,urllib.request
+          root='https://api.github.com/repos/parallelvisionberlin/parallelvisionberlin.github.io'
+          def get(path):
+            q=urllib.request.Request(root+path,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+            with urllib.request.urlopen(q,timeout=20) as r:return json.load(r)
+          r=get('/actions/runs/42492573821')
+          assert r['head_sha']=='8b17231974cae0d7bd654fe4e58f9ef22fc9413e' and r['conclusion']=='success','PR browser/selection gate has not passed'
+          assert get('/git/ref/heads/main')['object']['sha']=='49677f7317a7b9cfbdae86bcb49d02ae1eac97ca','Main changed; review before deployment'
+          print('EXACT_PR_GATE_PASSED')
+          PY
+      - uses: actions/checkout@v4
+        with:
+          ref: 49677f7317a7b9cfbdae86bcb49d02ae1eac97ca
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Run the existing production gate without changing its assertions
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {spawnSync} from 'node:child_process';
+          const y=readFileSync('.github/workflows/deploy-lab-worker.yml','utf8');
+          const a=y.indexOf('      - name: Test private My Moods and Worker syntax'),b=y.indexOf('      - name:',a+20);
+          const commands=y.slice(a,b).split('        run: |\n')[1]?.split('\n').filter(x=>x.startsWith('          ')).map(x=>x.slice(10)).join('\n');
+          if(!commands?.includes('tests/lab-worker.test.mjs'))throw Error('Missing production test gate');
+          const r=spawnSync('bash',['-euo','pipefail','-c',commands],{encoding:'utf8',maxBuffer:20*1024*1024});
+          console.log((r.stdout||'').split('\n').filter(x=>/^# (tests|pass|fail)|^not ok /.test(x)).join('\n'));
+          if(r.status!==0){console.error((r.stderr||'').slice(-3000));process.exit(r.status||1);}
+          console.log('PRODUCTION_TEST_GATE_PASSED');
+          JS
+          node --test tests/lab-sam-click-mask.test.mjs tests/lab-selection-regions.test.mjs tests/lab-viewer-replacement-prompt.test.mjs tests/lab-image-replacement-backend.test.mjs tests/lab-precision-edit.test.mjs
+      - name: Install the already-reviewed pinned deployment tool without production credentials
+        run: npm install --prefix "$RUNNER_TEMP/pvlab-wrangler" --ignore-scripts --no-audit --no-fund wrangler@4.158.0
+      - name: Deploy code only using the guarded reviewed release procedure
+        id: backend
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: a40ce1725295563a7b7db9fc3160480a
+          WRANGLER_SEND_METRICS: 'false'
+          CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: 'false'
+        run: |
+          python3 - <<'PY'
+          import os,json,urllib.request,base64,hashlib,pathlib,textwrap,subprocess
+          root='https://api.github.com/repos/parallelvisionberlin/parallelvisionberlin.github.io'
+          req=urllib.request.Request(root+'/git/blobs/f391ade9f5a87d989face4fff22913badf67a986',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(req,timeout=20) as r:j=json.load(r)
+          raw=base64.b64decode(j['content'])
+          assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()=='f391ade9f5a87d989face4fff22913badf67a986'
+          y=raw.decode();a=y.index('      - name: Preserve live configuration, build, deploy once and verify exact code')
+          script=textwrap.dedent(y[a:].split('        run: |\n',1)[1]).split("python3 - <<'PY'\n",1)[1].rsplit('\nPY',1)[0]
+          def replace(a,b):
+            global script
+            assert script.count(a)==1,'Release template changed: '+a[:70]
+            script=script.replace(a,b)
+          replace("expected_version='b71347b9-3ffb-42dd-a4d9-83a542b11cea'","expected_version='820d06ab-06c4-46f6-b195-f0dbb5bf72c0'")
+          replace("expected_deployment='51d4bf62-0c47-4176-9373-ca1eabb50be7'","expected_deployment=None")
+          replace("source_sha='64b9e080df47854a6b5ee1fde1451ddc0fed3058'","source_sha='49677f7317a7b9cfbdae86bcb49d02ae1eac97ca'")
+          replace('def check_old():',"expected_deployment=active()['id']\ndef check_old():")
+          replace("b'Unsupported targeted selection' in p.read_bytes()","b'Background selection requires separate people masks.' in p.read_bytes()")
+          replace('compiled=candidates[0]\ncheck_old()',"compiled=candidates[0]\nassert b'candidates-v1' in compiled and b'Background selection requires separate people masks.' in compiled,'Region code or candidate ticket missing'\ncheck_old()\nassert {x['name']:x for x in get('/settings')['bindings']}==by_name,'Live settings changed while building; stop'")
+          replace("with urllib.request.urlopen('https://parallel-vision-lab.parallelvision.workers.dev/health',timeout=20) as r:health=json.load(r)","health=json.loads(subprocess.check_output(['curl','--fail','--silent','--show-error','--max-time','20','-H','Origin: https://pvlab.studio','-A','PV-LAB-release-verifier/1.0','https://parallel-vision-lab.parallelvision.workers.dev/health']))")
+          replace("with urllib.request.urlopen('https://parallel-vision-lab.parallelvision.workers.dev/api/music/public/status',timeout=20) as r:music=json.load(r)","music=json.loads(subprocess.check_output(['curl','--fail','--silent','--show-error','--max-time','20','-H','Origin: https://pvlab.studio','-A','PV-LAB-release-verifier/1.0','https://parallel-vision-lab.parallelvision.workers.dev/api/music/public/status']))")
+          assert subprocess.check_output(['git','hash-object','lab-worker/precision-edit.mjs'],text=True).strip()=='a756cf93eaf1e4207a00716a95a526685d540c5d'
+          exec(compile(script,'reviewed-code-only-release','exec'))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('version='+new_version+'\n')
+          print('REGION_BACKEND_VERIFIED',new_version)
+          PY
+      - name: Verify Cloudflare Pages and exact public browser assets
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import {verifyRelease,productionUrl} from './.github/scripts/verify-pvlab-release.mjs';
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const sha='49677f7317a7b9cfbdae86bcb49d02ae1eac97ca',hash=b=>createHash('sha256').update(b).digest('hex');
+          const html=readFileSync('lab/studio.html','utf8');
+          const entry=[...html.matchAll(/<(?:script|link)\b[^>]*\b(?:src|href)=["']([^"']+)["']/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'),productionUrl)).find(u=>u.pathname==='/lab.js');
+          if(!entry||entry.searchParams.get('selectionRegions')!=='20261108-regions1')throw Error('Expected selection entrypoint missing');
+          let proof;
+          for(let i=0;i<9;i++){
+            proof=await verifyRelease({sha,asset:'lab/lab.js',version:entry.searchParams.get('v'),sourceBytes:readFileSync('lab/lab.js')});
+            if(proof.state==='LIVE_VERIFIED')break;
+            console.log('PUBLICATION_CHECK',proof.state);
+            if(i<8)await new Promise(r=>setTimeout(r,10000));
+          }
+          if(proof.state!=='LIVE_VERIFIED')throw Error('Frontend publication not verified: '+proof.state);
+          for(const [file,url] of [['lab/precision-edit.js','/precision-edit.js?v=20261108-regions1'],['lab/sam-click-mask.js','/sam-click-mask.js?v=20261108-regions1'],['lab/selection-feedback.js','/selection-feedback.js?v=20261108-regions1']]){
+            const r=await fetch(new URL(url,productionUrl),{cache:'no-store',signal:AbortSignal.timeout(20000)});
+            if(!r.ok)throw Error('Missing live module '+file);
+            if(hash(Buffer.from(await r.arrayBuffer()))!==hash(readFileSync(file)))throw Error('Live module differs from tested source: '+file);
+            console.log('LIVE_VERIFIED',file);
+          }
+          console.log('REGION_FRONTEND_VERIFIED',sha);
+          JS
