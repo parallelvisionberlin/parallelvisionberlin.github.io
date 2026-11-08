@@ -1,5 +1,18 @@
 # Image replacement flow
 
+## Latest checked release, 2026-11-08: Replace regions, loading feedback and Alma prompt budget
+
+- PR #933 merged; reviewed deployment source `49677f7317a7b9cfbdae86bcb49d02ae1eac97ca`. Production Cloudflare Pages and code-only Worker were independently verified, including exact public module bytes and Worker version `c29ec785-50f5-4b47-b354-548100036241`. Release: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493484108
+- Loading overlay now appears immediately during Magic Select, with click position, spinner, status and reduced-motion support. No extra metered request; a failed selection visibly explains the miss without mutating the mask.
+- Outfit now requests bounded candidate clothing masks and accepts the instance containing the clicked pixel; previous wrong-garment detection does not silently proceed.
+- Location is a one-action environment selection formed by excluding all returned person masks, with optional Keep object subtraction. Incomplete or ambiguous masks fail closed; saved Location references are still not accepted by the generation API.
+- Automatic reference replacement prompt is compacted without dropping saved Character photos, associated authored notes or the user direction. All eight Alma views remain included on supported models. Existing prompt-length validation remains authoritative.
+- Production gate, focused unit/browser replacement checks and all 113 Worker integration tests passed. Broader unrelated repository suites continue to have failures; they were not disabled. No SQL migration, payment or paid generation was run.
+- Real-account selection quality has **not** been checked after this release. More importantly, whole-person replacement generation still uses the unmasked Seedream/composite path; the previously unacceptable Alma seams/overlapping limbs are NOT fixed by this update. Do not recommend another paid complex replacement as a quality test.
+- Cloudflare token and existing bindings were preserved. No owner credentials or settings action required.
+- Source work moved on afterward in unrelated Git main commits, but the independently verified deployed selection release is pinned above.
+- Next: inspect a signed-in Face/Outfit/Location selection if needed without pressing Generate, and separately test genuine mask-aware replacement before commercial quality claims.
+
 ## Latest clicked-subject fix, 2026-11-08
 
 - PR #927, reviewed source `8ac47aa373faff31d3d57459e1c9c4ae7b4df942`. Frontend and Worker version `820d06ab-06c4-46f6-b195-f0dbb5bf72c0` published and independently verified by exact bytes/health.

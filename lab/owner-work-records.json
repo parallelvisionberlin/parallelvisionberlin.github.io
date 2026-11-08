@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T11:58:01.089Z",
+  "updatedAt": "2026-11-08T15:21:01Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1835,12 +1835,12 @@
       "title": "Contextual image viewer Replace and Edit",
       "component": "PV LAB Image viewer",
       "status": "deployed",
-      "updatedAt": "2026-11-08T11:58:01.089Z",
+      "updatedAt": "2026-11-08T15:18:25.154Z",
       "baselineSha": "ca2fee15ea86b5abfe84627acc247d178d8752dc",
-      "reviewedSha": "8ac47aa373faff31d3d57459e1c9c4ae7b4df942",
-      "branch": "fix/replace-click-target-20261108",
-      "summary": "PR #927 fixes wrong-person Face selection and the Whole person inverted background. Character masks are matched to the actual foreground click; missed candidates fail without modifying the previous selection. Outfit and Object request behavior remains unchanged. Frontend and code-only Worker publication verified.",
-      "nextAction": "Confirm Face/Whole person selection once in the signed-in viewer after refresh. No token changes or deployment actions required from owner. Separately audit genuine mask-aware replacement generation; the prior bad Alma result is not fixed by this selection release.",
+      "reviewedSha": "49677f7317a7b9cfbdae86bcb49d02ae1eac97ca",
+      "branch": "fix/replace-outfit-background-feedback-20261108",
+      "summary": "PR #933 published: visible Magic Select waiting/failure feedback; click-matched Outfit selection; whole-background Location selection protecting recognized people with Keep object; compact automatic 8-photo Character prompt without dropping authored notes. Code-only Worker and frontend verified, existing credits and image-gen provider unchanged.",
+      "nextAction": "One signed-in, unpaid selection review can validate actual SAM results. No Cloudflare/token task remains. Complex character replacement quality is still unresolved because Seedream does not receive the mask for generation; do not encourage further paid overlap tests until a mask-aware path is evaluated.",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
@@ -1863,7 +1863,13 @@
         "tests/lab-precision-edit.test.mjs",
         "lab/sam-click-mask.js",
         "tests/lab-sam-click-mask.test.mjs",
-        "tests/lab-sam-click-mask-ui.mjs"
+        "tests/lab-sam-click-mask-ui.mjs",
+        "lab/selection-feedback.js",
+        "lab/viewer-replacement-prompt.js",
+        "lab/reference-guidance.js",
+        "tests/lab-selection-regions-ui.mjs",
+        "tests/lab-selection-regions.test.mjs",
+        "tests/lab-viewer-replacement-prompt.test.mjs"
       ],
       "links": [
         {
@@ -1937,6 +1943,14 @@
         {
           "label": "Face/Whole person backend live proof",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42465480595"
+        },
+        {
+          "label": "Region selection PR #933",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/933"
+        },
+        {
+          "label": "Region release exact production proof",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493484108"
         }
       ],
       "tests": [
@@ -1966,17 +1980,25 @@
           "scope": "66 focused checks and 113 Worker tests in preparation; permanent PR Precision workflow passed real mouse/zoom synthetic left-right scenes plus existing editor flows; existing production gate passed; exact frontend and Worker build/health verified.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42477972132",
           "observedAt": "2026-11-08T11:58:01.089Z"
+        },
+        {
+          "label": "Outfit / Location region selection and saved Character prompt release",
+          "result": "passed",
+          "scope": "Normal Precision browser CI, unit and approved Image UI checks; 113 Worker integration tests; exact Cloudflare Pages modules, guarded code-only Worker deployment and public health verified.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493484108",
+          "observedAt": "2026-11-08T15:18:25.154Z"
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "8ac47aa373faff31d3d57459e1c9c4ae7b4df942",
-        "environment": "pvlab.studio Cloudflare Pages and parallel-vision-lab Worker",
-        "observedAt": "2026-11-08T11:58:01.089Z",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42477972132",
+        "sourceSha": "49677f7317a7b9cfbdae86bcb49d02ae1eac97ca",
+        "environment": "Cloudflare Pages pvlab.studio frontend; Cloudflare Worker parallel-vision-lab",
+        "observedAt": "2026-11-08T15:18:25.154Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493484108",
         "limitations": [
-          "Worker version 820d06ab-06c4-46f6-b195-f0dbb5bf72c0 and exact public browser bytes verified.",
-          "No real-account or paid-provider generation; this is a selection-routing fix, not a replacement-quality claim."
+          "Exact source/compiled frontend and Worker bytes verified, Worker version c29ec785-50f5-4b47-b354-548100036241 serving 100%.",
+          "No signed-in real-provider selection or paid generation after this release; synthetic browser/Worker checks alone do not prove selection quality.",
+          "Masked generation and saved Location references remain unimplemented."
         ]
       },
       "evidence": [
@@ -2171,16 +2193,117 @@
           "limitations": [
             "Synthetic masks validate application routing only, not model output quality."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "PR #933 merged. Code-only Worker version and public frontend files matched tested reviewed bytes, health passed, no migrations or paid provider job.",
+          "scope": "Selection feedback, click-matched Outfit masks, background/person protection, eight-photo prompt preparation",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493484108",
+          "observedAt": "2026-11-08T15:18:25.154Z",
+          "limitations": [
+            "No real SAM segmentation tested against the user's photo.",
+            "The bad Alma composite remains an unresolved quality failure."
+          ]
         }
       ],
       "blockers": [
-        "Real-provider mask quality on the user photo is not tested by the synthetic regression suite.",
-        "Unmasked Seedream replacement quality for overlapping people remains unresolved."
+        "Actual fal.ai region/garment segmentation quality on this owner's photo has not been verified by a real signed-in test.",
+        "Saved Location image references are still not supported by the current replacement generation API.",
+        "Unmasked Seedream replacement of overlapping people can introduce cutout seams and altered limbs; the previous paid Alma output has not been repaired."
       ],
       "doNotRepeat": [
         "Do not recreate a separate editor or add buttons over the photograph.",
         "Do not change provider, model or billing when opening an action.",
         "Do not silently reuse a Face mask when switching to Whole person; force a new selection and quote."
+      ]
+    },
+    {
+      "id": "reference-library-character-editor",
+      "title": "Reference Library Character editor and photo angles",
+      "component": "Studio / Reference Library",
+      "summary": "Character cards expose Edit before Delete, with Edit also available in the detail view. Creation and editing offer optional face front, face profile, full body front and full body back slots plus Extras, up to eight photos. Existing unlabeled photos remain available in Extras. A tagged front portrait is the cover. Edits preserve the pack ID and saved photo order and keep the visual profile when the photo set stays the same.",
+      "status": "deployed",
+      "updatedAt": "2026-11-08T15:21:01Z",
+      "baselineSha": "49677f7317a7b9cfbdae86bcb49d02ae1eac97ca",
+      "reviewedSha": "ca8c42a65819d6ccee71ba2e8f89ce1806600ee2",
+      "branch": "codex/character-reference-editor",
+      "nextAction": "Verify an owner or customer save from the real signed-in Reference Library when an appropriate account session is available. Production assets and the Worker are verified.",
+      "files": [
+        "lab/scene-library.js",
+        "lab/scene-library.css",
+        "lab/studio.html",
+        "lab/lab.js",
+        "lab-worker/worker.mjs",
+        "lab-worker/element-profiles.mjs",
+        "tests/lab-worker.test.mjs",
+        "tests/lab-elements-smart-browser.mjs"
+      ],
+      "links": [
+        {
+          "label": "Character editor PR #932",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/932"
+        },
+        {
+          "label": "Guarded Worker and Character browser release",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493966811"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Focused integrated tests",
+          "result": "passed",
+          "scope": "150 checks passed including ownership, stale edits, in-place photo ordering, visual-profile invalidation, approved Image UI and concurrent selection coverage.",
+          "source": "tests/lab-worker.test.mjs"
+        },
+        {
+          "label": "Character browser and production gate",
+          "result": "passed",
+          "scope": "Desktop and 390px mobile editor, cancel, photo picker and drop, front cover, and the unchanged Worker production test gate.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493493020"
+        },
+        {
+          "label": "Broad Elements browser baseline",
+          "result": "failed",
+          "scope": "The older Image composer Remove interaction is obstructed by its image on both the main baseline and the corrected PR. The scoped Character flow passed separately.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42492862532"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "sourceSha": "5bbc1f2dbbb41e9f88f2b675cf706fc238677c20",
+        "environment": "pvlab.studio Cloudflare Pages and parallel-vision-lab Worker",
+        "observedAt": "2026-11-08T15:21:01Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493966811",
+        "limitations": [
+          "Worker version 63da37f2-c496-471d-8c22-b355539948f8 serves 100%. Cloudflare Pages check 128773116923 and exact versioned asset bytes verified.",
+          "No signed-in production Character save was attempted."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "automated_test",
+          "summary": "Owner-scoped edits preserve the Character ID and prevent stale overwrites.",
+          "scope": "Existing private packs with legacy and typed reference photos.",
+          "source": "tests/lab-worker.test.mjs",
+          "limitations": [
+            "Synthetic SQLite-backed Worker fixture."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "The exact Worker build and versioned Character editor browser assets were verified in production.",
+          "scope": "Character editor and guided photo angles, without migrations.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493966811",
+          "observedAt": "2026-11-08T15:21:01Z",
+          "limitations": [
+            "Signed-in production flow not independently exercised."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Keep existing photo IDs, notes and attachment order when assigning angles. Never auto-classify legacy references or create a second pack during editing.",
+        "Preserve the existing eight-photo cap, Visual Profile requirements and model reference capacity checks."
       ]
     }
   ]

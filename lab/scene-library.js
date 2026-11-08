@@ -1,6 +1,12 @@
 // PV LAB Scene Library. Uses existing private photo packs and reference APIs.
 // No new provider calls, training jobs, credit charges or automatic generations.
 const PREFIX='PVSCENE1|';
+const CHARACTER_ANGLES=new Map([
+  ['face-front','Face front'],
+  ['face-side','Face profile'],
+  ['body-front','Full body front'],
+  ['body-back','Full body back']
+]);
 const CATEGORIES=[
   {id:'characters',label:'Characters',role:'identity',help:'People, AI models and robots'},
   {id:'outfits',label:'Outfits',role:'outfit',help:'Clothing and complete looks'},
@@ -103,7 +109,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
   const coverChoices=new Map(),coverRequests=new Map();
    const pendingProfiles=new Map(),failedProfiles=new Map();
   const sceneToast=$('scene-toast'),leaveConfirm=$('scene-leave-confirm');
-  let pendingNavigation=null;
+  let pendingNavigation=null,editing=null,editBaseline='',editNote='',editAppearance='',cardMenu=null;
   function hideSceneToast(){if(sceneToast)sceneToast.hidden=true;}
   function showSceneToast(message){
     if(!sceneToast)return;
@@ -114,6 +120,8 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
   let coverRevision=0;
   function renderCover(host,item){
     const refs=item?.refs||[];
+    const front=refs.find(ref=>ref.characterView==='face-front');
+    if(front){assetPhoto(host,front.id);return;}
     const first=sceneCoverId(refs);
     if(!first){assetPhoto(host,null);return;}
     const chosen=coverChoices.get(item.id)||first;
@@ -206,49 +214,137 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     for(const id of ['scene-back','scene-cancel','scene-close'])$(id).disabled=working;
     $('scene-attached').disabled=working;
     $('scene-files').disabled=working;
+    $('scene-angle-file').disabled=working;
+    $('scene-name').disabled=working;
+    $('scene-note').disabled=working;
+    $('scene-category').disabled=working||!!editing;
+    dialog.querySelectorAll('#scene-character-angles button,#scene-photos button,#scene-photos select,#scene-create input[type=radio],#scene-create input[type=checkbox]').forEach(el=>el.disabled=working);
     $('scene-note-suggest').disabled=working;
-    dialog.querySelectorAll('[data-scene-use],[data-scene-delete]').forEach(btn=>btn.disabled=working);
+    dialog.querySelectorAll('[data-scene-use],[data-scene-delete],[data-scene-edit],[data-scene-actions]').forEach(btn=>btn.disabled=working);
+  }
+  function releasePhoto(photo){
+    if(photo.owned&&photo.url)URL.revokeObjectURL(photo.url);
   }
   function removePhoto(i){
-    const p=photos[i];
-    if(p?.owned&&p.url)URL.revokeObjectURL(p.url);
+    releasePhoto(photos[i]);
+    const view=photos[i].characterView;
     photos.splice(i,1);renderPhotos();
+    if(view)$('scene-character-angles').querySelector('[data-angle="'+view+'"]')?.focus();
   }
   function clearPhotos(){
-    for(const p of photos)if(p.owned&&p.url)URL.revokeObjectURL(p.url);
+    photos.forEach(releasePhoto);
     photos=[];renderPhotos();
   }
   function selectedCategory(){
     return category($('scene-category').value);
   }
+  function renderDraftPhoto(host,item){
+    const preview=document.createElement('span');preview.className='scene-draft-preview';
+    if(item.url){
+      const img=document.createElement('img');img.src=item.url;img.alt='';
+      preview.append(img);
+    }else assetPhoto(preview,item.id);
+    host.append(preview);
+  }
+  function photoRemoveButton(i,label){
+    const remove=document.createElement('button');remove.type='button';remove.textContent='×';
+    remove.setAttribute('aria-label','Remove '+label);remove.disabled=working;
+    remove.onclick=()=>{if(!working)removePhoto(i);};
+    return remove;
+  }
+  function acceptPhotoDrop(node,view){
+    node.addEventListener('dragover',event=>{
+      if(!event.dataTransfer.types.includes('Files'))return;
+      event.preventDefault();node.classList.toggle('is-dragging',!working);
+    });
+    node.addEventListener('dragleave',()=>node.classList.remove('is-dragging'));
+    node.addEventListener('drop',event=>{
+      if(!event.dataTransfer.files.length)return;
+      event.preventDefault();event.stopPropagation();node.classList.remove('is-dragging');
+      if(working)return;
+      try{appendPhotos(event.dataTransfer.files,view);}catch(error){setStatus(error.message,true);}
+    });
+  }
   function renderPhotos(){
-    const tray=$('scene-photos');
-    tray.replaceChildren();
+    const tray=$('scene-photos'),angles=$('scene-character-angles');
+    const character=selectedCategory().id==='characters';
+    tray.replaceChildren();angles.replaceChildren();
+    if(character)for(const [view,label] of CHARACTER_ANGLES){
+      const index=photos.findIndex(item=>item.characterView===view),item=photos[index];
+      const slot=document.createElement('div');slot.className='scene-angle-slot';
+      const caption=document.createElement('strong');caption.textContent=label;
+      const pick=document.createElement('button');pick.type='button';pick.dataset.angle=view;
+      pick.className='scene-angle-pick';pick.disabled=working;
+      pick.setAttribute('aria-label',(item?'Replace ':'Add ')+label+' photo');
+      pick.onclick=()=>{
+        const input=$('scene-angle-file');input.dataset.angle=view;input.click();
+      };
+      if(item)renderDraftPhoto(pick,item);
+      const hint=document.createElement('span');hint.textContent=item?'Replace':'+ Add photo';
+      pick.append(hint);slot.append(caption,pick);
+      if(item){
+        const remove=photoRemoveButton(index,label+' photo');remove.className='scene-angle-remove';
+        const unassign=document.createElement('button');unassign.type='button';
+        unassign.className='scene-angle-unassign';unassign.textContent='Move to Extras';
+        unassign.setAttribute('aria-label','Move '+label+' photo to Extras');unassign.disabled=working;
+        unassign.onclick=()=>{
+          delete item.characterView;renderPhotos();
+          tray.querySelector('[aria-label="Assign angle to selected photograph '+(index+1)+'"]')?.focus();
+        };
+        slot.append(remove,unassign);
+      }
+      acceptPhotoDrop(slot,view);angles.append(slot);
+    }
     photos.forEach((item,i)=>{
+      if(character&&CHARACTER_ANGLES.has(item.characterView))return;
       const box=document.createElement('div');box.className='scene-photo';
-      const img=document.createElement('img');img.src=item.url;img.alt='Selected reference '+(i+1);
-      const remove=document.createElement('button');remove.type='button';remove.textContent='×';
-      remove.setAttribute('aria-label','Remove selected photograph '+(i+1));
-      remove.onclick=()=>{if(!working)removePhoto(i);};
-      box.append(img,remove);tray.append(box);
+      const label='selected photograph '+(i+1);
+      renderDraftPhoto(box,item);
+      box.append(photoRemoveButton(i,label));
+      if(character){
+        const assign=document.createElement('select');
+        assign.setAttribute('aria-label','Assign angle to '+label);
+        assign.append(new Option('Extra',''),...[...CHARACTER_ANGLES].map(([view,title])=>new Option(title,view)));
+        assign.disabled=working;
+        assign.onchange=()=>{
+          const view=assign.value;
+          const previous=photos.find(photo=>photo.characterView===view);
+          if(previous)delete previous.characterView;
+          item.characterView=view;renderPhotos();
+          angles.querySelector('[data-angle="'+view+'"]')?.focus();
+        };
+        box.append(assign);
+      }
+      tray.append(box);
     });
     $('scene-photo-count').textContent=photos.length+' / 8 images';
     $('scene-photo-hint').hidden=!!photos.length;
   }
-  function appendPhotos(list){
-    const remaining=8-photos.length;
+  function appendPhotos(list,view=''){
+    if(working)return;
     const incoming=Array.from(list||[]);
-    if(incoming.length>remaining)throw Error('Choose up to eight images per saved item.');
+    if(!incoming.length)return;
+    const index=view?photos.findIndex(photo=>photo.characterView===view):-1;
+    if(view&&incoming.length!==1)throw Error('Drop one photograph in this angle.');
+    if(incoming.length>8-photos.length+(index>=0?1:0))throw Error('Choose up to eight images per saved item.');
+    const ids=new Set(photos.filter((_,i)=>i!==index).map(photo=>photo.id).filter(Boolean));
     for(const entry of incoming){
       const file=entry.file||entry;
       if(!file||!String(file.type||'').startsWith('image/')||!file.size)
         throw Error('Choose a valid image file.');
+      if(entry.file&&entry.id){
+        if(ids.has(entry.id))throw Error('This photograph is already in the saved set.');
+        ids.add(entry.id);
+      }
     }
     for(const entry of incoming){
       const file=entry.file||entry;
       const externalUrl=entry.file&&(entry.thumbUrl||entry.url);
-      photos.push({file,id:entry.file?entry.id||null:null,url:externalUrl||URL.createObjectURL(file),owned:!externalUrl});
+      const photo={file,id:entry.file?entry.id||null:null,url:externalUrl||URL.createObjectURL(file),owned:!externalUrl,characterView:view};
+      if(index<0)photos.push(photo);
+      else{releasePhoto(photos[index]);photos[index]=photo;}
     }
+    if(editing)$('scene-consent').checked=false;
     renderPhotos();
     hideSceneToast();setStatus('');
   }
@@ -265,30 +361,54 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
   }
   function updateAppearance(){
     const isCharacter=$('scene-category').value==='characters';
+    $('scene-character-angles').hidden=!isCharacter;
+    $('scene-extras-label').hidden=!isCharacter;
+    $('scene-upload-label').textContent=isCharacter?'+ Add extras':'+ Upload photos';
+    $('scene-photo-hint').textContent=isCharacter
+      ?'Angles are optional. Add up to eight photos in total.'
+      :'Select 1 to 8 images.';
     $('scene-identity-options').hidden=!isCharacter;
     $('scene-consent-wrap').hidden=!isCharacter;
     $('scene-create-description').textContent=isCharacter
       ?'Use clear photographs of the same adult. Identity only guides the face without copying wardrobe or background.'
       :'Save reference images for future scenes. Roles are applied automatically when you use them.';
-    syncNoteUi();
+    syncNoteUi();renderPhotos();
   }
-  function create(categoryId=current,starting=[]){
+  function appearanceValue(){
+    return dialog.querySelector('input[name="scene-appearance"]:checked')?.value||'identity';
+  }
+  function draftSnapshot(){
+    return JSON.stringify([$('scene-name').value,$('scene-note').value,appearanceValue(),
+      $('scene-consent').checked,$('scene-smart-analyze').checked,
+      photos.map(photo=>[photo.url||photo.id,photo.characterView||''])]);
+  }
+  function create(categoryId=current,starting=[],item=null){
+    if(working)return;
     current=category(categoryId).id;view='create';setStatus('');hideSceneToast();
-    clearPhotos();
+    editing=item;closeCardMenu();clearPhotos();
+    const cat=category(current),first=item?.refs[0];
+    editAppearance=first?.role==='custom'?'full':'identity';
+    const originalNote=first?.note||'',prefix=referenceNote(cat,item?.title,editAppearance,'');
+    editNote=item&&originalNote.startsWith(prefix)?originalNote.slice(prefix.length).trim():'';
+    $('scene-editor-title').textContent=item?'Edit character':current==='characters'?'New character':'Save reference';
+    $('scene-save').textContent=item?'Save changes':'Save item';
     $('scene-category').value=current;
-    $('scene-name').value='';
-    $('scene-note').value='';
-    $('scene-consent').checked=false;
-    if($('scene-smart-analyze'))$('scene-smart-analyze').checked=true;
-    $('scene-appearance').checked=true;
+    $('scene-category').disabled=!!item;
+    $('scene-name').value=item?.title||'';
+    $('scene-note').value=editNote;
+    $('scene-consent').checked=!!item;
+    $('scene-smart-analyze').checked=!item||!!item.profile;
+    dialog.querySelector('input[name="scene-appearance"][value="'+editAppearance+'"]').checked=true;
+    if(item)photos=item.refs.map(ref=>({id:ref.id,ref,characterView:ref.characterView}));
     $('scene-browser').hidden=true;
     $('scene-create').hidden=false;
     updateAppearance();
     if(starting.length)appendPhotos(starting);
+    editBaseline=draftSnapshot();
     $('scene-name').focus();
   }
   function browse(){
-    view='browse';setStatus('');hideSceneToast();clearPhotos();
+    view='browse';editing=null;setStatus('');hideSceneToast();clearPhotos();
     $('scene-create').hidden=true;$('scene-browser').hidden=false;
     render();
   }
@@ -298,7 +418,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     if(categoryId)current=category(categoryId).id;
     selectedId=null;selectedPhotoIndex=0;featuredExpanded=false;
     closeOverlays();
-    view='browse';$('scene-create').hidden=true;$('scene-browser').hidden=false;
+    view='browse';editing=null;$('scene-create').hidden=true;$('scene-browser').hidden=false;
     dialog.classList.toggle('scene-from-image',getContext().tool==='image');
     if(getContext().tool==='image'){
       const anchor=$('scene-image-open')?.getBoundingClientRect();
@@ -319,6 +439,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
   }
   function hasUnsavedDraft(){
     if(view!=='create')return false;
+    if(editing)return draftSnapshot()!==editBaseline;
     return !!(photos.length||$('scene-name').value.trim()||$('scene-note').value.trim()
       ||$('scene-category').value!==current
       ||dialog.querySelector('input[name="scene-appearance"]:checked')?.value==='full'
@@ -382,6 +503,36 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     props:'Objects and details for your projects.',
     locations:'Places and environments for your projects.'
   };
+  function closeCardMenu(restoreFocus=false){
+    if(!cardMenu)return;
+    const {trigger,panel}=cardMenu;cardMenu=null;
+    trigger.setAttribute('aria-expanded','false');panel.hidden=true;
+    trigger.closest('.scene-card').classList.remove('scene-card-menu-open');
+    if(restoreFocus)trigger.focus();
+  }
+  function characterActions(item){
+    const host=document.createElement('div');host.className='scene-card-menu';
+    const trigger=document.createElement('button');trigger.type='button';trigger.className='scene-delete';
+    trigger.textContent='···';trigger.setAttribute('aria-label','Actions for '+item.title);
+    trigger.dataset.sceneActions='';trigger.disabled=working;
+    trigger.setAttribute('aria-expanded','false');
+    const panel=document.createElement('div');panel.className='scene-card-menu-panel';panel.hidden=true;
+    panel.id='scene-actions-'+item.id;trigger.setAttribute('aria-controls',panel.id);
+    const edit=document.createElement('button');edit.type='button';edit.textContent='Edit';
+    edit.onclick=()=>create(item.category,[],item);
+    const remove=document.createElement('button');remove.type='button';remove.textContent='Delete';
+    remove.onclick=()=>{closeCardMenu(true);void deleteItem(item);};
+    trigger.onclick=()=>{
+      if(cardMenu?.trigger===trigger){closeCardMenu(true);return;}
+      closeCardMenu();
+      cardMenu={trigger,panel};panel.hidden=false;
+      trigger.setAttribute('aria-expanded','true');
+      host.closest('.scene-card').classList.add('scene-card-menu-open');
+      edit.focus();
+    };
+    panel.append(edit,remove);host.append(trigger,panel);
+    return host;
+  }
   // An opened Character is its own workspace. The archive grid belongs to the
   // library overview, never underneath the selected item.
   function renderFeatured(item){
@@ -424,31 +575,44 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
       use.onclick=()=>{void useItem(item);};
       actions.append(use);
     }
+    if(item.category==='characters'){
+      const edit=document.createElement('button');edit.type='button';
+      edit.className='scene-muted-button';edit.textContent='Edit character';
+      edit.dataset.sceneEdit='';edit.disabled=working;
+      edit.onclick=()=>create(item.category,[],item);
+      actions.append(edit);
+    }
     content.append(eyebrow,title,profileSignal(item),summary,actions);
     const details=document.createElement('div');details.className='scene-feature-expanded';
     const photos=document.createElement('div');photos.className='scene-feature-photos';
     photos.setAttribute('aria-label',item.title+' saved photographs');
     const buttons=[];
+    const note=document.createElement('small');note.className='scene-feature-photo-note';
+    const photoLabel=i=>CHARACTER_ANGLES.get(item.refs[i].characterView);
+    note.textContent=photoLabel(index)||'Choose a photograph to preview';
     item.refs.forEach((ref,i)=>{
       if(!ref.id)return;
       const tile=document.createElement('button');tile.type='button';
-      tile.className='scene-feature-shot';tile.setAttribute('aria-label','View photograph '+(i+1)+' of '+item.refs.length);
+      tile.className='scene-feature-shot';
+      const label=photoLabel(i);
+      tile.setAttribute('aria-label',label?'View '+label:'View photograph '+(i+1)+' of '+item.refs.length);
       tile.setAttribute('aria-pressed',String(i===index));
       assetPhoto(tile,ref.id);
+      if(label)tile.title=label;
       tile.onclick=()=>{
         selectedPhotoIndex=i;assetPhoto(photo,ref.id);
-        buttons.forEach((button,j)=>button.setAttribute('aria-pressed',String(j===i)));
+        note.textContent=label||'Choose a photograph to preview';
+        buttons.forEach(button=>button.setAttribute('aria-pressed',String(button===tile)));
       };
       buttons.push(tile);photos.append(tile);
     });
-    const note=document.createElement('small');note.className='scene-feature-photo-note';
-    note.textContent='Choose a photograph to preview';
     details.append(photos,note);
     host.append(back,photo,content,details);
   }
 
   function render(){
     if(view!=='browse'||!dialog.open)return;
+    closeCardMenu();
     const categoryData=category(current);
     const tabs=$('scene-tabs');tabs.replaceChildren();
     for(const cat of CATEGORIES){
@@ -528,7 +692,10 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
       const meta=document.createElement('small');meta.textContent=item.refs.length+' image'+(item.refs.length===1?'':'s');
       const details=document.createElement('div');details.className='scene-card-details';details.append(title,meta,profileSignal(item));
       select.append(top,details);
-      select.onclick=()=>{selectedId=item.id;selectedPhotoIndex=0;featuredExpanded=false;render();};
+      select.onclick=()=>{
+        selectedId=item.id;selectedPhotoIndex=Math.max(0,item.refs.findIndex(ref=>ref.characterView==='face-front'));
+        featuredExpanded=false;render();
+      };
       const actions=document.createElement('div');actions.className='scene-card-actions';
       // Unanalyzed Elements can be opened for analysis, but cannot attach yet.
       if(item.profile){
@@ -538,10 +705,14 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
         use.dataset.sceneUse='';use.onclick=()=>{void useItem(item);};
         actions.append(use);
       }
-      const remove=document.createElement('button');remove.type='button';remove.className='scene-delete';
-      remove.textContent='···';remove.title='Delete '+item.title;remove.setAttribute('aria-label','Delete '+item.title);
-      remove.dataset.sceneDelete='';remove.onclick=()=>{void deleteItem(item);};
-      actions.append(remove);card.append(select,actions);grid.append(card);
+      if(item.category==='characters')actions.append(characterActions(item));
+      else{
+        const remove=document.createElement('button');remove.type='button';remove.className='scene-delete';
+        remove.textContent='···';remove.title='Delete '+item.title;remove.setAttribute('aria-label','Delete '+item.title);
+        remove.dataset.sceneDelete='';remove.onclick=()=>{void deleteItem(item);};
+        actions.append(remove);
+      }
+      card.append(select,actions);grid.append(card);
     }
     const empty=$('scene-empty');
     empty.hidden=!!list.length;
@@ -677,45 +848,71 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
   }
   async function save(afterSuccess=null){
     if(working)return;
-    const cat=selectedCategory(),title=safeName($('scene-name').value);
+    const cat=selectedCategory(),title=safeName($('scene-name').value),original=editing;
     if(!title){setStatus('Name your '+cat.label.toLowerCase().slice(0,-1)+' first.',true);return;}
     if(!photos.length){setStatus('Choose at least one photograph.',true);return;}
     if(cat.id==='characters'&&!$('scene-consent').checked){setStatus('Confirm that you are authorized to use the person’s photos.',true);return;}
     const packName=PREFIX+cat.id+'|'+title;
-    if(allPacks.length>=40){setStatus('You can save up to 40 reference collections and photo packs.',true);return;}
-    if(entries.some(e=>e.name.toLowerCase()===packName.toLowerCase())){setStatus('You already saved '+title+' in '+cat.label+'. Use another name.',true);return;}
-    const appearance=dialog.querySelector('input[name="scene-appearance"]:checked')?.value||'identity',extra=String($('scene-note').value||'').trim().slice(0,120);
+    if(!original&&allPacks.length>=40){setStatus('You can save up to 40 reference collections and photo packs.',true);return;}
+    if(entries.some(e=>e.id!==original?.id&&e.name.toLowerCase()===packName.toLowerCase())){setStatus('You already saved '+title+' in '+cat.label+'. Use another name.',true);return;}
+    const appearance=appearanceValue(),extra=String($('scene-note').value||'').trim().slice(0,120);
+    const analyze=$('scene-smart-analyze').checked;
     const role=cat.id==='characters'&&appearance==='full'?'custom':cat.role;
     let saved=false;
     setWorking(true);hideSceneToast();setStatus('Saving references privately…');
     try{
       await runTask(async()=>{
-        const ids=[];
         for(const item of photos){
-          if(item.id){ids.push(item.id);continue;}
-          // Prepare oversized/alternate-format photos locally and silently.
-          // Never mutate the user's original; only the private saved copy is sent.
-          const ready=await prepareElementPhoto(item.file);
-          ids.push(await uploadAsset(ready));
+          if(item.id)continue;
+          // Keep uploaded IDs on a retry, without modifying the user's originals.
+          item.id=await uploadAsset(await prepareElementPhoto(item.file));
         }
-        const labels=ids.map((id,i)=>({
-          name:photos[i].file.name||title+'-'+(i+1),role,
-          ...(role==='outfit'?{target:'full'}:role==='object'?{target:'prop'}:{}),
-          note:referenceNote(cat,title,appearance,extra)
-        }));
-        const created=await api('/api/packs',{method:'POST',body:{
-          name:packName,engine:'seedance',referenceSourceIds:ids,referenceRoles:labels
-        }});
-        await loadPacks();
+        const ids=photos.map(item=>item.id);
+        const labels=photos.map((item,i)=>{
+          const ref=item.ref;
+          const label={
+            name:ref?.name||item.file?.name||title+'-'+(i+1),role,
+            ...(role==='outfit'?{target:'full'}:role==='object'?{target:'prop'}:{}),
+            note:referenceNote(cat,title,appearance,extra)
+          };
+          if(ref&&appearance===editAppearance&&extra===editNote){
+            const oldPrefix=referenceNote(cat,original.title,editAppearance,'');
+            label.note=ref.note?.startsWith(oldPrefix)
+              ?(referenceNote(cat,title,appearance,'')+ref.note.slice(oldPrefix.length)).slice(0,300)
+              :ref.note||'';
+            label.role=ref.role;
+          }
+          if(cat.id==='characters'&&item.characterView)label.characterView=item.characterView;
+          return label;
+        });
+        const updated=await api(original?'/api/packs/'+encodeURIComponent(original.id):'/api/packs',{
+          method:'POST',body:{
+            name:packName,engine:'seedance',referenceSourceIds:ids,referenceRoles:labels,
+            ...(original?{expected:{name:original.name,refs:original.refs}}:{})
+          }
+        });
+        const samePhotos=original&&original.refs.length===ids.length&&original.refs.every((ref,i)=>ref.id===ids[i]);
+        const updatedPack={id:updated.id,name:packName,refs:updated.refs||labels.map((label,i)=>({id:ids[i],...label})),
+          created_at:original?.created_at||Date.now(),...(samePhotos&&original.profile?{profile:original.profile}:{})};
+        sync([...allPacks.filter(pack=>pack.id!==updated.id),updatedPack]);
         saved=true;
-        selectedId=created?.id||null;selectedPhotoIndex=0;featuredExpanded=false;
-        current=cat.id;browse();setStatus(title+' saved to '+cat.label+'. No generation was started.');
-        if($('scene-smart-analyze')?.checked&&created?.id){
+        selectedId=updated.id;
+        if(!title.toLowerCase().includes($('scene-search').value.trim().toLowerCase()))$('scene-search').value='';
+        selectedPhotoIndex=Math.max(0,updatedPack.refs.findIndex(ref=>ref.characterView==='face-front'));
+        featuredExpanded=false;
+        current=cat.id;browse();
+        setStatus(title+(original?' updated.':' saved to '+cat.label+'. No generation was started.'));
+        const savedElement=entries.find(item=>item.id===updated.id);
+        if(analyze&&savedElement&&!savedElement.profile){
           setStatus('@'+title+' saved. Preparing its reusable visual profile…');
-          const savedElement=entries.find(item=>item.id===created.id);
-          // Don't lock the Save modal or hold a failed Gemini promise in memory.
-          // The same saved Element can be reanalyzed later without uploading again.
-          if(savedElement)void analyzeSavedElement(savedElement,true);
+          const pending=pendingProfiles.get(savedElement.id);
+          if(pending&&!samePhotos){
+            void pending.then(()=>{
+              const latest=entries.find(item=>item.id===savedElement.id);
+              if(latest?.refs.length===ids.length&&latest.refs.every((ref,i)=>ref.id===ids[i]))
+                return analyzeSavedElement(latest,true);
+            });
+          }else void analyzeSavedElement(savedElement,true);
         }
       });
     }finally{
@@ -762,6 +959,18 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     field.value=suggestion;syncNoteUi();field.focus();
     field.setSelectionRange(field.value.length,field.value.length);
   };
+  acceptPhotoDrop($('scene-files').closest('label'),'');
+  acceptPhotoDrop($('scene-photos'),'');
+  $('scene-angle-file').onchange=event=>{
+    try{
+      const view=event.target.dataset.angle;
+      if(CHARACTER_ANGLES.has(view)&&selectedCategory().id==='characters'){
+        appendPhotos(event.target.files,view);
+        $('scene-character-angles').querySelector('[data-angle="'+view+'"]')?.focus();
+      }
+    }catch(error){setStatus(error.message,true);}
+    event.target.value='';
+  };
   $('scene-files').onchange=event=>{
     try{appendPhotos(event.target.files);}catch(error){setStatus(error.message,true);}
     event.target.value='';
@@ -773,7 +982,11 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     }catch(error){setStatus(error.message,true);}
   };
   $('scene-save').onclick=()=>{void save();};
+  dialog.addEventListener('click',event=>{
+    if(cardMenu&&!cardMenu.trigger.parentElement.contains(event.target))closeCardMenu();
+  });
   dialog.addEventListener('cancel',event=>{
+    if(cardMenu){event.preventDefault();closeCardMenu(true);return;}
     if(elementsInfo&&!elementsInfo.hidden){
       event.preventDefault();setElementsInfoOpen(false);elementsInfoFocus?.focus();return;
     }
@@ -781,6 +994,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     if(hasUnsavedDraft()){event.preventDefault();requestNavigation({type:'close'});}
   });
   dialog.addEventListener('close',()=>{
+    closeCardMenu();editing=null;
     setElementsInfoOpen(false);
     if(!working){hideSceneToast();clearPhotos();setStatus('');}
   });

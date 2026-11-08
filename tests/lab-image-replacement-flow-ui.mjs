@@ -230,6 +230,9 @@ try {
     const videoCard=await page.locator('#image-detail-video').boundingBox();
     assert.ok(Math.abs(editCard.y-replaceCard.y)<2,'Replace and Edit share one row');
     assert.ok(editCard.y+editCard.height<=videoCard.y,'Both actions stay above Turn into video');
+    // Independent Image pricing may finish while the viewer opens. Capture a stable
+    // finished quote before testing that Edit/Back preserves the entire draft.
+    await page.waitForFunction(()=>window.__replacementFlow.state().price!=='checking');
     const originalURL=page.url(),previousDraft=await page.evaluate(()=>window.__replacementFlow.state());
     await page.waitForFunction(()=>{const image=document.getElementById('image-lightbox-img');return image.complete&&image.naturalWidth>0;});
     const fittedPhoto=await page.locator('#image-lightbox-img').evaluate(image=>{

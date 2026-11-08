@@ -67,6 +67,15 @@ await page.route('https://**/*',async route=>{
     savedPacks.push(record);
     return route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({id:record.id})});
   }
+  if(/^\/api\/packs\/[^/]+$/.test(path)&&route.request().method()==='POST'){
+    const request=route.request().postDataJSON();
+    const record=savedPacks.find(pack=>pack.id===path.split('/').at(-1));
+    assert.ok(record,'Edits update an existing Character by ID');
+    assert.deepEqual(request.expected,{name:record.name,refs:record.refs});
+    record.name=request.name;
+    record.refs=request.referenceSourceIds.map((assetId,i)=>({id:assetId,...request.referenceRoles[i]}));
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(record)});
+  }
   if(path==='/api/packs')return route.fulfill({status:200,contentType:'application/json',
     body:JSON.stringify({packs:savedPacks})});
   if(path==='/api/soul-pro/identity')return route.fulfill({status:200,contentType:'application/json',
@@ -93,6 +102,61 @@ try{
   assert.ok(compact.width<=1040&&compact.height<=600,'Approved compact library bounds');
   assert.equal(compact.background,'none','The F heading has no category photograph');
   assert.equal(compact.columns,3,'Desktop F uses three compact cover columns');
+  const ninaActions=page.getByRole('button',{name:'Actions for Nina FOK'});
+  await ninaActions.click();
+  assert.equal(await page.locator('.scene-card-menu-panel:visible button').first().textContent(),'Edit');
+  assert.equal(await page.locator('.scene-card-menu-panel:visible button').last().textContent(),'Delete');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.scene-card-menu-panel:visible').count(),0);
+  assert.equal(await page.locator('#scene-library-dialog').isVisible(),true);
+  await ninaActions.click();
+  await page.getByRole('button',{name:'Edit',exact:true}).click();
+  assert.equal(await page.locator('#scene-name').inputValue(),'Nina FOK');
+  assert.equal(await page.locator('#scene-photos .scene-photo').count(),8,'Legacy references start in Extras');
+  assert.equal(await page.locator('#scene-photo-count').textContent(),'8 / 8 images');
+  const originalOrder=nina.refs.map(ref=>ref.id);
+  await page.getByRole('combobox',{name:'Assign angle to selected photograph 2',exact:true}).selectOption('face-front');
+  await page.locator('[data-angle="face-front"] img').waitFor();
+  assert.equal(await page.getByRole('button',{name:'Replace Face front photo'}).isVisible(),true);
+  await page.getByRole('button',{name:'Move Face front photo to Extras'}).click();
+  assert.equal(await page.locator('#scene-photos .scene-photo').count(),8);
+  await page.getByRole('combobox',{name:'Assign angle to selected photograph 2',exact:true}).selectOption('face-front');
+  await page.getByRole('button',{name:'Save changes'}).click();
+  await page.getByRole('button',{name:'View Face front'}).waitFor();
+  assert.equal(await page.getByRole('button',{name:'View Face front'}).getAttribute('aria-pressed'),'true');
+  assert.deepEqual(nina.refs.map(ref=>ref.id),originalOrder);
+  assert.equal(nina.refs[1].characterView,'face-front');
+  await page.getByRole('button',{name:'Edit character'}).click();
+  assert.equal(await page.locator('#scene-photo-count').textContent(),'8 / 8 images');
+  await page.locator('#scene-cancel').click();
+  assert.equal(await page.locator('#scene-leave-confirm').isVisible(),false,'Opening and canceling an unchanged edit needs no confirmation');
+  await page.getByRole('button',{name:'Back to Characters'}).click();
+
+  await page.setViewportSize({width:390,height:820});
+  await page.locator('#scene-new').click();
+  const angles=page.locator('#scene-character-angles');
+  assert.deepEqual(await angles.locator('strong').allTextContents(),['Face front','Face profile','Full body front','Full body back']);
+  assert.equal(await angles.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),2);
+  const editorWidth=await page.locator('#scene-library-dialog .scene-main').evaluate(el=>({
+    scroll:el.scrollWidth,client:el.clientWidth,
+    closeRight:el.querySelector('#scene-close').getBoundingClientRect().right,
+    editorRight:el.getBoundingClientRect().right
+  }));
+  assert.ok(editorWidth.scroll<=editorWidth.client&&editorWidth.closeRight<=editorWidth.editorRight,
+    'The mobile editor and its close button fit: '+JSON.stringify(editorWidth));
+  const profileChooser=page.waitForEvent('filechooser');
+  await page.getByRole('button',{name:'Add Face profile photo'}).click();
+  await (await profileChooser).setFiles({name:'profile.webp',mimeType:'image/webp',buffer:media});
+  await angles.locator('[data-angle="body-back"]').evaluate(node=>{
+    const dataTransfer=new DataTransfer();
+    dataTransfer.items.add(new File([new Uint8Array([1])],'dropped-back.webp',{type:'image/webp'}));
+    node.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer}));
+  });
+  assert.equal(await page.locator('#scene-photo-count').textContent(),'2 / 8 images');
+  await page.locator('#scene-cancel').click();
+  await page.locator('#scene-leave-discard').click();
+  assert.equal(savedPacks.length,2);
+  await page.setViewportSize({width:1440,height:900});
   await page.locator('#scene-tabs .scene-category-tab').filter({hasText:'Outfits'}).click();
   assert.equal(await page.locator('#scene-new-label').textContent(),'New outfit');
   await page.locator('#scene-close').click();
