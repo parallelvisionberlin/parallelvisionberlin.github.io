@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T18:06:03.311Z",
+  "updatedAt": "2026-11-08T22:14:23.474Z",
   "handoffs": [
     {
       "id": "owner",
@@ -64,6 +64,45 @@
     }
   ],
   "records": [
+    {
+      "id": "home-featured-photo-pack-chrome-desert",
+      "title": "Chrome Desert homepage photo-pack band",
+      "component": "PV LAB homepage",
+      "status": "needs_verification",
+      "summary": "Add Chrome Desert as a thin featured photo-pack band after the three main tools while preserving the existing Full Editorial section directly below it.",
+      "nextAction": "Review PR checks, merge if the scoped homepage tests pass, then verify the exact Cloudflare Pages deployment and live custom-domain HTML/CSS.",
+      "baselineSha": "62a2b4aa35d07922109dec60c332fe75f5f0fff4",
+      "reviewedSha": null,
+      "branch": "design/home-chrome-desert-pack-20261108",
+      "files": [
+        "lab/index.html",
+        "lab/home-featured-photo-pack.css",
+        "tests/lab-home-featured-photo-pack.test.mjs",
+        "lab/HOME-MOBILE-WORK-STATE.md"
+      ],
+      "links": [],
+      "tests": [
+        {
+          "label": "Chrome Desert homepage feature regression",
+          "result": "not_run",
+          "scope": "Order, Full Editorial preservation, text-only CTA, existing imagery, desktop thin height and phone stack."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "Source branch is not production evidence; custom-domain verification is still required."
+        ]
+      },
+      "evidence": [],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not replace or restyle the existing Full Editorial section.",
+        "Do not alter hero, Studio cards, Creative Studios, Characters, pricing, billing, credits or generation behavior."
+      ],
+      "updatedAt": "2026-11-08"
+    },
     {
       "id": "90s-cinema-natural-film-light",
       "title": "90s Cinema natural source light",
