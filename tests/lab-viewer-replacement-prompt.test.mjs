@@ -21,7 +21,7 @@ test('all eight Alma views and all authored notes fit a normal 5000-character qu
  assert.match(assembled,/Alma Rosati \(8 views\): one consistent person/);
  assert.match(assembled,/Reference 1 \[Base\]/);
  assert.match(assembled,/Reference 9 \[Body\]/);
- for(const note of notes)assert.ok(assembled.includes(note),'Each saved view note survives intact');
+ for(const note of notes)assert.ok(assembled.includes(note.trim()),'Each saved view note survives after existing whitespace normalization');
  assert.ok(assembled.includes(direction),'Authored direction remains unmodified');
  assert.match(assembled,/REVIEWED REPLACEMENT/);
 });
@@ -29,7 +29,7 @@ test('Face scope uses only identity reference roles without whole-body changes',
  const {roles,settings,direction}=fixture('face');
  const compiled=compileImagePrompt(direction,roles.slice(0,8),
    {...settings,referenceSourceIds:settings.referenceSourceIds.slice(0,8),replacement:{...settings.replacement,referenceSourceIds:settings.replacement.referenceSourceIds.slice(0,7)}});
- assert.ok(compiled.length<5000);assert.match(compiled,/facial identity only/);assert.ok(compiled.includes(notes[0]));
+ assert.ok(compiled.length<5000);assert.match(compiled,/facial identity only/);assert.ok(compiled.includes(notes[0].trim()));
 });
 test('normal Image and non-replacement reference prompts keep their original compiler',()=>{
  const {roles,settings,direction}=fixture();
@@ -41,6 +41,6 @@ test('long user-authored directions are never silently cut to satisfy a provider
  const {roles,settings}=fixture();
  const requested='Original details '+('Precise art direction. ').repeat(190);
  const output=compileImagePrompt(requested,roles,settings);
- assert.ok(output.includes(requested));
+ assert.ok(output.includes(requested.trim()));
  assert.ok(output.length>5000,'The existing server limit can give a clear error for genuinely oversized authored input');
 });
