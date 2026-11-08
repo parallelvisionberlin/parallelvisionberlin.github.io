@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T15:18:25.154Z",
+  "updatedAt": "2026-11-08T15:21:01Z",
   "handoffs": [
     {
       "id": "owner",
@@ -2222,12 +2222,12 @@
       "title": "Reference Library Character editor and photo angles",
       "component": "Studio / Reference Library",
       "summary": "Character cards expose Edit before Delete, with Edit also available in the detail view. Creation and editing offer optional face front, face profile, full body front and full body back slots plus Extras, up to eight photos. Existing unlabeled photos remain available in Extras. A tagged front portrait is the cover. Edits preserve the pack ID and saved photo order and keep the visual profile when the photo set stays the same.",
-      "status": "needs_verification",
-      "updatedAt": "2026-11-08",
-      "baselineSha": "583f9487fec10f2bcb7765b9814625e460a6f140",
-      "reviewedSha": null,
+      "status": "deployed",
+      "updatedAt": "2026-11-08T15:21:01Z",
+      "baselineSha": "49677f7317a7b9cfbdae86bcb49d02ae1eac97ca",
+      "reviewedSha": "ca8c42a65819d6ccee71ba2e8f89ce1806600ee2",
       "branch": "codex/character-reference-editor",
-      "nextAction": "Verify the desktop and phone Elements browser flow from the PR. For release, deploy the Worker edit endpoint before publishing the matching Pages assets, then verify the signed-in Character editor.",
+      "nextAction": "Verify an owner or customer save from the real signed-in Reference Library when an appropriate account session is available. Production assets and the Worker are verified.",
       "files": [
         "lab/scene-library.js",
         "lab/scene-library.css",
@@ -2238,28 +2238,45 @@
         "tests/lab-worker.test.mjs",
         "tests/lab-elements-smart-browser.mjs"
       ],
-      "links": [],
+      "links": [
+        {
+          "label": "Character editor PR #932",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/932"
+        },
+        {
+          "label": "Guarded Worker and Character browser release",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493966811"
+        }
+      ],
       "tests": [
         {
-          "label": "Focused Worker, Elements and approved Image UI",
+          "label": "Focused integrated tests",
           "result": "passed",
-          "scope": "142 local assertions, including in-place edits, ownership, stale writes, saved notes and order, same-photo profiles and replacement invalidation.",
+          "scope": "150 checks passed including ownership, stale edits, in-place photo ordering, visual-profile invalidation, approved Image UI and concurrent selection coverage.",
           "source": "tests/lab-worker.test.mjs"
         },
         {
-          "label": "Elements browser regression",
-          "result": "not_run",
-          "scope": "Desktop and 390px phone coverage added for the action menu, legacy assignment, cover preview, picker and drop. Local Chromium could not start due to the environment socket restriction.",
-          "source": "tests/lab-elements-smart-browser.mjs"
+          "label": "Character browser and production gate",
+          "result": "passed",
+          "scope": "Desktop and 390px mobile editor, cancel, photo picker and drop, front cover, and the unchanged Worker production test gate.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493493020"
+        },
+        {
+          "label": "Broad Elements browser baseline",
+          "result": "failed",
+          "scope": "The older Image composer Remove interaction is obstructed by its image on both the main baseline and the corrected PR. The scoped Character flow passed separately.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42492862532"
         }
       ],
       "deployment": {
-        "state": "not_started",
-        "sourceSha": null,
+        "state": "verified",
+        "sourceSha": "5bbc1f2dbbb41e9f88f2b675cf706fc238677c20",
         "environment": "pvlab.studio Cloudflare Pages and parallel-vision-lab Worker",
+        "observedAt": "2026-11-08T15:21:01Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493966811",
         "limitations": [
-          "The edit endpoint must be deployed before the UI. No database migration is needed.",
-          "No signed-in production verification or customer edits were made."
+          "Worker version 63da37f2-c496-471d-8c22-b355539948f8 serves 100%. Cloudflare Pages check 128773116923 and exact versioned asset bytes verified.",
+          "No signed-in production Character save was attempted."
         ]
       },
       "evidence": [
@@ -2270,6 +2287,16 @@
           "source": "tests/lab-worker.test.mjs",
           "limitations": [
             "Synthetic SQLite-backed Worker fixture."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "The exact Worker build and versioned Character editor browser assets were verified in production.",
+          "scope": "Character editor and guided photo angles, without migrations.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493966811",
+          "observedAt": "2026-11-08T15:21:01Z",
+          "limitations": [
+            "Signed-in production flow not independently exercised."
           ]
         }
       ],
