@@ -102,6 +102,8 @@ export async function precisionEditRoute(request,env,owner,url,d){
       catch(e){d.fail(400,e.message);}
     }else if(!targetPrompt||targetPrompt.length>300)d.fail(400,'Choose a point or describe the area to select in up to 300 characters.');
     if(point&&targetPrompt&&!['face','person','clothing'].includes(targetPrompt))d.fail(400,'Unsupported targeted selection.');
+    const candidateMasks=data.candidateMasks===true;
+    if(candidateMasks&&(!point||!['face','person'].includes(targetPrompt)))d.fail(400,'Candidate selection requires a clicked face or person.');
     const settings=await d.config(env,owner);
     const dayStart=Math.floor(Date.now()/86400000)*86400000;
     // Validate and prepare the signed image before taking a metered slot.
@@ -136,12 +138,15 @@ export async function precisionEditRoute(request,env,owner,url,d){
         'Magic Select would exceed your daily spending limit.');
     const requestId=verifyRequestId(await falSubmit(PRECISION_SEGMENT_MODEL,env.FAL_KEY,{
       image_url:imageUrl,
-      point_prompts:point?[point]:[],prompt:targetPrompt||'',apply_mask:false,output_format:'png',
-      return_multiple_masks:false,max_masks:1
+      // Text+object_id refines a detection index, not the instance under a click.
+      // Character mode retrieves separate masks; the client matches the actual click.
+      point_prompts:candidateMasks?[]:point?[point]:[],prompt:targetPrompt||'',apply_mask:false,output_format:'png',
+      return_multiple_masks:candidateMasks,max_masks:candidateMasks?8:1
     }),d.fail);
     const expires=Math.floor(Date.now()/1000)+3600;
-    const ticket=await signTicket(env,[owner,source.id,requestId,expires].join(':'));
-    return d.json({status:'queued',requestId,sourceId:source.id,expires,ticket},202);
+    const signature=[owner,source.id,requestId,expires];if(candidateMasks)signature.push('candidates-v1');
+    const ticket=await signTicket(env,signature.join(':'));
+    return d.json({status:'queued',requestId,sourceId:source.id,expires,ticket,...(candidateMasks?{candidateMasks:true}:{})},202);
   }
   if(path==='/api/precision/segment'&&method==='GET'){
     const sourceId=verifyUuid(url.searchParams.get('sourceId'),d.fail);
@@ -150,28 +155,38 @@ export async function precisionEditRoute(request,env,owner,url,d){
     const ticket=url.searchParams.get('ticket')||'';
     if(!Number.isInteger(expires)||expires<Math.floor(Date.now()/1000)||expires>Math.floor(Date.now()/1000)+3601||!(/^[a-f0-9]{64}$/.test(ticket)))
       d.fail(403,'Magic Select access has expired.');
-    if(await signTicket(env,[owner,sourceId,requestId,expires].join(':') )!==ticket)d.fail(403,'Invalid Magic Select ticket.');
+    const candidateMasks=url.searchParams.get('candidateMasks')==='1';
+    const signature=[owner,sourceId,requestId,expires];if(candidateMasks)signature.push('candidates-v1');
+    if(await signTicket(env,signature.join(':'))!==ticket)d.fail(403,'Invalid Magic Select ticket.');
     await d.source(env,owner,sourceId);
     const maskId=await deterministicMaskId(owner,requestId);
     const old=await d.first(env,'SELECT id FROM assets WHERE id=? AND owner_id=?',maskId,owner);
-    if(old)return d.json({status:'completed',maskSourceId:maskId});
+    if(old&&!candidateMasks)return d.json({status:'completed',maskSourceId:maskId});
     const state=await falStatus(PRECISION_SEGMENT_MODEL,env.FAL_KEY,requestId),value=String(state?.status||'').toUpperCase();
     if(value==='FAILED'||value==='CANCELLED'||value==='CANCELED')d.fail(422,'Magic Select could not segment this object. Try another point or use the brush.');
     if(value!=='COMPLETED')return d.json({status:value==='IN_PROGRESS'?'running':'queued'},202);
     const result=await falResult(PRECISION_SEGMENT_MODEL,env.FAL_KEY,requestId);
     const masks=result?.masks;
     if(!Array.isArray(masks)||!masks[0]?.url)d.fail(502,'SAM 3 returned no segmentation mask.');
-    const remote=allowedAssetUrl(masks[0].url),response=await fetch(remote,{redirect:'manual',signal:AbortSignal.timeout(25000)});
+    const results=candidateMasks?masks.slice(0,8):masks.slice(0,1),maskSourceIds=[];let totalBytes=0;
+    for(let index=0;index<results.length;index++){
+      const candidateId=index===0?maskId:await deterministicMaskId(owner,requestId+':candidate:'+index);
+      const cached=await d.first(env,'SELECT id,bytes FROM assets WHERE id=? AND owner_id=?',candidateId,owner);
+      if(cached){totalBytes+=Number(cached.bytes)||0;if(totalBytes>40*1024*1024)d.fail(502,'Automatic selection candidates exceed the media limit.');maskSourceIds.push(candidateId);continue;}
+    const remote=allowedAssetUrl(results[index].url),response=await fetch(remote,{redirect:'manual',signal:AbortSignal.timeout(25000)});
     if(!response.ok||response.status>=300&&response.status<400)d.fail(502,'Could not retrieve SAM 3 mask from fal.ai.');
     const contentType=(response.headers.get('content-type')||'').split(';')[0];
     if(contentType!=='image/png')d.fail(502,'Magic Select returned an unsupported mask.');
     const bytes=await d.limitedBody(response,20*1024*1024);
     if(!bytes.length||!d.sniff(bytes,'image/png'))d.fail(502,'Magic Select returned invalid PNG data.');
-    const key=owner+'/sources/'+maskId;
+    totalBytes+=bytes.length;if(totalBytes>40*1024*1024)d.fail(502,'Automatic selection candidates exceed the media limit.');
+    const key=owner+'/sources/'+candidateId;
     await env.LAB_MEDIA.put(key,bytes,{httpMetadata:{contentType:'image/png'}});
     await d.run(env,"INSERT OR IGNORE INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,'source','image/png',?,?,?)",
-      maskId,owner,key,'magic-selection-'+maskId+'.png',bytes.length,Date.now());
-    return d.json({status:'completed',maskSourceId:maskId});
+      candidateId,owner,key,'magic-selection-'+candidateId+'.png',bytes.length,Date.now());
+    maskSourceIds.push(candidateId);
+    }
+    return d.json({status:'completed',maskSourceId:maskSourceIds[0],...(candidateMasks?{maskSourceIds}:{})});
   }
   if(path==='/api/precision/quote'&&method==='POST'){
     const q=await quotedEdit(request,env,owner,d),quoteId=crypto.randomUUID();
