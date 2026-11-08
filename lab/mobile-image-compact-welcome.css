@@ -363,9 +363,9 @@
    The approved reference is Inspiration opened from History (09:37 iPhone).
    A new, non-owner customer currently retains invisible kicker/subtitle/
    balance lines and begins the same original cards about 43px too low.
-   Recover that gap in the CAROUSEL ONLY, leaving the title, card size,
+   Recover that gap in the CAROUSEL ONLY, including shorter Safari viewports; leaving the title, card size,
    fixed Generate, credit states, History/Inspiration and the phone lock alone. */
-@media(max-width:680px) and (min-height:690px){
+@media(max-width:680px) and (min-height:640px){
   html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):not(.pv-moods-discovery-open)
     .image-gallery-shell:has(> #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
     #lab-welcome-start .lab-welcome-carousel{
