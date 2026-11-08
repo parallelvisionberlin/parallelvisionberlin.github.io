@@ -2182,6 +2182,68 @@
         "Do not change provider, model or billing when opening an action.",
         "Do not silently reuse a Face mask when switching to Whole person; force a new selection and quote."
       ]
+    },
+    {
+      "id": "reference-library-character-editor",
+      "title": "Reference Library Character editor and photo angles",
+      "component": "Studio / Reference Library",
+      "summary": "Character cards expose Edit before Delete, with Edit also available in the detail view. Creation and editing offer optional face front, face profile, full body front and full body back slots plus Extras, up to eight photos. Existing unlabeled photos remain available in Extras. A tagged front portrait is the cover. Edits preserve the pack ID and saved photo order and keep the visual profile when the photo set stays the same.",
+      "status": "needs_verification",
+      "updatedAt": "2026-11-08",
+      "baselineSha": "583f9487fec10f2bcb7765b9814625e460a6f140",
+      "reviewedSha": null,
+      "branch": "codex/character-reference-editor",
+      "nextAction": "Verify the desktop and phone Elements browser flow from the PR. For release, deploy the Worker edit endpoint before publishing the matching Pages assets, then verify the signed-in Character editor.",
+      "files": [
+        "lab/scene-library.js",
+        "lab/scene-library.css",
+        "lab/studio.html",
+        "lab/lab.js",
+        "lab-worker/worker.mjs",
+        "lab-worker/element-profiles.mjs",
+        "tests/lab-worker.test.mjs",
+        "tests/lab-elements-smart-browser.mjs"
+      ],
+      "links": [],
+      "tests": [
+        {
+          "label": "Focused Worker, Elements and approved Image UI",
+          "result": "passed",
+          "scope": "142 local assertions, including in-place edits, ownership, stale writes, saved notes and order, same-photo profiles and replacement invalidation.",
+          "source": "tests/lab-worker.test.mjs"
+        },
+        {
+          "label": "Elements browser regression",
+          "result": "not_run",
+          "scope": "Desktop and 390px phone coverage added for the action menu, legacy assignment, cover preview, picker and drop. Local Chromium could not start due to the environment socket restriction.",
+          "source": "tests/lab-elements-smart-browser.mjs"
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "sourceSha": null,
+        "environment": "pvlab.studio Cloudflare Pages and parallel-vision-lab Worker",
+        "limitations": [
+          "The edit endpoint must be deployed before the UI. No database migration is needed.",
+          "No signed-in production verification or customer edits were made."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "automated_test",
+          "summary": "Owner-scoped edits preserve the Character ID and prevent stale overwrites.",
+          "scope": "Existing private packs with legacy and typed reference photos.",
+          "source": "tests/lab-worker.test.mjs",
+          "limitations": [
+            "Synthetic SQLite-backed Worker fixture."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Keep existing photo IDs, notes and attachment order when assigning angles. Never auto-classify legacy references or create a second pack during editing.",
+        "Preserve the existing eight-photo cap, Visual Profile requirements and model reference capacity checks."
+      ]
     }
   ]
 }
