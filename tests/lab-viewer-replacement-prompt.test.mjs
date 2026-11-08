@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {compileImagePrompt} from '../lab/reference-guidance.js';
 
 const id='bb582de2-453d-499a-a1c5-c1b4bef6e3ba';
@@ -43,4 +44,9 @@ test('long user-authored directions are never silently cut to satisfy a provider
  const output=compileImagePrompt(requested,roles,settings);
  assert.ok(output.includes(requested.trim()));
  assert.ok(output.length>5000,'The existing server limit can give a clear error for genuinely oversized authored input');
+});
+
+test('browser refresh loads the new replacement prompt compiler instead of a cached module',()=>{
+ const code=readFileSync('lab/lab.js','utf8');
+ assert.match(code,/reference-guidance\.js\?[^'"]*&replaceCompact=20261108-v1/);
 });
