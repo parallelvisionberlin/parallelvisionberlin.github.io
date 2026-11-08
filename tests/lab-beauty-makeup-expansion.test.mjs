@@ -27,10 +27,12 @@ test('16 makeup cards use matching distinct high-resolution local images and bac
  }
 });
 test('Makeup has internal vertical scroll, other four tabs and hero remain unchanged',()=>{
- assert.match(html,/beauty-makeup-expansion-20261108\.css\?v=20261108-makeup1/);
+ assert.match(html,/beauty-makeup-expansion-20261108\.css\?v=20261108-makeup2/);
  assert.match(css,/#beauty-panel-makeup \.beauty-choice-list/);
  assert.match(css,/overflow-y:\s*auto/);
  assert.match(css,/grid-auto-rows/);
+ assert.match(css,/calc\(100% - 8px\)/);
+ assert.match(css,/background-position: center 37%/);
  assert.doesNotMatch(css,/background-image|\.beauty-editor-grid|\.beauty-photo|\.beauty-looks-list|\.beauty-edit-panel/);
  assert.equal((html.match(/data-beauty-choice="beauty-makeup"/g)||[]).length,16);
  for(const cat of ['hair','skin','light','color'])assert.equal((html.match(new RegExp('data-beauty-choice="beauty-'+cat+'"','g'))||[]).length,9);
