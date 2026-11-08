@@ -365,7 +365,7 @@
    balance lines and begins the same original cards about 43px too low.
    Recover that gap in the CAROUSEL ONLY, leaving the title, card size,
    fixed Generate, credit states, History/Inspiration and the phone lock alone. */
-@media(max-width:680px){
+@media(max-width:680px) and (min-height:690px){
   html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):not(.pv-moods-discovery-open)
     .image-gallery-shell:has(> #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
     #lab-welcome-start .lab-welcome-carousel{
