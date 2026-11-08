@@ -2,7 +2,7 @@ name: Prepare scoped Replace region and Character prompt budget fixes
 on:
   push:
     branches: [fix/replace-outfit-background-feedback-20261108]
-    paths: ['.github/workflows/prepare-replace-regions.yml']
+    paths: ['.github/workflows/prepare-replace-regions.yml', 'tests/lab-viewer-replacement-prompt.test.mjs']
 permissions:
   contents: write
 jobs:
