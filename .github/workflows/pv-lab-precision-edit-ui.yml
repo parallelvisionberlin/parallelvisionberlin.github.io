@@ -64,7 +64,7 @@ jobs:
             https://parallel-vision-lab.parallelvision.workers.dev/health \
             | node -e "let raw=''; process.stdin.on('data',chunk=>raw+=chunk); process.stdin.on('end',()=>{ const health=JSON.parse(raw); if(health.ok!==true || health.imageReplacement!=='20261106-replacement1') { console.error('Production Worker is missing the reviewed replacement API'); process.exit(1); } console.log('Production Worker replacement marker verified'); });"
       - name: Verify Retouch signed pricing, JPEG consent and owner-only access
-        run: node --test tests/lab-guided-replace.test.mjs tests/lab-viewer-scope.test.mjs tests/lab-viewer-inline.test.mjs tests/lab-precision-edit.test.mjs tests/lab-image-replacement-intent.test.mjs tests/lab-image-replacement-composite.test.mjs tests/lab-image-replacement-backend.test.mjs tests/lab-image-replacement-draft.test.mjs
+        run: node --test tests/lab-guided-replace.test.mjs tests/lab-viewer-scope.test.mjs tests/lab-sam-click-mask.test.mjs tests/lab-viewer-inline.test.mjs tests/lab-precision-edit.test.mjs tests/lab-image-replacement-intent.test.mjs tests/lab-image-replacement-composite.test.mjs tests/lab-image-replacement-backend.test.mjs tests/lab-image-replacement-draft.test.mjs
       - name: Install Chromium for mocked UI verification
         run: |
           npm install --prefix /tmp/pv-precision-check --no-save playwright@1.57.0
@@ -72,7 +72,8 @@ jobs:
       - name: Verify Magic Select, masking, price authorization, compositing and mobile layout
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-precision-check/node_modules/playwright/index.mjs
-        run: node tests/lab-precision-edit-ui.mjs
+        run: node tests/lab-sam-click-mask-ui.mjs
+          node tests/lab-precision-edit-ui.mjs
       - name: Verify Image replacement selection and complete Studio flow
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-precision-check/node_modules/playwright/index.mjs

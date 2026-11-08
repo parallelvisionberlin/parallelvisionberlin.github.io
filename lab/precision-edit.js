@@ -1,3 +1,4 @@
+import {SAM_CANDIDATE_LIMIT,SAM_CLICK_MISS,samClickCandidate,preferSamCandidate} from './sam-click-mask.js?v=20261108-click1';
 /* Precision Edit: large base canvas, SAM 3 point segmentation, mask brushes,
    non-destructive FLUX inpainting and original-pixel client-side compositing. */
 export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,owner,falReady,magicReady=falReady,customer=()=>false,onJob,onExit}){
@@ -376,54 +377,62 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     workingId=await uploadAsset(new File([blob],'precision-working.png',{type:'image/png'}));
     return workingId;
   }
-  function maskFromSam(bitmap,point){
-    const stage=document.createElement('canvas');stage.width=mask.width;stage.height=mask.height;
-    const c=stage.getContext('2d',{willReadFrequently:true});c.drawImage(bitmap,0,0,stage.width,stage.height);
-    const pixels=c.getImageData(0,0,stage.width,stage.height),data=pixels.data;
-    let transparent=0,light=0;
-    for(let i=0;i<data.length;i+=128){if(data[i+3]<230)transparent++;if((data[i]+data[i+1]+data[i+2])/3>127)light++;}
-    const transparency=transparent>15,values=new Uint8Array(stage.width*stage.height);
-    let count=0;
-    for(let i=0;i<values.length;i++){
-      const o=i*4,alpha=data[o+3],luma=(data[o]+data[o+1]+data[o+2])/3;
-      const on=transparency?alpha>90:luma>130;
-      values[i]=on?255:0;if(on)count++;
+  function readSamCandidate(bitmap,point,target){
+    if(Math.abs(bitmap.width/bitmap.height-mask.width/mask.height)>.006)
+      throw Error('Automatic selection does not match the photograph dimensions.');
+    const canvas=document.createElement('canvas');canvas.width=mask.width;canvas.height=mask.height;
+    const context=canvas.getContext('2d',{willReadFrequently:true});context.imageSmoothingEnabled=false;
+    context.drawImage(bitmap,0,0,canvas.width,canvas.height);
+    const pixels=context.getImageData(0,0,canvas.width,canvas.height);
+    return samClickCandidate(pixels.data,canvas.width,canvas.height,point,{scope:target});
+  }
+  function applySamCandidate(candidate){
+    const canvas=document.createElement('canvas');canvas.width=mask.width;canvas.height=mask.height;
+    const context=canvas.getContext('2d'),image=context.createImageData(mask.width,mask.height);
+    for(let i=0;i<candidate.values.length;i++){
+      const offset=i*4;image.data[offset]=image.data[offset+1]=image.data[offset+2]=255;
+      image.data[offset+3]=candidate.values[i];
     }
-    const index=Math.round(point.y)*stage.width+Math.round(point.x),hit=values[Math.max(0,Math.min(values.length-1,index))]===255;
-    // SAM mask may use inverted black/white convention. Prefer clicked foreground.
-    if(!hit&&count>values.length*.15){
-      for(let i=0;i<values.length;i++)values[i]=255-values[i];count=values.length-count;
-    }
-    if(count<15||count>=values.length*.97)throw new Error('SAM returned an unclear selection. Try another point or use Add brush.');
-    const image=c.createImageData(stage.width,stage.height);
-    for(let i=0;i<values.length;i++){const o=i*4;image.data[o]=image.data[o+1]=image.data[o+2]=255;image.data[o+3]=values[i];}
-    c.putImageData(image,0,0);
-    maskCtx.drawImage(stage,0,0);
-    maskChanged();
+    context.putImageData(image,0,0);
+    saveUndo();maskCtx.drawImage(canvas,0,0);maskChanged();
   }
   async function magicSelect(point){
     if(!base||taskBusy)return;
     if(!magicReady()){setStatus('Magic Select is unavailable on this account. Use the Brush instead.',true);return;}
     taskBusy=true;refreshButtons();$('precision-source-holder').classList.add('is-busy');
-    const revision=++session;
+    const revision=++session,target=selectionTargetPrompt;
+    const candidateMasks=['face','person'].includes(target);
     try{
       const sourceId=await ensureBaseId();
       setStatus('Selecting your subject…');
       const p={x:Math.min(base.width-1,Math.round(point.x*base.width/mask.width)),
         y:Math.min(base.height-1,Math.round(point.y*base.height/mask.height))};
-      const reply=await api('/api/precision/segment',{method:'POST',body:{sourceId,point:p,...(selectionTargetPrompt?{targetPrompt:selectionTargetPrompt}:{})}});
+      const reply=await api('/api/precision/segment',{method:'POST',body:{sourceId,point:p,...(target?{targetPrompt:target}:{}),...(candidateMasks?{candidateMasks:true}:{})}});
       if(!reply?.requestId||!reply.ticket)throw new Error('Segmentation did not return a request ID.');
       let ready=null;
       for(let attempt=0;attempt<65&&revision===session;attempt++){
         if(attempt)await sleep(1700);
         const qs=new URLSearchParams({sourceId,requestId:reply.requestId,expires:String(reply.expires),ticket:reply.ticket});
+        if(reply.candidateMasks===true)qs.set('candidateMasks','1');
         const result=await api('/api/precision/segment?'+qs.toString());
         if(result?.status==='completed'){ready=result;break;}
       }
       if(revision!==session)throw new Error('The source photograph changed.');
       if(!ready?.maskSourceId)throw new Error('SAM 3 is still processing. Do not click again until you have checked the request.');
-      const blob=await assetBlob(ready.maskSourceId),bitmap=await createImageBitmap(blob);
-      try{await saveUndo();maskFromSam(bitmap,point);}finally{bitmap.close();}
+      const ids=Array.isArray(ready.maskSourceIds)?ready.maskSourceIds:[ready.maskSourceId];
+      if(!ids.length||ids.length>SAM_CANDIDATE_LIMIT||ids.some(id=>typeof id!=='string'||!id))throw Error('Invalid automatic selection candidates.');
+      let best=null;
+      for(const id of new Set(ids)){
+        if(revision!==session||!base)throw Error('The source photograph changed.');
+        const blob=await assetBlob(id),bitmap=await createImageBitmap(blob);
+        try{
+          if(revision!==session||!base)throw Error('The source photograph changed.');
+          best=preferSamCandidate(best,readSamCandidate(bitmap,point,target));
+        }finally{bitmap.close();}
+      }
+      if(revision!==session||!base)throw Error('The source photograph changed.');
+      if(!best)throw Error(SAM_CLICK_MISS);
+      applySamCandidate(best);
       setStatus(view.classList.contains('is-guided-replace')?'Selection ready. Choose a replacement or describe it.':'Object selected. Click another garment to add it, or refine with the brush.');
     }catch(e){
       if(/Magic Select limit reached/.test(e.message))selectMode('brush');
