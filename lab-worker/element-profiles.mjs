@@ -183,7 +183,15 @@ export async function analyzeElementProfile(env,owner,packId,ctx,{first,run,now,
       fail(503,'Google Gemini analysis could not connect. Retry later. Saved photos remain usable.');
     fail(503,'Google Gemini service is temporarily unavailable (HTTP '+failure.status+'). Saved photos remain usable.');
   }
-  await run(env,'INSERT OR IGNORE INTO element_visual_profiles(pack_id,owner_id,profile_json,created_at) VALUES(?,?,?,?)',
-    packId,owner,JSON.stringify(profile),now());
+  // An edit may have replaced photos while the provider was analyzing them.
+  const written=await run(env,`INSERT OR IGNORE INTO element_visual_profiles(pack_id,owner_id,profile_json,created_at)
+    SELECT ?,?,?,? FROM packs WHERE id=? AND owner_id=?
+    AND (SELECT json_group_array(json_extract(value,'$.id')) FROM json_each(packs.refs))=?`,
+    packId,owner,JSON.stringify(profile),now(),packId,owner,JSON.stringify(refs.map(ref=>ref.id)));
+  if(!written.meta.changes){
+    const current=await first(env,'SELECT profile_json FROM element_visual_profiles WHERE pack_id=? AND owner_id=?',packId,owner);
+    if(current)return {profile:JSON.parse(current.profile_json),cached:true};
+    fail(409,'Saved photographs changed during analysis. Open the Character to analyze the current photos.');
+  }
   return {profile,cached:false};
 }

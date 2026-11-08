@@ -5,7 +5,7 @@ import {videoInputAction} from './video-input-action.js?v=20261030-1';
 import {styleVideoHistoryCard} from './video-history-cards.js?v=20261104-refined1';
 import {createStudioPublicPreview} from './studio-public-preview.js?v=20261023-1&upscaleModelCards=pr486final1';
 import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
-import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261027-compact-f1&characterAllViews=20261103v1&extendCharacter=20261031-1&deckReturn=20261018v1&aboutElements=20261018v1&draftNavigation=20261018v1&geminiRepair=20261020v1';
+import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261027-compact-f1&characterAllViews=20261103v1&extendCharacter=20261031-1&deckReturn=20261018v1&aboutElements=20261018v1&draftNavigation=20261018v1&geminiRepair=20261020v1&characterEditor=20261108-v1';
 import {normalizeImageReferenceOrder,assignImageBase} from './reference-order.js?v=20261103-base-replacement1';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3&hkPhoto=20261018v1&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10&eightiesFinish=20261024v1&hkCinema=20261025v1';
