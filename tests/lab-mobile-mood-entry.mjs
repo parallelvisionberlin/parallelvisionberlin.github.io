@@ -239,8 +239,13 @@ try{
           margin:parseFloat(getComputedStyle(shelf).marginTop)};
       });
       const signedRest=await signedCards();
-      assert.ok(signedRest.margin>=12||height>=690,
-        'Signed-in iPhone Inspiration keeps its original layout outside first-image compact rule');
+      if(height>=690){
+        assert.ok(Math.abs(signedRest.margin+30)<2,
+          'Only the new-customer first-image state uses the compact -30px carousel offset');
+      }else{
+        assert.ok(signedRest.margin>=12,
+          'Short iPhone viewports keep the previous first-image spacing');
+      }
 
       // Synthetic NEW non-owner customer (empty History), not an Owner session:
       // compare its first Image entrance with the approved History Inspiration
