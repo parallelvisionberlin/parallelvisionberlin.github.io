@@ -103,7 +103,9 @@ export async function precisionEditRoute(request,env,owner,url,d){
     }else if(!targetPrompt||targetPrompt.length>300)d.fail(400,'Choose a point or describe the area to select in up to 300 characters.');
     if(point&&targetPrompt&&!['face','person','clothing'].includes(targetPrompt))d.fail(400,'Unsupported targeted selection.');
     const candidateMasks=data.candidateMasks===true;
-    if(candidateMasks&&(!point||!['face','person'].includes(targetPrompt)))d.fail(400,'Candidate selection requires a clicked face or person.');
+    const selectBackground=data.selectBackground===true;
+    if(selectBackground&&(!candidateMasks||targetPrompt!=='person'||point))d.fail(400,'Background selection requires separate people masks.');
+    if(candidateMasks&&((!point&&!selectBackground)||!['face','person','clothing'].includes(targetPrompt)))d.fail(400,'Candidate selection requires a clicked subject or explicit background action.');
     const settings=await d.config(env,owner);
     const dayStart=Math.floor(Date.now()/86400000)*86400000;
     // Validate and prepare the signed image before taking a metered slot.
@@ -139,7 +141,8 @@ export async function precisionEditRoute(request,env,owner,url,d){
     const requestId=verifyRequestId(await falSubmit(PRECISION_SEGMENT_MODEL,env.FAL_KEY,{
       image_url:imageUrl,
       // Text+object_id refines a detection index, not the instance under a click.
-      // Character mode retrieves separate masks; the client matches the actual click.
+      // Semantic modes return separate masks; the client matches the click or
+      // explicitly protects all people before composing a background selection.
       point_prompts:candidateMasks?[]:point?[point]:[],prompt:targetPrompt||'',apply_mask:false,output_format:'png',
       return_multiple_masks:candidateMasks,max_masks:candidateMasks?8:1
     }),d.fail);
