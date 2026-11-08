@@ -55,9 +55,12 @@ async function workspace(jobs=[],width=1440,{quoteTtlMs=180000,quoteDelayMs=0,qu
    const declined=submitMode==='declined';
    const willDecline=submitMode==='declined-after-poll';
    body={job:{id:'10000000-0000-4000-8000-'+String(90+requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length).padStart(12,'0'),status:declined||submitMode==='failed'?'failed':'queued',error:declined?contentError:submitMode==='failed'?'Synthetic provider rejected this photograph':undefined,settings:quote.settings,sourceId:quote.sourceId,createdAt:Date.now(),creditCost:customer?quote.creditCost:undefined}};
-   if(declined||willDecline)jobs.push({...body.job,status:'failed',error:contentError});
+   if(declined||willDecline)jobs.push({...body.job});
   }
-  else if(submitMode==='declined-after-poll'&&/^\/api\/jobs\/[^/]+$/.test(path)&&method==='GET')body={job:jobs.find(j=>j.id===path.split('/')[3])};
+  else if(submitMode==='declined-after-poll'&&/^\/api\/jobs\/[^/]+$/.test(path)&&method==='GET'){
+   const job=jobs.find(j=>j.id===path.split('/')[3]);
+   assert.ok(job);job.status='failed';job.error='fal.ai: content_policy_violation';body={job};
+  }
   else if(path.startsWith('/api/assets/')){await route.fulfill({status:200,contentType:'image/png',body:png});return;}
   else {await route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({error:'Unmocked request '+path})});return;}
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
