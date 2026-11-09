@@ -1,5 +1,14 @@
 # PV LAB Search indexing
 
+## November 9 follow-up
+- Reviewed PR #589 and current main `f1ebdff1800564e933db6c7cddb8020fc1a18135`. The three new Google notices confirm failed 403 validation, a sitemap 403 and redirect, alternate canonical and 404 exclusions. The messages do not include example URLs.
+- Google Inspection Tool smartphone fetched the homepage, Moods, ZenCreator comparison, ALTER, Full Editorial, legal/support pages, robots and sitemap. HTTPS www and HTTP apex also worked. HTTP www showed one server connection error and then succeeded on a single retest.
+- Public GETs for each HTTP/www variant return a permanent redirect to HTTPS apex and preserve path/query. The sitemap initially listed three clean HTTPS URLs. An unknown URL returned 404 and the Clerk root retained noindex.
+- Found canonicals for ALTER and Full Editorial pointing to .html aliases that redirect, and three PV LAB legal canonicals pointing at the old label domain. Corrected these five tags and included the two public studio landing pages in the sitemap.
+- The 13 focused discovery, crawler-rule, comparison and Image contract checks passed locally. The release PR is the record of exact CI and production byte verification.
+- Current Cloudflare security events and the current Search Console example list require dashboard access. Google account sign-in expired. No current rule or revalidation change was made during the public checks.
+- Next, compare the failed crawl timestamps and URLs with Cloudflare events. Restart validation only once the actual report URLs are verified. The public inspection tool tests access and does not report indexing status.
+
 ## Objective and verified baseline
 - Date: 2026-10-26. Source baseline: `d59ed8e1a3643b3fa69f8f97fe4f228ffa29a65a`.
 - Investigate both Search Console notices: 11:06 UTC indexed without content; 11:08 UTC failed 403 validation.
