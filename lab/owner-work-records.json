@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T11:58:01.089Z",
+  "updatedAt": "2026-11-09",
   "handoffs": [
     {
       "id": "owner",
@@ -64,6 +64,86 @@
     }
   ],
   "records": [
+    {
+      "id": "home-featured-photo-pack-chrome-desert",
+      "title": "Chrome Desert homepage photo-pack band",
+      "component": "PV LAB homepage",
+      "status": "deployed",
+      "summary": "Add Chrome Desert as a thin featured photo-pack band after the three main tools while preserving the existing Full Editorial section directly below it.",
+      "nextAction": "No implementation action pending. Recheck only if the homepage order, Chrome Couture deep link, or Full Editorial section changes.",
+      "baselineSha": "62a2b4aa35d07922109dec60c332fe75f5f0fff4",
+      "reviewedSha": "4beab9ebd5419ff741646179d16347892926e522",
+      "branch": "design/home-chrome-desert-pack-20261108",
+      "files": [
+        "lab/index.html",
+        "lab/home-featured-photo-pack.css",
+        "tests/lab-home-featured-photo-pack.test.mjs",
+        "lab/HOME-MOBILE-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Implementation PR #941",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/941"
+        },
+        {
+          "label": "Scoped homepage checkpoint",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/HOME-MOBILE-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Scoped homepage branch gates",
+          "result": "passed",
+          "scope": "Owner validation, static validate, landing stability, approved Image UI and the main reference workflow passed on the reviewed branch before merge.",
+          "observedAt": "2026-11-08T22:18:00Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/941"
+        },
+        {
+          "label": "Merged homepage landing stability",
+          "result": "passed",
+          "scope": "The dedicated PV Lab landing load stability workflow passed on merge commit 4beab9e; no paid generation was involved.",
+          "observedAt": "2026-11-08T22:20:25Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42529633189"
+        },
+        {
+          "label": "Repository-wide unrelated failures",
+          "result": "documented",
+          "scope": "Video, private-lab, public-studio, gallery-browser and legacy landing/pricing assertions remain red for pre-existing ALTER, sign-in, timeout and Moods-vs-Explore-Moods expectations also present on the prior main baseline; they were not changed or masked here.",
+          "observedAt": "2026-11-08T22:20:25Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/4beab9ebd5419ff741646179d16347892926e522"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "sourceSha": "4beab9ebd5419ff741646179d16347892926e522",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-08T22:20:02Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/runs/128880993746",
+        "limitations": [
+          "Cloudflare production project, exact Git commit and pvlab.studio alias were verified through the Pages API.",
+          "The generic web fetcher could not independently retrieve custom-domain HTML/CSS, so no separate pixel-level production-browser screenshot is claimed.",
+          "No signed-in customer journey was required for this public homepage-only change."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "deployment",
+          "summary": "Cloudflare Pages production deployment 84008dfc-266c-454d-afb7-02de57f488f4 completed successfully from exact commit 4beab9ebd5419ff741646179d16347892926e522 and lists https://pvlab.studio as its production alias.",
+          "scope": "PV LAB public homepage publication.",
+          "observedAt": "2026-11-08T22:20:02Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/runs/128880993746",
+          "limitations": [
+            "Infrastructure publication and alias are verified; no signed-in behavior is inferred."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not replace or restyle the existing Full Editorial section.",
+        "Do not alter hero, Studio cards, Creative Studios, Characters, pricing, billing, credits or generation behavior."
+      ],
+      "updatedAt": "2026-11-08T22:21:00Z"
+    },
     {
       "id": "90s-cinema-natural-film-light",
       "title": "90s Cinema natural source light",
@@ -1835,12 +1915,12 @@
       "title": "Contextual image viewer Replace and Edit",
       "component": "PV LAB Image viewer",
       "status": "deployed",
-      "updatedAt": "2026-11-08T11:58:01.089Z",
+      "updatedAt": "2026-11-08T18:06:03.311Z",
       "baselineSha": "ca2fee15ea86b5abfe84627acc247d178d8752dc",
-      "reviewedSha": "8ac47aa373faff31d3d57459e1c9c4ae7b4df942",
-      "branch": "fix/replace-click-target-20261108",
-      "summary": "PR #927 fixes wrong-person Face selection and the Whole person inverted background. Character masks are matched to the actual foreground click; missed candidates fail without modifying the previous selection. Outfit and Object request behavior remains unchanged. Frontend and code-only Worker publication verified.",
-      "nextAction": "Confirm Face/Whole person selection once in the signed-in viewer after refresh. No token changes or deployment actions required from owner. Separately audit genuine mask-aware replacement generation; the prior bad Alma result is not fixed by this selection release.",
+      "reviewedSha": "95be60a358232bb080d2ac02fdb33a923f9634f1",
+      "branch": "fix/replace-picker-progress-20261108",
+      "summary": "PR #937 separates mode selection from Choose/Change Character, adds visible scan feedback, separates reference preparation from pricing, and prepares private viewer inputs with at most two concurrent workers. All eight Character photos and existing payment/selection safeguards retained. Generated whole-person quality remains unresolved.",
+      "nextAction": "No owner token/settings work. Use the explicit saved-reference button after refresh. Before another whole-person quality claim, inspect original/mask/raw/composite and evaluate an explicitly priced mask-aware multi-reference edit path; do not silently switch the customer model or discard references.",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
@@ -1863,7 +1943,15 @@
         "tests/lab-precision-edit.test.mjs",
         "lab/sam-click-mask.js",
         "tests/lab-sam-click-mask.test.mjs",
-        "tests/lab-sam-click-mask-ui.mjs"
+        "tests/lab-sam-click-mask-ui.mjs",
+        "lab/selection-feedback.js",
+        "lab/viewer-replacement-prompt.js",
+        "lab/reference-guidance.js",
+        "tests/lab-selection-regions-ui.mjs",
+        "tests/lab-selection-regions.test.mjs",
+        "tests/lab-viewer-replacement-prompt.test.mjs",
+        "lab/viewer-reference-preparation.js",
+        "tests/lab-viewer-reference-preparation.test.mjs"
       ],
       "links": [
         {
@@ -1937,6 +2025,14 @@
         {
           "label": "Face/Whole person backend live proof",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42465480595"
+        },
+        {
+          "label": "Region selection PR #933",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/933"
+        },
+        {
+          "label": "Region release exact production proof",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493484108"
         }
       ],
       "tests": [
@@ -1966,17 +2062,31 @@
           "scope": "66 focused checks and 113 Worker tests in preparation; permanent PR Precision workflow passed real mouse/zoom synthetic left-right scenes plus existing editor flows; existing production gate passed; exact frontend and Worker build/health verified.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42477972132",
           "observedAt": "2026-11-08T11:58:01.089Z"
+        },
+        {
+          "label": "Outfit / Location region selection and saved Character prompt release",
+          "result": "passed",
+          "scope": "Normal Precision browser CI, unit and approved Image UI checks; 113 Worker integration tests; exact Cloudflare Pages modules, guarded code-only Worker deployment and public health verified.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493484108",
+          "observedAt": "2026-11-08T15:18:25.154Z"
+        },
+        {
+          "label": "Explicit picker, visible selection and bounded reference preparation",
+          "result": "passed",
+          "scope": "Preparation run 42507405923 and normal Precision browser regression 42507802439; synthetic desktop/mobile, eight references, source dimensions, cancellation, quotes, no duplicate inference.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42508211622",
+          "observedAt": "2026-11-08T18:06:03.311Z"
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "8ac47aa373faff31d3d57459e1c9c4ae7b4df942",
-        "environment": "pvlab.studio Cloudflare Pages and parallel-vision-lab Worker",
-        "observedAt": "2026-11-08T11:58:01.089Z",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42477972132",
+        "sourceSha": "95be60a358232bb080d2ac02fdb33a923f9634f1",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-08T18:06:03.311Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42508211622",
         "limitations": [
-          "Worker version 820d06ab-06c4-46f6-b195-f0dbb5bf72c0 and exact public browser bytes verified.",
-          "No real-account or paid-provider generation; this is a selection-routing fix, not a replacement-quality claim."
+          "Frontend exact asset bytes verified; no Worker/backend deployment in this change.",
+          "No paid inference; no claim of improved replacement image quality or a particular real latency."
         ]
       },
       "evidence": [
@@ -2171,16 +2281,283 @@
           "limitations": [
             "Synthetic masks validate application routing only, not model output quality."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "PR #933 merged. Code-only Worker version and public frontend files matched tested reviewed bytes, health passed, no migrations or paid provider job.",
+          "scope": "Selection feedback, click-matched Outfit masks, background/person protection, eight-photo prompt preparation",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493484108",
+          "observedAt": "2026-11-08T15:18:25.154Z",
+          "limitations": [
+            "No real SAM segmentation tested against the user's photo.",
+            "The bad Alma composite remains an unresolved quality failure."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Merged #937 exact custom-domain JavaScript and CSS bytes verified.",
+          "scope": "Viewer picker, selection feedback and private source preparation only.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42508211622",
+          "observedAt": "2026-11-08T18:06:03.311Z",
+          "limitations": [
+            "Not an output-quality test."
+          ]
         }
       ],
       "blockers": [
-        "Real-provider mask quality on the user photo is not tested by the synthetic regression suite.",
-        "Unmasked Seedream replacement quality for overlapping people remains unresolved."
+        "Whole-person generator still uses unmasked Seedream plus final compositing. User result shows a pasted head/hair boundary; not fixed by UI changes.",
+        "Real-account end-to-end preparation latency is not measured by synthetic tests.",
+        "Saved Location generation references remain unsupported."
       ],
       "doNotRepeat": [
         "Do not recreate a separate editor or add buttons over the photograph.",
         "Do not change provider, model or billing when opening an action.",
         "Do not silently reuse a Face mask when switching to Whole person; force a new selection and quote."
+      ]
+    },
+    {
+      "id": "reference-library-character-editor",
+      "title": "Reference Library Character editor and photo angles",
+      "component": "Studio / Reference Library",
+      "summary": "Character cards expose Edit before Delete, with Edit also available in the detail view. Creation and editing offer optional face front, face profile, full body front and full body back slots plus Extras, up to eight photos. Existing unlabeled photos remain available in Extras. A tagged front portrait is the cover. Edits preserve the pack ID and saved photo order and keep the visual profile when the photo set stays the same.",
+      "status": "deployed",
+      "updatedAt": "2026-11-08T15:21:01Z",
+      "baselineSha": "49677f7317a7b9cfbdae86bcb49d02ae1eac97ca",
+      "reviewedSha": "ca8c42a65819d6ccee71ba2e8f89ce1806600ee2",
+      "branch": "codex/character-reference-editor",
+      "nextAction": "Verify an owner or customer save from the real signed-in Reference Library when an appropriate account session is available. Production assets and the Worker are verified.",
+      "files": [
+        "lab/scene-library.js",
+        "lab/scene-library.css",
+        "lab/studio.html",
+        "lab/lab.js",
+        "lab-worker/worker.mjs",
+        "lab-worker/element-profiles.mjs",
+        "tests/lab-worker.test.mjs",
+        "tests/lab-elements-smart-browser.mjs"
+      ],
+      "links": [
+        {
+          "label": "Character editor PR #932",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/932"
+        },
+        {
+          "label": "Guarded Worker and Character browser release",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493966811"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Focused integrated tests",
+          "result": "passed",
+          "scope": "150 checks passed including ownership, stale edits, in-place photo ordering, visual-profile invalidation, approved Image UI and concurrent selection coverage.",
+          "source": "tests/lab-worker.test.mjs"
+        },
+        {
+          "label": "Character browser and production gate",
+          "result": "passed",
+          "scope": "Desktop and 390px mobile editor, cancel, photo picker and drop, front cover, and the unchanged Worker production test gate.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493493020"
+        },
+        {
+          "label": "Broad Elements browser baseline",
+          "result": "failed",
+          "scope": "The older Image composer Remove interaction is obstructed by its image on both the main baseline and the corrected PR. The scoped Character flow passed separately.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42492862532"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "sourceSha": "5bbc1f2dbbb41e9f88f2b675cf706fc238677c20",
+        "environment": "pvlab.studio Cloudflare Pages and parallel-vision-lab Worker",
+        "observedAt": "2026-11-08T15:21:01Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493966811",
+        "limitations": [
+          "Worker version 63da37f2-c496-471d-8c22-b355539948f8 serves 100%. Cloudflare Pages check 128773116923 and exact versioned asset bytes verified.",
+          "No signed-in production Character save was attempted."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "automated_test",
+          "summary": "Owner-scoped edits preserve the Character ID and prevent stale overwrites.",
+          "scope": "Existing private packs with legacy and typed reference photos.",
+          "source": "tests/lab-worker.test.mjs",
+          "limitations": [
+            "Synthetic SQLite-backed Worker fixture."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "The exact Worker build and versioned Character editor browser assets were verified in production.",
+          "scope": "Character editor and guided photo angles, without migrations.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493966811",
+          "observedAt": "2026-11-08T15:21:01Z",
+          "limitations": [
+            "Signed-in production flow not independently exercised."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Keep existing photo IDs, notes and attachment order when assigning angles. Never auto-classify legacy references or create a second pack during editing.",
+        "Preserve the existing eight-photo cap, Visual Profile requirements and model reference capacity checks."
+      ]
+    },
+    {
+      "id": "upscaler-interrupted-request-feedback",
+      "title": "Upscaler interrupted-request feedback",
+      "component": "Image Upscaler",
+      "status": "deployed",
+      "summary": "Explain the disabled Upscale action when an earlier upscale is unconfirmed or the FAL image queue is full; open the existing Queue without submitting anything.",
+      "nextAction": "Existing browser tabs should refresh once to clear their old queue state and load the new feedback.",
+      "baselineSha": "d004356feba9533693a38e8b43c7c8ba6e3a4177",
+      "reviewedSha": "0a3c1bf3ac94bf7411bd0f83454c93df9fd79c24",
+      "branch": "fix/upscale-disabled-source-20261108",
+      "files": [
+        "lab/lab.js",
+        "lab/studio.html",
+        "lab/upscale-studio-v5.css",
+        "tests/lab-upscale-ui.mjs",
+        "lab/UPSCALE-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Scoped Upscaler handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
+        },
+        {
+          "label": "PR #936",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/936"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI contract",
+          "scope": "Six locked Image interface contracts; no Image design changes",
+          "result": "passed",
+          "source": "tests/lab-approved-image-ui-contract.test.mjs"
+        },
+        {
+          "label": "JavaScript syntax",
+          "scope": "Changed lab/lab.js parses with Node",
+          "result": "passed"
+        },
+        {
+          "label": "Upscaler queue browser regression",
+          "scope": "48 full browser groups and 12 smoke groups; includes 1440px/390px interrupted-state, capacity, Queue review, normal unlock and mode isolation.",
+          "result": "passed",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42502720973"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "environment": "pvlab.studio / Cloudflare Pages",
+        "sourceSha": "5b68b7a15d56c46eff4119fa264bd5ac14bd7a78",
+        "limitations": [
+          "Production assets and public DOM verified; signed-in affected behavior was tested with synthetic fixtures.",
+          "The actual account interruption was separately resolved and re-read in the backend. No paid generation was submitted for verification."
+        ],
+        "observedAt": "2026-11-08T17:07:47Z",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=upscale"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "The existing queue guard blocks a new FAL upscale while an earlier FAL upscale remains uncertain.",
+          "scope": "Image Upscaler button state",
+          "source": "lab/lab.js",
+          "limitations": []
+        },
+        {
+          "kind": "documented",
+          "summary": "A reported stale pre-dispatch interruption was reviewed with deployed code and the retained original quote, then closed using an exact guarded update. A separate read confirmed zero active jobs and preserved source and spending history.",
+          "scope": "One operational interruption; no new generation or refund",
+          "source": "lab/UPSCALE-WORK-STATE.md",
+          "limitations": [
+            "Does not establish a newly completed upscale in the user browser."
+          ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "Blocked and cleared queue states passed at desktop and phone sizes; Review Queue performs no POST or generation. Screenshots inspected.",
+          "scope": "Synthetic browser scenarios; not a signed-in live paid generation",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42502720973",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Scoped release verifier returned LIVE_VERIFIED for lab.js v20261108-upscale-queue1 and upscale-studio-v5.css v20261108-queue-block1 against exact merge5b68b7a; production browser confirms both version keys and the conditional queue markup.",
+          "scope": "pvlab.studio published frontend assets",
+          "observedAt": "2026-11-08T17:07:47Z",
+          "source": "https://pvlab.studio/studio?tool=upscale",
+          "limitations": [
+            "The production browser was signed out."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "Cloudflare Pages production check128800348200 succeeded for reviewed merge5b68b7a15d56c46eff4119fa264bd5ac14bd7a78.",
+          "scope": "pvlab-studio / main",
+          "observedAt": "2026-11-08T17:07:47Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/936",
+          "limitations": []
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not retry a paid generation to test the button.",
+        "Do not clear ambiguous or fresh interrupted submissions without checking provider-dispatch evidence.",
+        "Keep draft PR #928 content-decline wording separate."
+      ],
+      "updatedAt": "2026-11-08T17:07:47Z"
+    },
+    {
+      "id": "restore-intro-image-credits",
+      "title": "Restore the 40-credit image trial",
+      "component": "Image trial and checkout",
+      "status": "needs_verification",
+      "updatedAt": "2026-11-09",
+      "baselineSha": "f1ebdff1800564e933db6c7cddb8020fc1a18135",
+      "reviewedSha": null,
+      "branch": "feat/resume-image-trial-20261108",
+      "summary": "PR #930 restores a one-time 40-credit grant for eligible verified zero-balance customers and adds first-party journey reporting. The checkout test fixture now executes the measured pricing helper and provides browser privacy state. The Studio entrypoint keeps the main-branch Upscale version with the trial and journey cache parameters.",
+      "nextAction": "Confirm the integrated PR checkout browser and Worker checks. Merge the reviewed source, then use the approved direct Cloudflare Worker release path with migrations 0061 and 0062 and the read-only wallet audit.",
+      "files": [
+        "tests/lab-credit-purchase-flow.test.mjs",
+        "lab/studio.html",
+        "lab-worker/worker.mjs",
+        "lab-worker/migrations/0061-resume-40-credit-image-trial.sql",
+        "lab-worker/migrations/0062-customer-journey.sql"
+      ],
+      "links": [
+        {
+          "label": "40-credit trial and journey PR",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/930"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Focused checkout, trial and billing tests",
+          "result": "passed",
+          "scope": "56 tests on the locally integrated branch before the Worker version marker update."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "sourceSha": null,
+        "environment": "PV LAB Cloudflare Pages and Worker",
+        "limitations": [
+          "GitHub Worker releases remain manual-only. The prior production policy remains in force until direct publication is verified."
+        ]
+      },
+      "evidence": [],
+      "blockers": [
+        "Hosted checkout browser validation is pending because local Chromium cannot open its socket.",
+        "Cloudflare Worker deployment access is required after the release checks."
+      ],
+      "doNotRepeat": [
+        "Use mock payment and provider calls for checkout and trial validation. Never submit a production generation as a smoke test."
       ]
     }
   ]

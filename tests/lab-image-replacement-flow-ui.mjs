@@ -230,6 +230,9 @@ try {
     const videoCard=await page.locator('#image-detail-video').boundingBox();
     assert.ok(Math.abs(editCard.y-replaceCard.y)<2,'Replace and Edit share one row');
     assert.ok(editCard.y+editCard.height<=videoCard.y,'Both actions stay above Turn into video');
+    // Independent Image pricing may finish while the viewer opens. Capture a stable
+    // finished quote before testing that Edit/Back preserves the entire draft.
+    await page.waitForFunction(()=>window.__replacementFlow.state().price!=='checking');
     const originalURL=page.url(),previousDraft=await page.evaluate(()=>window.__replacementFlow.state());
     await page.waitForFunction(()=>{const image=document.getElementById('image-lightbox-img');return image.complete&&image.naturalWidth>0;});
     const fittedPhoto=await page.locator('#image-lightbox-img').evaluate(image=>{
@@ -291,11 +294,17 @@ try {
     assert.equal(segmentInputs.at(-1).targetPrompt,'person');
     assert.match(await page.locator('label[for="precision-prompt"]').textContent(),/Replace selected person with/);
     await page.locator('[data-viewer-kind="person"]').click();
+    assert.equal(await page.locator('.viewer-saved-library').isVisible(),false,'Mode tile no longer hides a library action');
+    assert.equal(await page.locator('#viewer-choose-reference').textContent(),'Choose Character');
+    await page.locator('#viewer-choose-reference').click();
+    assert.equal(await page.locator('#viewer-choose-reference').getAttribute('aria-expanded'),'true');
     await page.locator('[data-viewer-saved="20000000-0000-4000-8000-000000000088"]').waitFor({state:'visible'});
     await page.screenshot({path:`test-results/pv-guided-library-${width}.png`});
     await page.locator('[data-viewer-saved="20000000-0000-4000-8000-000000000088"]').click();
     await page.waitForFunction(()=>!document.querySelector('#viewer-replacement-continue').disabled);
     assert.match(await page.locator('.viewer-selected-reference').textContent(),/Alma Eight.*8 photos/s);
+    assert.equal(await page.locator('#viewer-choose-reference').textContent(),'Change Character');
+    assert.equal(await page.locator('.viewer-saved-library').isVisible(),false,'Selecting a Character closes only the reference chooser');
     const savedQuote=[...quotes.values()].at(-1);
     assert.equal(savedQuote.inputs.referenceSourceIds.length,9,'Original plus every saved Character view');
     assert.equal(savedQuote.settings.referenceRoles[8].elementView,7);

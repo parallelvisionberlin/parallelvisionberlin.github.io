@@ -11,7 +11,7 @@ test('Face and Whole person are explicit separate replacement scopes',()=>{
   assert.equal(selectionTarget('person','person'),'person');
   assert.equal(selectionTarget('outfit'),'clothing');
   assert.equal(selectionTarget('object'),'','Point selection remains the source of truth for an arbitrary object');
-  assert.equal(selectionTarget('location'),'');
+  assert.equal(selectionTarget('location'),'background');
   assert.match(scopeInstruction('person','face'),/face/);
   assert.match(scopeInstruction('person','person'),/torso/);
 });

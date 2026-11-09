@@ -38,7 +38,7 @@ import {FLASH_TEXT,FLASH_EDIT,seedreamFlashParameters,seedreamFlashInput} from '
 import {QWEN3_TEXT,QWEN3_EDIT,Z_IMAGE_SPICY,experimentalImageParameters,buildExperimentalImageInput} from './experimental-image-models.mjs';
 import {ensureGalleryDimensions} from './gallery-dimensions.mjs';
 import {serveGalleryThumbnail,galleryThumbnailKey} from './gallery-thumbnails.mjs';
-import {analyzeElementProfile} from './element-profiles.mjs';
+import {analyzeElementProfile,elementCategoryFromName} from './element-profiles.mjs';
 import {libraryRoute,libraryJobs} from './asset-library.mjs';
 import {higgsfieldRoute,refreshHiggsfield,SOUL2_PRICES,soul2Parameters} from './higgsfield.mjs';
 import {publicSoulPresets} from './soul-presets.mjs';
@@ -67,7 +67,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-11-03-paid-onboarding';
+export const VERSION = 'pv-lab-2026-11-09-image-trial-journey';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -575,6 +575,25 @@ async function sources(env,owner,ids,max=10) {
   const out=[];
   for(const id of validIds)out.push(await source(env,owner,id));
   if(!out.length)fail(400,'Add at least one reference image.');return out;
+}
+const CHARACTER_VIEWS=new Set(['face-front','face-side','body-front','body-back']);
+async function packReferences(env,owner,data,name) {
+  const character=elementCategoryFromName(name)?.category==='characters';
+  const max=character?8:data.engine==='seedance'?30:10;
+  const list=await sources(env,owner,data.referenceSourceIds,max);
+  const labels=referenceLabels(data.referenceRoles,max);
+  if(list.some(a=>!a.mime.startsWith('image/')))fail(400,'Reference packs contain images only.');
+  if(labels.length&&labels.length!==list.length)fail(400,'Reference roles must match the selected images in order.');
+  const usedViews=new Set();
+  return list.map((asset,i)=>{
+    const ref={id:asset.id,...normalizeReferenceLabel({...labels[i],name:asset.filename})};
+    const view=data.referenceRoles?.[i]?.characterView;
+    if(character&&view!=null){
+      if(!CHARACTER_VIEWS.has(view)||usedViews.has(view))fail(400,'Choose one photograph per Character angle.');
+      usedViews.add(view);ref.characterView=view;
+    }
+    return ref;
+  });
 }
 function linkedSourceIds(row) {
   const ids=new Set();
@@ -1631,12 +1650,36 @@ async function route(request,env,ctx) {
     const data=await body(request),name=String(data.name||'').trim().slice(0,100);
     if(!name)fail(400,'Give the pack a name.');
     if((await first(env,'SELECT COUNT(*) AS n FROM packs WHERE owner_id=?',owner)).n>=40)fail(409,'Keep up to 40 reference packs.');
-    const max=data.engine==='seedance'?30:10;const list=await sources(env,owner,data.referenceSourceIds,max),labels=referenceLabels(data.referenceRoles,max);
-    if(list.some(a=>!a.mime.startsWith('image/')))fail(400,'Reference packs contain images only.');
-    if(labels.length&&labels.length!==list.length)fail(400,'Reference roles must match the selected images in order.');
-    const refs=list.map((a,i)=>({id:a.id,...normalizeReferenceLabel({...labels[i],name:a.filename})}));
+    const refs=await packReferences(env,owner,data,name);
     const id=crypto.randomUUID();await run(env,'INSERT INTO packs(id,owner_id,name,refs,created_at) VALUES(?,?,?,?,?)',id,owner,name,JSON.stringify(refs),now());
     return json({id,name,refs},201);
+  }
+  if(/^\/api\/packs\/[^/]+$/.test(path)&&method==='POST'){
+    const id=uid(path.split('/')[3]),data=await body(request);
+    const pack=await first(env,'SELECT name,refs FROM packs WHERE id=? AND owner_id=?',id,owner);
+    if(!pack||elementCategoryFromName(pack.name)?.category!=='characters')fail(404,'Character not found.');
+    const name=String(data.name||'').trim();
+    if(elementCategoryFromName(name)?.category!=='characters')fail(400,'Give the Character a name.');
+    const refs=await packReferences(env,owner,data,name),serialized=JSON.stringify(refs);
+    const oldRefs=JSON.parse(pack.refs);
+    if(name===pack.name&&serialized===JSON.stringify(oldRefs))return json({id,name,refs});
+    const conflict='This Character changed or its name is already in use. Reopen the library and check the saved Character before retrying.';
+    if(data.expected?.name!==pack.name||JSON.stringify(data.expected?.refs)!==JSON.stringify(oldRefs))fail(409,conflict);
+    const guard=`id=? AND owner_id=? AND name=? AND refs=?
+      AND NOT EXISTS(SELECT 1 FROM packs AS other WHERE other.owner_id=? AND other.id<>? AND lower(other.name)=lower(?))`;
+    const args=[id,owner,pack.name,pack.refs,owner,id,name];
+    const update=stmt(env,'UPDATE packs SET name=?,refs=? WHERE '+guard,name,serialized,...args);
+    const samePhotos=oldRefs.length===refs.length&&oldRefs.every((ref,i)=>ref.id===refs[i].id);
+    // Profile shot indices describe a particular set of photos in saved order.
+    // Guard both writes so stale edits cannot invalidate the winning profile.
+    const result=samePhotos?await update.run():(await env.LAB_DB.batch([
+      stmt(env,'DELETE FROM element_visual_profiles WHERE pack_id=? AND owner_id=? AND EXISTS(SELECT 1 FROM packs WHERE '+guard+')',id,owner,...args),
+      update
+    ]))[1];
+    if(!result.meta.changes)fail(409,conflict);
+    // Detached assets can still be in open studio drafts. Saving edits only
+    // changes this pack and its profile.
+    return json({id,name,refs});
   }
   if(path.startsWith('/api/packs/')&&method==='DELETE'){
     const id=uid(path.split('/')[3]),pack=await first(env,'SELECT refs FROM packs WHERE id=? AND owner_id=?',id,owner);

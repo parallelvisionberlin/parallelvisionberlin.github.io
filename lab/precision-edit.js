@@ -1,4 +1,5 @@
-import {SAM_CANDIDATE_LIMIT,SAM_CLICK_MISS,samClickCandidate,preferSamCandidate} from './sam-click-mask.js?v=20261108-click1';
+import {SAM_CANDIDATE_LIMIT,SAM_CLICK_MISS,samClickCandidate,preferSamCandidate,samForegroundCandidate,samBackgroundCandidate} from './sam-click-mask.js?v=20261108-regions1';
+import {createSelectionFeedback} from './selection-feedback.js?v=20261108-picker1';
 /* Precision Edit: large base canvas, SAM 3 point segmentation, mask brushes,
    non-destructive FLUX inpainting and original-pixel client-side compositing. */
 export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,owner,falReady,magicReady=falReady,customer=()=>false,onJob,onExit}){
@@ -9,6 +10,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   const oc=overlay.getContext('2d');
   const rc=resultCanvas.getContext('2d');
   const mask=document.createElement('canvas'),maskCtx=mask.getContext('2d',{willReadFrequently:true});
+  const feedback=createSelectionFeedback({holder:$('precision-source-holder'),stage:$('precision-stage')});
   const undoStack=[],maxUndo=12,finalizing=new Map();
   let externalMode=false, selectionTargetPrompt='', selectionMetricsCache=undefined;
   let base=null,mode='magic',drawing=false,lastPoint=null,taskBusy=false,pending=null,quoteBusy=false,quoteFailure=false,quoteTimer=null;
@@ -141,7 +143,8 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     return selectionMetricsCache;
   }
   function setSelectionTarget(target){
-    selectionTargetPrompt=['face','person','clothing'].includes(target)?target:'';
+    selectionTargetPrompt=['face','person','clothing','background','protect-object'].includes(target)?target:'';
+    view.dispatchEvent(new Event('precision-selection-target-change'));
   }
   function selectMode(next){
     if(!['magic','brush','erase','pan'].includes(next))return;
@@ -278,7 +281,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     setStatus('Selection inverted. Only the purple area will change. Erase over anything else to keep.');
   }
   function resetSelection(){
-    selectionMetricsCache=undefined;editEpoch++;maskCtx.clearRect(0,0,mask.width,mask.height);
+    feedback.clear();selectionMetricsCache=undefined;editEpoch++;maskCtx.clearRect(0,0,mask.width,mask.height);
     undoStack.length=0;selected=false;pending=null;quoteFailure=false;clearTimeout(quoteTimer);quoteTimer=null;
     renderMask();refreshButtons();
     view.dispatchEvent(new Event('precision-selection-change'));
@@ -321,6 +324,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     settleRetouchScroll();
   }
   function close(){
+    feedback.clear();
     view.hidden=true;host.classList.remove('is-precision-active');
 
     // Keep a queued job in History; closing never resubmits or cancels it.
@@ -384,9 +388,9 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     const context=canvas.getContext('2d',{willReadFrequently:true});context.imageSmoothingEnabled=false;
     context.drawImage(bitmap,0,0,canvas.width,canvas.height);
     const pixels=context.getImageData(0,0,canvas.width,canvas.height);
-    return samClickCandidate(pixels.data,canvas.width,canvas.height,point,{scope:target});
+    return target==='background'?samForegroundCandidate(pixels.data,canvas.width,canvas.height,{scope:'person'}):samClickCandidate(pixels.data,canvas.width,canvas.height,point,{scope:target});
   }
-  function applySamCandidate(candidate){
+  function applySamCandidate(candidate,operation='add'){
     const canvas=document.createElement('canvas');canvas.width=mask.width;canvas.height=mask.height;
     const context=canvas.getContext('2d'),image=context.createImageData(mask.width,mask.height);
     for(let i=0;i<candidate.values.length;i++){
@@ -394,21 +398,30 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       image.data[offset+3]=candidate.values[i];
     }
     context.putImageData(image,0,0);
-    saveUndo();maskCtx.drawImage(canvas,0,0);maskChanged();
+    saveUndo();
+    if(operation==='background')maskCtx.clearRect(0,0,mask.width,mask.height);
+    maskCtx.save();maskCtx.globalCompositeOperation=operation==='protect-object'?'destination-out':'source-over';
+    maskCtx.drawImage(canvas,0,0);maskCtx.restore();maskChanged();
   }
   async function magicSelect(point){
     if(!base||taskBusy)return;
     if(!magicReady()){setStatus('Magic Select is unavailable on this account. Use the Brush instead.',true);return;}
-    taskBusy=true;refreshButtons();$('precision-source-holder').classList.add('is-busy');
-    const revision=++session,target=selectionTargetPrompt;
-    const candidateMasks=['face','person'].includes(target);
+    const target=selectionTargetPrompt,background=target==='background',protecting=target==='protect-object';
+    if(protecting&&!selected){setStatus('Select the background first, then choose an object to keep.',true);return;}
+    const semantic=background?'person':protecting?'':target;
+    const candidateMasks=['face','person','clothing'].includes(semantic);
+    taskBusy=true;
+    feedback.start({point,width:mask.width,height:mask.height,message:background?'Selecting background · protecting people…':protecting?'Protecting object…':'Selecting…'});
+    refreshButtons();$('precision-source-holder').classList.add('is-busy');
+    view.dispatchEvent(new CustomEvent('precision-selection-busy',{detail:{busy:true}}));
+    const revision=++session;let changed=false;
     try{
       const sourceId=await ensureBaseId();
-      setStatus('Selecting your subject…');
-      const p={x:Math.min(base.width-1,Math.round(point.x*base.width/mask.width)),
-        y:Math.min(base.height-1,Math.round(point.y*base.height/mask.height))};
-      const reply=await api('/api/precision/segment',{method:'POST',body:{sourceId,point:p,...(target?{targetPrompt:target}:{}),...(candidateMasks?{candidateMasks:true}:{})}});
+      setStatus(background?'Finding all people to protect…':'Selecting your subject…');
+      const p=point?{x:Math.min(base.width-1,Math.round(point.x*base.width/mask.width)),y:Math.min(base.height-1,Math.round(point.y*base.height/mask.height))}:null;
+      const reply=await api('/api/precision/segment',{method:'POST',body:{sourceId,...(background?{selectBackground:true}:{point:p}),...(semantic?{targetPrompt:semantic}:{}),...(candidateMasks?{candidateMasks:true}:{})}});
       if(!reply?.requestId||!reply.ticket)throw new Error('Segmentation did not return a request ID.');
+      if(background&&reply.candidateMasks!==true)throw Error('Whole-background selection is not available on this server yet. Your selection is unchanged.');
       let ready=null;
       for(let attempt=0;attempt<65&&revision===session;attempt++){
         if(attempt)await sleep(1700);
@@ -418,27 +431,38 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
         if(result?.status==='completed'){ready=result;break;}
       }
       if(revision!==session)throw new Error('The source photograph changed.');
-      if(!ready?.maskSourceId)throw new Error('SAM 3 is still processing. Do not click again until you have checked the request.');
+      if(!ready?.maskSourceId)throw new Error('Automatic selection is still processing. Do not submit another request yet.');
       const ids=Array.isArray(ready.maskSourceIds)?ready.maskSourceIds:[ready.maskSourceId];
       if(!ids.length||ids.length>SAM_CANDIDATE_LIMIT||ids.some(id=>typeof id!=='string'||!id))throw Error('Invalid automatic selection candidates.');
-      let best=null;
+      if(background&&ids.length>=SAM_CANDIDATE_LIMIT)throw Error('Too many people to protect automatically. Your selection is unchanged. Use Brush.');
+      let best=null;const people=[];
       for(const id of new Set(ids)){
         if(revision!==session||!base)throw Error('The source photograph changed.');
         const blob=await assetBlob(id),bitmap=await createImageBitmap(blob);
         try{
           if(revision!==session||!base)throw Error('The source photograph changed.');
-          best=preferSamCandidate(best,readSamCandidate(bitmap,point,target));
+          const candidate=readSamCandidate(bitmap,point,target);
+          if(background)people.push(candidate);else best=preferSamCandidate(best,candidate);
         }finally{bitmap.close();}
       }
       if(revision!==session||!base)throw Error('The source photograph changed.');
+      if(background)best=samBackgroundCandidate(people);
       if(!best)throw Error(SAM_CLICK_MISS);
-      applySamCandidate(best);
-      setStatus(view.classList.contains('is-guided-replace')?'Selection ready. Choose a replacement or describe it.':'Object selected. Click another garment to add it, or refine with the brush.');
+      applySamCandidate(best,background?'background':protecting?'protect-object':'add');changed=true;
+      feedback.clear();
+      setStatus(background?'Background selected. Review that every person is protected; use Keep object for props.':protecting?'Object protected. Only the remaining purple area can change.':view.classList.contains('is-guided-replace')?'Selection ready. Choose a replacement or describe it.':'Object selected. Refine with the brush.');
     }catch(e){
       if(/Magic Select limit reached/.test(e.message))selectMode('brush');
+      if(isOpen())feedback.error(/did not match/.test(e.message)?'Selection did not match your click. Use Brush.':'Selection could not finish. See the message in the panel.');
       setStatus(e.message,true);
+    }finally{
+      taskBusy=false;$('precision-source-holder').classList.remove('is-busy');refreshButtons();
+      view.dispatchEvent(new CustomEvent('precision-selection-busy',{detail:{busy:false,changed}}));
     }
-    finally{taskBusy=false;$('precision-source-holder').classList.remove('is-busy');refreshButtons();}
+  }
+  function selectBackground(){
+    if(!base||taskBusy)return;
+    setSelectionTarget('background');selectMode('magic');return magicSelect(null);
   }
   function maskExport(){
     const c=document.createElement('canvas');c.width=mask.width;c.height=mask.height;
@@ -838,7 +862,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   // No source is opened automatically in the normal gallery. This workspace is opt-in.
   reset();
-  return {open,close,isOpen,selectionMetrics,setSelectionTarget,clearSelection:resetSelection,invertSelection,result:()=>resultJob,setMode:selectMode,setExternalMode,selectionSnapshot,hasSelection:()=>selected,isBusy:()=>taskBusy,preview:()=>{
+  return {open,close,isOpen,selectionMetrics,setSelectionTarget,getSelectionTarget:()=>selectionTargetPrompt,selectBackground,clearSelection:resetSelection,invertSelection,result:()=>resultJob,setMode:selectMode,setExternalMode,selectionSnapshot,hasSelection:()=>selected,isBusy:()=>taskBusy,preview:()=>{
     if(owner())return;
     host.classList.add('is-precision-active');view.hidden=false;
     refreshButtons();syncPreviewFit();settleRetouchScroll();

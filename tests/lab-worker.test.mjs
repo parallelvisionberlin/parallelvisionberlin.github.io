@@ -741,6 +741,53 @@ async function seedreamTestReference(env,name,marker=0,width=512,height=512){
 async function uploadGuidanceReference(env,name,marker){
   return seedreamTestReference(env,name,marker);
 }
+test('Character edits retain pack identity and protect photos, ownership and the visual profile',async()=>{
+  const {env}=fixture();
+  await setup(env);
+  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0032-element-visual-profiles.sql',import.meta.url),'utf8'));
+  const front=await seedreamTestReference(env,'front.png',21);
+  const back=await seedreamTestReference(env,'back.png',22);
+  const replacement=await seedreamTestReference(env,'new-back.png',23);
+  const legacy={name:'PVSCENE1|characters|Legacy character',engine:'seedance',
+    referenceSourceIds:[front,back],referenceRoles:[{role:'identity',note:'Face note'},{role:'identity',note:'Body note'}]};
+  const response=await req(env,'/api/packs',{method:'POST',data:legacy});
+  assert.equal(response.status,201);
+  const pack=await response.json(),path='/api/packs/'+pack.id;
+  assert.ok(pack.refs.every(ref=>!ref.characterView));
+  const profile={signature:'Stable identity'};
+  await env.LAB_DB.prepare('INSERT INTO element_visual_profiles VALUES(?,?,?,?)')
+    .bind(pack.id,'owner-internal',JSON.stringify(profile),Date.now()).run();
+  const update={...legacy,name:'PVSCENE1|characters|Updated character',
+    referenceRoles:[{...legacy.referenceRoles[0],characterView:'face-front'},legacy.referenceRoles[1]],
+    expected:{name:pack.name,refs:pack.refs}};
+  const duplicated={...update,referenceRoles:update.referenceRoles.map(ref=>({...ref,characterView:'face-front'}))};
+  assert.equal((await req(env,path,{method:'POST',data:duplicated})).status,400);
+  assert.equal((await req(env,path,{method:'POST',data:update,authToken:await token('user_Guest')})).status,403);
+  const edit=await req(env,path,{method:'POST',data:update});
+  assert.equal(edit.status,200,await edit.clone().text());
+  const edited=await edit.json();
+  assert.equal(edited.id,pack.id);
+  assert.deepEqual(edited.refs.map(ref=>[ref.id,ref.characterView,ref.note]),[
+    [front,'face-front','Face note'],[back,undefined,'Body note']
+  ]);
+  const readPacks=async()=>await (await req(env,'/api/packs')).json();
+  assert.deepEqual((await readPacks()).packs[0].profile,profile);
+  assert.equal((await req(env,path,{method:'POST',data:update})).status,200,'Safe retry after a lost response');
+
+  const changed={...update,referenceSourceIds:[front,replacement],
+    referenceRoles:[update.referenceRoles[0],{role:'identity',note:'New back',characterView:'body-back'}]};
+  assert.equal((await req(env,path,{method:'POST',data:changed})).status,409,'A stale editor cannot overwrite the saved pack');
+  assert.deepEqual((await readPacks()).packs[0].profile,profile);
+  const replaced=await req(env,path,{method:'POST',data:{...changed,expected:{name:edited.name,refs:edited.refs}}});
+  assert.equal(replaced.status,200,await replaced.clone().text());
+  const {packs}=await readPacks();
+  assert.equal(packs.length,1);
+  assert.equal(packs[0].id,pack.id);
+  assert.deepEqual(packs[0].refs.map(ref=>[ref.id,ref.characterView]),[[front,'face-front'],[replacement,'body-back']]);
+  assert.equal(packs[0].profile,undefined,'The old analysis cannot describe the replacement photo');
+  assert.equal((await req(env,'/api/assets/'+back)).status,200,'A detached photo can still be used by an open scene');
+});
+
 test('Hong Kong 1K editing retains user Base and sends two exact photographic Style references to Spicy provider',async()=>{
   const {env}=fixture();
   await setup(env);
