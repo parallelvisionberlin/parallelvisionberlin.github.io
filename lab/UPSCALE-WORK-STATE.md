@@ -1,28 +1,27 @@
 # PV LAB Premium Upscale work state
 
-## Independent requests and automatic recovery / 2026-11-08
-- Objective: an interrupted Image upscale must not leave a customer unable to continue working or depend on the owner noticing the account.
-- Baseline: main `96b8c75`; branch `fix/upscale-workflow-recovery-20261108`.
-- The earlier #936 feedback repair is retained below as history; that change explained the lock but did not remove the underlying dependency.
-- Only unconfirmed SeedVR2/Topaz image upscales leave active slot and interruption counts. Genuine in-flight capacity, other providers' guards, wallet limits and per-quote idempotency remain enforced.
-- Starting a separate upscale while one is unconfirmed requires an explicit additional-charge confirmation; no automatic generation or retry occurs.
-- The earlier request, original source, quote, reserved credits and financial history remain independently reviewable.
-- New server-marked preparations claim dispatch atomically with the exact provider input. A timeout cleanup that wins first prevents late dispatch and returns customer credits once through existing refund triggers.
-- Legacy or potentially submitted requests cannot be declared unsubmitted merely because no provider ID was saved.
-- Bounded background recovery checks a known provider task or matches the retained exact input against provider history; no match, ambiguity or provider errors retain the original reservation.
-- Recovery runs independently of other scheduled maintenance, including when the user is offline; the open Studio also refreshes review status.
-- Frontend: nonblocking explanation, existing Review Queue control, ordinary active-capacity feedback, and fresh History after a rejected/stale submission attempt.
-- Scope: `lab/lab.js`, `lab/studio.html`, `lab-worker/worker.mjs`, `lab-worker/upscale-recovery.mjs`, existing Upscaler/Worker tests and focused recovery tests.
-- New entry cache version: `20261108-upscale-recovery1`; backend health capability: `upscaleRecovery: 20261108-independent1`.
-- Production baseline verification: all 85 original source-map modules exactly match this baseline; live bindings/settings will be inherited, not reconstructed.
-- Live read at implementation time found zero currently uncertain FAL image upscales. No customer media or identifiers are included here.
-- Local approved Image, provider queue/recovery, pricing, wallet, finance and auth checks: 54 passed.
-- Browser coverage is prepared for owner/customer at 390px/1440px: continue working, separate-charge consent, no POST on decline/review, real capacity, completed review and mode isolation.
-- Final backend/auth/wallet/pricing/recovery verification: 205/205 passed; independent review approved dispatch/refund races, exact recovery leases and recovery-only output-key isolation.
-- Pending: existing browser CI and separate Worker/Pages publication verification.
-- No real paid generation, new customer account, purchase, speculative refund or retry was performed for verification.
-- Limit: unconfirmed paid outcomes keep their credit reservation until provider evidence resolves them; available balance and genuine in-flight capacity still apply.
-- Status: implementation under verification; no claim that this recovery release is live yet.
+## Independent requests and automatic recovery / 2026-11-09
+
+- Objective: a failed or interrupted SeedVR2 or Topaz image upscale leaves independent generation available with the normal wallet, budget and processing limits.
+- Draft PR #939 started at `b429a35` on base `96b8c75`. The review candidate incorporates main `045caca` and preserves the later Owner records from that base.
+- Main `707fe7f` was checked during validation. Its only changes since the incorporated base are the label homepage and cover art, outside this release.
+- An unconfirmed image upscale stays in Queue and History with its original reserve. It releases its processing slot so independent FAL image and video work can continue.
+- Before a paid submit, Studio keeps the original quote ID in account-scoped session storage for the tab. It survives reload and is checked through an authenticated read on reconnect and before another Upscale.
+- Quote lookup can find an accepted queued request even if the browser lost its POST response. An empty lookup is inconclusive while the original request can still be in flight.
+- A distinct Upscale during review requires affirmative consent for its exact quoted customer credits or the owner's provider estimate. Dismissal can leave a prepared quote and sends no paid generation request.
+- The existing quote idempotency and wallet triggers remain authoritative. Provider recovery issues read-only checks and keeps uncertain reservations when history is absent, ambiguous or unavailable.
+- New preparations proven unsent still close with a single refund. A stale dispatch moves to review under its own scheduler and signed-in status path, independently of unrelated maintenance.
+- Owner manual review compares the displayed timestamp and provider task. Its update also checks the current state and poll version so it cannot overwrite a concurrent completion.
+- Scope: `lab/lab.js`, `lab/studio.html`, `lab-worker/worker.mjs`, `lab-worker/upscale-recovery.mjs` and focused existing tests. No schema migration.
+- Entry cache version: `20261109-upscale-recovery2`. Expected Worker health capability: `upscaleRecovery: 20261109-independent2`.
+- Local verification: 218 targeted Worker, authentication, price, wallet, finance and approved Image UI checks passed.
+- Full mocked Chromium suite: 54 groups passed, including new reconnection and separate-charge cases for customer and owner at 390px and 1440px.
+- Desktop/mobile Image–Video Upscaler parity and Assets visibility checks passed independently.
+- Wrangler 4.158.0 dry-run succeeded. Comparing the bundled source map with the original draft bundle found changes only in `worker.mjs` and `upscale-recovery.mjs`.
+- Production read on 2026-11-09 showed `20261108-upscale-queue1` and a Worker health response without `upscaleRecovery`. The older Pages preview belongs to the original draft.
+- Actual account sessions against the candidate Worker and real provider recovery remain unverified. Tests used synthetic accounts, media fixtures, credits and provider replies.
+- Status: draft candidate ready for explicit merge and deployment approval. Keep the candidate fixed while unrelated main work continues.
+- Release order after approval: validate signed-in staging, activate the reviewed Worker version with existing bindings and cron, then integrate for Cloudflare Pages and verify the exact custom-domain asset and Worker health marker.
 
 ## Interrupted request feedback / 2026-11-08
 - Objective: explain why a loaded Image Upscaler can have a disabled action and provide direct access to the existing Queue.

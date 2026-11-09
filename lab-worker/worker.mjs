@@ -2199,6 +2199,12 @@ async function route(request,env,ctx) {
         id,now(),quoteId,owner);}catch{}
     return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},202);
   }
+  if(path==='/api/jobs'&&method==='GET'&&url.searchParams.has('quoteId')){
+    const quoteId=uid(url.searchParams.get('quoteId'));
+    const job=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=? AND '+FAL_IMAGE_UPSCALE_SQL,quoteId,owner);
+    // A missing row is inconclusive while the original POST may still be in flight.
+    return json({job:job?jobView(job):null});
+  }
   if(path==='/api/jobs'&&method==='GET'&&url.searchParams.get('library')==='1'){
     const data=await libraryJobs(env,owner,url,{rows,uid,fail,jobView});
     const active=await rows(env,"SELECT * FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain') ORDER BY created_at,id",owner);
@@ -2291,8 +2297,15 @@ async function route(request,env,ctx) {
     }
     if(path.endsWith('/resolve')&&method==='POST') {
       if(customer)fail(403,'PV LAB support must review uncertain provider requests. Customers cannot clear a reserved charge.');
-      const data=await body(request);if(j.state!=='uncertain'||data.confirm!==true)fail(409,'Confirm you checked the provider dashboard first.');
-      await run(env,"UPDATE jobs SET state='resolved',updated_at=?,error=? WHERE id=?",now(),'Owner resolved the interrupted request. No generation was resubmitted.',id);return json({ok:true});
+      const data=await body(request);if(data.confirm!==true)fail(409,'Confirm you checked the provider dashboard first.');
+      const changed='The request status changed. Refresh History before marking it reviewed.';
+      if(j.state!=='uncertain'||
+        (Object.hasOwn(data,'expectedUpdatedAt')&&data.expectedUpdatedAt!==j.updated_at)||
+        (Object.hasOwn(data,'expectedProviderTaskId')&&data.expectedProviderTaskId!==j.provider_id))fail(409,changed);
+      const resolved=await run(env,"UPDATE jobs SET state='resolved',updated_at=?,error=? WHERE id=? AND owner_id=? AND state='uncertain' AND updated_at=? AND last_poll=? AND provider_id IS ?",
+        now(),'Owner resolved the interrupted request. No generation was resubmitted.',id,owner,j.updated_at,j.last_poll,j.provider_id);
+      if(!resolved.meta.changes)fail(409,changed);
+      return json({ok:true});
     }
     if(path.endsWith('/recover')&&method==='POST'){
       const p=JSON.parse(j.params||'{}');if(j.state!=='failed'||p.provider!=='fal'||!j.provider_id)fail(409,'Only failed fal.ai jobs with a provider task can be recovered.');
@@ -2312,7 +2325,7 @@ async function maintenance(env) {
   // cleanup falsely classified active requests, disabling Nano Banana Pro.
   // Leave at least a full provider timeout and 60s grace before review.
   const checkedAt=now();
-  await run(env,"UPDATE jobs SET state='uncertain',error='Submission was interrupted. No new generation was sent; check provider activity before retrying.',updated_at=? WHERE state='submitting' AND ((COALESCE(json_extract(params,'$.provider'),'')='gemini' AND updated_at<?) OR (COALESCE(json_extract(params,'$.provider'),'')!='gemini' AND updated_at<?))",checkedAt,checkedAt-240000,checkedAt-120000);
+  await run(env,"UPDATE jobs SET state='uncertain',error='Submission was interrupted. No new generation was sent; check provider activity before retrying.',updated_at=? WHERE state='submitting' AND NOT "+FAL_IMAGE_UPSCALE_SQL+" AND ((COALESCE(json_extract(params,'$.provider'),'')='gemini' AND updated_at<?) OR (COALESCE(json_extract(params,'$.provider'),'')!='gemini' AND updated_at<?))",checkedAt,checkedAt-240000,checkedAt-120000);
   const pending=await rows(env,"SELECT * FROM jobs WHERE state IN ('queued','running','saving') ORDER BY last_poll LIMIT 5");
   for(const j of pending){const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(j.owner_id).first();if(owner||await isLabCustomer(env,j.owner_id))await refreshJob(env,j);}
   await run(env,'DELETE FROM quotes WHERE expires_at<? AND NOT EXISTS(SELECT 1 FROM jobs WHERE jobs.quote_id=quotes.id)',now());

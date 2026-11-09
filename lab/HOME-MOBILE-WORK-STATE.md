@@ -1,3 +1,15 @@
+## Featured Chrome Desert photo-pack band, 2026-11-08
+- Owner approved Chrome Desert as a thinner homepage interruption, not a replacement for Full Editorial.
+- Merged PR #941 to `main`; reviewed application source and merge SHA: `4beab9ebd5419ff741646179d16347892926e522`.
+- Final order: Image / Video / Upscaler → Chrome Desert featured photo pack → existing Full Editorial. Full Editorial source, artwork, video and CTA were not changed.
+- New public section: `#featured-photo-pack`; desktop height 360–440px, phone stacks copy over a 244–270px visual with no intentional horizontal overflow.
+- CTA is text-only `Create in Image` and opens `studio.html?tool=image&mood=chrome-couture`; the existing Image route selects the curated look and does not auto-generate.
+- Files: `lab/index.html`, `lab/home-featured-photo-pack.css`, `tests/lab-home-featured-photo-pack.test.mjs`, this checkpoint and Owner work index.
+- Relevant checks passed before/after merge: Owner validation, static validate, dedicated landing stability, approved Image UI and the main image-reference workflow.
+- Existing repository-wide failures remain outside this scope: legacy Moods/Explore Moods assertion, ALTER preview-path assertion, public-studio sign-in assertion and browser timeouts. These were also present on the prior main baseline and were not changed or masked.
+- Cloudflare Pages production deployment `84008dfc-266c-454d-afb7-02de57f488f4` succeeded from exact merge SHA `4beab9e...`; project `pvlab-studio` reports `https://pvlab.studio` as the production alias.
+- Publication limitation: infrastructure commit/alias is verified; the generic web fetcher could not independently read the custom-domain HTML/CSS, so no separate pixel-level production-browser screenshot is claimed.
+- No signed-in customer behavior, billing, credits or generation logic was touched.
 ## Full Editorial phone composition, 2026-11-01
 - Owner approved mockup exec-8eed8ae8-6b84-4bfa-960b-36eae296bb2f.png: kicker/title above, clear central film, supporting copy and existing CTA below.
 - Source baseline: 778cdd306bef9a1ba945f2f7aa6df77a92948d6d.

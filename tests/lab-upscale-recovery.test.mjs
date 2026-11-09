@@ -130,6 +130,22 @@ test('Lost acknowledgement matches only saved exact input and original dispatch 
   assert.equal(found,1);assert.equal(recovered.job.provider_id,'original-task');assert.equal(recovered.job.id,job.id);assert.equal(recovered.status.status,'COMPLETED');assert.equal(f.balance(),990);assert.equal(f.held(job),1);
 });
 
+test('An active lookup recovers an abandoned dispatch without depending on cron',async t=>{
+  const f=fixture(t),job=f.add({phase:'dispatching',savedInput:true});
+  const fresh=f.add({phase:'dispatching',savedInput:true,createdAt:now-2000});
+  let searches=0;
+  const options={nowMs:now,clock:()=>now,findRequest:async request=>{
+    searches++;assert.deepEqual(request.input,input);
+    assert.equal(request.updatedAt,JSON.parse(job.params).upscaleDispatch.startedAt);
+    return {requestId:'original-task'};
+  },readStatus:async()=>({status:'IN_QUEUE'})};
+  assert.equal(await recoverUpscale(f.env,fresh,options),null);
+  assert.equal(f.get(fresh.id).state,'submitting');
+  const result=await recoverUpscale(f.env,job,options);
+  assert.equal(result.job.id,job.id);assert.equal(result.job.state,'queued');
+  assert.equal(searches,1);assert.equal(f.balance(),980);assert.equal(f.held(job),1);
+});
+
 test('A slow recovery takes a fresh polling lease after the external reads finish',async t=>{
   const f=fixture(t),job=f.add({state:'uncertain',phase:'dispatching',savedInput:true});let clock=now;
   const result=await recoverUpscale(f.env,job,{nowMs:now,clock:()=>clock,

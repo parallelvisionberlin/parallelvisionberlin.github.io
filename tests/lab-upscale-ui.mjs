@@ -23,6 +23,7 @@ let png,passed=0;
 const ok=name=>{passed++;console.log('PASS '+name);};
 async function workspace(jobs=[],width=1440,{quoteTtlMs=180000,quoteDelayMs=0,quoteTransform=null,customer=false,submitMode='ok',expectConfirmNewCharge=false}={}){
  const context=await browser.newContext({viewport:{width,height:1000},hasTouch:width<781,isMobile:width<781,acceptDownloads:true});const page=await context.newPage();const requests=[],uploads=[],quotes=new Map(),quoteResponses=[];let count=3,quoteCount=88;
+ const acceptedQuotes=new Map();let receiptLookupAvailable=false;
  page.on('dialog',async d=>{await d.accept();});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await context.route('https://**/*',async route=>{
@@ -31,7 +32,11 @@ async function workspace(jobs=[],width=1440,{quoteTtlMs=180000,quoteDelayMs=0,qu
   const path=url.pathname,method=req.method();let data={};
   if(req.headers()['content-type']?.startsWith('application/json'))data=req.postDataJSON();
   requests.push({path,method,data});let body;
-  if(path==='/api/jobs'&&method==='GET')body={jobs,activeJobs:jobs.filter(j=>['submitting','queued','running','saving','uncertain'].includes(j.status)),concurrency:{image:4,video:1},next:null};
+  if(path==='/api/jobs'&&method==='GET'&&url.searchParams.has('quoteId')){
+   if(submitMode==='accepted-network'&&!receiptLookupAvailable){await route.abort();return;}
+   body={job:acceptedQuotes.get(url.searchParams.get('quoteId'))||null};
+  }
+  else if(path==='/api/jobs'&&method==='GET')body={jobs,activeJobs:jobs.filter(j=>['submitting','queued','running','saving','uncertain'].includes(j.status)),concurrency:{image:4,video:1},next:null};
   else if(path==='/api/packs')body={packs:[]};
   else if(path==='/api/customer/wallet'&&method==='GET')body={balanceCredits:1000,billingReady:true,products:[]};
   else if(path.endsWith('/resolve')&&method==='POST'){const id=path.split('/')[3],job=jobs.find(j=>j.id===id);assert.ok(job);assert.equal(data.confirm,true);job.status='resolved';body={ok:true};}
@@ -47,11 +52,17 @@ async function workspace(jobs=[],width=1440,{quoteTtlMs=180000,quoteDelayMs=0,qu
   }
   else if(/^\/api\/jobs\/[^/]+\/reconcile$/.test(path)&&method==='POST'){const id=path.split('/')[3],original=jobs.find(j=>j.id===id);const reconciled={...original,status:'queued',providerTaskId:'synthetic-existing-fal-request'};jobs=jobs.map(j=>j.id===id?reconciled:j);body={job:reconciled,matched:true,message:'Found the existing FAL request. No generation submitted.'};}
   else if(path==='/api/jobs'&&method==='POST'){
-   const quote=quotes.get(data.quoteId);assert.ok(quote,'Submission must use a quote returned to this context');assert.deepEqual(data,{quoteId:quote.id,confirm:true,...(expectConfirmNewCharge?{confirmNewCharge:true}:{})});
+   const quote=quotes.get(data.quoteId);assert.ok(quote,'Submission must use a quote returned to this context');
+   const separateCharge=expectConfirmNewCharge||acceptedQuotes.size>0;
+   assert.deepEqual(data,{quoteId:quote.id,confirm:true,...(separateCharge?{confirmNewCharge:true}:{})});
    assert.ok(quote.expiresAt>Date.now(),'No expired quote may be submitted');
    if(submitMode==='network'){await route.abort();return;}
    if(submitMode==='rejected'){await route.fulfill({status:422,contentType:'application/json',body:JSON.stringify({error:'Synthetic provider rejected this photograph'})});return;}
    body={job:{id:'10000000-0000-4000-8000-'+String(90+requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length).padStart(12,'0'),status:submitMode==='failed'?'failed':'queued',error:submitMode==='failed'?'Synthetic provider rejected this photograph':undefined,settings:quote.settings,sourceId:quote.sourceId,createdAt:Date.now()}};
+   if(submitMode==='accepted-network'){
+    jobs=[...jobs,body.job];acceptedQuotes.set(quote.id,body.job);
+    if(acceptedQuotes.size===1){await route.abort();return;}
+   }
   }
   else if(path.startsWith('/api/assets/')){await route.fulfill({status:200,contentType:'image/png',body:png});return;}
   else {await route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({error:'Unmocked request '+path})});return;}
@@ -59,10 +70,12 @@ async function workspace(jobs=[],width=1440,{quoteTtlMs=180000,quoteDelayMs=0,qu
  });
  await page.goto(ORIGIN+'/lab/studio.html?tool=image'+(customer?'&customer=1':''));await page.waitForFunction(()=>!!window.__labTest);
  if(!png)png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=320;const x=c.getContext('2d');x.fillStyle='#353b40';x.fillRect(0,0,320,320);x.fillStyle='#aaa49a';x.fillRect(70,70,180,180);return c.toDataURL('image/png').split(',')[1];}),'base64');
- return {page,context,requests,uploads,quotes:quoteResponses,errors,historyJobs:()=>structuredClone(jobs),setJobs:list=>{jobs=structuredClone(list);}};
+ return {page,context,requests,uploads,quotes:quoteResponses,errors,historyJobs:()=>structuredClone(jobs),setJobs:list=>{jobs=structuredClone(list);},allowReceiptLookup:()=>{receiptLookupAvailable=true;}};
 }
 const countPaid=x=>x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length;
 const quoteRequests=x=>x.requests.filter(r=>r.path==='/api/quotes');
+const quotedCharge=(quote,customer)=>customer?quote.creditCost.toLocaleString()+' credits':
+ new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:4}).format(quote.estimatedUsd)+' USD estimated by fal.ai';
 const uploadSmall=async (page,{expectEnabled=true}={})=>{
  const chooser=page.waitForEvent('filechooser');
  await page.getByRole('button',{name:'Upload an image to upscale',exact:true}).click();
@@ -201,7 +214,7 @@ try{
    assert.equal(await queued.page.locator('#generate').isEnabled(),true);
    assert.equal(queued.requests.some(r=>r.method==='POST'),false,'Queue review, mode changes and history refresh never submit anything');
    await refresh([interruptedUpscale]);
-   const confirmations=[],confirmation='An earlier upscale is still awaiting confirmation. This starts a separate upscale and '+(customer?'uses additional credits':'may incur another provider charge')+'. The earlier request will not be retried or cancelled. Continue?';
+   const confirmations=[];
    let acceptNewCharge=false;
    queued.page.removeAllListeners('dialog');
    queued.page.on('dialog',async dialog=>{
@@ -210,15 +223,18 @@ try{
    });
    await queued.page.getByRole('button',{name:'Upscale',exact:true}).click();
    await queued.page.waitForFunction(()=>window.__labTest.settled());
+   assert.equal(quoteRequests(queued).length,1,'Prepare the unpaid quote before presenting the exact charge');
+   const confirmation='An earlier upscale is still awaiting confirmation. Start a separate upscale for '+quotedCharge(queued.quotes[0],customer)+'?';
    assert.deepEqual(confirmations,[{type:'confirm',message:confirmation}]);
-   assert.equal(queued.requests.some(r=>r.method==='POST'),false,'Declining the new charge makes no upload, quote, generation, reconciliation or resolution POST');
+   assert.equal(countPaid(queued),0,'Declining the quoted charge makes no generation POST');
+   assert.equal(queued.requests.some(r=>r.method==='POST'&&/\/(reconcile|resolve)$/.test(r.path)),false);
    assert.equal(await queued.page.locator('#generate').isEnabled(),true);
    assert.equal(await queued.page.locator('#upscale-queue-reason').innerText(),notice);
    acceptNewCharge=true;
    await queued.page.getByRole('button',{name:'Upscale',exact:true}).click();
    await queued.page.waitForFunction(()=>window.__labTest.settled());
    assert.deepEqual(confirmations,Array.from({length:2},()=>({type:'confirm',message:confirmation})),'Each fresh action asks for its own separate-charge confirmation');
-   assert.equal(quoteRequests(queued).length,1,'The accepted action obtains exactly one fresh quote');
+   assert.equal(quoteRequests(queued).length,1,'The accepted action uses the same still-valid quote');
    assert.equal(countPaid(queued),1,'The accepted action submits exactly one new job');
    assert.deepEqual(queued.requests.find(r=>r.path==='/api/jobs'&&r.method==='POST').data,{quoteId:queued.quotes[0].id,confirm:true,confirmNewCharge:true});
    assert.equal(queued.requests.some(r=>r.method==='POST'&&/\/(reconcile|resolve)$/.test(r.path)),false,'A separately confirmed job never retries or resolves the original request');
@@ -226,6 +242,47 @@ try{
    assert.equal(await queued.page.locator('#quote-dialog').evaluate(el=>el.open),false);
    assert.deepEqual(queued.errors,[]);await queued.context.close();
    ok('Nonblocking upscale recovery, separate-charge confirmation and actual capacity at '+width+'px for '+(customer?'Customer':'Owner'));
+ }
+ for(const width of [390,1440])for(const customer of [false,true]){
+   const interrupted=await workspace([],width,{customer,submitMode:'accepted-network'});
+   const {page}=interrupted;
+   await page.click('#tool-upscale');await uploadSmall(page);
+   if(customer)await selectModel(page,'topaz-precision');
+   const receiptLookup=()=>page.waitForRequest(request=>request.url().startsWith(API+'/api/jobs?quoteId='));
+   await Promise.all([receiptLookup(),page.getByRole('button',{name:'Upscale',exact:true}).click()]);
+   await page.waitForFunction(()=>window.__labTest.settled());
+   const original=interrupted.quotes[0].id;
+   assert.equal(await page.evaluate(()=>sessionStorage.getItem('pv-upscale-receipt:test')),original);
+   assert.equal(interrupted.historyJobs()[0].status,'queued');
+   assert.equal(countPaid(interrupted),1);
+   assert.match(await page.locator('#upscale-queue-reason').innerText(),/response was interrupted/);
+   const confirmations=[];let accept=false;
+   page.removeAllListeners('dialog');
+   page.on('dialog',async dialog=>{confirmations.push(dialog.message());await (accept?dialog.accept():dialog.dismiss());});
+   await page.getByRole('button',{name:'Upscale',exact:true}).click();
+   await page.waitForFunction(()=>window.__labTest.settled());
+   assert.equal(countPaid(interrupted),1,'An inconclusive status check cannot cause a duplicate debit');
+   assert.equal(confirmations[0],'An earlier upscale is still awaiting confirmation. Start a separate upscale for '+quotedCharge(interrupted.quotes.at(-1),customer)+'?');
+   await page.reload();await page.waitForFunction(()=>!!window.__labTest);
+   await page.click('#tool-upscale');await uploadSmall(page);
+   if(customer)await selectModel(page,'topaz-precision');
+   assert.equal(await page.evaluate(()=>sessionStorage.getItem('pv-upscale-receipt:test')),original);
+   interrupted.allowReceiptLookup();
+   const receiptResponse=page.waitForResponse(response=>response.url()===API+'/api/jobs?quoteId='+original);
+   await page.evaluate(()=>window.dispatchEvent(new Event('online')));
+   assert.equal((await (await receiptResponse).json()).job.status,'queued');
+   assert.equal(countPaid(interrupted),1,'Reconnecting only reads the original job');
+   accept=true;
+   await page.getByRole('button',{name:'Upscale',exact:true}).click();
+   await page.waitForFunction(()=>window.__labTest.settled());
+   const newQuote=interrupted.quotes.at(-1);
+   assert.notEqual(newQuote.id,original);
+   assert.equal(confirmations[1],'The earlier upscale is already in your queue. Start a separate upscale for '+quotedCharge(newQuote,customer)+'?');
+   const paid=interrupted.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').map(r=>r.data);
+   assert.deepEqual(paid,[{quoteId:original,confirm:true},{quoteId:newQuote.id,confirm:true,confirmNewCharge:true}]);
+   assert.equal(await page.evaluate(()=>sessionStorage.getItem('pv-upscale-receipt:test')),null);
+   assert.deepEqual(interrupted.errors,[]);await interrupted.context.close();
+   ok('Lost reply survives reload and reconnect without a duplicate charge at '+width+'px for '+(customer?'Customer':'Owner'));
  }
  if(process.env.PV_UPSCALE_QUEUE_SMOKE!=='1'){
  // A quote review can leave the hidden technical disclosure open. Exercise

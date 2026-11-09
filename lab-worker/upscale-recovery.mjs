@@ -1,7 +1,7 @@
 import {falStatus} from './fal-controlled-pose.mjs';
 import {findFalRequest} from './fal-recovery.mjs';
 
-export const UPSCALE_RECOVERY_VERSION='20261108-independent1';
+export const UPSCALE_RECOVERY_VERSION='20261109-independent2';
 const MODELS=['fal-ai/seedvr/upscale/image','topaz/upscale/image/precision','topaz/upscale/image/generative'];
 export const FAL_IMAGE_UPSCALE_SQL="(COALESCE(json_extract(params,'$.provider'),'')='fal' AND COALESCE(json_extract(params,'$.type'),'')='image' AND COALESCE(json_extract(params,'$.mode'),'')='upscale' AND COALESCE(json_extract(params,'$.model'),'') IN ('"+MODELS.join("','")+"'))";
 export const FAL_UPSCALE_REVIEW_SQL="(state='uncertain' AND "+FAL_IMAGE_UPSCALE_SQL+")";
@@ -58,10 +58,20 @@ export async function expirePreparingUpscales(env,{jobId=null,ownerId=null,nowMs
   return Number(result[0]?.meta?.changes)||0;
 }
 
+async function reviewAbandonedUpscaleSubmissions(env,nowMs,job=null){
+  const scope=job?' AND id=? AND owner_id=?':'';
+  // Preserve the last submission timestamp for matching legacy provider history.
+  // An abandoned dispatch is not proof that the provider never accepted it.
+  await run(env,"UPDATE jobs SET state='uncertain',error=? WHERE state='submitting' AND updated_at<=? AND "+FAL_IMAGE_UPSCALE_SQL+scope,
+    'The upscale submission was interrupted. PV LAB is checking the original request. You can continue working.',nowMs-PREPARATION_MS,...(job?[job.id,job.owner_id]:[]));
+}
+
 export async function recoverUpscale(env,job,{nowMs=Date.now(),clock=Date.now,findRequest=findFalRequest,readStatus=falStatus}={}){
   if(!job||!isFalImageUpscale(settings(job)))return null;
   if(['submitting','uncertain'].includes(job.state)){
     await expirePreparingUpscales(env,{jobId:job.id,ownerId:job.owner_id,nowMs});
+    if(job.state==='submitting'&&job.updated_at<=nowMs-PREPARATION_MS)
+      await reviewAbandonedUpscaleSubmissions(env,nowMs,job);
     job=await readJob(env,job);
   }
   if(!job||job.state!=='uncertain'||!env.FAL_KEY)return null;
@@ -107,6 +117,7 @@ export async function recoverUpscale(env,job,{nowMs=Date.now(),clock=Date.now,fi
 
 export async function maintainUpscaleRecovery(env,{nowMs=Date.now(),clock=Date.now,onRecovered=async()=>{},findRequest=findFalRequest,readStatus=falStatus}={}){
   await expirePreparingUpscales(env,{nowMs});
+  await reviewAbandonedUpscaleSubmissions(env,nowMs);
   if(!env.FAL_KEY)return;
   const candidates=await stmt(env,"SELECT * FROM jobs WHERE "+FAL_UPSCALE_REVIEW_SQL+" AND (last_poll=0 OR last_poll<=?-"+REVIEW_DELAY_SQL+") ORDER BY last_poll,created_at,id LIMIT 2",nowMs,nowMs-86400000).all();
   for(const job of candidates.results||[]){

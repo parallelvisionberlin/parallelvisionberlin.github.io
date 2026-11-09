@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T18:50:16Z",
+  "updatedAt": "2026-11-09T11:54:53.594Z",
   "handoffs": [
     {
       "id": "owner",
@@ -64,6 +64,86 @@
     }
   ],
   "records": [
+    {
+      "id": "home-featured-photo-pack-chrome-desert",
+      "title": "Chrome Desert homepage photo-pack band",
+      "component": "PV LAB homepage",
+      "status": "deployed",
+      "summary": "Add Chrome Desert as a thin featured photo-pack band after the three main tools while preserving the existing Full Editorial section directly below it.",
+      "nextAction": "No implementation action pending. Recheck only if the homepage order, Chrome Couture deep link, or Full Editorial section changes.",
+      "baselineSha": "62a2b4aa35d07922109dec60c332fe75f5f0fff4",
+      "reviewedSha": "4beab9ebd5419ff741646179d16347892926e522",
+      "branch": "design/home-chrome-desert-pack-20261108",
+      "files": [
+        "lab/index.html",
+        "lab/home-featured-photo-pack.css",
+        "tests/lab-home-featured-photo-pack.test.mjs",
+        "lab/HOME-MOBILE-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Implementation PR #941",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/941"
+        },
+        {
+          "label": "Scoped homepage checkpoint",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/HOME-MOBILE-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Scoped homepage branch gates",
+          "result": "passed",
+          "scope": "Owner validation, static validate, landing stability, approved Image UI and the main reference workflow passed on the reviewed branch before merge.",
+          "observedAt": "2026-11-08T22:18:00Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/941"
+        },
+        {
+          "label": "Merged homepage landing stability",
+          "result": "passed",
+          "scope": "The dedicated PV Lab landing load stability workflow passed on merge commit 4beab9e; no paid generation was involved.",
+          "observedAt": "2026-11-08T22:20:25Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42529633189"
+        },
+        {
+          "label": "Repository-wide unrelated failures",
+          "result": "documented",
+          "scope": "Video, private-lab, public-studio, gallery-browser and legacy landing/pricing assertions remain red for pre-existing ALTER, sign-in, timeout and Moods-vs-Explore-Moods expectations also present on the prior main baseline; they were not changed or masked here.",
+          "observedAt": "2026-11-08T22:20:25Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/4beab9ebd5419ff741646179d16347892926e522"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "sourceSha": "4beab9ebd5419ff741646179d16347892926e522",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-08T22:20:02Z",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/runs/128880993746",
+        "limitations": [
+          "Cloudflare production project, exact Git commit and pvlab.studio alias were verified through the Pages API.",
+          "The generic web fetcher could not independently retrieve custom-domain HTML/CSS, so no separate pixel-level production-browser screenshot is claimed.",
+          "No signed-in customer journey was required for this public homepage-only change."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "deployment",
+          "summary": "Cloudflare Pages production deployment 84008dfc-266c-454d-afb7-02de57f488f4 completed successfully from exact commit 4beab9ebd5419ff741646179d16347892926e522 and lists https://pvlab.studio as its production alias.",
+          "scope": "PV LAB public homepage publication.",
+          "observedAt": "2026-11-08T22:20:02Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/runs/128880993746",
+          "limitations": [
+            "Infrastructure publication and alias are verified; no signed-in behavior is inferred."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not replace or restyle the existing Full Editorial section.",
+        "Do not alter hero, Studio cards, Creative Studios, Characters, pricing, billing, credits or generation behavior."
+      ],
+      "updatedAt": "2026-11-08T22:21:00Z"
+    },
     {
       "id": "90s-cinema-natural-film-light",
       "title": "90s Cinema natural source light",
@@ -2329,9 +2409,9 @@
       "title": "Upscaler independent requests and automatic recovery",
       "component": "Image Upscaler",
       "status": "needs_verification",
-      "summary": "Keep an interrupted image upscale isolated from later work, safely refund newly proven unsent preparations, and reconcile original provider requests without retrying paid generation.",
-      "nextAction": "Run existing owner/customer browser checks, then publish and independently verify the Worker and Studio assets.",
-      "baselineSha": "96b8c759029ede389a6ffb20339506cbebef930a",
+      "summary": "Recover an interrupted Upscale without blocking independent work, requiring exact separate-charge consent after a lost browser reply and guarding credits and recovered results.",
+      "nextAction": "Show the reviewed draft SHA and diff. After explicit approval, verify the candidate with signed-in roles and publish the Worker before Cloudflare Pages.",
+      "baselineSha": "045cacac01d0f5524ada08243b68cba2c4643501",
       "reviewedSha": null,
       "branch": "fix/upscale-workflow-recovery-20261108",
       "files": [
@@ -2346,6 +2426,10 @@
       ],
       "links": [
         {
+          "label": "Draft PR #939",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/939"
+        },
+        {
           "label": "Scoped Upscaler handoff",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
         },
@@ -2356,21 +2440,33 @@
       ],
       "tests": [
         {
-          "label": "Focused existing safeguards",
-          "scope": "Approved Image UI, FAL queue/recovery, pricing, wallet, finance and auth: 54 checks",
-          "result": "passed"
-        },
-        {
-          "label": "Backend recovery and financial regression",
-          "scope": "205 backend/auth/wallet/pricing/recovery checks, including dispatch/cleanup race, exactly-once refund, same-quote idempotency, cross-tool continuation and stale archive protection",
+          "label": "Focused Worker, wallet and Image safeguards",
+          "scope": "218 passing tests including quote receipts, customer debits, independent recovery, concurrent owner review, auth and approved Image UI",
           "result": "passed",
-          "source": "tests/lab-upscale-recovery.test.mjs"
+          "source": "tests/lab-worker.test.mjs"
         },
         {
-          "label": "Owner/customer browser regression",
-          "scope": "390px and1440px nonblocking recovery, separate-charge confirmation and actual capacity",
-          "result": "not_run",
+          "label": "Full mocked Upscaler browser suite",
+          "scope": "54 groups including owner and customer at 390px and 1440px, lost reply and reload, exact consent, SeedVR2 and Topaz, and preservation of independent work",
+          "result": "passed",
           "source": "tests/lab-upscale-ui.mjs"
+        },
+        {
+          "label": "Upscaler layout and Assets parity",
+          "scope": "Desktop and mobile Image and Video editor, synthetic MP4 upload and shared Assets regression",
+          "result": "passed",
+          "source": "tests/lab-video-upscale-layout.mjs"
+        },
+        {
+          "label": "Cloudflare Worker build",
+          "scope": "Wrangler 4.158.0 dry-run, 86 bundled modules and only the two scoped modules changed versus the original draft bundle",
+          "result": "passed",
+          "source": "lab/UPSCALE-WORK-STATE.md"
+        },
+        {
+          "label": "Real authenticated candidate session",
+          "scope": "Owner and customer against the candidate Worker with provider recovery",
+          "result": "not_run"
         }
       ],
       "deployment": {
@@ -2378,34 +2474,38 @@
         "environment": "pvlab.studio / Cloudflare Pages and parallel-vision-lab Worker",
         "sourceSha": null,
         "limitations": [
-          "The earlier feedback patch is live; this automatic recovery follow-up is still under verification."
+          "The production site is still serving the prior Upscale feedback release. The Worker and Pages candidate require explicit release approval."
         ]
       },
       "evidence": [
         {
-          "kind": "documented",
-          "summary": "Prior feedback repair #936 and account review remain documented in the scoped handoff. They did not provide automatic recovery.",
-          "scope": "Previously published repair, separate from this new candidate",
-          "source": "lab/UPSCALE-WORK-STATE.md",
-          "limitations": []
-        },
-        {
-          "kind": "source",
-          "summary": "All 85 deployed Worker source-map modules match the current baseline. Recovery modifies only the documented upscale handling.",
-          "scope": "Production baseline preservation",
+          "kind": "automated_test",
+          "summary": "Local Worker and mocked browser coverage verified independent jobs, lost receipt protection and safe concurrent review.",
+          "scope": "Candidate source in this draft",
           "source": "lab/UPSCALE-WORK-STATE.md",
           "limitations": [
-            "Does not establish that the new recovery has been published."
+            "Provider calls and wallet activity used controlled fixtures."
+          ]
+        },
+        {
+          "kind": "production_health",
+          "summary": "Public production health returned without the Upscale recovery capability.",
+          "scope": "Production Worker status on 2026-11-09",
+          "source": "https://parallel-vision-lab.parallelvision.workers.dev/health",
+          "limitations": [
+            "Authenticated candidate behavior awaits an approved staging environment."
           ]
         }
       ],
-      "blockers": [],
+      "blockers": [
+        "Explicit approval of the reviewed candidate is required before merge or deployment."
+      ],
       "doNotRepeat": [
         "Do not retry a paid generation to test the button.",
         "Do not clear ambiguous or fresh interrupted submissions without checking provider-dispatch evidence.",
         "Keep draft PR #928 content-decline wording separate."
       ],
-      "updatedAt": "2026-11-08T18:50:16Z"
+      "updatedAt": "2026-11-09T11:54:53.594Z"
     }
   ]
 }

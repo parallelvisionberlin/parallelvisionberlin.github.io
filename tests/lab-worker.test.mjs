@@ -1646,6 +1646,11 @@ test('Public upscale recovery keeps the original charge separate and accepts onl
     assert.equal(originalResponse.status,202);const original=(await originalResponse.json()).job;
     assert.equal(original.status,'uncertain');assert.equal(original.settings.upscaleDispatch.phase,'dispatching');assert.equal(falSubmitCount,1);
     const heldBalance=balance(),originalRow=db.prepare('SELECT * FROM jobs WHERE id=?').get(original.id),fresh=await quote();
+    const receipt=async(id,options)=>await(await req(env,'/api/jobs?quoteId='+id,options)).json();
+    assert.deepEqual(await receipt(originalQuote.id,{authToken}),{job:original});
+    assert.deepEqual(await receipt(originalQuote.id),{job:null},'The quote lookup is scoped to the same account');
+    assert.deepEqual(await receipt(fresh.id,{authToken}),{job:null},'A quote alone creates no job');
+    assert.equal(falSubmitCount,1);assert.equal(balance(),heldBalance);
     for(const consent of [undefined,false,'true']){
       const denied=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:fresh.id,confirm:true,confirmNewCharge:consent}});
       assert.equal(denied.status,409);assert.equal(balance(),heldBalance);assert.equal(falSubmitCount,1);
@@ -1655,6 +1660,7 @@ test('Public upscale recovery keeps the original charge separate and accepts onl
     const next=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:fresh.id,confirm:true,confirmNewCharge:true}});
     assert.equal(next.status,202,await next.clone().text());const newJob=(await next.json()).job;
     assert.notEqual(newJob.id,original.id);assert.equal(newJob.status,'queued');assert.equal(balance(),heldBalance-fresh.creditCost);assert.equal(falSubmitCount,2);
+    assert.deepEqual(await receipt(fresh.id,{authToken}),{job:newJob},'A queued job is findable even if the browser never saw the POST reply');
     const replay=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:fresh.id,confirm:true}});
     assert.equal((await replay.json()).job.id,newJob.id);assert.equal(falSubmitCount,2);assert.equal(balance(),heldBalance-fresh.creditCost);
     const oldReplay=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:originalQuote.id,confirm:true}});
@@ -1802,17 +1808,61 @@ test('A recovered upscale status cannot overwrite a newer poll or completed resu
   }finally{globalThis.fetch=previous;falUpscaleMode='ok';falState='IN_QUEUE';falHistoryItems=[];}
 });
 
-test('Upscale cleanup runs independently when unrelated scheduled provider maintenance fails',async()=>{
+test('Upscale cleanup and abandoned dispatch review run when unrelated scheduled maintenance fails',async()=>{
   const {env}=fixture(),sourceId=await topazSource(env),db=env.LAB_DB.db;
   const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json(),quote=db.prepare('SELECT * FROM quotes WHERE id=?').get(q.id);
   const id=crypto.randomUUID(),t=Date.now()-180000;
   db.prepare("INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,?,'submitting',?,?,?)").run(id,'owner-internal',sourceId,q.id,JSON.stringify({...JSON.parse(quote.params),upscaleDispatch:{version:1,phase:'preparing'}}),quote.estimate_microusd,t,t);
+  const dispatched=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
+  falSubmitCount=0;falUpscaleMode='timeout';falHistoryItems=[];
+  let dispatchedJob;
+  try{
+    const response=await req(env,'/api/jobs',{method:'POST',data:{quoteId:dispatched.id,confirm:true}});
+    assert.equal(response.status,202);dispatchedJob=(await response.json()).job;
+    assert.equal(dispatchedJob.status,'uncertain');
+  }finally{falUpscaleMode='ok';}
+  db.prepare("UPDATE jobs SET state='submitting',error='',created_at=?,updated_at=?,params=json_set(params,'$.upscaleDispatch.startedAt',?) WHERE id=?").run(t,t,t,dispatchedJob.id);
   const prepare=env.LAB_DB.prepare.bind(env.LAB_DB);
   env.LAB_DB.prepare=sql=>{if(sql.startsWith("SELECT * FROM jobs WHERE state='failed' AND provider_id IS NOT NULL AND error=?"))throw Error('Synthetic unrelated backfill failure');return prepare(sql);};
   const tasks=[];await worker.scheduled({},env,{waitUntil(task){tasks.push(task);}});
   const outcomes=await Promise.allSettled(tasks);
   assert.ok(outcomes.some(x=>x.status==='rejected'&&/unrelated backfill/.test(x.reason?.message)));
   assert.equal(db.prepare('SELECT state FROM jobs WHERE id=?').get(id).state,'failed');assert.equal(db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(id).n,0);
+  const retained=db.prepare('SELECT state,error,updated_at,last_poll FROM jobs WHERE id=?').get(dispatchedJob.id);
+  assert.equal(retained.state,'uncertain');assert.match(retained.error,/checking the original request/);
+  assert.equal(retained.updated_at,t);assert.ok(retained.last_poll>t);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(dispatchedJob.id).n,1);
+  assert.equal(falSubmitCount,1);
+});
+
+test('Owner review rejects a stale provider version and preserves a concurrent upscale completion',async()=>{
+  const {env}=fixture(),sourceId=await topazSource(env),db=env.LAB_DB.db;
+  const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
+  falUpscaleMode='timeout';
+  let job;
+  try{
+    const response=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});
+    assert.equal(response.status,202);job=(await response.json()).job;assert.equal(job.status,'uncertain');
+  }finally{falUpscaleMode='ok';}
+  const taskId='confirmed-upscale-task';
+  db.prepare('UPDATE jobs SET provider_id=? WHERE id=?').run(taskId,job.id);
+  const review=expectedProviderTaskId=>req(env,'/api/jobs/'+job.id+'/resolve',{method:'POST',
+    data:{confirm:true,expectedUpdatedAt:job.updatedAt,expectedProviderTaskId}});
+  assert.equal((await review(null)).status,409);
+  assert.equal(db.prepare('SELECT state FROM jobs WHERE id=?').get(job.id).state,'uncertain');
+  const prepare=env.LAB_DB.prepare.bind(env.LAB_DB);let completedDuringReview=false;
+  env.LAB_DB.prepare=sql=>{
+    if(sql.startsWith("UPDATE jobs SET state='resolved'")){
+      db.prepare("UPDATE jobs SET state='completed',output_id=?,last_poll=last_poll+1 WHERE id=?").run(sourceId,job.id);
+      completedDuringReview=true;
+    }
+    return prepare(sql);
+  };
+  const response=await review(taskId);
+  assert.ok(completedDuringReview);assert.equal(response.status,409);
+  assert.match((await response.json()).error,/status changed/);
+  assert.deepEqual({...db.prepare('SELECT state,output_id FROM jobs WHERE id=?').get(job.id)},{state:'completed',output_id:sourceId});
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(job.id).n,1);
 });
 
 test('Recovery archive attempts preserve newer output bytes and retain committed output after a lost acknowledgement',async()=>{
