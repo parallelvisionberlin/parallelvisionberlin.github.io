@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T22:21:00Z",
+  "updatedAt": "2026-11-09",
   "handoffs": [
     {
       "id": "owner",
@@ -2511,6 +2511,72 @@
         "Keep draft PR #928 content-decline wording separate."
       ],
       "updatedAt": "2026-11-08T17:07:47Z"
+    },
+    {
+      "id": "pvlab-search-indexing",
+      "title": "Google Search indexing and crawler access",
+      "component": "PV LAB public discovery",
+      "summary": "Google's live inspection tool reached the public site. Clean canonical tags and sitemap discovery are prepared for the public studio and legal pages.",
+      "status": "needs_verification",
+      "updatedAt": "2026-11-09",
+      "baselineSha": "f1ebdff1800564e933db6c7cddb8020fc1a18135",
+      "reviewedSha": null,
+      "branch": "fix/pvlab-search-canonicals-20261109",
+      "files": [
+        "lab/SEARCH-INDEXING-WORK-STATE.md",
+        "lab/beauty.html",
+        "lab/full-editorial.html",
+        "lab/impressum/index.html",
+        "lab/cancel/index.html",
+        "lab/withdraw/index.html",
+        "lab/sitemap.xml"
+      ],
+      "links": [
+        {
+          "label": "October crawler repair",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/589"
+        },
+        {
+          "label": "Live sitemap",
+          "url": "https://pvlab.studio/sitemap.xml"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Search indexing, crawler exception, comparison page and approved Image contract",
+          "scope": "13 targeted local checks",
+          "result": "passed",
+          "source": "tests/lab-search-indexing.test.mjs"
+        }
+      ],
+      "deployment": {
+        "state": "unverified",
+        "environment": "Cloudflare Pages production",
+        "sourceSha": null,
+        "evidenceUrl": "https://pvlab.studio/sitemap.xml",
+        "limitations": [
+          "Read the release PR for the Pages check and production response verification."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "production_health",
+          "summary": "Google's smartphone inspection tool fetched the homepage, public studio and legal pages, sitemap and robots. HTTP/www homepage variants passed after one transient HTTP www error.",
+          "scope": "November 9 public crawl tests",
+          "observedAt": "2026-11-09",
+          "source": "https://search.google.com/test/rich-results",
+          "limitations": [
+            "A live tool fetch does not report ongoing Googlebot crawl history or index inclusion."
+          ]
+        }
+      ],
+      "blockers": [
+        "Current Search Console report examples and Cloudflare event attribution need signed-in access."
+      ],
+      "doNotRepeat": [
+        "Do not broaden bot rules or restart validation based on user-agent-only HTTP tests."
+      ],
+      "nextAction": "Verify the release on pvlab.studio. Compare the signed-in Search Console failures with current Cloudflare events before restarting validation."
     }
   ]
 }
