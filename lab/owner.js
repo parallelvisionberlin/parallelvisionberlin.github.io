@@ -116,6 +116,20 @@ function paintCustomerActivity(data){
     formatNumber(summary.archivedJobs||0)+' finance records archived · '+
     dollar+Number(summary.providerExposureUsd||0).toFixed(2)+
     ' estimated/settled provider exposure. '+formatNumber(summary.unsettledFailedJobs||0)+' failed jobs await billing confirmation. Credits are charged when jobs start.'));
+  const journey=Array.isArray(data.journey)?data.journey:[];
+  const journeyLabels={studio_opened:'Opened Studio',mood_selected:'Selected Mood',model_selected:'Selected model',
+    photo_added:'Added photo',generate_clicked:'Clicked Generate',offer_viewed:'Saw credit offer',
+    offer_clicked:'Clicked credit offer',checkout_clicked:'Started checkout'};
+  activityTable(root,{
+    heading:'Creative journey',note:'Browser-reported actions · last 90 days',
+    columns:['Last seen','Step','Area / selection','Count'],
+    rows:journey.map(item=>[
+      activityDate(item.lastAt),journeyLabels[item.event]||'Other action',
+      {main:item.surface||'Studio',sub:item.detail&&item.detail!=='none'?item.detail:''},
+      formatNumber(item.count)
+    ]),
+    emptyMessage:'No tracked interactions yet. Tracking starts only after the instrumented release.'
+  });
   const jobs=Array.isArray(data.jobs)?data.jobs:[];
   activityTable(root,{
     heading:'Generation history',note:'Latest '+(data.limits?.jobs||50)+' jobs',
@@ -386,6 +400,46 @@ for(const button of document.querySelectorAll('[data-traffic-days]'))button.addE
 $('owner-traffic-refresh').addEventListener('click',()=>void refreshTraffic());
 $('owner-audience-refresh').addEventListener('click',()=>void refreshTraffic());
 
+const journeyLabels={studio_opened:'Opened Studio',mood_selected:'Selected Mood',model_selected:'Selected model',
+  photo_added:'Added photo',generate_clicked:'Clicked Generate',offer_viewed:'Saw credit offer',
+  offer_clicked:'Clicked credit offer',checkout_clicked:'Started checkout'};
+let journeyDays=7,journeySerial=0;
+async function refreshCustomerJourney(){
+  if(!profile?.owner)return;
+  const current=revision,serial=++journeySerial,button=$('owner-journey-refresh');
+  button.disabled=true;$('owner-journey-status').textContent='Loading first-party interaction data…';
+  try{
+    const data=await call('/api/admin/customer-journey?days='+journeyDays);
+    if(current!==revision||serial!==journeySerial)return;
+    $('owner-journey-rows').replaceChildren();
+    const events=Array.isArray(data.events)?data.events:[];
+    for(const event of Object.keys(journeyLabels)){
+      const stat=events.find(item=>item.event===event);
+      const row=document.createElement('tr');
+      for(const value of [journeyLabels[event],formatNumber(stat?.accounts||0),formatNumber(stat?.interactions||0)]){
+        const cell=document.createElement('td');cell.textContent=value;row.append(cell);
+      }
+      $('owner-journey-rows').append(row);
+    }
+    $('owner-journey-status').textContent=
+      formatNumber(data.newAccounts||0)+' registrations in '+journeyDays+' days · '+
+      (data.firstTrackedAt?'Tracking since '+activityDate(data.firstTrackedAt):
+        'No recorded journey actions yet; earlier activity cannot be reconstructed.');
+  }catch(error){
+    if(current!==revision||serial!==journeySerial)return;
+    $('owner-journey-status').textContent='Journey data unavailable: '+(error.message||'Try again.');
+  }finally{if(current===revision&&serial===journeySerial)button.disabled=false;}
+}
+$('owner-journey-panel').addEventListener('toggle',()=>{
+  if($('owner-journey-panel').open&&profile?.owner)void refreshCustomerJourney();
+});
+$('owner-journey-refresh').addEventListener('click',()=>void refreshCustomerJourney());
+for(const button of document.querySelectorAll('[data-journey-days]'))button.addEventListener('click',()=>{
+  journeyDays=Number(button.dataset.journeyDays);
+  for(const item of document.querySelectorAll('[data-journey-days]'))
+    item.setAttribute('aria-pressed',String(Number(item.dataset.journeyDays)===journeyDays));
+  void refreshCustomerJourney();
+});
 const generationReviewUI=createOwnerGenerationReviewUI({
   call:path=>call(path),request,ownerReady:()=>!!profile?.owner,
   revision:()=>revision,formatDate:activityDate
@@ -627,6 +681,7 @@ async function refreshSession(){
   const current=++revision;fetchSerial++;generationReviewUI.close();profile=null;
   voucherRecipientsObserver?.disconnect();voucherRecipientsObserver=null;voucherRecipientsGeneration++;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;$('owner-agency-link').hidden=true;
   trafficSerial++;trafficAudienceData=null;$('owner-traffic-content').hidden=true;
+  journeySerial++;$('owner-journey-rows').replaceChildren();$('owner-journey-status').textContent='Not collected until this release is deployed.';
   $('owner-traffic-status').textContent='Traffic statistics will load after owner verification.';
   if(customerDialog.open)customerDialog.close();customerActivitySerial++;
   recentCustomers=[];recentPayments=[];recentFilter='all';customerPage=1;syncNotice='';$('owner-search').value='';

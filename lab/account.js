@@ -193,6 +193,8 @@ async function openPayment(path,body){
   paymentPending=true;const current=revision;status('Opening secure billing…');$('account-portal').disabled=true;
   try{
     const checkout=path.endsWith('/checkout');
+    if(checkout&&navigator.doNotTrack!=='1'&&navigator.globalPrivacyControl!==true&&navigator.webdriver!==true)
+      void api('/api/customer/journey-event',{method:'POST',body:{event:'checkout_clicked',surface:'billing'}}).catch(()=>{});
     const payload=checkout&&metaConsentGranted()?{...body,metaConsent:true,...metaPixelIdentifiers()}:body;
     const data=await api(path,{method:'POST',body:payload});if(current!==revision)return;
     const destination=stripeDestination(data.url);

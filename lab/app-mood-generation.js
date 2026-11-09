@@ -53,6 +53,12 @@ export function createAppMoodGeneration(){
       if(!user.isSignedIn)return null;
       return api('/api/customer/mood-offer-event',{method:'POST',body:{event}});
     },
+    async trackJourney(event,detail='none'){
+      if(navigator.doNotTrack==='1'||navigator.globalPrivacyControl===true||navigator.webdriver===true)return null;
+      const user=await identity();
+      if(!user.isSignedIn)return null;
+      return api('/api/customer/journey-event',{method:'POST',body:{event,surface:'moods',detail}});
+    },
     jobStatus(id){return api('/api/jobs/'+encodeURIComponent(id));},
     outputBlob(id){return api('/api/assets/'+encodeURIComponent(id),{blob:true});},
     previewBlob(id){return api('/api/jobs/'+encodeURIComponent(id)+'/preview',{blob:true});},

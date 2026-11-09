@@ -10,6 +10,10 @@ function section(start,end){const a=source.indexOf(start),b=end?source.indexOf(e
 const apiCode=section('async function api(path,options={}) {','async function action(fn)');
 const feedbackCode=section('function beginImageFeedback(count,selected,ratio){','let assetLibrary=null;');
 const submitCode=section('async function submitImageSnapshot(){');
+const journeyCode=section('const journeyEventTime=new Map();','let imageReplacement=');
+const pricingOverlayCode=source.split('\n').find(line=>line.startsWith('function openPricingMeasured('));
+assert.ok(pricingOverlayCode);
+const testNavigator=Object.freeze({webdriver:true});
 
 function fixture({balance=100,response='credit',explicit=true,intent=null,reviewResult=true,issue=''}={}){
   const calls=[],notices=[],opened=[],pending=new Map(),reviews=[];let refreshes=0,priceConsumes=0;
@@ -20,7 +24,7 @@ function fixture({balance=100,response='credit',explicit=true,intent=null,review
     owner:true,epoch:1,userId:'customer',customerMode:true,customerBillingReady:true,customerGenerationReady:true,customerTrialGenerationPaused:false,
     customerCreditBalance:balance,tool:'image',busy:false,imageSubmissionPending:explicit,customerPriceIntentPending:false,imageSubmissionStage:'Sending…',
     imageEngine:'seedream',imageProcessing:'normal',fashionActive:false,activeJobs:[],slotStates:new Set(['submitting','queued','running','uncertain']),
-    window:{__PV_LAB_NATIVE__:0},config:{enabled:true,imageReplacementEnabled:true},sourceId:null,file:null,poseMapSourceId:null,references:[],inspirationMoodId:'',sourceWidth:900,sourceHeight:1200,
+    window:{__PV_LAB_NATIVE__:0},navigator:testNavigator,config:{enabled:true,imageReplacementEnabled:true},sourceId:null,file:null,poseMapSourceId:null,references:[],inspirationMoodId:'',sourceWidth:900,sourceHeight:1200,
     pendingImageCards:pending,requestControllers:new Set(),assetLibrary:{active:()=>false},
     $:id=>controls.get(id),notify:(...args)=>notices.push(args),
     sessionRequest:async(path,options)=>{
@@ -42,7 +46,7 @@ function fixture({balance=100,response='credit',explicit=true,intent=null,review
     syncImageGalleryEmpty:()=>{},renderPendingImageCards:()=>{},detailModelName:()=> 'Seedream 5 Pro',
     update:()=>{},clearImageComposerNotice:()=>{},setActive:()=>{},surfaceHistoryJob:()=>{},refreshHistorySoon:()=>{},moodDiscoveryOpen:false
   };
-  new Script(apiCode+'\n'+feedbackCode+'\n'+submitCode+'\nthis.submit=submitImageSnapshot;this.request=api;').runInNewContext(env);
+  new Script([apiCode,feedbackCode,journeyCode,pricingOverlayCode,submitCode].join('\n')+'\nthis.submit=submitImageSnapshot;this.request=api;').runInNewContext(env);
   return {env,calls,notices,opened,pending,reviews,priceConsumes:()=>priceConsumes,refreshes:()=>refreshes,resetReady(){env.imageSubmissionPending=false;}};
 }
 
@@ -88,7 +92,7 @@ const walletSource=readFileSync('lab/customer-wallet.js','utf8');
 const purchaseCode=walletSource.slice(walletSource.indexOf('  async function purchase(sku'),walletSource.indexOf('  function open(){'));
 function checkoutFixture(before){
   const events=[];const env={account:true,billingReady:true,accountClosed:false,billingReview:false,purchasing:false,accountEpoch:1,
-    URL,setTimeout,state:{},update(){},beforeCheckout:async()=>{events.push('save');await before?.(env);},
+    URL,setTimeout,navigator:testNavigator,state:{},update(){},beforeCheckout:async()=>{events.push('save');await before?.(env);},
     api:async()=>{events.push('checkout');return {url:'https://checkout.stripe.com/c/pay/mock'};},
     metaConsentGranted:()=>false,trackLabEvent:()=>false,location:{assign(){events.push('navigate');}},notify(){events.push('notice');}};
   new Script(purchaseCode+'\nthis.purchase=purchase;').runInNewContext(env);return {env,events};

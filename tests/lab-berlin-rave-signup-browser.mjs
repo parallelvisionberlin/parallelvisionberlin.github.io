@@ -24,6 +24,8 @@ for(const width of [320,390,1440])for(const returning of [false,true]){
     if(url.hostname===api){
       if(url.pathname==='/api/public/local-currency')return json({currency:'EUR',rate:1,approximate:true});
       if(url.pathname==='/api/public/traffic')return json({ok:true});
+      if(url.pathname==='/api/customer/mood-offer-event')return json({ok:true});
+      if(url.pathname==='/api/customer/journey-event'){const body=req.postDataJSON();assert.ok(['studio_opened','mood_selected','model_selected','photo_added','generate_clicked','offer_viewed','offer_clicked','checkout_clicked'].includes(body.event));assert.equal(body.surface,'moods');assert.deepEqual(Object.keys(body).sort(),['detail','event','surface']);return json({ok:true});}
       if(url.pathname==='/api/session')return initialized?json({customer:true,owner:false,ownerId:'user_Campaign',balanceCredits:balance,generationReady:balance>0,trialGenerationPaused:balance===0,billingReady:true,config:{enabled:true}}):json({error:'Setup required'},409,{'X-PV-Lab-Onboarding':'required'});
       if(url.pathname==='/api/migration/new'){assert.equal(req.method(),'POST');if(initialized)return json({error:'Already linked'},409);initialized=true;grants++;return json({linked:true},201);}
       if(url.pathname==='/api/uploads'){assert.ok(initialized);assert.equal(decodeURIComponent(req.headers()['x-filename']),'campaign-source.png');assert.deepEqual(req.postDataBuffer(),photo);uploads++;return json({id:'20000000-0000-4000-8000-'+String(uploads).padStart(12,'0')});}

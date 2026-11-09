@@ -18,6 +18,7 @@ import {prepareCharacterTransform,quoteCharacterTransform,submitCharacterTransfo
 import {klingSpicyParameters,prepareKlingSpicyInput} from './kling-spicy.mjs';
 import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd,verifyClosureBilling} from './customer-billing.mjs';
 import {recordMoodOfferEvent,pruneMoodOfferEvents} from './mood-offer-funnel.mjs';
+import {recordCustomerJourneyEvent,pruneCustomerJourney} from './customer-journey.mjs';
 import {canCustomerGenerate} from './customer-rollout.mjs';
 import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
@@ -66,7 +67,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-11-03-paid-onboarding';
+export const VERSION = 'pv-lab-2026-11-09-image-trial-journey';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1455,6 +1456,7 @@ async function route(request,env,ctx) {
   if(path.startsWith('/api/customer/')||path.startsWith('/api/billing/')){
     if(!customer)fail(403,'Only customer accounts use the PV Lab credit wallet.');
     if(path==='/api/customer/mood-offer-event')return recordMoodOfferEvent(request,env,owner);
+    if(path==='/api/customer/journey-event')return recordCustomerJourneyEvent(request,env,owner);
     if(path==='/api/customer/image-price'&&method==='POST'){
       // A read-only, server-calculated quote. The client cannot supply a price.
       // Live provider quotes for Seedream and Higgsfield use their existing,
@@ -2315,6 +2317,7 @@ export default {
         pruneMusicEvents(env,{clock:()=>clock}),
         pruneLabTraffic(env,{clock:()=>clock}),
         pruneMoodOfferEvents(env,{clock:()=>clock}),
+        pruneCustomerJourney(env,{clock:()=>clock}),
         pruneAgencyData(env,{clock:()=>clock}),
         pruneGenerationReviewAudit(env,{clock:()=>clock})
       ]));

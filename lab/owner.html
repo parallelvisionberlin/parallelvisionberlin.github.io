@@ -204,6 +204,17 @@
     </section>
     <section class="owner-section" id="owner-customers-section" aria-labelledby="owner-customers-title">
       <div class="owner-section-head"><div><h2 class="owner-visually-hidden" id="owner-customers-title">Customers</h2></div><form id="owner-search-form" class="owner-search" role="search"><label for="owner-search">Find an account</label><input id="owner-search" type="search" placeholder="Email or account ID" maxlength="80" autocomplete="off"><button id="owner-search-clear" type="button" hidden>Clear</button><button type="submit">Search</button><button type="button" id="owner-customers-refresh">Refresh</button></form></div>
+      <details class="owner-check-detail" id="owner-journey-panel">
+        <summary>Customer journey <span>First-party activation, not ad attribution</span></summary>
+        <div class="owner-traffic-actions" role="group" aria-label="Journey date range">
+          <button type="button" data-journey-days="7" aria-pressed="true">7 days</button>
+          <button type="button" data-journey-days="30" aria-pressed="false">30 days</button>
+          <button type="button" id="owner-journey-refresh">Refresh</button>
+        </div>
+        <p class="owner-small" id="owner-journey-status" aria-live="polite">Not collected until this release is deployed.</p>
+        <div class="owner-table-wrap"><table><thead><tr><th>Step</th><th>Accounts</th><th>Actions</th></tr></thead><tbody id="owner-journey-rows"></tbody></table></div>
+        <p class="owner-small">Authenticated browser actions only. Completed generations and paid purchases require ledger verification. No historical events can be recovered.</p>
+      </details>
       <div class="owner-toolbar"><p id="owner-customer-count">Loading customer directory…</p></div>
       <div class="owner-table-wrap"><table><thead><tr><th>Account</th><th>Joined</th><th>Balance</th><th>Payments</th><th>Completed</th><th>Last completed</th><th>Details</th></tr></thead><tbody id="owner-customers"></tbody></table></div>
       <div id="owner-customers-pagination" class="owner-pagination" aria-label="Customer directory pages"></div>
@@ -328,6 +339,6 @@
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261106-activity3"></script>
+<script type="module" src="./owner.js?v=20261106-activity3&journey=20261108"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T22:21:00Z",
+  "updatedAt": "2026-11-09",
   "handoffs": [
     {
       "id": "owner",
@@ -2511,6 +2511,54 @@
         "Keep draft PR #928 content-decline wording separate."
       ],
       "updatedAt": "2026-11-08T17:07:47Z"
+    },
+    {
+      "id": "restore-intro-image-credits",
+      "title": "Restore the 40-credit image trial",
+      "component": "Image trial and checkout",
+      "status": "needs_verification",
+      "updatedAt": "2026-11-09",
+      "baselineSha": "f1ebdff1800564e933db6c7cddb8020fc1a18135",
+      "reviewedSha": null,
+      "branch": "feat/resume-image-trial-20261108",
+      "summary": "PR #930 restores a one-time 40-credit grant for eligible verified zero-balance customers and adds first-party journey reporting. The checkout test fixture now executes the measured pricing helper and provides browser privacy state. The Studio entrypoint keeps the main-branch Upscale version with the trial and journey cache parameters.",
+      "nextAction": "Confirm the integrated PR checkout browser and Worker checks. Merge the reviewed source, then use the approved direct Cloudflare Worker release path with migrations 0061 and 0062 and the read-only wallet audit.",
+      "files": [
+        "tests/lab-credit-purchase-flow.test.mjs",
+        "lab/studio.html",
+        "lab-worker/worker.mjs",
+        "lab-worker/migrations/0061-resume-40-credit-image-trial.sql",
+        "lab-worker/migrations/0062-customer-journey.sql"
+      ],
+      "links": [
+        {
+          "label": "40-credit trial and journey PR",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/930"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Focused checkout, trial and billing tests",
+          "result": "passed",
+          "scope": "56 tests on the locally integrated branch before the Worker version marker update."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "sourceSha": null,
+        "environment": "PV LAB Cloudflare Pages and Worker",
+        "limitations": [
+          "GitHub Worker releases remain manual-only. The prior production policy remains in force until direct publication is verified."
+        ]
+      },
+      "evidence": [],
+      "blockers": [
+        "Hosted checkout browser validation is pending because local Chromium cannot open its socket.",
+        "Cloudflare Worker deployment access is required after the release checks."
+      ],
+      "doNotRepeat": [
+        "Use mock payment and provider calls for checkout and trial validation. Never submit a production generation as a smoke test."
+      ]
     }
   ]
 }

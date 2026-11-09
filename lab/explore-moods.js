@@ -45,8 +45,14 @@ function initialize(){
   const resultImg=$('mc-look-result-image'),resultLoading=$('mc-look-result-loading');
   const resultActions=$('mc-look-result-actions');
   const prepay=$('mc-look-prepay'),paymentCodes=new Set(['TRIAL_PAUSED','INSUFFICIENT_CREDITS']);
+  function trackJourney(event,detail='none'){
+    if(navigator.doNotTrack==='1'||navigator.globalPrivacyControl===true||navigator.webdriver===true)return;
+    void generationService().then(client=>client.trackJourney?.(event,detail)).catch(()=>{});
+  }
+  prepay.querySelector('.mc-prepay-buy')?.addEventListener('click',()=>trackJourney('offer_clicked'));
   $('mc-look-prepay-back').onclick=()=>close();
   function showPrepayOffer(){
+    trackJourney('offer_viewed');
     prepay.hidden=false;
     dialog.classList.add('is-prepay-offer');
     dialog.classList.remove('is-generation-blocked');
@@ -64,6 +70,7 @@ function initialize(){
   resultPack.querySelector('.mc-credit-buy')?.addEventListener('click',()=>{
     if(!resultNeedsCredits)return;
     void generationService().then(client=>client.trackMoodOffer?.('offer_clicked')).catch(()=>{});
+    trackJourney('offer_clicked');
   });
   let runSerial=0,activeJobId=null,resultURL=null,resultBlob=null,resultOutputId=null,waitNoteTimer=null;
   function clearResult(){
@@ -194,7 +201,7 @@ function initialize(){
   }
   function generationService(){
     if(service)return Promise.resolve(service);
-    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?hkRealPhotos=20261018v2&accessNotice=20261018v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1&photobooth1k=20261018v1&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&hkCinema=20261025v1&trialBalance=20261102&conversionFlow=20261102-1&offerFunnel=20261103-1&paidOnboarding=20261103-1&dreamBlurExposure=20261102v2').then(({createAppMoodGeneration})=>{
+    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?journey=20261108&hkRealPhotos=20261018v2&accessNotice=20261018v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1&photobooth1k=20261018v1&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&hkCinema=20261025v1&trialBalance=20261102&conversionFlow=20261102-1&offerFunnel=20261103-1&paidOnboarding=20261103-1&dreamBlurExposure=20261102v2').then(({createAppMoodGeneration})=>{
       service=createAppMoodGeneration();
       let accountId;
       void service.onAccountChange(account=>{
@@ -353,6 +360,7 @@ function initialize(){
     try{validateMoodHandoff({file:input});}
     catch(error){showUploadError(input,error);return false;}
     clearPhoto();file=input;
+    trackJourney('photo_added');
     fileURL=URL.createObjectURL(file);
     const photo=document.createElement('img');photo.id='mc-look-file-preview';photo.className='mc-look-file-preview';
     photo.alt='Chosen photo to transform';photo.src=fileURL;
@@ -365,6 +373,7 @@ function initialize(){
   function showMood(selected,photo=null){
     if(!selected||busy)return;
     clearResult();resetPrice();mood=selected;moodVariant='original';renderVariation();clearPhoto();direction.value='';status.textContent='';
+    trackJourney('mood_selected',selected.id==='berlin-rave'?'berlin-rave':'other');
     const preview=$('mc-look-preview');
     preview.dataset.moodId=selected.id;
     // Reuse the gallery's HD image while the untouched original decodes offscreen.
@@ -477,6 +486,7 @@ function initialize(){
   });
   generate.onclick=()=>void (async()=>{
     if(!hasGenerationInput()||busy)return;
+    trackJourney('generate_clicked');
     if(needsSignIn||paymentCodes.has(blockedCode)){showPrepayOffer();return;}
     if(blockedCode)return;
     const stamp=priceRevision,serial=++runSerial;
