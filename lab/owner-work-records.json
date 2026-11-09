@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T22:21:00Z",
+  "updatedAt": "2026-11-09T11:54:53.594Z",
   "handoffs": [
     {
       "id": "owner",
@@ -2406,22 +2406,29 @@
     },
     {
       "id": "upscaler-interrupted-request-feedback",
-      "title": "Upscaler interrupted-request feedback",
+      "title": "Upscaler independent requests and automatic recovery",
       "component": "Image Upscaler",
-      "status": "deployed",
-      "summary": "Explain the disabled Upscale action when an earlier upscale is unconfirmed or the FAL image queue is full; open the existing Queue without submitting anything.",
-      "nextAction": "Existing browser tabs should refresh once to clear their old queue state and load the new feedback.",
-      "baselineSha": "d004356feba9533693a38e8b43c7c8ba6e3a4177",
-      "reviewedSha": "0a3c1bf3ac94bf7411bd0f83454c93df9fd79c24",
-      "branch": "fix/upscale-disabled-source-20261108",
+      "status": "needs_verification",
+      "summary": "Recover an interrupted Upscale without blocking independent work, requiring exact separate-charge consent after a lost browser reply and guarding credits and recovered results.",
+      "nextAction": "Show the reviewed draft SHA and diff. After explicit approval, verify the candidate with signed-in roles and publish the Worker before Cloudflare Pages.",
+      "baselineSha": "045cacac01d0f5524ada08243b68cba2c4643501",
+      "reviewedSha": null,
+      "branch": "fix/upscale-workflow-recovery-20261108",
       "files": [
         "lab/lab.js",
         "lab/studio.html",
-        "lab/upscale-studio-v5.css",
+        "lab-worker/worker.mjs",
+        "lab-worker/upscale-recovery.mjs",
         "tests/lab-upscale-ui.mjs",
+        "tests/lab-worker.test.mjs",
+        "tests/lab-upscale-recovery.test.mjs",
         "lab/UPSCALE-WORK-STATE.md"
       ],
       "links": [
+        {
+          "label": "Draft PR #939",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/939"
+        },
         {
           "label": "Scoped Upscaler handoff",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
@@ -2433,84 +2440,72 @@
       ],
       "tests": [
         {
-          "label": "Approved Image UI contract",
-          "scope": "Six locked Image interface contracts; no Image design changes",
+          "label": "Focused Worker, wallet and Image safeguards",
+          "scope": "218 passing tests including quote receipts, customer debits, independent recovery, concurrent owner review, auth and approved Image UI",
           "result": "passed",
-          "source": "tests/lab-approved-image-ui-contract.test.mjs"
+          "source": "tests/lab-worker.test.mjs"
         },
         {
-          "label": "JavaScript syntax",
-          "scope": "Changed lab/lab.js parses with Node",
-          "result": "passed"
+          "label": "Full mocked Upscaler browser suite",
+          "scope": "54 groups including owner and customer at 390px and 1440px, lost reply and reload, exact consent, SeedVR2 and Topaz, and preservation of independent work",
+          "result": "passed",
+          "source": "tests/lab-upscale-ui.mjs"
         },
         {
-          "label": "Upscaler queue browser regression",
-          "scope": "48 full browser groups and 12 smoke groups; includes 1440px/390px interrupted-state, capacity, Queue review, normal unlock and mode isolation.",
+          "label": "Upscaler layout and Assets parity",
+          "scope": "Desktop and mobile Image and Video editor, synthetic MP4 upload and shared Assets regression",
           "result": "passed",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42502720973"
+          "source": "tests/lab-video-upscale-layout.mjs"
+        },
+        {
+          "label": "Cloudflare Worker build",
+          "scope": "Wrangler 4.158.0 dry-run, 86 bundled modules and only the two scoped modules changed versus the original draft bundle",
+          "result": "passed",
+          "source": "lab/UPSCALE-WORK-STATE.md"
+        },
+        {
+          "label": "Real authenticated candidate session",
+          "scope": "Owner and customer against the candidate Worker with provider recovery",
+          "result": "not_run"
         }
       ],
       "deployment": {
-        "state": "verified",
-        "environment": "pvlab.studio / Cloudflare Pages",
-        "sourceSha": "5b68b7a15d56c46eff4119fa264bd5ac14bd7a78",
+        "state": "not_started",
+        "environment": "pvlab.studio / Cloudflare Pages and parallel-vision-lab Worker",
+        "sourceSha": null,
         "limitations": [
-          "Production assets and public DOM verified; signed-in affected behavior was tested with synthetic fixtures.",
-          "The actual account interruption was separately resolved and re-read in the backend. No paid generation was submitted for verification."
-        ],
-        "observedAt": "2026-11-08T17:07:47Z",
-        "evidenceUrl": "https://pvlab.studio/studio?tool=upscale"
+          "The production site is still serving the prior Upscale feedback release. The Worker and Pages candidate require explicit release approval."
+        ]
       },
       "evidence": [
         {
-          "kind": "source",
-          "summary": "The existing queue guard blocks a new FAL upscale while an earlier FAL upscale remains uncertain.",
-          "scope": "Image Upscaler button state",
-          "source": "lab/lab.js",
-          "limitations": []
-        },
-        {
-          "kind": "documented",
-          "summary": "A reported stale pre-dispatch interruption was reviewed with deployed code and the retained original quote, then closed using an exact guarded update. A separate read confirmed zero active jobs and preserved source and spending history.",
-          "scope": "One operational interruption; no new generation or refund",
+          "kind": "automated_test",
+          "summary": "Local Worker and mocked browser coverage verified independent jobs, lost receipt protection and safe concurrent review.",
+          "scope": "Candidate source in this draft",
           "source": "lab/UPSCALE-WORK-STATE.md",
           "limitations": [
-            "Does not establish a newly completed upscale in the user browser."
+            "Provider calls and wallet activity used controlled fixtures."
           ]
         },
         {
-          "kind": "fixture",
-          "summary": "Blocked and cleared queue states passed at desktop and phone sizes; Review Queue performs no POST or generation. Screenshots inspected.",
-          "scope": "Synthetic browser scenarios; not a signed-in live paid generation",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42502720973",
-          "limitations": []
-        },
-        {
-          "kind": "production_asset",
-          "summary": "Scoped release verifier returned LIVE_VERIFIED for lab.js v20261108-upscale-queue1 and upscale-studio-v5.css v20261108-queue-block1 against exact merge5b68b7a; production browser confirms both version keys and the conditional queue markup.",
-          "scope": "pvlab.studio published frontend assets",
-          "observedAt": "2026-11-08T17:07:47Z",
-          "source": "https://pvlab.studio/studio?tool=upscale",
+          "kind": "production_health",
+          "summary": "Public production health returned without the Upscale recovery capability.",
+          "scope": "Production Worker status on 2026-11-09",
+          "source": "https://parallel-vision-lab.parallelvision.workers.dev/health",
           "limitations": [
-            "The production browser was signed out."
+            "Authenticated candidate behavior awaits an approved staging environment."
           ]
-        },
-        {
-          "kind": "deployment",
-          "summary": "Cloudflare Pages production check128800348200 succeeded for reviewed merge5b68b7a15d56c46eff4119fa264bd5ac14bd7a78.",
-          "scope": "pvlab-studio / main",
-          "observedAt": "2026-11-08T17:07:47Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/936",
-          "limitations": []
         }
       ],
-      "blockers": [],
+      "blockers": [
+        "Explicit approval of the reviewed candidate is required before merge or deployment."
+      ],
       "doNotRepeat": [
         "Do not retry a paid generation to test the button.",
         "Do not clear ambiguous or fresh interrupted submissions without checking provider-dispatch evidence.",
         "Keep draft PR #928 content-decline wording separate."
       ],
-      "updatedAt": "2026-11-08T17:07:47Z"
+      "updatedAt": "2026-11-09T11:54:53.594Z"
     }
   ]
 }

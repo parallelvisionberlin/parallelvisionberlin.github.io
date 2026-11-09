@@ -374,6 +374,7 @@ function prewarmSeedreamDeck(){
   for(const item of references)prewarmSeedreamReference(item);
 }
 let upscaleQuote=null,upscaleQuoteNeedsCheck=false,upscaleQuoteTimer=null,upscalePriceMessage='',upscaleManualReviewRequired=false,upscaleManualReviewKey='';
+const upscaleReceiptQuotes=new Map();
 let upscaleEngine='seedvr2',videoUpscaler=null;
 // UI-only: collapsed Precision retains its selected engine and version.
 let upscalePrecisionExpanded=false;
@@ -603,22 +604,25 @@ function syncNoticePlacement(){
   slot.hidden=!inline||!notice.textContent.trim()||!notice.classList.contains('error');
 }
 function syncUpscaleQueueBlock(){
-  const block=$('upscale-queue-block'),reason=$('upscale-queue-reason'),generate=$('generate');
+  const block=$('upscale-queue-block'),reason=$('upscale-queue-reason'),generate=$('generate'),reviewQueue=$('upscale-review-queue');
   const active=tool==='upscale'&&owner&&videoUpscaler?.mode()!=='video'&&!assetLibrary?.active()&&!fashionActive&&!retouchActive;
-  const blocked=active&&submissionBlocked();
-  block.hidden=!blocked;
+  const blocked=active&&submissionBlocked(),review=active&&activeJobs.some(isUpscaleReviewJob);
+  const awaitingReceipt=active&&!busy&&isFalUpscale()&&!!upscaleReceiptQuoteId();
+  block.hidden=!blocked&&!review&&!awaitingReceipt;
   if(blocked){
-    const interrupted=activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===currentProvider()&&(!isFalUpscale()||j.settings?.mode==='upscale'));
+    const interrupted=activeJobs.some(j=>j.status==='uncertain'&&!isUpscaleReviewJob(j)&&jobProvider(j)===currentProvider()&&(!isFalUpscale()||j.settings?.mode==='upscale'));
     reason.textContent=interrupted?'An earlier upscale has an unconfirmed result. Review it in Queue before starting another.':'All image processing slots are busy. Wait for a request to finish.';
-  }else reason.textContent='';
-  $('upscale-review-queue').disabled=busy;
+  }else reason.textContent=review?'An earlier upscale is awaiting confirmation. You can keep working.':
+    awaitingReceipt?'An earlier upscale response was interrupted. Check History for its status. You can keep working.':'';
+  reviewQueue.hidden=!blocked&&!review&&!(awaitingReceipt&&activeJobs.length);
+  reviewQueue.disabled=busy;
   const descriptions=new Set((generate.getAttribute('aria-describedby')||'').split(/\s+/).filter(Boolean));
-  if(blocked)descriptions.add(reason.id);else descriptions.delete(reason.id);
+  if(blocked||review||awaitingReceipt)descriptions.add(reason.id);else descriptions.delete(reason.id);
   if(descriptions.size)generate.setAttribute('aria-describedby',[...descriptions].join(' '));
   else generate.removeAttribute('aria-describedby');
 }
 $('upscale-review-queue').onclick=()=>{
-  if(busy||tool!=='upscale'||videoUpscaler?.mode()==='video'||!submissionBlocked())return;
+  if(busy||$('upscale-review-queue').hidden||!activeJobs.length)return;
   $('active').open=true;
   $('active').querySelector('summary').focus();
 };
@@ -3237,7 +3241,7 @@ async function api(path,options={}) {
   const generation=epoch;
   if(!owner&&path!=='/api/session')throw new Error('Sign in first.');
   const assertCurrent=()=>{if(generation!==epoch)throw new Error('Session changed.');};
-  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),path==='/api/session'?18000:path==='/api/gemini/jobs'||path==='/api/image-models/generate'?240000:path==='/api/fal/soul-pro'||path==='/api/fal/krea'||path==='/api/jobs'&&options.method==='POST'?150000:path==='/api/soul/datasets'?120000:65000);requestControllers.add(controller);
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),options.timeoutMs??(path==='/api/session'?18000:path==='/api/gemini/jobs'||path==='/api/image-models/generate'?240000:path==='/api/fal/soul-pro'||path==='/api/fal/krea'||path==='/api/jobs'&&options.method==='POST'?150000:path==='/api/soul/datasets'?120000:65000));requestControllers.add(controller);
   try{
     const headers={...options.headers};let b=options.body;
     if(b!==undefined&&!(b instanceof Blob)&&!(b instanceof ArrayBuffer)){headers['Content-Type']='application/json';b=JSON.stringify(b);}
@@ -3260,6 +3264,7 @@ async function api(path,options={}) {
         }
       }
       const error=new Error(fundingError?'Choose credits when you are ready to generate. Your prompt and photographs stay in place.':d.error||`Request failed (${r.status}).`);
+      error.status=r.status;
       if(fundingError){error.code='PV_LAB_CREDITS_REQUIRED';error.creditPurchaseOpened=creditPurchaseOpened;}
       throw error;
     }
@@ -3799,12 +3804,63 @@ $('upscale-check-price').onclick=()=>action(async()=>{
     notify(isFalUpscale()?'Upscale estimate and dimensions checked. No generation submitted.':'Live upscale price checked. No generation submitted.');
   }catch(e){if(epoch===sessionEpoch){upscalePriceMessage='The price could not be checked. Try the price check again. Nothing was submitted.';}throw e;}
 });
+function upscaleReceiptQuoteId(){
+  if(!owner||!userId)return null;
+  if(upscaleReceiptQuotes.has(userId))return upscaleReceiptQuotes.get(userId);
+  let quoteId=null;
+  try{quoteId=sessionStorage.getItem('pv-upscale-receipt:'+userId);}catch{}
+  upscaleReceiptQuotes.set(userId,quoteId);
+  return quoteId;
+}
+function rememberUpscaleReceipt(quoteId){
+  upscaleReceiptQuotes.set(userId,quoteId);
+  try{
+    const key='pv-upscale-receipt:'+userId;
+    if(quoteId)sessionStorage.setItem(key,quoteId);else sessionStorage.removeItem(key);
+  }catch{}
+}
+async function checkUpscaleReceipt(){
+  const quoteId=upscaleReceiptQuoteId(),expectedEpoch=epoch;
+  if(!quoteId)return null;
+  let job;
+  try{({job}=await api('/api/jobs?quoteId='+encodeURIComponent(quoteId),{timeoutMs:5000}));}
+  catch{return null;}
+  if(!job||!owner||epoch!==expectedEpoch||upscaleReceiptQuoteId()!==quoteId)return null;
+  if(job.status==='failed')rememberUpscaleReceipt(null);
+  void syncHistory().catch(()=>{});
+  if(customerMode)void wallet.refresh();
+  return job;
+}
+window.addEventListener('online',()=>{void checkUpscaleReceipt();});
+
 // Image Generate and Upscale authorize a paid request on click. Video keeps the quote dialog.
-async function submitQuotedGeneration(q, expectedEpoch=epoch) {
+async function submitQuotedGeneration(q, expectedEpoch=epoch, confirmNewCharge=false) {
   if(!owner||epoch!==expectedEpoch)throw new Error('Session changed.');
   if(!q||!Number.isFinite(q.expiresAt)||Date.now()>=q.expiresAt)throw new Error('Quote expired. No generation submitted. Please try again.');
   // Retain the same quote ID through the session-safe request helper. Never reprice/retry a paid task here.
-  const data=await api(q.provider==='Higgsfield'&&q.settings?.type==='image'?'/api/higgsfield/generate':'/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});
+  const isImageUpscale=q.settings?.type==='image'&&q.settings.mode==='upscale'&&q.settings.provider==='fal';
+  const previousReceipt=isImageUpscale?upscaleReceiptQuoteId():null;
+  if(isImageUpscale)rememberUpscaleReceipt(q.id);
+  let data;
+  try{
+    data=await api(q.provider==='Higgsfield'&&q.settings?.type==='image'?'/api/higgsfield/generate':'/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true,...(confirmNewCharge?{confirmNewCharge:true}:{})}});
+    if(isImageUpscale&&!data?.job?.id)throw new Error('Upscale receipt missing.');
+  }catch(error){
+    if(isImageUpscale&&owner&&epoch===expectedEpoch){
+      if([400,401,402,403,404,409,413,415,422].includes(error.status)){
+        rememberUpscaleReceipt(previousReceipt);
+        // Another tab can enter review while this quote is being prepared.
+        if(error.status===409)void syncHistory().catch(()=>{});
+      }else{
+        // A lost response says nothing about whether the Worker accepted the POST.
+        void checkUpscaleReceipt();
+        throw new Error('The upscale response was interrupted. Check History for the original request. A separate upscale requires confirmation.',{cause:error});
+      }
+    }
+    throw error;
+  }
+  if(!owner||epoch!==expectedEpoch)throw new Error('Session changed.');
+  if(isImageUpscale)rememberUpscaleReceipt(data.job.status==='failed'?previousReceipt:null);
   if(q.settings?.type==='image'&&moodDiscoveryOpen)setMoodDiscoveryOpen(false);
   if($('quote-dialog').open)$('quote-dialog').close();
   resetPreview();setActive(data.job);surfaceHistoryJob(data.job);
@@ -3855,6 +3911,9 @@ $('generate').onclick=async()=>{if(tool==='image')return submitImageSnapshot();
   if(submissionBlocked())throw new Error('An active-job limit or an interrupted request blocks another generation. Check History.');
   const selectedTool=tool,sessionEpoch=epoch;
   if(selectedTool==='upscale'&&isFalUpscale()){
+    const requestKey=upscalePriceKey();
+    const earlierJob=upscaleReceiptQuoteId()?await checkUpscaleReceipt():null;
+    if(!owner||epoch!==sessionEpoch||tool!=='upscale'||requestKey!==upscalePriceKey())throw new Error('Image, settings or session changed before Premium Upscale submission. Nothing was submitted.');
     updateUpscalePrice();
     let checked=upscaleQuote;
     if(!checked||upscaleQuoteNeedsCheck||checked.key!==upscalePriceKey()){
@@ -3867,9 +3926,16 @@ $('generate').onclick=async()=>{if(tool==='image')return submitImageSnapshot();
     }else{
       validateUpscaleQuote(checked.quote,settings());
     }
+    const confirmNewCharge=!!upscaleReceiptQuoteId()||activeJobs.some(isUpscaleReviewJob);
+    if(confirmNewCharge){
+      const earlier=earlierJob?.status==='completed'?'The earlier upscale is available in History.':
+        ['submitting','queued','running','saving'].includes(earlierJob?.status)?'The earlier upscale is already in your queue.':'An earlier upscale is still awaiting confirmation.';
+      const charge=customerMode?wallet.jobCharge(checked.quote):money(checked.quote.estimatedUsd)+' USD estimated by fal.ai';
+      if(!confirm(earlier+' Start a separate upscale for '+charge+'?'))return;
+    }
     const usedManualEstimate=checked.manual===true,reviewKey=checked.key;
     invalidateUpscalePrice('Submitting Premium Upscale with the checked estimate. If interrupted, refresh History before another attempt.');
-    await submitQuotedGeneration(checked.quote,sessionEpoch);
+    await submitQuotedGeneration(checked.quote,sessionEpoch,confirmNewCharge);
     if(usedManualEstimate)requireUpscaleManualReview(reviewKey,'Estimate used. Check price & size again before another upscale.');
     else clearUpscalePrice();
     return;
@@ -3931,17 +3997,18 @@ $('confirm-generation').onclick=async()=>{
 function limitFor(kind){const n=Number(config.concurrency?.[kind]);return Number.isInteger(n)&&n>0?n:1;}
 function currentProvider(){if(tool==='image'&&imageEngine==='soul'&&soul.isKrea())return 'fal';if(tool==='video'&&engine==='seedance'&&['extend','transform'].includes(mode))return 'higgsfield';if(tool==='image'&&['kling','krea3'].includes(imageEngine))return 'fal';if(isSoul2())return 'higgsfield';return isFalUpscale()?'fal':tool==='image'&&['gemini','gemini21'].includes(imageEngine)?'gemini':tool==='image'&&['fal','soulpro'].includes(imageEngine)?'fal':tool==='video'&&['h3maxfal','omni'].includes(engine)?'fal':'spicy';}
 function jobProvider(j){const s=j?.settings||{};if(s.provider==='openrouter')return 'openrouter';if(s.provider==='higgsfield')return 'higgsfield';return s.provider==='gemini'||s.engine==='gemini'||String(s.model||'').startsWith('gemini-')?'gemini':s.provider==='fal'||['fal','soulpro','h3maxfal','omni'].includes(s.engine)||String(s.model||'').startsWith('fal-ai/')?'fal':'spicy';}
+function isUpscaleReviewJob(j){return j?.status==='uncertain'&&j.settings?.type==='image'&&j.settings?.mode==='upscale'&&jobProvider(j)==='fal'&&['fal-ai/seedvr/upscale/image','topaz/upscale/image/precision','topaz/upscale/image/generative'].includes(j.settings.model);}
 function submissionBlocked(){
   const kind=tool==='upscale'?'image':tool,provider=currentProvider(),falUpscale=tool==='upscale'&&provider==='fal';
   // An unconfirmed Gemini request retains its own reserved credits and History
   // record, but customers can explicitly start a NEW paid image after review.
   const customerGemini=customerMode&&provider==='gemini';
-  const interrupted=!customerGemini&&activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===provider&&(!falUpscale||j.settings?.mode==='upscale'));
-  const active=activeJobs.filter(j=>{const jobKind=j.settings?.type==='image'?'image':'video',backgroundBatch=j.settings?.provider==='gemini'&&j.settings?.processing==='batch';return slotStates.has(j.status)&&!(customerGemini&&j.status==='uncertain')&&jobKind===kind&&!backgroundBatch&&jobProvider(j)===provider;}).length;
+  const interrupted=!customerGemini&&activeJobs.some(j=>j.status==='uncertain'&&!isUpscaleReviewJob(j)&&jobProvider(j)===provider&&(!falUpscale||j.settings?.mode==='upscale'));
+  const active=activeJobs.filter(j=>{const jobKind=j.settings?.type==='image'?'image':'video',backgroundBatch=j.settings?.provider==='gemini'&&j.settings?.processing==='batch';return slotStates.has(j.status)&&!isUpscaleReviewJob(j)&&!(customerGemini&&j.status==='uncertain')&&jobKind===kind&&!backgroundBatch&&jobProvider(j)===provider;}).length;
   const preparing=tool==='image'?fastImageHandoff.slots(provider):0;
   return interrupted||active+preparing>=(provider==='higgsfield'?2:limitFor(kind));
 }
-function schedulePoll(delay=10000){clearTimeout(timer);timer=null;if(owner&&activeJobs.some(j=>j.status!=='uncertain')&&!polling)timer=setTimeout(poll,delay);}
+function schedulePoll(delay=10000){clearTimeout(timer);timer=null;const working=activeJobs.some(j=>j.status!=='uncertain'),review=activeJobs.some(isUpscaleReviewJob);if(owner&&(working||review)&&!polling)timer=setTimeout(poll,working?delay:Math.max(delay,30000));}
 function setActiveJobs(list){
   activeJobs=[...new Map((list||[]).filter(j=>j&&activeStates.has(j.status)).map(j=>[j.id,j])).values()];
   activeJob=activeJobs.find(j=>j.status==='uncertain')||activeJobs[0]||null;
@@ -3954,7 +4021,7 @@ function setActiveJobs(list){
   ].filter(Boolean).join(' · ')||'0 jobs';
   $('active').classList.toggle('has-uncertain',uncertainCount>0);
   const queueSummary=$('active').querySelector('summary');
-  const queueHint=uncertainCount?uncertainCount+' interrupted request'+(uncertainCount===1?'':'s')+'. Open Queue to review before submitting another generation.':activeJobs.length?activeJobs.length+' generation request'+(activeJobs.length===1?'':'s')+' in Queue.':'Show live generation queue';
+  const queueHint=uncertainCount?uncertainCount+' request'+(uncertainCount===1?'':'s')+' awaiting confirmation. Open Queue for details.':activeJobs.length?activeJobs.length+' generation request'+(activeJobs.length===1?'':'s')+' in Queue.':'Show live generation queue';
   queueSummary.title=queueHint;
   queueSummary.setAttribute('aria-label',queueHint);
   if(!activeJobs.length)$('active').open=false;
@@ -3963,7 +4030,7 @@ function setActiveJobs(list){
   const spicyImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='spicy').length;
   const geminiRunning=activeJobs.filter(j=>slotStates.has(j.status)&&j.status!=='uncertain'&&j.settings?.type==='image'&&jobProvider(j)==='gemini'&&j.settings?.processing!=='batch').length;
   const geminiInterrupted=activeJobs.filter(j=>j.status==='uncertain'&&j.settings?.type==='image'&&jobProvider(j)==='gemini').length;
-  const falImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='fal').length;
+  const falImages=activeJobs.filter(j=>slotStates.has(j.status)&&!isUpscaleReviewJob(j)&&j.settings?.type==='image'&&jobProvider(j)==='fal').length;
   const videos=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type!=='image').length;
   $('active-status').textContent='Seedream '+spicyImages+' / '+limitFor('image')+' · Nano '+geminiRunning+' / '+limitFor('image')+(geminiInterrupted?' · '+geminiInterrupted+(customerMode?' Nano result(s) to review':' old Nano interrupted'):'')+(batchImages?' · '+batchImages+' Nano batch queued':'')+' · Controlled Pose '+falImages+' / '+limitFor('image')+' · videos '+videos+' / '+limitFor('video')+(saving?' · '+saving+' saving (no generation slot)':'');
   const labels={submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving to private archive',uncertain:customerMode?'Result unconfirmed; original credits under review':'Interrupted: check provider before another attempt'};
@@ -3984,7 +4051,7 @@ function setActiveJobs(list){
 function setActive(job){if(!job)return;setActiveJobs([...activeJobs.filter(j=>j.id!==job.id),job]);frameMaker?.onJob(job);videoUpscaler?.onJob(job);}
 async function poll(){
   if(!owner||!activeJobs.length||polling)return;
-  const startedEpoch=epoch,snapshot=activeJobs.filter(j=>j.status!=='uncertain');
+  const startedEpoch=epoch,snapshot=activeJobs.filter(j=>j.status!=='uncertain'||isUpscaleReviewJob(j));
   if(!snapshot.length)return;
   clearTimeout(timer);timer=null;polling=true;
   try{
@@ -4014,7 +4081,18 @@ async function poll(){
   }catch(e){if(owner&&startedEpoch===epoch)notify(e.message,true);}
   finally{if(startedEpoch===epoch){polling=false;schedulePoll();}}
 }
-$('resolve').onclick=()=>action(async()=>{const interrupted=activeJobs.find(j=>j.status==='uncertain'&&jobProvider(j)===currentProvider())||activeJobs.find(j=>j.status==='uncertain');if(!interrupted||!confirm('First check '+({openrouter:'OpenRouter',gemini:'Google AI Studio',fal:'FAL',higgsfield:'Higgsfield',spicy:'SpicyAPI'}[jobProvider(interrupted)])+' activity and charges for request '+interrupted.id+'. This clears only this interrupted request without sending another generation. Continue only after checking.'))return;await api('/api/jobs/'+interrupted.id+'/resolve',{method:'POST',body:{confirm:true}});await syncHistory();});
+async function markJobReviewed(job){
+  try{
+    await api('/api/jobs/'+job.id+'/resolve',{method:'POST',body:{
+      confirm:true,expectedUpdatedAt:job.updatedAt,expectedProviderTaskId:job.providerTaskId??null
+    }});
+  }catch(error){
+    if(error.status===409)void syncHistory().catch(()=>{});
+    throw error;
+  }
+  await syncHistory();
+}
+$('resolve').onclick=()=>action(async()=>{const interrupted=activeJobs.find(j=>j.status==='uncertain'&&jobProvider(j)===currentProvider())||activeJobs.find(j=>j.status==='uncertain');if(!interrupted||!confirm('First check '+({openrouter:'OpenRouter',gemini:'Google AI Studio',fal:'FAL',higgsfield:'Higgsfield',spicy:'SpicyAPI'}[jobProvider(interrupted)])+' activity and charges for request '+interrupted.id+'. This clears only this interrupted request without sending another generation. Continue only after checking.'))return;await markJobReviewed(interrupted);});
 /* The queue is a small navigation popover, not a persistent bottom status slab. */
 document.addEventListener('pointerdown',event=>{
   const queue=$('active');
@@ -5337,8 +5415,8 @@ function renderCards(jobs,{upsert=false}={}){
     }));
     if(j.status==='uncertain'&&!customerMode)actions.append(button('Mark reviewed',async()=>{
       if(!confirm('Have you checked this '+(jobProvider(j)==='openrouter'?'OpenRouter':jobProvider(j)==='fal'?'FAL':jobProvider(j)==='gemini'?'Google':'SpicyAPI')+' request in the provider dashboard? This closes only this interruption. The reserved estimate stays in spending history. It does not generate, retry, cancel or refund anything.'))return;
-      await api('/api/jobs/'+j.id+'/resolve',{method:'POST',body:{confirm:true}});
-      await syncHistory();notify('This interruption was marked reviewed. Nothing was generated or resubmitted.');
+      await markJobReviewed(j);
+      notify('This interruption was marked reviewed. Nothing was generated or resubmitted.');
     }));
     if(!activeStates.has(j.status))actions.append(button('Delete',async()=>{
       if(!confirm('Delete this saved record and its unshared files? This cannot be undone.'))return;
@@ -5532,6 +5610,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
       if(epoch!==historyEpoch)return;
       historyResolved=true;
       $('history').removeAttribute('aria-busy');
+      void checkUpscaleReceipt();
       if(owner&&userId===clerk?.user?.id&&document.body.classList.contains('lab-ready'))showWelcomeStart(data);
     });
     // Non-essential account resources no longer delay the first visible frame.

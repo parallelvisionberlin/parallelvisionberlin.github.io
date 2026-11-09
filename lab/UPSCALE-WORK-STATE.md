@@ -1,5 +1,28 @@
 # PV LAB Premium Upscale work state
 
+## Independent requests and automatic recovery / 2026-11-09
+
+- Objective: a failed or interrupted SeedVR2 or Topaz image upscale leaves independent generation available with the normal wallet, budget and processing limits.
+- Draft PR #939 started at `b429a35` on base `96b8c75`. The review candidate incorporates main `045caca` and preserves the later Owner records from that base.
+- Main `707fe7f` was checked during validation. Its only changes since the incorporated base are the label homepage and cover art, outside this release.
+- An unconfirmed image upscale stays in Queue and History with its original reserve. It releases its processing slot so independent FAL image and video work can continue.
+- Before a paid submit, Studio keeps the original quote ID in account-scoped session storage for the tab. It survives reload and is checked through an authenticated read on reconnect and before another Upscale.
+- Quote lookup can find an accepted queued request even if the browser lost its POST response. An empty lookup is inconclusive while the original request can still be in flight.
+- A distinct Upscale during review requires affirmative consent for its exact quoted customer credits or the owner's provider estimate. Dismissal can leave a prepared quote and sends no paid generation request.
+- The existing quote idempotency and wallet triggers remain authoritative. Provider recovery issues read-only checks and keeps uncertain reservations when history is absent, ambiguous or unavailable.
+- New preparations proven unsent still close with a single refund. A stale dispatch moves to review under its own scheduler and signed-in status path, independently of unrelated maintenance.
+- Owner manual review compares the displayed timestamp and provider task. Its update also checks the current state and poll version so it cannot overwrite a concurrent completion.
+- Scope: `lab/lab.js`, `lab/studio.html`, `lab-worker/worker.mjs`, `lab-worker/upscale-recovery.mjs` and focused existing tests. No schema migration.
+- Entry cache version: `20261109-upscale-recovery2`. Expected Worker health capability: `upscaleRecovery: 20261109-independent2`.
+- Local verification: 218 targeted Worker, authentication, price, wallet, finance and approved Image UI checks passed.
+- Full mocked Chromium suite: 54 groups passed, including new reconnection and separate-charge cases for customer and owner at 390px and 1440px.
+- Desktop/mobile Image–Video Upscaler parity and Assets visibility checks passed independently.
+- Wrangler 4.158.0 dry-run succeeded. Comparing the bundled source map with the original draft bundle found changes only in `worker.mjs` and `upscale-recovery.mjs`.
+- Production read on 2026-11-09 showed `20261108-upscale-queue1` and a Worker health response without `upscaleRecovery`. The older Pages preview belongs to the original draft.
+- Actual account sessions against the candidate Worker and real provider recovery remain unverified. Tests used synthetic accounts, media fixtures, credits and provider replies.
+- Status: draft candidate ready for explicit merge and deployment approval. Keep the candidate fixed while unrelated main work continues.
+- Release order after approval: validate signed-in staging, activate the reviewed Worker version with existing bindings and cron, then integrate for Cloudflare Pages and verify the exact custom-domain asset and Worker health marker.
+
 ## Interrupted request feedback / 2026-11-08
 - Objective: explain why a loaded Image Upscaler can have a disabled action and provide direct access to the existing Queue.
 - Verified source baseline: main `d004356feba9533693a38e8b43c7c8ba6e3a4177`.

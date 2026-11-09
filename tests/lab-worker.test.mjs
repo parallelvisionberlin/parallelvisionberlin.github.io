@@ -8,6 +8,7 @@ import worker from '../lab-worker/worker.mjs';
 import {grantVerifiedWelcome} from '../lab-worker/welcome-guard.mjs';
 import {compileImagePrompt} from '../lab/reference-guidance.js';
 import {storedImageDimensions} from '../lab-worker/fal-upscale.mjs';
+import {expirePreparingUpscales} from '../lab-worker/upscale-recovery.mjs';
 import {buildSoulProInput} from '../lab-worker/soul-pro.mjs';
 import {BERLIN_RAVE_REFERENCES} from '../lab-worker/berlin-rave-references.mjs';
 import {DREAMCORE_REFERENCES} from '../lab-worker/dreamcore-references.mjs';
@@ -1600,18 +1601,25 @@ test('Distinct Topaz upscales can proceed beside an uncertain Soul Pro edit with
   }
 });
 
-test('An uncertain Topaz upscale blocks fresh submissions across both engines while the original quote remains idempotent',async()=>{
+test('An uncertain Topaz upscale requires explicit separate-charge consent while original quote replay stays idempotent',async()=>{
   const{env}=fixture(),sourceId=await topazSource(env);falSubmitCount=0;falUpscaleMode='timeout';
   try{
     const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
     const original=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;assert.equal(original.status,'uncertain');assert.equal(falSubmitCount,1);
     falUpscaleMode='ok';
+    let confirmedId;
     for(const upscaleEngine of ['topaz-precision','topaz-wonder']){
       const fresh=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:{...topazSettings,upscaleEngine,topazModel:upscaleEngine==='topaz-wonder'?'Wonder 3.5':'Standard V2'}}})).json();
-      const blocked=await req(env,'/api/jobs',{method:'POST',data:{quoteId:fresh.id,confirm:true}});assert.equal(blocked.status,409);assert.match((await blocked.json()).error,/fal.ai upscale is interrupted/);
+      const blocked=await req(env,'/api/jobs',{method:'POST',data:{quoteId:fresh.id,confirm:true}});assert.equal(blocked.status,409);assert.match((await blocked.json()).error,/explicitly confirm a NEW credit charge/);
+      if(upscaleEngine==='topaz-wonder'){
+        const response=await req(env,'/api/jobs',{method:'POST',data:{quoteId:fresh.id,confirm:true,confirmNewCharge:true}});assert.equal(response.status,202,await response.clone().text());
+        const next=(await response.json()).job;confirmedId=next.id;assert.equal(next.status,'queued');assert.notEqual(next.id,original.id);
+        assert.equal((await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:fresh.id,confirm:true}})).json()).job.id,next.id);
+      }
     }
-    const repeated=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;assert.equal(repeated.id,original.id);assert.equal(repeated.status,'uncertain');assert.equal(falSubmitCount,1);
-    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,1);assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(original.id).n,1);
+    const repeated=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;assert.equal(repeated.id,original.id);assert.equal(repeated.status,'uncertain');assert.equal(falSubmitCount,2);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,2);assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(original.id).n,1);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(confirmedId).n,1);
   }finally{falUpscaleMode='ok';}
 });
 
@@ -1624,6 +1632,280 @@ test('Topaz definite rejections release budget; timeout and malformed success re
     await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});assert.equal(falSubmitCount,1);
   }
   falUpscaleMode='ok';
+});
+
+test('Public upscale recovery keeps the original charge separate and accepts only one explicitly confirmed new quote',async()=>{
+  const {env,owner,authToken}=await archiveAccount(true),db=env.LAB_DB.db;
+  const upload=await req(env,'/api/uploads',{method:'POST',authToken,raw:pngDimensions(2000,1000),headers:{'Content-Type':'image/png'}});
+  assert.equal(upload.status,201);const sourceId=(await upload.json()).id;
+  const quote=async()=>{const r=await req(env,'/api/quotes',{method:'POST',authToken,data:{sourceId,settings:{...topazSettings,upscaleDispatch:{version:1,phase:'not-sent'}}}});assert.equal(r.status,200);return r.json();};
+  const balance=()=>db.prepare('SELECT balance_credits AS n FROM lab_customers WHERE id=?').get(owner).n;
+  falSubmitCount=0;falUpscaleMode='timeout';
+  try{
+    const originalQuote=await quote(),originalResponse=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:originalQuote.id,confirm:true}});
+    assert.equal(originalResponse.status,202);const original=(await originalResponse.json()).job;
+    assert.equal(original.status,'uncertain');assert.equal(original.settings.upscaleDispatch.phase,'dispatching');assert.equal(falSubmitCount,1);
+    const heldBalance=balance(),originalRow=db.prepare('SELECT * FROM jobs WHERE id=?').get(original.id),fresh=await quote();
+    const receipt=async(id,options)=>await(await req(env,'/api/jobs?quoteId='+id,options)).json();
+    assert.deepEqual(await receipt(originalQuote.id,{authToken}),{job:original});
+    assert.deepEqual(await receipt(originalQuote.id),{job:null},'The quote lookup is scoped to the same account');
+    assert.deepEqual(await receipt(fresh.id,{authToken}),{job:null},'A quote alone creates no job');
+    assert.equal(falSubmitCount,1);assert.equal(balance(),heldBalance);
+    for(const consent of [undefined,false,'true']){
+      const denied=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:fresh.id,confirm:true,confirmNewCharge:consent}});
+      assert.equal(denied.status,409);assert.equal(balance(),heldBalance);assert.equal(falSubmitCount,1);
+    }
+    assert.equal((await req(env,'/api/jobs/'+original.id+'/resolve',{method:'POST',authToken,data:{confirm:true}})).status,403);
+    falUpscaleMode='ok';
+    const next=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:fresh.id,confirm:true,confirmNewCharge:true}});
+    assert.equal(next.status,202,await next.clone().text());const newJob=(await next.json()).job;
+    assert.notEqual(newJob.id,original.id);assert.equal(newJob.status,'queued');assert.equal(balance(),heldBalance-fresh.creditCost);assert.equal(falSubmitCount,2);
+    assert.deepEqual(await receipt(fresh.id,{authToken}),{job:newJob},'A queued job is findable even if the browser never saw the POST reply');
+    const replay=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:fresh.id,confirm:true}});
+    assert.equal((await replay.json()).job.id,newJob.id);assert.equal(falSubmitCount,2);assert.equal(balance(),heldBalance-fresh.creditCost);
+    const oldReplay=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:originalQuote.id,confirm:true}});
+    assert.equal((await oldReplay.json()).job.id,original.id);assert.deepEqual(db.prepare('SELECT * FROM jobs WHERE id=?').get(original.id),originalRow);
+    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE kind='refund'").get().n,0);
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id IN (?,?)').get(original.id,newJob.id).n,2);
+    assert.equal((await req(env,'/api/jobs/'+original.id)).status,404,'Another account cannot inspect the recovery record');
+    const ownerSource=await topazSource(env),ownerQuote=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId:ownerSource,settings:topazSettings}})).json();
+    assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:ownerQuote.id,confirm:true}})).status,202,'Another account has no inherited review lock');
+  }finally{falUpscaleMode='ok';}
+});
+
+test('Ten uncertain upscales do not fill active capacity, while ten genuinely running images still do',async()=>{
+  const {env}=fixture(),sourceId=await topazSource(env),db=env.LAB_DB.db,t=Date.now();falSubmitCount=0;
+  const params=JSON.stringify({type:'image',mode:'upscale',provider:'fal',model:'topaz/upscale/image/precision'});
+  for(let i=0;i<10;i++)db.prepare("INSERT INTO jobs(id,owner_id,source_id,params,state,created_at,updated_at) VALUES(?,?,?,?,'uncertain',?,?)").run(crypto.randomUUID(),'owner-internal',sourceId,params,t,t);
+  const quote=async()=>await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
+  const q=await quote(),allowed=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true,confirmNewCharge:true}});
+  assert.equal(allowed.status,202,await allowed.clone().text());assert.equal(falSubmitCount,1);
+  for(let i=0;i<9;i++)db.prepare("INSERT INTO jobs(id,owner_id,source_id,params,state,created_at,updated_at) VALUES(?,?,?,?,'running',?,?)").run(crypto.randomUUID(),'owner-internal',sourceId,params,t,t);
+  const full=await req(env,'/api/jobs',{method:'POST',data:{quoteId:(await quote()).id,confirm:true,confirmNewCharge:true}});
+  assert.equal(full.status,409);assert.match((await full.json()).error,/slots are active/);assert.equal(falSubmitCount,1);
+});
+
+test('An unresolved upscale does not block independent FAL image and video tools or alter their other review guards',async()=>{
+  const {env}=fixture(),sourceId=await setup(env),db=env.LAB_DB.db,t=Date.now(),oldId=crypto.randomUUID(),previous=globalThis.fetch;
+  const oldParams={type:'image',provider:'fal',mode:'upscale',model:'topaz/upscale/image/precision'};
+  db.prepare("INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,'uncertain',7000,?,?)").run(oldId,'owner-internal',sourceId,JSON.stringify(oldParams),t,t);
+  db.prepare('INSERT INTO spend VALUES(?,?,7000,?)').run(oldId,'owner-internal',t);
+  const old=db.prepare('SELECT * FROM jobs WHERE id=?').get(oldId);let images=0;
+  globalThis.fetch=async(url,options={})=>{
+    if(String(url)==='https://queue.fal.run/krea/v3/text-to-image'&&options.method==='POST'){images++;return Response.json({request_id:'krea-independent-test-task'});}
+    return previous(url,options);
+  };
+  try{
+    const imageRequest={method:'POST',data:{referenceSourceIds:[],settings:{type:'image',engine:'krea3',mode:'image',prompt:'A white sculpture.',resolution:'1k',aspectRatio:'1:1',referenceRoles:[]}}};
+    const image=await req(env,'/api/fal/krea-3',imageRequest);assert.equal(image.status,202,await image.clone().text());assert.equal(images,1);
+    const settings={type:'video',engine:'h3maxfal',mode:'reference',prompt:'Keep the subject consistent.',duration:10,resolution:'1080p',aspectRatio:'16:9',referenceRoles:[{name:'subject.png',role:'identity',note:''}],referencePixels:[1048576]};
+    const q=await(await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[sourceId]}})).json();
+    const video=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});assert.equal(video.status,202,await video.clone().text());
+    assert.deepEqual(db.prepare('SELECT * FROM jobs WHERE id=?').get(oldId),old);assert.equal(db.prepare('SELECT estimate_microusd FROM spend WHERE job_id=?').get(oldId).estimate_microusd,7000);
+    db.prepare("INSERT INTO jobs(id,owner_id,params,state,created_at,updated_at) VALUES(?,?,?,'uncertain',?,?)").run(crypto.randomUUID(),'owner-internal',JSON.stringify({type:'image',provider:'fal',mode:'identity-edit',model:'ideogram/v4.5/edit'}),t,t);
+    assert.equal((await req(env,'/api/fal/krea-3',imageRequest)).status,409);assert.equal(images,1);
+    const another=await(await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[sourceId]}})).json();
+    assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:another.id,confirm:true}})).status,409);
+  }finally{globalThis.fetch=previous;}
+});
+
+test('A cleanup during a delayed public upscale upload refunds once and prevents the later paid dispatch',async()=>{
+  const {env,owner,authToken}=await archiveAccount(true),db=env.LAB_DB.db,previous=globalThis.fetch;falSubmitCount=0;
+  const upload=await req(env,'/api/uploads',{method:'POST',authToken,raw:pngDimensions(2000,1000),headers:{'Content-Type':'image/png'}});const sourceId=(await upload.json()).id;
+  const q=await(await req(env,'/api/quotes',{method:'POST',authToken,data:{sourceId,settings:topazSettings}})).json();
+  let cleaned=false;
+  globalThis.fetch=async(url,options={})=>{
+    if(new URL(url).hostname==='v3.fal.media'&&options.method==='PUT'){
+      const preparing=db.prepare('SELECT * FROM jobs WHERE quote_id=?').get(q.id);assert.equal(JSON.parse(preparing.params).upscaleDispatch.phase,'preparing');
+      db.prepare('UPDATE jobs SET created_at=? WHERE id=?').run(Date.now()-180000,preparing.id);
+      assert.equal(await expirePreparingUpscales(env,{jobId:preparing.id,ownerId:owner}),1);cleaned=true;
+    }
+    return previous(url,options);
+  };
+  try{
+    const response=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:q.id,confirm:true}});assert.equal(response.status,202);
+    const job=(await response.json()).job;assert.equal(cleaned,true);assert.equal(job.status,'failed');assert.equal(falSubmitCount,0);
+    assert.equal(db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(owner).balance_credits,1000);
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(job.id).n,0);
+    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE reference=?").get('refund:job:'+job.id).n,1);
+    assert.equal((await(await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:q.id,confirm:true}})).json()).job.id,job.id);assert.equal(falSubmitCount,0);
+  }finally{globalThis.fetch=previous;}
+});
+
+test('A paid upscale already dispatching survives cleanup and a lost database acknowledgement cannot downgrade it',async()=>{
+  const {env}=fixture(),sourceId=await topazSource(env),db=env.LAB_DB.db,previous=globalThis.fetch;falSubmitCount=0;
+  const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
+  globalThis.fetch=async(url,options={})=>{
+    if(String(url)==='https://queue.fal.run/topaz/upscale/image/precision'&&options.method==='POST'){
+      const dispatching=db.prepare('SELECT * FROM jobs WHERE quote_id=?').get(q.id);
+      assert.equal(JSON.parse(dispatching.params).upscaleDispatch.phase,'dispatching');assert.ok(JSON.parse(db.prepare('SELECT payload FROM quotes WHERE id=?').get(q.id).payload).submittedInput);
+      assert.equal(await expirePreparingUpscales(env,{nowMs:Date.now()+600000}),0);
+    }
+    return previous(url,options);
+  };
+  const prepare=env.LAB_DB.prepare.bind(env.LAB_DB);let lost=false;
+  env.LAB_DB.prepare=sql=>{
+    const prepared=prepare(sql);
+    if(sql.startsWith("UPDATE jobs SET provider_id=?,state='queued'"))return {bind(...values){const bound=prepared.bind(...values);return {...bound,async run(){const result=await bound.run();lost=true;throw Error('Synthetic lost persistence acknowledgement');}};}};
+    return prepared;
+  };
+  try{
+    const response=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});assert.equal(response.status,202);
+    const job=(await response.json()).job;assert.equal(job.status,'queued');assert.equal(lost,true);assert.equal(falSubmitCount,1);
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(job.id).n,1);
+  }finally{globalThis.fetch=previous;env.LAB_DB.prepare=prepare;}
+});
+
+test('Periodic GET recovers an uncertain upscale from original provider history without generating or charging again',async()=>{
+  const {env}=fixture(),sourceId=await topazSource(env);falSubmitCount=0;falUpscaleMode='timeout';falState='COMPLETED';falHistoryItems=[];
+  try{
+    const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
+    const original=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;
+    const saved=JSON.parse(env.LAB_DB.db.prepare('SELECT payload FROM quotes WHERE id=?').get(q.id).payload);
+    falHistoryItems=[{endpoint_id:q.settings.model,request_id:'fal_topaz_test_1234567890',sent_at:new Date(original.settings.upscaleDispatch.startedAt).toISOString(),json_input:saved.submittedInput}];
+    const result=await req(env,'/api/jobs/'+original.id);assert.equal(result.status,200);
+    const recovered=(await result.json()).job;assert.equal(recovered.id,original.id);assert.equal(recovered.status,'completed');assert.ok(recovered.outputId);assert.equal(falSubmitCount,1);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(original.id).n,1);
+  }finally{falUpscaleMode='ok';falState='IN_QUEUE';falHistoryItems=[];}
+});
+
+test('A recovered upscale status cannot overwrite a newer poll or completed result or refund after losing its lease',async()=>{
+  const previous=globalThis.fetch;
+  try{
+    for(const [status,newerState] of [['IN_PROGRESS','completed'],['FAILED','completed'],['COMPLETED','completed'],['IN_QUEUE','running']]){
+      const {env,owner,authToken}=await archiveAccount(true),db=env.LAB_DB.db;
+      const upload=await req(env,'/api/uploads',{method:'POST',authToken,raw:pngDimensions(2000,1000),headers:{'Content-Type':'image/png'}});const sourceId=(await upload.json()).id;
+      const q=await(await req(env,'/api/quotes',{method:'POST',authToken,data:{sourceId,settings:topazSettings}})).json();
+      falUpscaleMode='timeout';falSubmitCount=0;
+      const original=(await(await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:q.id,confirm:true}})).json()).job;
+      const heldBalance=db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(owner).balance_credits;
+      const saved=JSON.parse(db.prepare('SELECT payload FROM quotes WHERE id=?').get(q.id).payload);
+      falHistoryItems=[{endpoint_id:q.settings.model,request_id:'fal_topaz_test_1234567890',sent_at:new Date(original.settings.upscaleDispatch.startedAt).toISOString(),json_input:saved.submittedInput}];falState=status;
+      globalThis.fetch=async(url,options={})=>{
+        if(status==='FAILED'&&new URL(url).hostname==='queue.fal.run'&&String(url).includes('/requests/')&&!String(url).includes('/status'))return Response.json({detail:'Synthetic rejected result'},{status:422});
+        return previous(url,options);
+      };
+      const prepare=env.LAB_DB.prepare.bind(env.LAB_DB);let superseded=false;
+      env.LAB_DB.prepare=sql=>{
+        const prepared=prepare(sql);
+        if(sql==='SELECT * FROM jobs WHERE id=? AND owner_id=?')return {bind(...values){const bound=prepared.bind(...values);return {...bound,async first(){
+          const row=await bound.first();
+          if(!superseded&&row?.id===original.id&&row.state==='queued'){
+            superseded=true;db.prepare("UPDATE jobs SET state=?,last_poll=?,error='Newer result' WHERE id=?").run(newerState,row.last_poll+1000,row.id);
+            return db.prepare('SELECT * FROM jobs WHERE id=?').get(row.id);
+          }
+          return row;
+        }};}};
+        return prepared;
+      };
+      const response=await req(env,'/api/jobs/'+original.id,{authToken});assert.equal(response.status,200);
+      const result=(await response.json()).job;assert.equal(superseded,true);assert.equal(result.status,newerState,status);assert.equal(result.error,'Newer result',status);
+      assert.equal(db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(owner).balance_credits,heldBalance,status);
+      assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE kind='refund'").get().n,0,status);
+      assert.equal(db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(original.id).n,1,status);assert.equal(falSubmitCount,1);
+      assert.equal(db.prepare('SELECT COUNT(*) AS n FROM assets WHERE owner_id=?').get(owner).n,1,status);
+    }
+  }finally{globalThis.fetch=previous;falUpscaleMode='ok';falState='IN_QUEUE';falHistoryItems=[];}
+});
+
+test('Upscale cleanup and abandoned dispatch review run when unrelated scheduled maintenance fails',async()=>{
+  const {env}=fixture(),sourceId=await topazSource(env),db=env.LAB_DB.db;
+  const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json(),quote=db.prepare('SELECT * FROM quotes WHERE id=?').get(q.id);
+  const id=crypto.randomUUID(),t=Date.now()-180000;
+  db.prepare("INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,?,'submitting',?,?,?)").run(id,'owner-internal',sourceId,q.id,JSON.stringify({...JSON.parse(quote.params),upscaleDispatch:{version:1,phase:'preparing'}}),quote.estimate_microusd,t,t);
+  const dispatched=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
+  falSubmitCount=0;falUpscaleMode='timeout';falHistoryItems=[];
+  let dispatchedJob;
+  try{
+    const response=await req(env,'/api/jobs',{method:'POST',data:{quoteId:dispatched.id,confirm:true}});
+    assert.equal(response.status,202);dispatchedJob=(await response.json()).job;
+    assert.equal(dispatchedJob.status,'uncertain');
+  }finally{falUpscaleMode='ok';}
+  db.prepare("UPDATE jobs SET state='submitting',error='',created_at=?,updated_at=?,params=json_set(params,'$.upscaleDispatch.startedAt',?) WHERE id=?").run(t,t,t,dispatchedJob.id);
+  const prepare=env.LAB_DB.prepare.bind(env.LAB_DB);
+  env.LAB_DB.prepare=sql=>{if(sql.startsWith("SELECT * FROM jobs WHERE state='failed' AND provider_id IS NOT NULL AND error=?"))throw Error('Synthetic unrelated backfill failure');return prepare(sql);};
+  const tasks=[];await worker.scheduled({},env,{waitUntil(task){tasks.push(task);}});
+  const outcomes=await Promise.allSettled(tasks);
+  assert.ok(outcomes.some(x=>x.status==='rejected'&&/unrelated backfill/.test(x.reason?.message)));
+  assert.equal(db.prepare('SELECT state FROM jobs WHERE id=?').get(id).state,'failed');assert.equal(db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(id).n,0);
+  const retained=db.prepare('SELECT state,error,updated_at,last_poll FROM jobs WHERE id=?').get(dispatchedJob.id);
+  assert.equal(retained.state,'uncertain');assert.match(retained.error,/checking the original request/);
+  assert.equal(retained.updated_at,t);assert.ok(retained.last_poll>t);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(dispatchedJob.id).n,1);
+  assert.equal(falSubmitCount,1);
+});
+
+test('Owner review rejects a stale provider version and preserves a concurrent upscale completion',async()=>{
+  const {env}=fixture(),sourceId=await topazSource(env),db=env.LAB_DB.db;
+  const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
+  falUpscaleMode='timeout';
+  let job;
+  try{
+    const response=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});
+    assert.equal(response.status,202);job=(await response.json()).job;assert.equal(job.status,'uncertain');
+  }finally{falUpscaleMode='ok';}
+  const taskId='confirmed-upscale-task';
+  db.prepare('UPDATE jobs SET provider_id=? WHERE id=?').run(taskId,job.id);
+  const review=expectedProviderTaskId=>req(env,'/api/jobs/'+job.id+'/resolve',{method:'POST',
+    data:{confirm:true,expectedUpdatedAt:job.updatedAt,expectedProviderTaskId}});
+  assert.equal((await review(null)).status,409);
+  assert.equal(db.prepare('SELECT state FROM jobs WHERE id=?').get(job.id).state,'uncertain');
+  const prepare=env.LAB_DB.prepare.bind(env.LAB_DB);let completedDuringReview=false;
+  env.LAB_DB.prepare=sql=>{
+    if(sql.startsWith("UPDATE jobs SET state='resolved'")){
+      db.prepare("UPDATE jobs SET state='completed',output_id=?,last_poll=last_poll+1 WHERE id=?").run(sourceId,job.id);
+      completedDuringReview=true;
+    }
+    return prepare(sql);
+  };
+  const response=await review(taskId);
+  assert.ok(completedDuringReview);assert.equal(response.status,409);
+  assert.match((await response.json()).error,/status changed/);
+  assert.deepEqual({...db.prepare('SELECT state,output_id FROM jobs WHERE id=?').get(job.id)},{state:'completed',output_id:sourceId});
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(job.id).n,1);
+});
+
+test('Recovery archive attempts preserve newer output bytes and retain committed output after a lost acknowledgement',async()=>{
+  try{
+    for(const mode of ['lease-lost','commit-ack-lost']){
+      const {env,objects}=fixture(),sourceId=await topazSource(env),db=env.LAB_DB.db;
+      falSubmitCount=0;falUpscaleMode='timeout';falState='COMPLETED';
+      const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
+      const original=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;
+      const saved=JSON.parse(db.prepare('SELECT payload FROM quotes WHERE id=?').get(q.id).payload);
+      falHistoryItems=[{endpoint_id:q.settings.model,request_id:'fal_topaz_test_1234567890',sent_at:new Date(original.settings.upscaleDispatch.startedAt).toISOString(),json_input:saved.submittedInput}];
+      const put=env.LAB_MEDIA.put.bind(env.LAB_MEDIA),batch=env.LAB_DB.batch.bind(env.LAB_DB),newerKey='owner-internal/results/'+original.id+'.png',newerBytes=new Uint8Array([137,80,78,71,13,10,26,10,99]);
+      let attemptKey=null,lostAcknowledgement=false;
+      env.LAB_MEDIA.put=async(key,value)=>{
+        if(key.includes('/results/')){
+          attemptKey=key;assert.notEqual(key,newerKey,'Recovery uses its own object instead of replacing a canonical result');
+          assert.match(key,/-recovery-[a-f0-9-]+\.png$/);
+          if(mode==='lease-lost'){
+            objects.set(newerKey,newerBytes);
+            db.prepare("INSERT INTO assets VALUES(?, 'owner-internal',?,'source','image/png','newer.png',?,?)").run(original.id,newerKey,newerBytes.length,Date.now());
+            db.prepare("UPDATE jobs SET state='completed',output_id=?,last_poll=last_poll+1000,error='Newer output saved' WHERE id=?").run(original.id,original.id);
+          }
+        }
+        return put(key,value);
+      };
+      if(mode==='commit-ack-lost')env.LAB_DB.batch=async statements=>{
+        const result=await batch(statements);
+        if(!lostAcknowledgement&&db.prepare('SELECT state FROM jobs WHERE id=?').get(original.id)?.state==='completed'){
+          lostAcknowledgement=true;throw Error('Synthetic lost completion acknowledgement');
+        }
+        return result;
+      };
+      const response=await req(env,'/api/jobs/'+original.id);assert.equal(response.status,200,await response.clone().text());
+      const result=(await response.json()).job;assert.equal(result.status,'completed');assert.equal(falSubmitCount,1);assert.ok(attemptKey);
+      const output=db.prepare('SELECT * FROM assets WHERE id=?').get(result.outputId);
+      if(mode==='lease-lost'){
+        assert.equal(result.error,'Newer output saved');assert.equal(output.object_key,newerKey);assert.deepEqual(objects.get(newerKey),newerBytes);assert.equal(objects.has(attemptKey),false,'Only the unreferenced old attempt is removed');
+      }else{
+        assert.equal(lostAcknowledgement,true);assert.equal(output.object_key,attemptKey);assert.ok(objects.has(attemptKey),'A saved result survives an acknowledgement or follow-up error');
+      }
+      assert.equal(db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(original.id).n,1);
+    }
+  }finally{falUpscaleMode='ok';falState='IN_QUEUE';falHistoryItems=[];}
 });
 test('Stored image dimension parser supports JPEG orientation and WebP headers, and rejects truncated headers',()=>{
   const jpeg=new Uint8Array([255,216,255,225,0,34,69,120,105,102,0,0,73,73,42,0,8,0,0,0,1,0,18,1,3,0,1,0,0,0,6,0,0,0,0,0,0,0,255,192,0,11,8,1,44,2,88,1,1,17,0,255,217]);

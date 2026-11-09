@@ -56,6 +56,7 @@ import {falUpscaleParameters,storedImageDimensions,setFalUpscaleDimensions,falUp
 import {videoUpscaleParameters,inspectUpscaleMp4,quotedVideoUpscale,videoUpscaleEstimateMicros,buildVideoUpscaleInput,VIDEO_UPSCALE_MAX_BYTES} from './video-upscale.mjs';
 import {SOUL_PRO_MODELS,soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
 import {findFalRequest} from './fal-recovery.mjs';
+import {UPSCALE_RECOVERY_VERSION,FAL_IMAGE_UPSCALE_SQL,FAL_UPSCALE_REVIEW_SQL,isFalImageUpscale,preparingUpscaleParams,claimUpscaleDispatch,failUnacceptedUpscale,recoverUpscale,maintainUpscaleRecovery} from './upscale-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError,builtInMoodReferenceCount} from '../lab/reference-guidance.js';
 import {BERLIN_RAVE_REFERENCES,BERLIN_RAVE_REFERENCE_VERSION} from './berlin-rave-references.mjs';
@@ -657,8 +658,9 @@ function safeVideoUrl(value) {
   if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!(host==='spicyapi.ai'||host.endsWith('.spicyapi.ai')||host==='higgsfield.ai'||host.endsWith('.higgsfield.ai')||host==='fal.media'||host.endsWith('.fal.media')||host==='cdn.fashn.ai'||host==='media.fashn.ai'||host.endsWith('.r2.cloudflarestorage.com')||host.endsWith('.cloudfront.net')))throw new Error('Unexpected provider output location.');
   return u.href;
 }
-function assetInsert(env,a){
-  return stmt(env,'INSERT OR IGNORE INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,?,?,?,?,?)',a.id,a.owner_id,a.object_key,a.kind,a.mime,a.filename,a.bytes,a.created_at);
+function assetInsert(env,a,recoveryJob=null){
+  const guard=recoveryJob?falRecoveryGuard(recoveryJob,"'saving'"):{sql:'',values:[]};
+  return stmt(env,'INSERT OR IGNORE INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) SELECT ?,?,?,?,?,?,?,?'+(guard.sql?' WHERE EXISTS(SELECT 1 FROM jobs WHERE id=?'+guard.sql+')':''),a.id,a.owner_id,a.object_key,a.kind,a.mime,a.filename,a.bytes,a.created_at,...(guard.sql?[recoveryJob.id,...guard.values]:[]));
 }
 async function completeImageResult(env,j,original,storedBytes){
   const params=JSON.parse(j.params||'{}');let output=original;
@@ -679,15 +681,17 @@ async function completeImageResult(env,j,original,storedBytes){
       params.filmFinishStatus='failed';params.filmFinishError=String(e.message||'Film processing is unavailable.').slice(0,180);
     }
   }
-  await env.LAB_DB.batch([
-    assetInsert(env,original),...(output.id!==original.id?[assetInsert(env,output)]:[]),
-    stmt(env,"UPDATE jobs SET state='completed',output_id=?,params=json_patch(params,?),remote_url=NULL,error='',updated_at=? WHERE id=? AND owner_id=?",output.id,
+  const guard=falRecoveryGuard(j,"'saving'");
+  const completed=await env.LAB_DB.batch([
+    assetInsert(env,original,j),...(output.id!==original.id?[assetInsert(env,output,j)]:[]),
+    stmt(env,"UPDATE jobs SET state='completed',output_id=?,params=json_patch(params,?),remote_url=NULL,error='',updated_at=? WHERE id=? AND owner_id=?"+guard.sql,output.id,
       JSON.stringify(params.filmFinishStatus?{
         ...(eighties?{filmFinish:params.filmFinish}:{}),
         filmOriginalId:params.filmOriginalId,filmFinishStatus:params.filmFinishStatus,
         filmFinishError:params.filmFinishError||null,filmFinishRevision:params.filmFinishRevision||null
-      }:{}),now(),j.id,j.owner_id)
+      }:{}),now(),j.id,j.owner_id,...guard.values)
   ]);
+  if(guard.sql&&!completed.at(-1)?.meta?.changes)return;
   await ensureGalleryDimensions(env,{...j,params:JSON.stringify(params),output_id:output.id});
 }
 async function copyResult(env,j,url) {
@@ -706,7 +710,11 @@ async function copyResult(env,j,url) {
   if(!Number.isSafeInteger(declared)||declared<0||declared>limit)throw new Error('Output exceeds the archive limit.');
   const stored=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',j.owner_id);
   if(stored.n>=MAX_STORAGE||(declared>0&&stored.n+declared>MAX_STORAGE))throw new Error('Private archive storage limit reached.');
-  const objectKey=`${j.owner_id}/results/${j.id}.${ext}`;let bytes=0;
+  // A recovery download can outlive its poll lease. Its temporary object must
+  // never overwrite a newer result's bytes before the guarded DB commit.
+  const recoveryAttempt=isImage&&Number.isSafeInteger(j._falRecoveryLease)?crypto.randomUUID():null;
+  const objectKey=`${j.owner_id}/results/${j.id}${recoveryAttempt?'-recovery-'+recoveryAttempt:''}.${ext}`;let bytes=0;
+  try{
   if(declared>0&&declared<=16*1024*1024||!env.LAB_MEDIA.createMultipartUpload){
     const buffer=await limitedBody(r,Math.min(limit,16*1024*1024));bytes=buffer.length;
     if(!bytes||isImage&&!sniff(buffer,mime))throw new Error('Invalid image output.');
@@ -739,6 +747,13 @@ async function copyResult(env,j,url) {
     stmt(env,'INSERT OR IGNORE INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,?,?,?,?,?)',j.id,j.owner_id,objectKey,isImage?'source':'video',finalMime,'parallel-vision-'+j.id+'.'+ext,bytes,now()),
     stmt(env,"UPDATE jobs SET state='completed',output_id=?,remote_url=NULL,error='',updated_at=? WHERE id=?",j.id,now(),j.id)
   ]);
+  }finally{
+    if(recoveryAttempt)try{
+      // A committed batch can lose its acknowledgement. Only an affirmative
+      // absence of a reference permits deleting this attempt's private object.
+      if(!await first(env,'SELECT id FROM assets WHERE object_key=?',objectKey))await env.LAB_MEDIA.delete(objectKey);
+    }catch{/* Keep bytes when persistence cannot be confirmed safely. */}
+  }
 }
 
 async function storeRemoteImage(env,owner,url,prefix='fal-image'){
@@ -1038,16 +1053,31 @@ async function refreshGeminiJob(env,j,p){
 function falOutputUrl(result,isVideo){
   return isVideo?(result?.video?.url||result?.videos?.find?.(x=>typeof x?.url==='string'&&x.url)?.url):(result?.images?.find?.(x=>typeof x?.url==='string'&&x.url)?.url||result?.image?.url);
 }
+function falRecoveryGuard(j,states="'queued','running'"){
+  return Number.isSafeInteger(j?._falRecoveryLease)?{
+    sql:' AND owner_id=? AND provider_id=? AND last_poll=? AND state IN ('+states+')',
+    values:[j.owner_id,j.provider_id,j._falRecoveryLease]
+  }:{sql:'',values:[]};
+}
+async function failPolledFalJob(env,j,message){
+  const guard=falRecoveryGuard(j),token=guard.sql?crypto.randomUUID():null;
+  await env.LAB_DB.batch([
+    stmt(env,"UPDATE jobs SET state='failed',error=?,updated_at=?"+(token?",params=json_set(params,'$.upscaleReview.closedBy',?)":"")+" WHERE id=?"+guard.sql,message,now(),...(token?[token]:[]),j.id,...guard.values),
+    stmt(env,'DELETE FROM spend WHERE job_id=?'+(token?" AND EXISTS(SELECT 1 FROM jobs j WHERE j.id=spend.job_id AND j.owner_id=spend.owner_id AND j.state='failed' AND json_extract(j.params,'$.upscaleReview.closedBy')=?)":''),j.id,...(token?[token]:[]))
+  ]);
+}
 async function recoverFalOutput(env,j,p){
   if(!env.FAL_KEY||!j.provider_id)return false;
   const endpoint=p.model||FAL_CONTROLLED_POSE;
   const result=await falResult(endpoint,env.FAL_KEY,j.provider_id),output=falOutputUrl(result,p.type==='video');
   if(typeof output!=='string'||!output)return false;
   const safe=safeVideoUrl(output);
-  await env.LAB_DB.batch([
-    stmt(env,"UPDATE jobs SET state='saving',remote_url=?,error='',updated_at=? WHERE id=?",safe,now(),j.id),
-    stmt(env,'INSERT OR IGNORE INTO spend(job_id,owner_id,estimate_microusd,created_at) VALUES(?,?,?,?)',j.id,j.owner_id,j.estimate_microusd,j.created_at)
+  const guard=falRecoveryGuard(j),saving=falRecoveryGuard(j,"'saving'");
+  const stored=await env.LAB_DB.batch([
+    stmt(env,"UPDATE jobs SET state='saving',remote_url=?,error='',updated_at=? WHERE id=?"+guard.sql,safe,now(),j.id,...guard.values),
+    stmt(env,'INSERT OR IGNORE INTO spend(job_id,owner_id,estimate_microusd,created_at) SELECT ?,?,?,?'+(saving.sql?' WHERE EXISTS(SELECT 1 FROM jobs WHERE id=?'+saving.sql+')':''),j.id,j.owner_id,j.estimate_microusd,j.created_at,...(saving.sql?[j.id,...saving.values]:[]))
   ]);
+  if(guard.sql&&!stored[0]?.meta?.changes)return true;
   await copyResult(env,j,safe);
   return true;
 }
@@ -1065,19 +1095,22 @@ async function deleteJobRecord(env,owner,j){
   }
   for(const sourceId of linked)await pruneSource(env,owner,sourceId);
 }
-async function refreshFalJob(env,j,p){
+async function refreshFalJob(env,j,p,confirmedStatus=null){
+  if(confirmedStatus&&!Number.isSafeInteger(j._falRecoveryLease))return;
+  const guard=falRecoveryGuard(j),errorGuard=falRecoveryGuard(j,"'queued','running','saving'");
   let resultPhase=false;
-  if(!env.FAL_KEY){await run(env,"UPDATE jobs SET error=?,updated_at=? WHERE id=?",'fal.ai is not configured on the Lab backend. The existing request remains active.',now(),j.id);return;}
-  const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);if(!lock.meta.changes)return;
+  if(!env.FAL_KEY){await run(env,"UPDATE jobs SET error=?,updated_at=? WHERE id=?"+errorGuard.sql,'fal.ai is not configured on the Lab backend. The existing request remains active.',now(),j.id,...errorGuard.values);return;}
+  if(!confirmedStatus){const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);if(!lock.meta.changes)return;}
   try{
-    const endpoint=p.model||FAL_CONTROLLED_POSE,status=await falStatus(endpoint,env.FAL_KEY,j.provider_id),state=String(status?.status||'').toUpperCase();
+    const endpoint=p.model||FAL_CONTROLLED_POSE,status=confirmedStatus||await falStatus(endpoint,env.FAL_KEY,j.provider_id),state=String(status?.status||'').toUpperCase();
     if(state==='COMPLETED'){
       resultPhase=true;
       const result=await falResult(endpoint,env.FAL_KEY,j.provider_id),isVideo=p.type==='video';
       const output=falOutputUrl(result,isVideo);
       if(typeof output!=='string'||!output)throw new Error('fal.ai completed without a compatible '+(isVideo?'video':'image')+' output.');
       const safe=safeVideoUrl(output);
-      await run(env,"UPDATE jobs SET state='saving',remote_url=?,error='',updated_at=? WHERE id=?",safe,now(),j.id);
+      const saving=await run(env,"UPDATE jobs SET state='saving',remote_url=?,error='',updated_at=? WHERE id=?"+guard.sql,safe,now(),j.id,...guard.values);
+      if(guard.sql&&!saving.meta.changes)return;
       await copyResult(env,j,safe);return;
     }
     if(['FAILED','CANCELLED','CANCELED'].includes(state)){
@@ -1101,29 +1134,28 @@ async function refreshFalJob(env,j,p){
       }
       const prefix=p.engine==='soulpro'?'Soul Pro / '+(p.soulProModel==='ideogram45'?'Ideogram 4.5':'FLUX Kontext Max')+': ':'fal.ai: ';
       const message=(prefix+(bits.filter(Boolean).join(' | ')||'Provider ended the request without an output.')).replace(/[\r\n]+/g,' ').slice(0,900);
-      await env.LAB_DB.batch([
-        stmt(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",message,now(),j.id),
-        stmt(env,'DELETE FROM spend WHERE job_id=?',j.id)
-      ]);return;
+      await failPolledFalJob(env,j,message);return;
     }
-    await run(env,"UPDATE jobs SET state=?,error='',updated_at=? WHERE id=?",state==='IN_PROGRESS'?'running':'queued',now(),j.id);
+    await run(env,"UPDATE jobs SET state=?,error='',updated_at=? WHERE id=?"+guard.sql,state==='IN_PROGRESS'?'running':'queued',now(),j.id,...guard.values);
   }catch(e){
     const raw=String(e?.message||'fal.ai polling error').replace(/[\r\n]+/g,' ').slice(0,400);
     const detail=/^fal\.ai(?:\s|:)/.test(raw)?raw:'fal.ai: '+raw;
     // A queue lookup/auth/routing error says nothing about the paid job's outcome.
     // Only a completed request's explicit result rejection is terminal here.
     if(resultPhase&&e.status===422){
-      await env.LAB_DB.batch([
-        stmt(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",detail,now(),j.id),
-        stmt(env,'DELETE FROM spend WHERE job_id=?',j.id)
-      ]);
+      await failPolledFalJob(env,j,detail);
       return;
     }
-    await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?',detail,now(),j.id);
+    await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?'+errorGuard.sql,detail,now(),j.id,...errorGuard.values);
   }
 }
 
 async function refreshJob(env,j,ctx=null,forcedByBoundCallback=false) {
+  if(['submitting','uncertain'].includes(j.state)&&isFalImageUpscale(JSON.parse(j.params||'{}'))){
+    const recovered=await recoverUpscale(env,j);
+    if(recovered)await refreshFalJob(env,recovered.job,JSON.parse(recovered.job.params),recovered.status);
+    return;
+  }
   if(!['queued','running','saving'].includes(j.state)||!j.provider_id)return;
   const params=JSON.parse(j.params||'{}');if(params.provider==='openrouter'){if(j.state==='saving'){const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);if(lock.meta.changes)try{await saveFlashResult(env,j);}catch(e){await run(env,'UPDATE jobs SET error=? WHERE id=?','Archive retry: '+String(e.message).slice(0,300),j.id);}}return;}if(params.provider==='gemini')return refreshGeminiJob(env,j,params);
   if(j.state==='saving'&&j.remote_url){
@@ -1186,7 +1218,7 @@ async function reserveFalImageJob(env,owner,sourceId,p,estimate,approvedQuoteId=
   const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),day=Math.floor(t/86400000)*86400000,id=crypto.randomUUID(),quoteId=approvedQuoteId||crypto.randomUUID();
   if(!approvedQuoteId)await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
     quoteId,owner,sourceId||null,JSON.stringify(p),estimate,t+600000,p.provider+'-direct',String(estimate/1000000),'{}');
-  const provider=p.provider==='openrouter'?'openrouter':'fal',falSql="COALESCE(json_extract(params,'$.provider'),'')='"+provider+"'";
+  const provider=p.provider==='openrouter'?'openrouter':'fal',falSql="COALESCE(json_extract(params,'$.provider'),'')='"+provider+"' AND NOT "+FAL_UPSCALE_REVIEW_SQL;
   let inserted;
   try{inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?, 'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image')<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",
     id,owner,sourceId||null,quoteId,JSON.stringify(p),estimate,t,t,owner,owner,CONCURRENCY.image,owner,day,estimate,limit);}
@@ -1233,7 +1265,7 @@ async function submitReservedFalJob(env,j,p,input){
   return first(env,'SELECT * FROM jobs WHERE id=?',j.id);
 }
 
-async function submitFalUpscaleQuote(env,owner,q,p,payload){
+async function submitFalUpscaleQuote(env,owner,q,p,payload,confirmNewCharge=false){
   if(!env.FAL_KEY)fail(503,'fal.ai upscaling is not configured on this Worker.');
   if(q.vendor_quote_id!=='fal-upscale-v1'||payload?.model!==p.model||payload?.source?.id!==q.source_id)fail(409,'Review a new upscale estimate. Nothing was submitted.');
   const verified=await readFalUpscaleSource(env,owner,q.source_id);
@@ -1242,37 +1274,37 @@ async function submitFalUpscaleQuote(env,owner,q,p,payload){
   const input={...payload.input};
   const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,id=crypto.randomUUID(),t=now(),day=Math.floor(t/86400000)*86400000;
   const falSql="(COALESCE(json_extract(params,'$.provider'),'')='fal' OR COALESCE(json_extract(params,'$.engine'),'') IN ('fal','soulpro','h3maxfal','omni') OR COALESCE(json_extract(params,'$.model'),'') LIKE 'fal-ai/%' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'topaz/%')";
-  // A distinct upscale cannot retry an interrupted identity edit. Keep unknown
-  // upscale submissions blocked across FAL engines; all FAL jobs still count
-  // toward the shared image capacity and every held estimate still counts spend.
-  const uncertainUpscaleSql=falSql+" AND COALESCE(json_extract(params,'$.mode'),'')='upscale'";
+  // An uncertain upscale keeps its own transaction/credits under review.
+  // Further deliberate requests use independent quotes and explicit consent;
+  // that review does not occupy an active generation slot indefinitely.
+  const uncertainUpscaleSql=FAL_IMAGE_UPSCALE_SQL;
+  const activeFalSql=falSql+' AND NOT '+FAL_UPSCALE_REVIEW_SQL;
+  const jobParams=JSON.stringify(preparingUpscaleParams(p));
   try{
-    const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+uncertainUpscaleSql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image')<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",
-      id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,CONCURRENCY.image,owner,day,q.estimate_microusd,limit);
+    const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE (?=1 OR NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+uncertainUpscaleSql+")) AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+activeFalSql+" AND json_extract(params,'$.type')='image')<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",
+      id,owner,q.source_id,q.id,jobParams,q.estimate_microusd,t,t,confirmNewCharge===true?1:0,owner,owner,CONCURRENCY.image,owner,day,q.estimate_microusd,limit);
     if(!inserted.meta.changes){
       const old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',q.id,owner);if(old)return old;
       const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+uncertainUpscaleSql,owner)).n;
-      const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image'",owner)).n;
+      const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+activeFalSql+" AND json_extract(params,'$.type')='image'",owner)).n;
       const spent=(await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,day)).n;
-      if(uncertain)fail(409,'No upscale submitted: a fal.ai upscale is interrupted. Check that upscale in History before retrying.');
+      if(uncertain&&confirmNewCharge!==true)fail(409,'An earlier upscale is awaiting confirmation. Please explicitly confirm a NEW credit charge to start another upscale. The earlier request will not be retried or cancelled.');
       if(active>=CONCURRENCY.image)fail(409,'No upscale submitted: all '+CONCURRENCY.image+' fal.ai image slots are active.');
       if(spent+q.estimate_microusd>limit)fail(409,'No upscale submitted: this estimate would exceed your Lab daily spending limit.');
       fail(409,'No upscale submitted because capacity changed. Refresh History and try again.');
     }
   }catch(e){const old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',q.id,owner);if(old)return old;throw e;}
+  const job={id,owner_id:owner,source_id:q.source_id,quote_id:q.id};
   let providerAccepted=false,requestId=null,submissionStarted=false;
   try{
     input.image_url=await falUploadImage(env.FAL_KEY,verified.bytes,verified.asset.mime);
-    await run(env,'UPDATE quotes SET payload=? WHERE id=?',JSON.stringify({...payload,submittedInput:input}),q.id);
+    if(!await claimUpscaleDispatch(env,job,q,payload,input))return first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);
     submissionStarted=true;
     requestId=await falSubmit(p.model,env.FAL_KEY,input);providerAccepted=true;
-    await run(env,"UPDATE jobs SET provider_id=?,state='queued',updated_at=? WHERE id=?",requestId,now(),id);
+    await run(env,"UPDATE jobs SET provider_id=?,state='queued',updated_at=? WHERE id=? AND owner_id=? AND quote_id=? AND state IN ('submitting','uncertain') AND (provider_id IS NULL OR provider_id=?)",requestId,now(),id,owner,q.id,requestId);
   }catch(e){
-    if((!submissionStarted||e.definite===true)&&!providerAccepted)await env.LAB_DB.batch([
-      stmt(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",String(e.message||'fal.ai rejected this upscale.').slice(0,600),now(),id),
-      stmt(env,'DELETE FROM spend WHERE job_id=?',id)
-    ]);
-    else await run(env,"UPDATE jobs SET state='uncertain',provider_id=COALESCE(provider_id,?),error=?,updated_at=? WHERE id=?",requestId,String(e?.message||'fal.ai upscale acknowledgement was lost.').slice(0,500)+' Check History and the provider before retrying; nothing will be resubmitted automatically.',now(),id);
+    if((!submissionStarted||e.definite===true)&&!providerAccepted)await failUnacceptedUpscale(env,job,e.message||'fal.ai rejected this upscale.',{submitted:submissionStarted});
+    else await run(env,"UPDATE jobs SET state='uncertain',provider_id=COALESCE(provider_id,?),error=?,updated_at=? WHERE id=? AND owner_id=? AND quote_id=? AND state IN ('submitting','uncertain') AND (provider_id IS NULL OR provider_id=?)",requestId,String(e?.message||'fal.ai upscale acknowledgement was lost.').slice(0,500)+' PV LAB is checking the original request. You can continue working; nothing will be resubmitted automatically.',now(),id,owner,q.id,requestId);
   }
   return first(env,'SELECT * FROM jobs WHERE id=?',id);
 }
@@ -1396,7 +1428,7 @@ async function route(request,env,ctx) {
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range,X-PV-Lab-Client,X-Replacement-Job-Id','Access-Control-Max-Age':'600'}});
   if(url.pathname==='/api/public/local-currency'&&request.method==='GET')return localCurrency(request);
-  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1'});
+  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1',upscaleRecovery:UPSCALE_RECOVERY_VERSION});
   if(url.pathname.startsWith('/api/music/public/'))return musicPublicRoute(request,env);
   // PV LAB anonymous traffic uses its own origin-checked, bounded payload.
   if(url.pathname==='/api/public/traffic'&&request.method==='POST')return recordLabTraffic(request,env);
@@ -2090,12 +2122,12 @@ async function route(request,env,ctx) {
       fail(409,'Legacy Higgsfield Kling quotes are disabled. Select Kling 3.0 and review a fresh SpicyAPI price. Nothing submitted.');
     if(params.provider==='higgsfield'&&params.mode==='transform')return json({job:jobView(await submitCharacterTransform(env,owner,q,params,savedPayload,hfDeps()))},202);
     if(params.provider==='higgsfield'&&params.mode==='extend')return json({job:jobView(await submitVideoExtension(env,owner,q,params,savedPayload,hfDeps()))},202);
-    if(params.provider==='fal'&&params.type==='image'&&params.mode==='upscale')return json({job:jobView(await submitFalUpscaleQuote(env,owner,q,params,savedPayload))},202);
+    if(params.provider==='fal'&&params.type==='image'&&params.mode==='upscale')return json({job:jobView(await submitFalUpscaleQuote(env,owner,q,params,savedPayload,data.confirmNewCharge===true))},202);
     if(params.provider==='fal'&&params.type==='video'){
       if(!env.FAL_KEY)fail(503,'fal.ai video is not configured on this Worker.');
       for(const assetId of linkedSourceIds(q))await source(env,owner,assetId);
       const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,id=crypto.randomUUID(),t=now(),day=Math.floor(t/86400000)*86400000;
-      const falSql="COALESCE(json_extract(params,'$.provider'),'')='fal'";
+      const falSql="COALESCE(json_extract(params,'$.provider'),'')='fal' AND NOT "+FAL_UPSCALE_REVIEW_SQL;
       const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END='video')<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,CONCURRENCY.video,owner,day,q.estimate_microusd,limit);
       if(!inserted.meta.changes){
         const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql,owner)).n;
@@ -2166,6 +2198,12 @@ async function route(request,env,ctx) {
       try{await run(env,'UPDATE lab_mood_performance SET job_id=?,submitted_at=COALESCE(submitted_at,?) WHERE quote_id=? AND owner_id=?',
         id,now(),quoteId,owner);}catch{}
     return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},202);
+  }
+  if(path==='/api/jobs'&&method==='GET'&&url.searchParams.has('quoteId')){
+    const quoteId=uid(url.searchParams.get('quoteId'));
+    const job=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=? AND '+FAL_IMAGE_UPSCALE_SQL,quoteId,owner);
+    // A missing row is inconclusive while the original POST may still be in flight.
+    return json({job:job?jobView(job):null});
   }
   if(path==='/api/jobs'&&method==='GET'&&url.searchParams.get('library')==='1'){
     const data=await libraryJobs(env,owner,url,{rows,uid,fail,jobView});
@@ -2259,8 +2297,15 @@ async function route(request,env,ctx) {
     }
     if(path.endsWith('/resolve')&&method==='POST') {
       if(customer)fail(403,'PV LAB support must review uncertain provider requests. Customers cannot clear a reserved charge.');
-      const data=await body(request);if(j.state!=='uncertain'||data.confirm!==true)fail(409,'Confirm you checked the provider dashboard first.');
-      await run(env,"UPDATE jobs SET state='resolved',updated_at=?,error=? WHERE id=?",now(),'Owner resolved the interrupted request. No generation was resubmitted.',id);return json({ok:true});
+      const data=await body(request);if(data.confirm!==true)fail(409,'Confirm you checked the provider dashboard first.');
+      const changed='The request status changed. Refresh History before marking it reviewed.';
+      if(j.state!=='uncertain'||
+        (Object.hasOwn(data,'expectedUpdatedAt')&&data.expectedUpdatedAt!==j.updated_at)||
+        (Object.hasOwn(data,'expectedProviderTaskId')&&data.expectedProviderTaskId!==j.provider_id))fail(409,changed);
+      const resolved=await run(env,"UPDATE jobs SET state='resolved',updated_at=?,error=? WHERE id=? AND owner_id=? AND state='uncertain' AND updated_at=? AND last_poll=? AND provider_id IS ?",
+        now(),'Owner resolved the interrupted request. No generation was resubmitted.',id,owner,j.updated_at,j.last_poll,j.provider_id);
+      if(!resolved.meta.changes)fail(409,changed);
+      return json({ok:true});
     }
     if(path.endsWith('/recover')&&method==='POST'){
       const p=JSON.parse(j.params||'{}');if(j.state!=='failed'||p.provider!=='fal'||!j.provider_id)fail(409,'Only failed fal.ai jobs with a provider task can be recovered.');
@@ -2280,7 +2325,7 @@ async function maintenance(env) {
   // cleanup falsely classified active requests, disabling Nano Banana Pro.
   // Leave at least a full provider timeout and 60s grace before review.
   const checkedAt=now();
-  await run(env,"UPDATE jobs SET state='uncertain',error='Submission was interrupted. No new generation was sent; check provider activity before retrying.',updated_at=? WHERE state='submitting' AND ((COALESCE(json_extract(params,'$.provider'),'')='gemini' AND updated_at<?) OR (COALESCE(json_extract(params,'$.provider'),'')!='gemini' AND updated_at<?))",checkedAt,checkedAt-240000,checkedAt-120000);
+  await run(env,"UPDATE jobs SET state='uncertain',error='Submission was interrupted. No new generation was sent; check provider activity before retrying.',updated_at=? WHERE state='submitting' AND NOT "+FAL_IMAGE_UPSCALE_SQL+" AND ((COALESCE(json_extract(params,'$.provider'),'')='gemini' AND updated_at<?) OR (COALESCE(json_extract(params,'$.provider'),'')!='gemini' AND updated_at<?))",checkedAt,checkedAt-240000,checkedAt-120000);
   const pending=await rows(env,"SELECT * FROM jobs WHERE state IN ('queued','running','saving') ORDER BY last_poll LIMIT 5");
   for(const j of pending){const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(j.owner_id).first();if(owner||await isLabCustomer(env,j.owner_id))await refreshJob(env,j);}
   await run(env,'DELETE FROM quotes WHERE expires_at<? AND NOT EXISTS(SELECT 1 FROM jobs WHERE jobs.quote_id=quotes.id)',now());
@@ -2297,6 +2342,9 @@ export default {
     return decorate(response,request.headers.get('origin')||'');
   },
   async scheduled(event,env,ctx) {
+    // Upscale cleanup/reconciliation must not depend on an unrelated provider,
+    // training, account or archive maintenance task completing successfully.
+    ctx.waitUntil(maintainUpscaleRecovery(env,{onRecovered:async({job,status})=>refreshFalJob(env,job,JSON.parse(job.params),status)}));
     // Customer-email repair is isolated from potentially failing generation maintenance.
     ctx.waitUntil(scheduledClerkBackfill(env));
     ctx.waitUntil(refreshPartnerCostFx(env).catch(()=>{}));
