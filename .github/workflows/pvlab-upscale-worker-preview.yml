@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
   preview:
@@ -13,6 +14,14 @@ jobs:
     timeout-minutes: 10
     environment: pvlab-upscale-preview
     steps:
+      - name: Report the running verification
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -f state=pending -f context=pvlab/upscale-worker-preview \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            -f description="Checking the isolated Upscale Worker preview" >/dev/null
       - name: Check out the reviewed Upscale candidate
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -39,6 +48,7 @@ jobs:
           JSON
 
       - name: Create the isolated preview and check its version
+        id: preview
         shell: bash
         working-directory: lab-worker
         env:
@@ -60,3 +70,24 @@ jobs:
           curl -fsS --retry 3 --retry-all-errors --retry-delay 2 --max-time 15 "$health_url" |
             jq -e '.ok == true and .upscaleRecovery == "20261109-independent2"' >/dev/null
           printf 'Verified candidate Worker version at %s\n' "$health_url" >> "$GITHUB_STEP_SUMMARY"
+          printf 'health_url=%s\n' "$health_url" >> "$GITHUB_OUTPUT"
+
+      - name: Report the verification result
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIEW_RESULT: ${{ steps.preview.outcome }}
+          PREVIEW_HEALTH_URL: ${{ steps.preview.outputs.health_url }}
+        run: |
+          if [[ "$PREVIEW_RESULT" == "success" ]]; then
+            status=success
+            description="Confirmed upscaleRecovery 20261109-independent2"
+            url="$PREVIEW_HEALTH_URL"
+          else
+            status=failure
+            description="Upscale Worker preview verification failed"
+            url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          fi
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -f state="$status" -f context=pvlab/upscale-worker-preview \
+            -f target_url="$url" -f description="$description" >/dev/null
