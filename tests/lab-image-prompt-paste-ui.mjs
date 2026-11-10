@@ -147,11 +147,13 @@ try{
         const deck=document.getElementById('image-composer');
         const bounds=el=>el.getBoundingClientRect().toJSON();
         const wasHidden=base.hidden;
+        const mobileSettings=deck.getAttribute('data-mobile-settings');
         base.hidden=false;
+        if(matchMedia('(max-width:899px)').matches)deck.dataset.mobileSettings='open';
         const before=bounds(deck);
         menu.hidden=false;
         positionReferenceIntent();
-        return {before,after:bounds(deck),button:bounds(base),menu:bounds(menu),wasHidden,
+        return {before,after:bounds(deck),button:bounds(base),menu:bounds(menu),wasHidden,mobileSettings,
           width:document.documentElement.clientWidth,height:innerHeight,
           heading:getComputedStyle(menu.querySelector('.reference-intent-heading')).display,
           choices:[...menu.querySelectorAll('.reference-intent-choice')].map(bounds)};
@@ -168,10 +170,13 @@ try{
         mkdirSync('test-artifacts/prompt-deck',{recursive:true});
         await page.screenshot({path:'test-artifacts/prompt-deck/base-mode-'+viewport.width+'.png'});
       }
-      await page.evaluate(wasHidden=>{
+      await page.evaluate(({wasHidden,mobileSettings})=>{
         document.getElementById('composer-reference-intent').hidden=true;
         document.getElementById('composer-reference-intent-toggle').hidden=wasHidden;
-      },intent.wasHidden);
+        const deck=document.getElementById('image-composer');
+        if(mobileSettings===null)delete deck.dataset.mobileSettings;
+        else deck.dataset.mobileSettings=mobileSettings;
+      },intent);
       const editor=page.locator('#image-composer-prompt');
       // The sizing helper must never replace the contextual copy already
       // chosen by syncImageComposer() for a selected Base photograph.

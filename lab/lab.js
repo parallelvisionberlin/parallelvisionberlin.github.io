@@ -479,6 +479,7 @@ function positionReferenceIntent(){
   const parent=panel.offsetParent;
   if(!parent)return;
   const anchor=$('composer-reference-intent-toggle').getBoundingClientRect();
+  if(!anchor.width||!anchor.height){closeReferenceIntent();return;}
   const origin=parent.getBoundingClientRect();
   const viewport=window.visualViewport;
   const viewportLeft=viewport?.offsetLeft??0,viewportTop=viewport?.offsetTop??0;
