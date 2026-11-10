@@ -64,49 +64,65 @@ try{
         sizing+'\n'+handler+
         "\n$('prompt').addEventListener('input',fitImageComposerPrompt);fitImageComposerPrompt();"
       });
-      // Measure the visible count stepper, including the phone's open More row.
-      const countLayout=await page.evaluate(()=>{
+      // Measure the shared tool surface, including the phone's open More row.
+      const toolbar=await page.evaluate(()=>{
         const composer=document.getElementById('image-composer');
         const mobile=matchMedia('(max-width:899px)').matches;
         const settings=composer.dataset.mobileSettings;
+        const base=document.getElementById('composer-reference-intent-toggle');
+        const baseHidden=base.hidden;
+        base.hidden=false;
         if(mobile)composer.dataset.mobileSettings='open';
-        const rect=id=>{
-          const element=document.getElementById(id),r=element.getBoundingClientRect();
+        const rect=element=>{
+          const r=element.getBoundingClientRect();
           const style=getComputedStyle(element);
-          return {left:r.left,right:r.right,width:r.width,height:r.height,
-            display:style.display,border:style.borderTopWidth,background:style.backgroundColor,fontSize:style.fontSize};
+          return {id:element.id,left:r.left,right:r.right,top:r.top,width:r.width,height:r.height,
+            display:style.display,border:style.borderTopWidth,radius:style.borderRadius,
+            background:style.backgroundColor,fontSize:style.fontSize};
         };
+        const measure=id=>rect(document.getElementById(id));
         const layout={
-          deck:rect('image-composer'),
-          generate:rect('image-composer-generate'),
-          select:rect('image-composer-count'),
-          wrap:rect('image-composer-count-wrap'),
-          minus:rect('image-composer-count-decrease'),
-          plus:rect('image-composer-count-increase'),
-          status:rect('image-composer-count-status')
+          deck:rect(composer),
+          generate:measure('image-composer-generate'),
+          select:measure('image-composer-count'),
+          count:measure('image-composer-count-wrap'),
+          minus:measure('image-composer-count-decrease'),
+          plus:measure('image-composer-count-increase'),
+          status:measure('image-composer-count-status'),
+          tools:[...composer.querySelectorAll('[data-deck-control],#image-composer-mobile-more')]
+            .map(rect).filter(tool=>tool.width>0&&tool.height>0)
         };
+        base.hidden=baseHidden;
         if(mobile){
           if(settings===undefined)delete composer.dataset.mobileSettings;
           else composer.dataset.mobileSettings=settings;
         }
         return layout;
       });
-      const {wrap,deck}=countLayout;
-      assert.equal(countLayout.select.display,'none','The original select stays hidden on web');
-      assert.equal(wrap.height,40,'Image count shares the other settings controls’ 40px height');
-      assert.equal(wrap.border,'1px','Image count shares the other settings controls’ subtle border');
-      assert.equal(wrap.background,'rgb(36, 38, 37)','Image count shares the other settings controls’ charcoal');
-      assert.equal(countLayout.status.fontSize,'12px','Count uses the same type scale as nearby settings');
-      if(viewport.width>=1180){
-        assert.equal(wrap.width,80,'The count stepper preserves the desktop toolbar slot');
-        assert.ok(wrap.right<=countLayout.generate.left,'The count stepper clears Generate: '+JSON.stringify(countLayout));
+      const {count,deck}=toolbar;
+      const phone=viewport.width<=899;
+      assert.equal(toolbar.select.display,'none','The original select stays hidden on web');
+      assert.equal(toolbar.status.fontSize,phone?'11px':'13px','Count shares the toolbar type scale');
+      for(const tool of toolbar.tools){
+        assert.equal(tool.height,phone?35:32,tool.id+' shares the toolbar height');
+        assert.equal(tool.border,'0px',tool.id+' has a borderless surface');
+        assert.equal(tool.radius,'8px',tool.id+' shares the toolbar corner radius');
+        assert.equal(tool.background,'rgb(50, 52, 55)',tool.id+' shares the matte charcoal surface');
+        assert.ok(tool.left>=deck.left&&tool.right<=deck.right,tool.id+' stays inside the deck');
       }
-      assert.ok(wrap.left>=deck.left&&wrap.right<=deck.right,
-        'Count stays inside the Image Deck: '+JSON.stringify(countLayout));
+      if(viewport.width>=1180){
+        for(const tool of toolbar.tools){
+          assert.ok(Math.abs(tool.top-count.top)<=1,tool.id+' aligns with the desktop toolbar');
+          assert.ok(tool.right<=toolbar.generate.left,tool.id+' clears Generate');
+        }
+        const icons=toolbar.tools.filter(tool=>['image-composer-add','scene-characters-open','scene-image-open'].includes(tool.id));
+        assert.deepEqual(icons.map(tool=>tool.width),[32,32,32],'Desktop icon buttons use one square size');
+        assert.equal(count.width,80,'The count stepper preserves its desktop slot');
+      }
       for(const part of ['minus','status','plus']){
-        const item=countLayout[part];
-        assert.ok(item.width>0&&item.left>=wrap.left&&item.right<=wrap.right,
-          part+' stays inside the count stepper: '+JSON.stringify(countLayout));
+        const item=toolbar[part];
+        assert.ok(item.width>0&&item.left>=count.left&&item.right<=count.right,
+          part+' stays inside the count stepper');
       }
       const editor=page.locator('#image-composer-prompt');
       // The sizing helper must never replace the contextual copy already
