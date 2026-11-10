@@ -21,8 +21,8 @@ const ORIGIN='http://127.0.0.1:4178',API='https://parallel-vision-lab.parallelvi
 const sourceId='10000000-0000-4000-8000-000000000001',outputId='10000000-0000-4000-8000-000000000002';
 let png,passed=0;
 const ok=name=>{passed++;console.log('PASS '+name);};
-async function workspace(jobs=[],width=1440,{quoteTtlMs=180000,quoteDelayMs=0,quoteTransform=null,customer=false,submitMode='ok'}={}){
- const context=await browser.newContext({viewport:{width,height:1000},hasTouch:width<781,isMobile:width<781,acceptDownloads:true});const page=await context.newPage();const requests=[],uploads=[],quotes=new Map(),quoteResponses=[];let count=3,quoteCount=88;
+async function workspace(jobs=[],width=1440,{height=1000,quoteTtlMs=180000,quoteDelayMs=0,quoteTransform=null,customer=false,submitMode='ok'}={}){
+ const context=await browser.newContext({viewport:{width,height},hasTouch:width<781,isMobile:width<781,acceptDownloads:true});const page=await context.newPage();const requests=[],uploads=[],quotes=new Map(),quoteResponses=[];let count=3,quoteCount=88;
  page.on('dialog',async d=>{await d.accept();});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await context.route('https://**/*',async route=>{
@@ -197,11 +197,18 @@ try{
      const geometry=await footer.page.locator('#app>.workspace>.controls').evaluate(el=>{
        const zone=el.querySelector(':scope>.generate-zone').getBoundingClientRect();
        const button=el.querySelector('#generate').getBoundingClientRect();
-       return {footerHeight:zone.height,buttonHeight:button.height,buttonBottom:button.bottom,footerBottom:zone.bottom};
+       const body=el.querySelector(':scope>.controls-body');
+       return {footerHeight:zone.height,buttonHeight:button.height,buttonBottom:button.bottom,footerBottom:zone.bottom,
+         sourceReady:el.closest('#app').classList.contains('pv-upscale-source-ready'),overflow:getComputedStyle(body).overflowY,
+         bodyHeight:body.clientHeight,bodyScrollHeight:body.scrollHeight};
      });
      assert.ok(geometry.footerHeight<160,state+': footer never consumes the settings deck: '+JSON.stringify(geometry));
      assert.ok(geometry.buttonHeight>=44&&geometry.buttonHeight<=51,state+': Upscale retains its approved size');
      assert.ok(geometry.buttonBottom<=geometry.footerBottom+1,state+': action remains inside its footer');
+     if(geometry.sourceReady&&width>=781){
+       assert.equal(geometry.overflow,'visible',state+': loaded settings use page scroll');
+       assert.ok(geometry.bodyScrollHeight<=geometry.bodyHeight+1,state+': all loaded settings fit their deck');
+     }
    };
    await assertFooter('Initial '+width);
    await footer.page.locator('#upscale-info').evaluate(el=>{el.open=true;});
@@ -603,12 +610,11 @@ try{
   }
 
   // Use a real PV LAB photographic JPG, not just the synthetic pixel fixture.
-  // These read-only screenshots prove both Precision variants have a loaded
-  // source and their action stays BELOW the last output selector at both sizes.
+  // The expanded Precision card is the tallest normal loaded state.
   const photographicFixture='lab/visuals/upscaler-chrome-wool-option-1.jpg';
   assert.ok(existsSync(photographicFixture),'Approved Upscaler photographic fixture exists');
-  for(const width of [1440,390]){
-   x=await workspace([],width);await x.page.click('#tool-upscale');
+  for(const [width,height] of [[1920,910],[1440,740],[1024,520],[390,844]]){
+   x=await workspace([],width,{height});await x.page.click('#tool-upscale');
    const chooser=x.page.waitForEvent('filechooser');
    await x.page.getByRole('button',{name:'Upload an image to upscale',exact:true}).click();
    await (await chooser).setFiles({
@@ -622,22 +628,40 @@ try{
    for(const quality of ['Standard V2','High Fidelity V3']){
     await selectQuality(x.page,quality,{touch:width===390});
     const g=await x.page.evaluate(()=>{
-      const format=document.getElementById('format-control').getBoundingClientRect();
+      const body=document.querySelector('#app>.workspace>.controls>.controls-body');
+      const scale=document.getElementById('upscale-scale').getBoundingClientRect();
+      const format=document.getElementById('output-format').getBoundingClientRect();
       const generate=document.getElementById('generate').getBoundingClientRect();
+      const model=document.getElementById('upscale-model-trigger').getBoundingClientRect();
       const photo=document.getElementById('preview');
-      return {formatBottom:format.bottom,generateTop:generate.top,photoWidth:photo.naturalWidth,
-        photoHeight:photo.naturalHeight,documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth};
+      return {scaleTop:scale.top,scaleRight:scale.right,formatTop:format.top,formatLeft:format.left,
+        scaleHeight:scale.height,formatHeight:format.height,formatBottom:format.bottom,modelHeight:model.height,
+        generateTop:generate.top,actionPageBottom:generate.bottom+scrollY,photoWidth:photo.naturalWidth,
+        photoHeight:photo.naturalHeight,overflow:getComputedStyle(body).overflowY,bodyHeight:body.clientHeight,
+        bodyScrollHeight:body.scrollHeight,documentHeight:document.documentElement.scrollHeight,
+        documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth};
     });
     assert.ok(g.generateTop>=g.formatBottom-1,
       'REAL photographic source and '+quality+' keep Upscale below Image format at '+width+'px: '+JSON.stringify(g));
     assert.ok(g.photoWidth>0&&g.photoHeight>0,'Original photographic media stays visible');
     assert.ok(g.documentWidth<=g.viewportWidth,'No horizontal overflow with a loaded photograph');
+    assert.ok(Math.abs(g.scaleTop-g.formatTop)<=1&&g.scaleRight<g.formatLeft,
+      'Enlargement and Image format sit side by side: '+JSON.stringify(g));
+    assert.equal(g.scaleHeight,38,'Enlargement uses the compact Video field height');
+    assert.equal(g.formatHeight,38,'Image format matches Enlargement');
+    assert.ok(g.modelHeight>=44&&g.modelHeight<55,'Model button stays compact and readable');
+    if(width>=781){
+      assert.equal(g.overflow,'visible','The loaded deck has no inner scroll container');
+      assert.ok(g.bodyScrollHeight<=g.bodyHeight+1,'All settings fit their deck: '+JSON.stringify(g));
+      if(height>=700)assert.ok(g.actionPageBottom<=height+1,'Upscale stays in view: '+JSON.stringify(g));
+      assert.ok(g.actionPageBottom<=g.documentHeight+1,'Short windows can reach Upscale with page scroll');
+    }
     assert.equal(quoteRequests(x).length,0,'Model preview never creates a billable quote');
     assert.equal(countPaid(x),0,'Model preview never submits generation');
     mkdirSync('test-results',{recursive:true});
     const version=quality==='Standard V2'?'standard-v2':'high-fidelity-v3';
     await x.page.screenshot({path:'test-results/upscaler-photo-loaded-'+width+'-'+version+'.png',fullPage:true});
-    ok('Loaded real photograph '+quality+' at '+width+'px: no overlap and no billable calls');
+    ok('Loaded real photograph '+quality+' at '+width+'×'+height+': compact settings, no inner scroll, no billable calls');
    }
    // Same-row toggle closes and reopens the existing version selector on
    // both mouse and touch without losing High Fidelity or making a paid call.
