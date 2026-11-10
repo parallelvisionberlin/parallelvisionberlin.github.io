@@ -4,6 +4,7 @@ on:
     paths:
       - 'lab/lab.js'
       - 'lab/studio.html'
+      - 'tests/lab-fastqueue-browser.mjs'
       - 'tests/lab-image-viewer-browser.mjs'
       - '.github/workflows/pv-lab-fastqueue-browser.yml'
   push:
@@ -35,6 +36,10 @@ jobs:
         run: |
           npm install --prefix /tmp/pv-fastqueue --no-save playwright@1.57.0
           node /tmp/pv-fastqueue/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify independent Image preparations and queue access without paid requests
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-fastqueue/node_modules/playwright/index.mjs
+        run: node tests/lab-fastqueue-browser.mjs
       - name: Verify instant image navigation with held downloads
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-fastqueue/node_modules/playwright/index.mjs
@@ -46,10 +51,6 @@ jobs:
           name: pv-result-deck
           path: test-results/result-deck
           if-no-files-found: ignore
-      - name: Verify independent Seedream preparations without paid requests
-        env:
-          PV_PLAYWRIGHT_MODULE: /tmp/pv-fastqueue/node_modules/playwright/index.mjs
-        run: node tests/lab-fastqueue-browser.mjs
       - name: Verify Nano mood deck, direct clear and stable queue geometry
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-fastqueue/node_modules/playwright/index.mjs

@@ -144,7 +144,7 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer #image-compose
   background:#e9e8e5!important;
   border-color:#e8e7e3!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 0 15px rgba(241,239,234,.16),0 4px 16px rgba(0,0,0,.12)!important;
-  cursor:not-allowed;
+  cursor:default;
 }
 
 /* Every web Image model uses the normal deck above. Identity is one

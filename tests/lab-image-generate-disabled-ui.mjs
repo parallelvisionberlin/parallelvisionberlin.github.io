@@ -9,7 +9,7 @@ assert.ok(process.env.PV_PLAYWRIGHT_MODULE,'PV_PLAYWRIGHT_MODULE is required');
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.');
 const html=readFileSync('lab/studio.html','utf8');
-assert.match(html,/studio-finish-v2\.css\?v=20261016-generate-always3/,'Studio must reload the updated stylesheet');
+assert.match(html,/image-deck-surface\.css\?[^"']*\bv=20261110-generate-queue1/,'Studio must reload the updated button styles');
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png'};
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
@@ -58,7 +58,7 @@ try{
         photo.remove();
         prompt.value='A photographic image.';
         const disabled=getComputedStyle(button);
-        const off={background:disabled.backgroundColor,image:disabled.backgroundImage,color:disabled.color,
+        const off={background:disabled.backgroundColor,image:disabled.backgroundImage,color:disabled.color,cursor:disabled.cursor,
           width:button.getBoundingClientRect().width,height:button.getBoundingClientRect().height};
         button.disabled=false;
         const active=getComputedStyle(button);
@@ -77,6 +77,7 @@ try{
       assert.ok(rgb(css.off.color).length===3&&rgb(css.off.color).every(c=>c>75&&c<155),
         model+' '+width+': disabled Generate label must remain legible: '+css.off.color);
       assert.equal(css.off.image,'none',model+' '+width+': disabled background has no bright gradient');
+      assert.equal(css.off.cursor,'default',model+' '+width+': disabled Generate uses a normal cursor');
       assert.match(css.on.image,/linear-gradient/,model+' '+width+': enabled Generate regains pearl finish');
       assert.equal(css.off.width,css.on.width,model+' '+width+': no width jump between states');
       assert.equal(css.off.height,css.on.height,model+' '+width+': no height jump between states');

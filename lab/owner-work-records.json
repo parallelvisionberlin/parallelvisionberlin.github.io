@@ -2680,6 +2680,58 @@
         "Keep Photo packs as a direct row in the four-square menu and the person icon as the direct Characters shortcut."
       ],
       "updatedAt": "2026-11-10"
+    },
+    {
+      "id": "image-generate-queue-20261110",
+      "title": "Image Generate handoff and queue access",
+      "component": "PV LAB Image Deck",
+      "status": "needs_verification",
+      "summary": "The web Image button uses a normal cursor while blocked and hides browser tooltips for submission and capacity states. At capacity it opens the existing Queue when there is a server job to review. The two-second single-image owner handoff now also covers PV Still's direct Higgsfield route.",
+      "nextAction": "Confirm the focused browser checks, then verify Cloudflare Pages and production asset bytes.",
+      "baselineSha": "21999e34f80a3f34d735eb0bc11517624dddf2df",
+      "reviewedSha": null,
+      "branch": "fix/image-generate-queue-20261110",
+      "files": [
+        "lab/lab.js",
+        "lab/image-deck-surface.css",
+        "lab/studio.html",
+        "tests/lab-fastqueue-browser.mjs",
+        "tests/lab-image-generate-disabled-ui.mjs",
+        "tests/lab-image-submit-handoff.test.mjs",
+        ".github/workflows/pv-lab-fastqueue-browser.yml"
+      ],
+      "links": [
+        {
+          "label": "Existing Image submission handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-SUBMIT-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI and submission handoff",
+          "result": "passed",
+          "scope": "12 local contract and handoff tests. JavaScript syntax and git diff whitespace checks passed."
+        },
+        {
+          "label": "Image queue and button appearance",
+          "result": "not_run",
+          "scope": "Browser fixtures for existing Seedream and new PV Still handoffs, cursor, tooltip, local reservations, and verified capacity reopening."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "Signed-in production generation has not been exercised."
+        ]
+      },
+      "evidence": [],
+      "blockers": [],
+      "doNotRepeat": [
+        "Use mocked generation requests for browser verification.",
+        "Keep server capacity, price validation, spending and provider safeguards."
+      ],
+      "updatedAt": "2026-11-10"
     }
   ]
 }
