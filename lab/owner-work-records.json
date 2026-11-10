@@ -2940,11 +2940,11 @@
       "id": "image-base-mode-popover",
       "title": "Compact Base image mode picker",
       "component": "PV LAB Image Deck",
-      "status": "needs_verification",
-      "summary": "Base image and References only open the same two-choice popover anchored above the toolbar button. The web picker omits the large heading, explanatory cards and footer. It preserves the selected-mode checkmark, model restrictions, the existing photo flow and deck geometry.",
-      "nextAction": "Verify trigger placement on desktop and phone, keyboard dismissal and the existing mocked reference selection flow. Confirm both versioned assets on production after review.",
+      "status": "deployed",
+      "summary": "Base image and References only open the same compact two-choice web popover directly above the toolbar button. The selected choice is marked and Escape restores focus. Phone placement follows the Base button in the More row.",
+      "nextAction": "Refresh Image Studio and click Base image to open the compact picker.",
       "baselineSha": "02057b10d3c9d181dfff0bdf23f08feb0b53d13e",
-      "reviewedSha": null,
+      "reviewedSha": "8cb3ec882ddae061fd610bc94f76591bbce37859",
       "branch": "fix/image-base-mode-popover-20261110",
       "files": [
         "lab/lab.js",
@@ -2955,6 +2955,10 @@
       ],
       "links": [
         {
+          "label": "Merged Base menu change",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/957"
+        },
+        {
           "label": "Image Deck handoff",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
         }
@@ -2963,26 +2967,51 @@
         {
           "label": "Approved Image UI contract",
           "result": "passed",
-          "scope": "Six local assertions.",
-          "source": "tests/lab-approved-image-ui-contract.test.mjs"
+          "scope": "All six local and CI assertions.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42905720598"
         },
         {
-          "label": "Base mode picker browser",
-          "result": "not_run",
-          "scope": "Viewport containment, direct anchor, two compact controls, stable deck and Escape/focus.",
-          "source": "tests/lab-image-prompt-paste-ui.mjs"
+          "label": "Picker geometry and shared toolbar",
+          "result": "passed",
+          "scope": "Anchored menu, viewport fit, compact choices and stable deck at 1440×900, 1100×700, 390×844 and 390×600. Desktop and phone screenshots inspected.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42905720524"
+        },
+        {
+          "label": "Reference flow",
+          "result": "passed",
+          "scope": "Mocked uploads, both modes, selected option, Escape and focus restoration.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42905720664"
+        },
+        {
+          "label": "Broader shared deck assertions",
+          "result": "documented",
+          "scope": "Soul and normal geometry and paste checks pass. The Inspiration background and Clerk timeout failures match the previous main candidate.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42905720559"
         }
       ],
       "deployment": {
-        "state": "not_started",
+        "state": "verified",
         "environment": "Cloudflare Pages pvlab-studio",
-        "sourceSha": null,
-        "limitations": []
+        "sourceSha": "9c0285b20975619d69b571d1ebb60370e30b00b0",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=image",
+        "limitations": [
+          "The production browser was signed out. Interaction was verified with mocked accounts in Chromium."
+        ]
       },
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "production_asset",
+          "summary": "Cloudflare production check 130145569818 succeeded for the exact merge. Live stylesheet v20261110-base-mode-menu1 has the reviewed preview's parsed CSS hash. The live Studio entry references lab.js v20261110-base-mode-menu2 and the source blobs match the reviewed commit.",
+          "scope": "Published Image Deck stylesheet and versioned JavaScript entry",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": [
+            "Browser verification compared CSS rules and entry versions."
+          ]
+        }
+      ],
       "blockers": [],
       "doNotRepeat": [
-        "Keep Base mode in the same toolbar slot and leave upload, model eligibility, reference roles and generation behavior intact."
+        "Keep the mode picker anchored to the Base button, including in the phone More row. Preserve the approved toolbar, photo and generation flows."
       ],
       "updatedAt": "2026-11-10"
     }
