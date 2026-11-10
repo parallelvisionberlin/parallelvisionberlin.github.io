@@ -152,7 +152,11 @@ html:not(.pv-native-lab) #image-composer .composer-reference-intent{
     & .composer-mood-control{display:block!important;flex:0 0 104px!important;width:104px!important;min-width:104px!important;max-width:104px!important}
     & [data-deck-control="moods"]{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important}
     & :is(.composer-mood-copy,.composer-mood-label,.pv-guest-chevron,.composer-chevron){font:inherit!important;letter-spacing:inherit!important}
-    & [data-deck-control="base"]{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 120px!important;width:120px!important;min-width:120px!important}
+    & [data-deck-control="base"]{
+      display:inline-flex!important;align-items:center!important;justify-content:center!important;
+      flex:0 0 144px!important;width:144px!important;min-width:144px!important;
+      gap:4px!important;padding-inline:6px!important;
+    }
     & .composer-select-pill:not([hidden]):has([data-deck-control]){display:flex!important;align-items:center!important;min-width:0!important;padding:0!important;border:0!important;background:transparent!important}
     & [data-deck-control="ratio"]{display:inline-flex!important;align-items:center!important;justify-content:space-between!important;width:85px!important;min-width:85px!important}
     & [data-deck-control="resolution"]{display:inline-flex!important;align-items:center!important;justify-content:space-between!important;width:46px!important;min-width:46px!important}
@@ -183,8 +187,7 @@ html:not(.pv-native-lab) #image-composer .composer-reference-intent{
       border-radius:1px;
       transform:translateY(-50%) rotate(45deg);
     }
-    & [data-deck-control="base"][data-compact-label^="Refs"]{padding-inline:3px!important}
-    & [data-deck-control="base"]:not([data-compact-label^="Refs"])::before{
+    & [data-deck-control="base"]::before{
       content:"";
       flex:0 0 13px;
       height:13px;

@@ -98,12 +98,21 @@ try{
         };
         if(matchMedia('(min-width:1180px) and (min-height:680px)').matches){
           const label=base.textContent, compactLabel=base.getAttribute('data-compact-label');
+          const modeStyle=()=>{
+            const style=getComputedStyle(base),icon=getComputedStyle(base,'::before');
+            return {font:style.font,letterSpacing:style.letterSpacing,padding:style.paddingInline,
+              gap:style.columnGap,icon:icon.maskImage,width:base.getBoundingClientRect().width};
+          };
+          layout.baseStyle=modeStyle();
           base.textContent='References only ⌄';
           base.dataset.compactLabel='Refs ⌄';
+          layout.referencesStyle=modeStyle();
           const text=document.createRange();
           text.selectNodeContents(base);
           const bounds=text.getBoundingClientRect(), button=base.getBoundingClientRect();
-          layout.referencesLabelFits=bounds.left>=button.left&&bounds.right<=button.right;
+          const style=getComputedStyle(base);
+          layout.referencesLabelFits=bounds.left>=button.left+parseFloat(style.paddingLeft)+13+parseFloat(style.columnGap)-1
+            &&bounds.right<=button.right-parseFloat(style.paddingRight)+1;
           base.textContent=label;
           if(compactLabel===null)delete base.dataset.compactLabel;
           else base.dataset.compactLabel=compactLabel;
@@ -134,7 +143,9 @@ try{
         const icons=toolbar.tools.filter(tool=>['image-composer-add','scene-characters-open','scene-image-open'].includes(tool.id));
         assert.deepEqual(icons.map(tool=>tool.width),[34,34,34],'Desktop icon buttons use one square size');
         assert.equal(count.width,80,'The count stepper preserves its desktop slot');
-        assert.equal(toolbar.referencesLabelFits,true,'References only fits inside the shared Base slot');
+        assert.deepEqual(toolbar.referencesStyle,toolbar.baseStyle,'Both image modes use the same type, icon and spacing');
+        assert.notEqual(toolbar.baseStyle.icon,'none','Both image modes show the photo icon');
+        assert.equal(toolbar.referencesLabelFits,true,'The full References only label fits beside its icon');
       }
       for(const part of ['minus','status','plus']){
         const item=toolbar[part];
@@ -169,6 +180,18 @@ try{
       if(viewport.width===1440||viewport.height===844){
         mkdirSync('test-artifacts/prompt-deck',{recursive:true});
         await page.screenshot({path:'test-artifacts/prompt-deck/base-mode-'+viewport.width+'.png'});
+        if(viewport.width===1440){
+          await page.evaluate(()=>{
+            const base=document.getElementById('composer-reference-intent-toggle');
+            base.textContent='References only ⌄';base.dataset.compactLabel='Refs ⌄';
+            document.getElementById('composer-reference-intent').hidden=true;
+          });
+          await page.screenshot({path:'test-artifacts/prompt-deck/references-only-type.png'});
+          await page.evaluate(()=>{
+            const base=document.getElementById('composer-reference-intent-toggle');
+            base.textContent='Base image ⌄';delete base.dataset.compactLabel;
+          });
+        }
       }
       await page.evaluate(({wasHidden,mobileSettings})=>{
         document.getElementById('composer-reference-intent').hidden=true;
