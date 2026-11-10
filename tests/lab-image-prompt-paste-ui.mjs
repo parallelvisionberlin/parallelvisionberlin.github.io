@@ -19,6 +19,10 @@ const handlerEnd=source.indexOf('\nfor(const [copy,real]',handlerStart);
 assert.ok(handlerStart>0&&handlerEnd>handlerStart);
 const sizing=source.slice(sizingStart,sizingEnd);
 const handler=source.slice(handlerStart,handlerEnd);
+const positionStart=source.indexOf('function positionReferenceIntent(){');
+const positionEnd=source.indexOf('\nfunction syncReferenceIntentUi(){',positionStart);
+assert.ok(positionStart>0&&positionEnd>positionStart);
+const positionReferenceIntent=source.slice(positionStart,positionEnd);
 assert.match(handler,/inputType==='insertFromPaste'/);
 assert.match(html,/image-composer-stable\.css\?v=\d{8}-[a-z0-9-]+/);
 const stable=readFileSync('lab/image-composer-stable.css','utf8');
@@ -61,7 +65,7 @@ try{
       });
       await page.addScriptTag({content:
         "const $=id=>document.getElementById(id);const busy=false;const imageComposer=$('image-composer');const committedElementMentions=[];function updateElementSuggestions(){}function effectiveImagePrompt(){return '';}" +
-        sizing+'\n'+handler+
+        sizing+'\n'+handler+'\n'+positionReferenceIntent+
         "\n$('prompt').addEventListener('input',fitImageComposerPrompt);fitImageComposerPrompt();"
       });
       // Measure the shared tool surface, including the phone's open More row.
@@ -137,6 +141,37 @@ try{
         assert.ok(item.width>0&&item.left>=count.left&&item.right<=count.right,
           part+' stays inside the count stepper');
       }
+      const intent=await page.evaluate(()=>{
+        const base=document.getElementById('composer-reference-intent-toggle');
+        const menu=document.getElementById('composer-reference-intent');
+        const deck=document.getElementById('image-composer');
+        const bounds=el=>el.getBoundingClientRect().toJSON();
+        const wasHidden=base.hidden;
+        base.hidden=false;
+        const before=bounds(deck);
+        menu.hidden=false;
+        positionReferenceIntent();
+        return {before,after:bounds(deck),button:bounds(base),menu:bounds(menu),wasHidden,
+          width:document.documentElement.clientWidth,height:innerHeight,
+          heading:getComputedStyle(menu.querySelector('.reference-intent-heading')).display,
+          choices:[...menu.querySelectorAll('.reference-intent-choice')].map(bounds)};
+      });
+      assert.deepEqual(intent.before,intent.after,'Opening the Base picker leaves the deck in place');
+      assert.equal(intent.heading,'none','The web picker has no heading row');
+      assert.ok(intent.menu.width<=224&&intent.menu.height<=104,'The Base picker stays compact');
+      assert.ok(intent.menu.left>=7&&intent.menu.right<=intent.width-7&&intent.menu.top>=7&&intent.menu.bottom<=intent.height-7,
+        'The Base picker remains inside the viewport: '+JSON.stringify(intent));
+      assert.ok(Math.abs(intent.button.top-intent.menu.bottom-6)<=1&&intent.menu.left<=intent.button.left+1&&intent.menu.right>=intent.button.right-1,
+        'The Base picker opens from the toolbar button: '+JSON.stringify(intent));
+      assert.ok(intent.choices.every(choice=>choice.height>=(phone?44:36)),'Mode choices keep comfortable targets');
+      if(viewport.width===1440||viewport.height===844){
+        mkdirSync('test-artifacts/prompt-deck',{recursive:true});
+        await page.screenshot({path:'test-artifacts/prompt-deck/base-mode-'+viewport.width+'.png'});
+      }
+      await page.evaluate(wasHidden=>{
+        document.getElementById('composer-reference-intent').hidden=true;
+        document.getElementById('composer-reference-intent-toggle').hidden=wasHidden;
+      },intent.wasHidden);
       const editor=page.locator('#image-composer-prompt');
       // The sizing helper must never replace the contextual copy already
       // chosen by syncImageComposer() for a selected Base photograph.

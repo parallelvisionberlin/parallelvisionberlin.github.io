@@ -424,10 +424,14 @@ try{
   assert.equal(await x.page.locator('#composer-reference-intent').isVisible(),false,'Upload must not open a compulsory chooser');
   assert.match(await x.page.locator('#composer-reference-intent-toggle').innerText(),/Base image/);
   await x.page.click('#composer-reference-intent-toggle');
-  assert.match(await x.page.locator('#composer-reference-intent').innerText(),/How would you like to create/);
-  assert.equal(await x.page.locator('#composer-reference-intent .reference-intent-choice').count(),2);
-  assert.equal(await x.page.locator('#composer-reference-intent').getByText('Same person').count(),0);
-  await x.page.click('#composer-reference-intent-close');
+  const intentMenu=x.page.locator('#composer-reference-intent');
+  assert.deepEqual(await intentMenu.locator('.reference-intent-copy strong').allTextContents(),['Edit an image','Create with references']);
+  assert.equal(await intentMenu.locator('.reference-intent-heading').isVisible(),false);
+  assert.equal(await intentMenu.locator('[data-reference-intent="base"]').getAttribute('aria-pressed'),'true');
+  assert.equal(await intentMenu.locator('[data-reference-intent="base"]').evaluate(el=>el===document.activeElement),true);
+  await x.page.keyboard.press('Escape');
+  assert.equal(await intentMenu.isVisible(),false);
+  assert.equal(await x.page.locator('#composer-reference-intent-toggle').evaluate(el=>el===document.activeElement),true);
   assert.equal(await x.page.locator('.composer-reference-index').first().innerText(),'BASE');
   assert.equal(await x.page.locator('#image-composer-references .role-general').count(),2);
   assert.deepEqual(await x.page.locator('#image-composer-references .composer-reference-role').evaluateAll(a=>a.map(el=>el.value)),['none','none']);

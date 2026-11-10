@@ -51,6 +51,31 @@ html:not(.pv-native-lab) #main :is(#app.image-studio-active #image-composer.pv-e
   }
 }
 
+/* Two choices beside the Base button. The web popover takes no deck space. */
+html:not(.pv-native-lab) #image-composer .composer-reference-intent{
+  bottom:auto;transform:none;width:min(224px,calc(100vw - 16px));
+  padding:5px;border:1px solid #404245;border-radius:10px;
+  background:#1b1c1e;box-shadow:0 12px 32px #0008;
+
+  & :is(.reference-intent-heading,.reference-intent-footnote,.reference-intent-copy small){display:none}
+  & .reference-intent-choices{gap:2px}
+  & .reference-intent-choice{
+    grid-template-columns:16px minmax(0,1fr) 14px;column-gap:8px;
+    min-height:36px;padding:7px 8px;border:0;border-radius:6px;
+    background:transparent;
+  }
+  & .reference-intent-choice:hover:not(:disabled){background:#282a2c}
+  & .reference-intent-choice[aria-pressed="true"]{background:#303235}
+  & .reference-intent-choice:focus-visible{outline-offset:-2px}
+  & .reference-intent-icon{width:16px;height:16px;border:0}
+  & .reference-intent-icon svg{width:16px;height:16px}
+  & .reference-intent-check{align-self:center;font-size:12px}
+
+  @media(max-width:899px){
+    & .reference-intent-choice{min-height:44px}
+  }
+}
+
 /* One standard desktop Image instrument, based on the Owner History deck.
    The entrance and photo-free History share these slots and controls.
    Reference trays grow above the toolbar. Every model shares this design; mobile retains the common responsive rules. */
