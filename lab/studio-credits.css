@@ -147,3 +147,16 @@ body:has(.landing-header--home) > #lab-credit-banner:not([hidden]){
 body:has(.landing-header--home) > #lab-credit-banner strong{font-synthesis:weight}
 body:has(.landing-header--home) > #lab-credit-banner a{text-decoration:none}
 body:has(.landing-header--home) > #lab-credit-banner a:hover{text-decoration:underline}
+
+
+/* 2026-11-08 | The mobile FIRST-IMAGE header has a locked 78px height,
+   whereas the global --lab-header-height is 102px on phones. The earlier
+   Image banner anchored to 102px and floated 24px away from the navigation.
+   Match the actual condensed header only; other tools and Homepage keep
+   their own measured/default banner anchors and all notice logic stays put. */
+@media(max-width:680px){
+  body:has(> #studio-header.pv-mobile-entry-condensed):has(#app.image-studio-active:not([hidden]))
+    > #lab-credit-banner:not([hidden]){
+    top:78px!important;
+  }
+}

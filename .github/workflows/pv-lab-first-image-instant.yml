@@ -23,6 +23,9 @@ on:
       - 'tests/lab-customer-image-quotes.test.mjs'
       - 'tests/lab-first-image-instant-browser.mjs'
       - 'tests/lab-mobile-mood-entry.mjs'
+      - 'tests/lab-new-customer-image-banner-ui.mjs'
+      - 'lab/mobile-image-compact-welcome.css'
+      - 'lab/studio-credits.css'
       - 'lab/studio-mobile-entry.js'
       - '.github/workflows/pv-lab-first-image-instant.yml'
   push:
@@ -40,6 +43,9 @@ on:
       - 'tests/lab-customer-image-quotes.test.mjs'
       - 'tests/lab-first-image-instant-browser.mjs'
       - 'tests/lab-mobile-mood-entry.mjs'
+      - 'tests/lab-new-customer-image-banner-ui.mjs'
+      - 'lab/mobile-image-compact-welcome.css'
+      - 'lab/studio-credits.css'
       - '.github/workflows/pv-lab-first-image-instant.yml'
 
 permissions:
@@ -62,11 +68,24 @@ jobs:
           node --check lab/customer-image-pricing.js
           node --check tests/lab-first-image-instant-browser.mjs
           node --check tests/lab-mobile-mood-entry.mjs
+          node --check tests/lab-new-customer-image-banner-ui.mjs
           node --test tests/lab-customer-image-quotes.test.mjs
       - name: Install isolated Chromium runtime
         run: |
           npm install --prefix /tmp/pv-first-image --no-audit --no-fund playwright@1.62.1
           /tmp/pv-first-image/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify new non-owner first Image card spacing and flush credit notice
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-first-image/node_modules/playwright/index.mjs
+        run: node tests/lab-new-customer-image-banner-ui.mjs
+      - name: Save first Image reference screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pv-new-customer-image-screenshots
+          path: test-results/new-customer-image-*.png
+          retention-days: 2
+          if-no-files-found: ignore
       - name: Verify mobile Mood selection scrolls to Generate without keyboard
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-first-image/node_modules/playwright/index.mjs
