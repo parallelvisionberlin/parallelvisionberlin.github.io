@@ -5,9 +5,9 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
 }
 html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-deck #image-composer-count-wrap {
   box-sizing:border-box!important;
-  flex:0 0 94px!important;
-  width:94px!important;
-  min-width:94px!important;
+  flex:0 0 80px!important;
+  width:80px!important;
+  min-width:80px!important;
   padding:0 4px!important;
   border:1px solid #393d39!important;
   border-radius:9px!important;
