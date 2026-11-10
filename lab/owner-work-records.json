@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-10T13:05:00Z",
+  "updatedAt": "2026-11-10T15:35:54Z",
   "handoffs": [
     {
       "id": "owner",
@@ -2682,14 +2682,86 @@
       "updatedAt": "2026-11-10"
     },
     {
+      "id": "image-deck-toolbar-style-20261110",
+      "title": "Unified Image Deck toolbar styling",
+      "component": "PV LAB Image Deck",
+      "status": "deployed",
+      "summary": "Web Image Deck controls share a matte charcoal surface, 8px corners and a consistent type scale. The secondary controls use 32px height on desktop and 35px in the phone layout. Add, Characters and Elements share 32px square desktop controls. Base image, aspect ratio and resolution use compact icons, and References only fits its existing slot.",
+      "nextAction": "Refresh the Image Deck to load the published styles. Inspect in an existing production session if real account observation is needed.",
+      "baselineSha": "21999e34f80a3f34d735eb0bc11517624dddf2df",
+      "reviewedSha": "95e98fc84a8c60c6523b8ecdce23e036c6682033",
+      "branch": "fix/image-deck-controls-20261110",
+      "files": [
+        "lab/image-deck-surface.css",
+        "lab/image-count-stepper.css",
+        "lab/studio.html",
+        "tests/lab-image-prompt-paste-ui.mjs"
+      ],
+      "links": [
+        {
+          "label": "Published toolbar changes #953",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/953"
+        },
+        {
+          "label": "Shared Image Deck handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI contract",
+          "result": "passed",
+          "scope": "Six local assertions on the reviewed source.",
+          "source": "tests/lab-approved-image-ui-contract.test.mjs"
+        },
+        {
+          "label": "Image toolbar browser",
+          "result": "passed",
+          "scope": "Shared appearance, count fit, compact prompt and References only label at desktop and phone sizes.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42844232357/job/129927263431"
+        },
+        {
+          "label": "Shared deck browser",
+          "result": "failed",
+          "scope": "Soul, normal deck, prompt and direct public/new/returning/owner control parity passed. Broader Inspiration background and Clerk assertions failed.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42844232198/job/129927263183"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "sourceSha": "cbb3e5ead33e0cdab6219bf9cd48acbb555202d6",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/cbb3e5ead33e0cdab6219bf9cd48acbb555202d6/checks?check_run_id=129929868798",
+        "limitations": [
+          "Authenticated browser tests used fixtures."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "production_asset",
+          "summary": "Both live CSS assets match the reviewed merge at 20261110-tool-surface1. Cloudflare check 129929868798 succeeded.",
+          "scope": "Image Deck toolbar stylesheet and count stylesheet on the custom production domain.",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": [
+            "Production sign-in interaction was not observed."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Keep the established Image Deck control order and actions. Treat the Generate action and its geometry as the primary control."
+      ],
+      "updatedAt": "2026-11-10"
+    },
+    {
       "id": "image-generate-queue-20261110",
       "title": "Image Generate handoff and queue access",
       "component": "PV LAB Image Deck",
       "status": "needs_verification",
-      "summary": "The web Image button uses a normal cursor while blocked and hides browser tooltips for submission and capacity states. At capacity it opens the existing Queue when there is a server job to review. The two-second single-image owner handoff now also covers PV Still's direct Higgsfield route.",
-      "nextAction": "Confirm the focused browser checks, then verify Cloudflare Pages and production asset bytes.",
+      "summary": "The web Image button uses a normal cursor while blocked and hides browser tooltips for submission and capacity states. At capacity it opens the existing Queue when there is a server job to review. The two-second single-image owner handoff now also covers PV Still's direct Higgsfield route. A Queue press stays a read-only action if a slot opens mid-click.",
+      "nextAction": "Merge the reconciled branch and verify the Cloudflare Pages release and exact live assets.",
       "baselineSha": "21999e34f80a3f34d735eb0bc11517624dddf2df",
-      "reviewedSha": null,
+      "reviewedSha": "70041f397c94761ead2e0dd8cb5b318ee96348b0",
       "branch": "fix/image-generate-queue-20261110",
       "files": [
         "lab/lab.js",
@@ -2704,22 +2776,39 @@
         {
           "label": "Existing Image submission handoff",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-SUBMIT-WORK-STATE.md"
+        },
+        {
+          "label": "Generate fix PR #954",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/954"
         }
       ],
       "tests": [
         {
-          "label": "Approved Image UI and submission handoff",
+          "label": "Image UI, handoff and provider safeguards",
           "result": "passed",
-          "scope": "12 local contract and handoff tests. JavaScript syntax and git diff whitespace checks passed."
+          "scope": "24 local tests and the exact reviewed Image UI GitHub check.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42844887699/job/129929617188"
         },
         {
-          "label": "Image queue and button appearance",
-          "result": "not_run",
-          "scope": "Browser fixtures for existing Seedream and new PV Still handoffs, cursor, tooltip, local reservations, and verified capacity reopening."
+          "label": "Desktop and phone button appearance",
+          "result": "passed",
+          "scope": "Normal disabled cursor, stable position and dimensions.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42844887503/job/129929616108"
+        },
+        {
+          "label": "Image queue and button browser",
+          "result": "passed",
+          "scope": "Focused step verified the two-second handoff, both queue states and the slot change during a held press.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42844887799/job/129929617659"
+        },
+        {
+          "label": "Existing mixed-tool viewer check",
+          "result": "failed",
+          "scope": "The same phone Video badge assertion fails on unchanged main and after the passing Image queue step."
         }
       ],
       "deployment": {
-        "state": "not_started",
+        "state": "pending",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
         "limitations": [
           "Signed-in production generation has not been exercised."
@@ -2731,7 +2820,7 @@
         "Use mocked generation requests for browser verification.",
         "Keep server capacity, price validation, spending and provider safeguards."
       ],
-      "updatedAt": "2026-11-10"
+      "updatedAt": "2026-11-10T15:35:54Z"
     }
   ]
 }

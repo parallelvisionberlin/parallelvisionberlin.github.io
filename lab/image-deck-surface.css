@@ -1,3 +1,56 @@
+/* The web Image Deck shares one surface and type scale for its tools. */
+html:not(.pv-native-lab) #main :is(#app.image-studio-active #image-composer.pv-editorial-deck,#gate.pv-guest-image #pv-guest-composer){
+  --pv-image-tool-height:32px;
+  --pv-image-tool-fill:#323437;
+  --pv-image-tool-hover:#3e4043;
+  --pv-image-tool-type:13px;
+
+  @media(max-width:899px){
+    --pv-image-tool-height:35px;
+    --pv-image-tool-type:11px;
+  }
+
+  & [data-deck-slot="controls"] :is([data-deck-control],.composer-more-compact,.composer-mobile-more,#pv-guest-mobile-more,#image-reference-mode){
+    box-sizing:border-box!important;
+    height:var(--pv-image-tool-height)!important;
+    min-height:var(--pv-image-tool-height)!important;
+    max-height:var(--pv-image-tool-height)!important;
+    border:0!important;
+    border-radius:8px!important;
+    background:var(--pv-image-tool-fill)!important;
+    box-shadow:none!important;
+    color:#eeeeef!important;
+    font:600 var(--pv-image-tool-type)/1.2 'DM Sans',Arial,sans-serif!important;
+  }
+  & [data-deck-slot="controls"] :is(button,select):is([data-deck-control],.composer-more-compact,.composer-mobile-more,#pv-guest-mobile-more,#image-reference-mode):is(:hover:not(:disabled),[aria-expanded="true"]){
+    background:var(--pv-image-tool-hover)!important;
+  }
+  & [data-deck-slot="controls"] :is(button,select):is([data-deck-control],.composer-more-compact,.composer-mobile-more,#pv-guest-mobile-more,#image-reference-mode):focus-visible{
+    outline:2px solid #c4c7ca!important;
+    outline-offset:2px!important;
+  }
+  & [data-deck-slot="controls"] :is([data-deck-control="moods"],#image-composer-moods){
+    color:#dcff00!important;
+  }
+  & .composer-select-pill:has(> :is([data-deck-control="ratio"],[data-deck-control="resolution"],#image-reference-mode)){
+    height:var(--pv-image-tool-height)!important;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+  }
+  & .composer-select-pill:has(> :is([data-deck-control="ratio"],[data-deck-control="resolution"],#image-reference-mode))::after{
+    top:50%;
+    transform:translateY(-50%);
+    color:#b1b3b5;
+  }
+  & .composer-add-plus{
+    font:400 22px/1 Arial,sans-serif!important;
+  }
+  @media(max-width:360px){
+    & #composer-reference-intent-toggle[data-compact-label]{font-size:0!important}
+  }
+}
+
 /* One standard desktop Image instrument, based on the Owner History deck.
    The entrance and photo-free History share these slots and controls.
    Reference trays grow above the toolbar. Every model shares this design; mobile retains the common responsive rules. */
@@ -46,46 +99,75 @@
       overflow:visible!important;
     }
     & :where([data-deck-control]:not([data-deck-control="exact"])){
-      box-sizing:border-box!important;height:40px!important;min-height:40px!important;
-      border:1px solid #393d39!important;border-radius:9px!important;background:#242625!important;
-      color:#e9e7e5!important;font:600 12px/1.2 'DM Sans',Arial,sans-serif!important;
-      letter-spacing:0!important;white-space:nowrap!important;gap:5px!important;padding:7px 8px!important;
-      box-shadow:none!important;margin:0!important;
+      letter-spacing:0!important;white-space:nowrap!important;gap:5px!important;padding:0 8px!important;
+      margin:0!important;
     }
     & [data-deck-control][hidden]{display:none!important}
     & [data-deck-control="retouch"]:not([hidden]){
       display:inline-flex!important;align-items:center!important;flex:0 0 auto!important;
       padding:8px!important;font-size:13px!important;font-weight:700!important;
     }
-    & .composer-add-wrap{display:flex!important;flex:0 0 40px!important;width:40px!important;min-width:40px!important;height:40px!important}
+    & .composer-add-wrap{display:flex!important;flex:0 0 32px!important;width:32px!important;min-width:32px!important;height:32px!important}
     & [data-deck-control="add"]{
-      display:grid!important;place-items:center!important;flex:0 0 40px!important;
-      width:40px!important;min-width:40px!important;padding:0!important;background:#292c2a!important;
-      font:350 26px/1 Arial,sans-serif!important;
+      display:grid!important;place-items:center!important;flex:0 0 32px!important;
+      width:32px!important;min-width:32px!important;padding:0!important;
     }
-    & .composer-add-plus{font:350 26px/1 Arial,sans-serif!important;transform:translateY(-1px)}
-    & .scene-image-library-wrap{display:flex!important;flex-direction:row!important;align-items:center!important;gap:5px!important;flex:0 0 81px!important;width:81px!important;min-width:81px!important;height:40px!important}
+    & .scene-image-library-wrap{display:flex!important;flex-direction:row!important;align-items:center!important;gap:6px!important;flex:0 0 70px!important;width:70px!important;min-width:70px!important;height:32px!important}
     & :is([data-deck-control="library"],[data-deck-control="characters"]){
-      display:grid!important;place-items:center!important;width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important;
-      padding:0!important;border-radius:50%!important;background:transparent!important;border-color:#626762!important;
+      display:grid!important;place-items:center!important;flex:0 0 32px!important;
+      width:32px!important;min-width:32px!important;
+      padding:0!important;
     }
-    & :is([data-deck-control="library"],[data-deck-control="characters"]) svg{width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.5!important}
+    & :is([data-deck-control="library"],[data-deck-control="characters"]) svg{width:16px!important;height:16px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.5!important}
     & .composer-model-wrap{display:block!important;flex:0 0 165px!important;width:165px!important;min-width:165px!important;max-width:165px!important}
-    & [data-deck-control="model"]{display:flex!important;align-items:center!important;width:100%!important;min-width:0!important;font-size:14px!important;font-weight:610!important}
+    & [data-deck-control="model"]{display:flex!important;align-items:center!important;width:100%!important;min-width:0!important}
     & :is(.composer-model-symbol,.pv-guest-model-symbol){display:inline-flex!important;flex:0 0 20px!important;width:20px!important;height:20px!important}
     & :is(.composer-model-symbol,.pv-guest-model-symbol) img{width:20px!important;height:20px!important;object-fit:contain!important}
     & :is(#image-composer-model-label,.pv-guest-model-label){min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;font:inherit!important;letter-spacing:inherit!important}
     & .composer-mood-control{display:block!important;flex:0 0 104px!important;width:104px!important;min-width:104px!important;max-width:104px!important}
-    & [data-deck-control="moods"]{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;color:#dcff00!important;font-size:13px!important;font-weight:700!important}
+    & [data-deck-control="moods"]{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important}
     & :is(.composer-mood-copy,.composer-mood-label,.pv-guest-chevron,.composer-chevron){font:inherit!important;letter-spacing:inherit!important}
-    & [data-deck-control="base"]{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 96px!important;width:96px!important;min-width:96px!important}
-    & #image-composer-ratio{width:60px!important;min-width:60px!important}
-    & #composer-reference-intent-toggle:not([hidden]){flex:0 0 120px!important;width:120px!important;min-width:120px!important}
+    & [data-deck-control="base"]{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 120px!important;width:120px!important;min-width:120px!important}
     & .composer-select-pill:not([hidden]):has([data-deck-control]){display:flex!important;align-items:center!important;min-width:0!important;padding:0!important;border:0!important;background:transparent!important}
     & [data-deck-control="ratio"]{display:inline-flex!important;align-items:center!important;justify-content:space-between!important;width:85px!important;min-width:85px!important}
     & [data-deck-control="resolution"]{display:inline-flex!important;align-items:center!important;justify-content:space-between!important;width:46px!important;min-width:46px!important}
+    & :is(#image-composer-ratio,#pv-guest-ratio){width:68px!important;min-width:68px!important}
+    & :is(#image-composer-resolution,#pv-guest-resolution){width:56px!important;min-width:56px!important}
+    & :is(#image-composer-ratio,#pv-guest-ratio,#image-composer-resolution,#pv-guest-resolution){
+      position:relative;
+      padding:0 6px 0 22px!important;
+      gap:2px!important;
+    }
+    & :is(#pv-guest-ratio,#pv-guest-resolution,.composer-select-pill:has(> :is(#image-composer-ratio,#image-composer-resolution)))::before{
+      content:"";
+      position:absolute;
+      z-index:1;
+      top:50%;
+      left:8px;
+      width:11px;
+      height:8px;
+      box-sizing:border-box;
+      border:1px solid #c4c7ca;
+      border-radius:2px;
+      transform:translateY(-50%);
+      pointer-events:none;
+    }
+    & :is(#pv-guest-resolution,.composer-select-pill:has(> #image-composer-resolution))::before{
+      width:8px;
+      height:8px;
+      border-radius:1px;
+      transform:translateY(-50%) rotate(45deg);
+    }
+    & [data-deck-control="base"][data-compact-label^="Refs"]{padding-inline:3px!important}
+    & [data-deck-control="base"]:not([data-compact-label^="Refs"])::before{
+      content:"";
+      flex:0 0 13px;
+      height:13px;
+      background:#c4c7ca;
+      mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='1.5' y='2.5' width='13' height='11' rx='2'/%3E%3Ccircle cx='6' cy='6' r='1'/%3E%3Cpath d='m2 11 3-2 2 2 3-4 4 4'/%3E%3C/svg%3E") center/contain no-repeat;
+    }
     & [data-deck-control="count"]{display:inline-flex!important;align-items:center!important;justify-content:space-between!important;width:80px!important;min-width:80px!important}
-    & [data-deck-control="exact"]{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 36px!important;width:36px!important;min-width:36px!important;height:40px!important;padding:0 3px!important;margin:0!important;background:transparent!important;border:0!important;box-shadow:none!important;color:#e9e7e5!important;font:400 12px/1.2 'DM Sans',Arial,sans-serif!important}
+    & [data-deck-control="exact"]{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 36px!important;width:36px!important;min-width:36px!important;padding:0 3px!important;margin:0!important}
     & :is([data-deck-control="exact"] input,.pv-guest-exact-switch){display:block!important;box-sizing:border-box!important;position:relative!important;width:28px!important;height:16px!important;min-height:16px!important;margin:0!important;border:1px solid #666b65!important;border-radius:99px!important;background:#343835}
     & .pv-guest-exact-switch:before{content:'';position:absolute;left:2px;top:2px;width:10px;height:10px;border-radius:50%;background:#d9dfd6}
     & [data-deck-slot="generate"]{
@@ -190,8 +272,8 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
    background previously overrode the selected fill but left its dark text. */
 html:not(.pv-native-lab) #app.image-studio-active #image-composer
   .composer-mood-control #image-composer-moods {
-  background:#242625!important;
-  border-color:#393d39!important;
+  background:var(--pv-image-tool-fill,#242625)!important;
+  border-color:transparent!important;
   color:#dcff00!important;
   box-shadow:none!important;
 }
