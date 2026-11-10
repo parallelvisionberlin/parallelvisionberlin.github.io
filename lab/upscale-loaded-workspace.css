@@ -124,11 +124,6 @@
   padding:5px 6px;
   border-radius:8px;
 }
-@media(min-width:781px){
-  #app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active) .pv-upscale-version-pill{
-    min-height:34px;
-  }
-}
 #app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .controls-body>.parameter-grid{
   grid-column:1!important;
 }
