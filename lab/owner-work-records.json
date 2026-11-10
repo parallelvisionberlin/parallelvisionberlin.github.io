@@ -2680,6 +2680,78 @@
         "Keep Photo packs as a direct row in the four-square menu and the person icon as the direct Characters shortcut."
       ],
       "updatedAt": "2026-11-10"
+    },
+    {
+      "id": "image-deck-toolbar-style-20261110",
+      "title": "Unified Image Deck toolbar styling",
+      "component": "PV LAB Image Deck",
+      "status": "deployed",
+      "summary": "Web Image Deck controls share a matte charcoal surface, 8px corners and a consistent type scale. The secondary controls use 32px height on desktop and 35px in the phone layout. Add, Characters and Elements share 32px square desktop controls. Base image, aspect ratio and resolution use compact icons, and References only fits its existing slot.",
+      "nextAction": "Refresh the Image Deck to load the published styles. Inspect in an existing production session if real account observation is needed.",
+      "baselineSha": "21999e34f80a3f34d735eb0bc11517624dddf2df",
+      "reviewedSha": "95e98fc84a8c60c6523b8ecdce23e036c6682033",
+      "branch": "fix/image-deck-controls-20261110",
+      "files": [
+        "lab/image-deck-surface.css",
+        "lab/image-count-stepper.css",
+        "lab/studio.html",
+        "tests/lab-image-prompt-paste-ui.mjs"
+      ],
+      "links": [
+        {
+          "label": "Published toolbar changes #953",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/953"
+        },
+        {
+          "label": "Shared Image Deck handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI contract",
+          "result": "passed",
+          "scope": "Six local assertions on the reviewed source.",
+          "source": "tests/lab-approved-image-ui-contract.test.mjs"
+        },
+        {
+          "label": "Image toolbar browser",
+          "result": "passed",
+          "scope": "Shared appearance, count fit, compact prompt and References only label at desktop and phone sizes.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42844232357/job/129927263431"
+        },
+        {
+          "label": "Shared deck browser",
+          "result": "failed",
+          "scope": "Soul, normal deck, prompt and direct public/new/returning/owner control parity passed. Broader Inspiration background and Clerk assertions failed.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42844232198/job/129927263183"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "sourceSha": "cbb3e5ead33e0cdab6219bf9cd48acbb555202d6",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/cbb3e5ead33e0cdab6219bf9cd48acbb555202d6/checks?check_run_id=129929868798",
+        "limitations": [
+          "Authenticated browser tests used fixtures."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "production_asset",
+          "summary": "Both live CSS assets match the reviewed merge at 20261110-tool-surface1. Cloudflare check 129929868798 succeeded.",
+          "scope": "Image Deck toolbar stylesheet and count stylesheet on the custom production domain.",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": [
+            "Production sign-in interaction was not observed."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Keep the established Image Deck control order and actions. Treat the Generate action and its geometry as the primary control."
+      ],
+      "updatedAt": "2026-11-10"
     }
   ]
 }
