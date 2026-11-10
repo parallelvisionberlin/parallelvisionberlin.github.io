@@ -1016,11 +1016,16 @@ async function fetchCustomerImagePrice(s,check){
         throw new Error('Provider priced a different image model.');
       return {...priced,provider,inputs};
     }
-    const quote=await api('/api/higgsfield/quote',{method:'POST',body:{...inputs,settings:selected}});
-    check();
-    const priced=pricedBoundQuotes(quote,1,'Higgsfield');
-    if(quote.settings?.characterId!==selected.characterId||quote.sourceId!==inputs.sourceId||!soulNightFlashQuoteMatches(selected,quote.settings))
-      throw new Error('The Soul 2 quote does not match the selected identity or photograph.');
+    const quotes=[];
+    for(let i=0;i<count;i++){
+      check();
+      const quote=await api('/api/higgsfield/quote',{method:'POST',body:{...inputs,settings:selected}});
+      check();
+      if(quote.settings?.characterId!==selected.characterId||quote.sourceId!==inputs.sourceId||!soulNightFlashQuoteMatches(selected,quote.settings))
+        throw new Error('The Soul 2 quote does not match the selected identity or photograph.');
+      quotes.push(quote);
+    }
+    const priced=pricedBoundQuotes({quotes},count,'Higgsfield');
     return {...priced,provider,inputs};
   }
   const priced=await api('/api/customer/image-price',{
@@ -1270,7 +1275,7 @@ function setTool(value){
   if(toolChanged){$('notice').textContent='';$('notice').classList.remove('error');}
   syncNoticePlacement();
   for(const name of ['image','video','upscale']){$('tool-'+name).classList.toggle('active',tool===name);$('tool-'+name).setAttribute('aria-pressed',String(tool===name));}$('soul-launch').hidden=!image;
-  $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-model-control').hidden=!image;$('engine-name').hidden=image;$('image-processing-control').hidden=!image||imageEngine!=='gemini';$('soul-pro-settings').hidden=!image||imageEngine!=='soulpro';$('controlled-pose-settings').hidden=!image||imageEngine!=='fal';$('image-count-control').hidden=!image||imageEngine==='fal'||imageEngine==='soulpro'||imageEngine==='soul'&&soul.isKrea();$('video-utilities').hidden=!video;$('format-control').hidden=video||(image&&['seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy','gemini','gemini21','fal','soulpro'].includes(imageEngine));$('soul-controls').hidden=!image||imageEngine!=='soul';
+  $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-model-control').hidden=!image;$('engine-name').hidden=image;$('image-processing-control').hidden=!image||imageEngine!=='gemini';$('soul-pro-settings').hidden=!image||imageEngine!=='soulpro';$('controlled-pose-settings').hidden=!image||imageEngine!=='fal';$('image-count-control').hidden=!image||imageEngine==='fal'||imageEngine==='soulpro'&&!isSoul2()||imageEngine==='soul'&&soul.isKrea();$('video-utilities').hidden=!video;$('format-control').hidden=video||(image&&['seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy','gemini','gemini21','fal','soulpro'].includes(imageEngine));$('soul-controls').hidden=!image||imageEngine!=='soul';
   $('start-mode').hidden=(image&&imageEngine!=='soulpro')||video&&mode!=='start';$('reference-mode').hidden=upscale||video&&mode!=='reference'||image&&['soul','soulpro','zspicy'].includes(imageEngine);
   $('last-upload').hidden=upscale||image&&imageEngine==='soulpro';$('start-label').textContent=upscale?'Image to upscale':image&&imageEngine==='soulpro'?'Base image':'Start frame';
   $('upscale-info').hidden=!upscale;$('prompt').hidden=upscale;$('prompt-label').hidden=upscale;$('resolution-control').hidden=image&&(imageEngine==='soul'&&!isReinterpret()||imageEngine==='fal'||imageEngine==='soulpro');$('ratio-control').hidden=upscale||image&&imageEngine==='soulpro';
@@ -1283,7 +1288,7 @@ function setTool(value){
   options('output-format',upscale&&!isFalUpscale()?['png','jpeg','webp']:['png','jpeg'],'png');
   if(!file)$('filemeta').textContent=sourceHelp();
   options('ratio',image?(imageEngine==='soulpro'?['source']:['qwen3','zspicy','seedreamlite','krea3'].includes(imageEngine)?['1:1','16:9','9:16','4:3','3:4','3:2','2:3','21:9']:['flash','kling'].includes(imageEngine)?['auto','16:9','9:16','1:1','4:3','3:4','3:2','2:3','21:9']:imageEngine==='fal'?['1:1','4:3','3:4','16:9','9:16','21:9']:['gemini','gemini21'].includes(imageEngine)?['auto','1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9']:imageEngine==='soul'?(isReinterpret()?['source']:['1:1','16:9','9:16','4:3','3:4','3:2','2:3','21:9','9:21']):['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3']):['auto','16:9','9:16','1:1','4:3','3:4'],image&&imageEngine==='soulpro'?'source':image&&imageEngine==='soul'?(isReinterpret()?'source':'1:1'):image&&imageEngine==='fal'?'3:4':image&&['qwen3','zspicy','seedreamlite','krea3'].includes(imageEngine)?'16:9':'auto');
-  if(image){const values=(imageEngine==='fal'||imageEngine==='soulpro'||imageEngine==='soul'&&soul.isKrea())?[1]:imageEngine==='gemini'&&imageProcessing==='batch'?[1,2,4,10,20]:[1,2,3,4],selected=Math.min(Number($('image-count').value)||1,values.at(-1));$('image-count').replaceChildren(...values.map(n=>new Option(n+' image'+(n===1?'':'s'),String(n))));$('image-count').value=String(values.includes(selected)?selected:1);}
+  if(image){const values=isSoul2()?[1,2]:(imageEngine==='fal'||imageEngine==='soulpro'||imageEngine==='soul'&&soul.isKrea())?[1]:imageEngine==='gemini'&&imageProcessing==='batch'?[1,2,4,10,20]:[1,2,3,4],selected=Math.min(Number($('image-count').value)||1,values.at(-1));$('image-count').replaceChildren(...values.map(n=>new Option(n+' image'+(n===1?'':'s'),String(n))));$('image-count').value=String(values.includes(selected)?selected:1);}
   if(isReinterpret()){$('prompt-label').textContent='Optional changes';$('prompt').placeholder='Optional changes: black shirt, wet hair, warmer bedside lamp…';$('prompt').maxLength=3000;}
   if(image&&imageEngine==='soulpro'){
     $('prompt-label').textContent='Optional changes';
@@ -3270,7 +3275,7 @@ function updateSoulProModelUi(){
   $('soul-pro-quality-row').hidden=soulProModel!=='ideogram45';
   $('soul-pro-note').textContent=soulProModel==='soul2'?'Official Higgsfield Soul 2. Create Soul IDs from photos in this Lab; Qwen LoRAs are not compatible.':soulProModel==='ideogram45'?'Precise Edit stays enabled at every quality tier. Medium is the default at $0.06; High is optional at $0.22.':'Kontext Max accepts 4 images total, so PV Lab sends the base image first plus up to 3 saved Nina identity references. Fixed estimate: $0.08 per image.';
 }
-$('soul-pro-model').onchange=()=>{if(busy)return;soulProModel=['soul2','kontextmax'].includes($('soul-pro-model').value)?$('soul-pro-model').value:'ideogram45';updateSoulProModelUi();update();};
+$('soul-pro-model').onchange=()=>{if(busy)return;soulProModel=['soul2','kontextmax'].includes($('soul-pro-model').value)?$('soul-pro-model').value:'ideogram45';updateSoulProModelUi();setTool('image');};
 $('soul-pro-quality').onchange=()=>{if(busy)return;soulProQuality=['very_low','low','medium','high'].includes($('soul-pro-quality').value)?$('soul-pro-quality').value:'medium';update();};
 let newCustomerGrant=null;
 const sessionRequest=createSessionRequest({
@@ -3891,6 +3896,7 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
     notify(failed?([jobCreditNotice(data.job), (isContentRestriction(data.job.error)?'The selected model declined this request under its content guidelines. Edit your prompt or explore another model in History.':data.job.error||(q.settings.mode==='upscale'?'The upscale was not confirmed. Check Queue and Upscaled images before trying again.':'The generation was not confirmed. Check History before another attempt.'))].filter(Boolean).join('. ')):
       (['image','upscale'].includes(q.settings.mode)?(q.settings.mode==='upscale'?'Upscale requested.':'Image requested.')+(customerMode?' '+wallet.jobCharge(q)+' reserved. Results appear in '+destination+'.':q.priceIsEstimate?' Estimated provider charge: '+money(q.estimatedUsd)+' USD. Not a guaranteed maximum. Results appear in '+destination+'.':' Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in '+destination+'.'):''),failed);
   }
+  return data.job;
 }
 $('generate').onclick=async()=>{if(tool==='image')return submitImageSnapshot();
   if(customerMode&&tool==='video'){
@@ -3989,7 +3995,13 @@ $('confirm-generation').onclick=async()=>{
     showVideoJobStage({settings:q.settings,status:'submitting'});
   }
   let accepted=false;
-  await action(async()=>{await submitQuotedGeneration(q);accepted=true;});
+  await action(async()=>{
+    const sessionEpoch=epoch;
+    for(const quote of q.imageQuotes||[q]){
+      const job=await submitQuotedGeneration(quote,sessionEpoch);accepted=true;
+      if(['failed','uncertain','resolved'].includes(job.status))break;
+    }
+  });
   if(isVideo&&!accepted&&owner&&tool==='video')
     showVideoJobStage({settings:q.settings,status:'uncertain'});
 };
@@ -5835,12 +5847,16 @@ async function submitImageSnapshot(){
       const used=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='spicy').length+fastImageHandoff.slots('spicy');
       if(requested>Math.max(0,limitFor('image')-used))throw new Error('Not enough available image slots for this batch.');
     }
+    if(provider==='higgsfield'){
+      const used=activeJobs.filter(j=>slotStates.has(j.status)&&jobProvider(j)==='higgsfield').length+fastImageHandoff.slots('higgsfield');
+      if(requested>Math.max(0,2-used))throw new Error('PV Still has two image slots. Choose fewer images or wait for the current requests.');
+    }
     const modelInputError=modelImageInputIssue(selected.engine,chosen,{count:requested,processing:selected.processing});
     if(modelInputError)throw new Error(modelInputError);
     const ratioParts=String(selected.aspectRatio||'').split(':').map(Number);
     const inputRatio=sourceMode?sourceWidth/sourceHeight:chosen[0]?.ref?.width/chosen[0]?.ref?.height;
     const ratio=ratioParts.length===2&&ratioParts.every(n=>n>0)?ratioParts[0]/ratioParts[1]:inputRatio>0?inputRatio:16/9;
-    feedback=beginImageFeedback(['higgsfield','fal'].includes(provider)&&!['flash','kling','krea3'].includes(selected.engine)?1:requested,selected,ratio);
+    feedback=beginImageFeedback(provider==='fal'&&!['flash','kling','krea3'].includes(selected.engine)?1:requested,selected,ratio);
     if(fastEligible){
       fastTicket=fastImageHandoff.reserve(requestKey,provider,requested);
       if(!fastTicket)throw new Error('Please wait a moment before generating another variation.');
@@ -5885,27 +5901,39 @@ async function submitImageSnapshot(){
     }else if(provider==='higgsfield'){
       // Price checking does not submit a paid job. Keep the compose settings frozen in this quote.
       feedback.phase('Checking live price','No image has been generated or charged.');
-      const cached=customerPriced?.kind==='bound'&&customerPriced.provider==='higgsfield'?customerPriced.quotes[0]:null;
-      const q=cached||await api('/api/higgsfield/quote',{method:'POST',body:{...inputs,settings:selected}});
+      const cached=customerPriced?.kind==='bound'&&customerPriced.provider==='higgsfield'&&customerPriced.count===requested?customerPriced.quotes:null;
+      const quotes=cached?[...cached]:[];
+      if(!cached)for(let i=0;i<requested;i++){
+        check();quotes.push(await api('/api/higgsfield/quote',{method:'POST',body:{...inputs,settings:selected}}));
+      }
       check();
-      if(!q?.id||q.provider!=='Higgsfield'||q.settings?.provider!=='higgsfield'||(q.settings.characterId||'')!==(selected.characterId||'')||q.sourceId!==inputs.sourceId||!soulNightFlashQuoteMatches(selected,q.settings)||!Number.isFinite(q.estimatedUsd)||q.estimatedUsd<=0||!Number.isFinite(q.expiresAt)||q.expiresAt<=Date.now())throw new Error('Higgsfield price review did not match your selected image and identity. Nothing generated.');
-      if(customerMode&&(!Number.isSafeInteger(q.creditCost)||q.creditCost<1))throw new Error('No verified PV LAB credit price was returned for Soul 2. Nothing submitted.');
+      if(quotes.length!==requested||new Set(quotes.map(q=>q?.id)).size!==requested)
+        throw new Error('PV Still did not return independent prices for every image. Nothing submitted.');
+      for(const q of quotes){
+        if(!q?.id||q.provider!=='Higgsfield'||q.settings?.provider!=='higgsfield'||(q.settings.characterId||'')!==(selected.characterId||'')||q.sourceId!==inputs.sourceId||!soulNightFlashQuoteMatches(selected,q.settings)||!Number.isFinite(q.estimatedUsd)||q.estimatedUsd<=0||!Number.isFinite(q.expiresAt)||q.expiresAt<=Date.now())throw new Error('Higgsfield price review did not match your selected image and identity. Nothing generated.');
+        if(customerMode&&(!Number.isSafeInteger(q.creditCost)||q.creditCost<1))throw new Error('No verified PV LAB credit price was returned for Soul 2. Nothing submitted.');
+      }
       if(ownerAccount&&!customerMode){
-        // This deliberate Generate click authorizes one bound quote. No automatic retry/repricing.
-        const data=await send('/api/higgsfield/generate',{quoteId:q.id,confirm:true});
-        if(!data.job)throw new Error('No generation record returned. Check History before retrying.');
-        record(data.job);submitted++;
-        if(['failed','uncertain','resolved'].includes(data.job.status)){
-          notify(data.job.error||'Request needs review in History.',true);return;
+        for(const q of quotes){
+          check();
+          if(Date.now()>=q.expiresAt)throw new Error('Quote expired. Nothing further submitted.');
+          const data=await send('/api/higgsfield/generate',{quoteId:q.id,confirm:true});
+          if(!data.job)throw new Error('No generation record returned. Check History before retrying.');
+          record(data.job);submitted++;
+          if(['failed','uncertain','resolved'].includes(data.job.status)){
+            notify(data.job.error||'Request needs review in History.',true);return;
+          }
         }
       }else{
+      const q=quotes[0],totalCredits=quotes.reduce((sum,quote)=>sum+(quote.creditCost||0),0);
+      const totalUsd=quotes.reduce((sum,quote)=>sum+quote.estimatedUsd,0);
       feedback.finish();feedback=null;
-      currentQuote=q;
+      currentQuote=quotes.length===1?q:{...q,imageQuotes:quotes,expiresAt:Math.min(...quotes.map(quote=>quote.expiresAt))};
       $('quote-settings').textContent='PV Soul 2 / '+(q.settings.characterName||'NO SOUL ID')+' / '+q.settings.resolution.toUpperCase()+' / '+q.settings.aspectRatio+' / '+(q.sourceId?'Base photo':'Text to image');
       $('confirm-generation').textContent='Confirm & generate';
-      $('quote-price').textContent=customerMode?q.creditCost.toLocaleString()+' credits':money(q.estimatedUsd);
-      $('quote-limit').textContent=customerMode?'Soul 2 launch rate: '+q.creditCost.toLocaleString()+' credits. The live API quote was checked; no generation or credit charge yet.':'Live Higgsfield estimate: '+money(q.estimatedUsd)+' USD. Actual provider billing may differ. No automatic retries.';
-      $('quote-expiry').textContent='Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. One image. No generation or charge yet.';
+      $('quote-price').textContent=quotes.length===1?(customerMode?q.creditCost.toLocaleString()+' credits':money(q.estimatedUsd)):(customerMode?totalCredits.toLocaleString()+' credits':money(totalUsd));
+      $('quote-limit').textContent=customerMode?'Total for '+quotes.length+' image'+(quotes.length===1?'':'s')+': '+totalCredits.toLocaleString()+' credits. The live price was checked.':'Live estimate for '+quotes.length+' image'+(quotes.length===1?'':'s')+': '+money(totalUsd)+' USD.';
+      $('quote-expiry').textContent='Valid until '+new Date(currentQuote.expiresAt).toLocaleTimeString()+'. '+quotes.length+' image'+(quotes.length===1?'':'s')+'. No generation or charge yet.';
       $('quote-notice').textContent=q.notice||'';$('confirm-generation').disabled=false;$('quote-dialog').showModal();
       return;
       }
