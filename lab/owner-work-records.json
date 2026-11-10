@@ -2587,6 +2587,89 @@
         "Keep draft PR #928 content-decline wording separate."
       ],
       "updatedAt": "2026-11-08T17:07:47Z"
+    },
+    {
+      "id": "image-elements-photo-packs-20261110",
+      "title": "Photo packs in the Image Deck Elements menu",
+      "component": "PV LAB Image Deck",
+      "status": "deployed",
+      "summary": "The four-square button opens one menu with Characters, Outfits, Props, Locations and Photo packs. Photo packs opens its existing private picker directly. Removed the intermediate menu and Back control. Escape returns focus to the trigger.",
+      "nextAction": "Refresh an open Image Deck tab to load the published menu. Confirm in an existing signed-in session if account-level observation is needed.",
+      "baselineSha": "0b25de481553f00925e94a7b7ca65d605675615c",
+      "reviewedSha": "c1cdf44fccf2baab0eaa41cdec1aedfa18401503",
+      "branch": "fix/image-elements-photo-packs-20261110",
+      "files": [
+        "lab/lab.js",
+        "lab/studio.html",
+        "lab/scene-library.css",
+        "lab/mobile-library-polish.css",
+        "tests/lab-reference-pack-studio-ui.mjs",
+        "tests/lab-studio-layout-ui.mjs",
+        "tests/lab-elements-smart-browser.mjs",
+        "tests/lab-image-oneclick-ui.mjs"
+      ],
+      "links": [
+        {
+          "label": "Merged menu PR #950",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/950"
+        },
+        {
+          "label": "Existing Elements handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/ELEMENTS-HERO-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI contract",
+          "result": "passed",
+          "scope": "Six local contract assertions and the GitHub Actions check passed.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42823996622/job/129856368217"
+        },
+        {
+          "label": "Photo Pack Studio browser",
+          "result": "passed",
+          "scope": "Five direct menu rows, Escape focus, private pack picker, 1440px desktop and 390px phone layout. Synthetic authenticated account and zero paid jobs.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42823996768/job/129856369055"
+        },
+        {
+          "label": "Shared Image deck browser",
+          "result": "failed",
+          "scope": "Soul parity and prompt paste steps passed. The broader first-image Guest/Base width and Studio layout Clerk assertions failed.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42823996732/job/129856372857"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "sourceSha": "33acf60a39e19b45220f4e3b76429108fb27198a",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/33acf60a39e19b45220f4e3b76429108fb27198a/checks?check_run_id=129860576048",
+        "limitations": [
+          "The live browser opened the public sign-in screen. Authenticated menu interaction was verified with browser fixtures."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "production_asset",
+          "summary": "Cloudflare Pages check 129860576048 succeeded. The production menu HTML and the lab.js, scene-library.css and mobile-library-polish.css bytes match the reviewed merge. Cache version 20261110-flat-elements1.",
+          "scope": "Production Image Studio shell and all three menu assets.",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": [
+            "A signed-in production interaction was not observed."
+          ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "The four-square button exposes all five entries immediately, and Photo packs opens the existing private picker. Desktop and phone browser tests passed.",
+          "scope": "Mocked authenticated Photo Pack Studio test.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42823996768/job/129856369055",
+          "limitations": []
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Keep Photo packs as a direct row in the four-square menu and the person icon as the direct Characters shortcut."
+      ],
+      "updatedAt": "2026-11-10"
     }
   ]
 }
