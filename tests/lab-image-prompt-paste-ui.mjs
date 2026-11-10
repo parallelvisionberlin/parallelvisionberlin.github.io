@@ -93,10 +93,10 @@ try{
       });
       const {wrap,deck}=countLayout;
       assert.equal(countLayout.select.display,'none','The original select stays hidden on web');
-      assert.equal(wrap.height,32,'The count stepper uses the reference height');
-      assert.equal(wrap.border,'0px','The count stepper has no outline border');
-      assert.equal(wrap.background,'rgb(50, 52, 55)','The count stepper uses the reference charcoal');
-      assert.equal(countLayout.status.fontSize,'14px','The count stays readable');
+      assert.equal(wrap.height,40,'Image count shares the other settings controls’ 40px height');
+      assert.equal(wrap.border,'1px','Image count shares the other settings controls’ subtle border');
+      assert.equal(wrap.background,'rgb(36, 38, 37)','Image count shares the other settings controls’ charcoal');
+      assert.equal(countLayout.status.fontSize,'12px','Count uses the same type scale as nearby settings');
       if(viewport.width>=1180){
         assert.equal(wrap.width,80,'The count stepper preserves the desktop toolbar slot');
         assert.ok(wrap.right<=countLayout.generate.left,'The count stepper clears Generate: '+JSON.stringify(countLayout));
