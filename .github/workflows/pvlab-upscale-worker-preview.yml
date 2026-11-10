@@ -46,7 +46,7 @@ jobs:
           set -euo pipefail
           node tools/upscale-preview/build.mjs candidate tools/upscale-preview/fixture.mjs
           npm install --prefix "$RUNNER_TEMP/pvlab-preview-tools" --no-audit --no-fund --save-exact wrangler@4.158.0 playwright@1.56.1
-          "$RUNNER_TEMP/pvlab-preview-tools/node_modules/.bin/playwright" install chromium --with-deps
+          "$RUNNER_TEMP/pvlab-preview-tools/node_modules/.bin/playwright" install chromium --only-shell
 
       - name: Publish the isolated Studio demo
         id: preview
@@ -62,7 +62,18 @@ jobs:
             exit 1
           fi
           output="$("$RUNNER_TEMP/pvlab-preview-tools/node_modules/.bin/wrangler" preview --config wrangler-upscale-studio-preview.json --ignore-base-config --name upscale-studio-pr939 --json)"
-          preview_url="$(jq -er '.preview.urls[0]' <<<"$output")"
+          preview_url="$(node -e 'const fs=require("node:fs");
+          const output=fs.readFileSync(0,"utf8").replace(/\x1b\[[0-?]*[ -\/]*[@-~]/g,"").trim();
+          for(const match of output.matchAll(/^\s*\{/gm)){
+            const end=output.lastIndexOf("}")+1;
+            let result;
+            try{result=JSON.parse(output.slice(match.index,end));}catch{continue;}
+            const url=result.preview?.urls?.[0];
+            if(typeof url==="string"){console.log(url);process.exit(0);}
+          }
+          console.error("Wrangler did not return a Preview URL.");
+          console.error(output.split("\n").filter(line=>/error|preview|upload/i.test(line)).slice(-12).join("\n"));
+          process.exit(1);' <<<"$output")"
           if [[ ! "$preview_url" =~ ^https://[a-z0-9-]+\.parallelvision\.workers\.dev/?$ ]]; then
             echo "::error::Cloudflare did not return a preview on the expected Workers subdomain."
             exit 1
