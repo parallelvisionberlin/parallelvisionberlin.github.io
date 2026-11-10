@@ -263,7 +263,7 @@ await page.route('**/api/image-models/generate',route=>{const payload=route.requ
 for(const engine of ['flash','kling']){
   await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="'+engine+'"]').click();
   await page.fill('#image-composer-prompt','Editorial architecture in daylight');
-  await page.selectOption('#image-composer-count','1');
+  assert.equal(await page.locator('#image-count').inputValue(),'1','Model switching keeps one image selected');
   assert.equal(await page.locator('#resolution').inputValue(),engine==='flash'?'2k':'1k');
   assert.equal(await page.locator('#composer-character').isVisible(),false,'No redundant plus in the new models');
   const expectedPath=engine==='flash'?'/api/quotes':'/api/image-models/generate';
