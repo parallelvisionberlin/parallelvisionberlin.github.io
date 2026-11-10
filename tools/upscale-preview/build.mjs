@@ -24,7 +24,8 @@ cpSync(fixture, join(publicRoot, 'lab', 'upscale-preview-fixture.mjs'));
 const shell = readFileSync(join(root, 'lab', 'studio.html'), 'utf8');
 assert.match(shell, /20261109-upscale-recovery2/);
 writeFileSync(join(publicRoot, 'lab', 'studio.html'),
-  shell.replace(/<script[^>]+src="\.\/meta-pixel\.js[^"]*"[^>]*><\/script>/, ''));
+  shell.replace(/<script[^>]+src="\.\/meta-pixel\.js[^"]*"[^>]*><\/script>/, '')
+    .replace(/<link[^>]+href="https?:\/\/[^"]+"[^>]*>/g, ''));
 
 const source = readFileSync(join(root, 'lab', 'lab.js'), 'utf8');
 const api = "const API='https://parallel-vision-lab.parallelvision.workers.dev';";
