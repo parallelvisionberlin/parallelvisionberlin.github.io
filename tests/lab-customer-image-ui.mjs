@@ -95,7 +95,8 @@ assert.equal(await page.locator('#lab-welcome-balance').textContent(),'1,000 cre
  await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.getAttribute('aria-label')==='Generate · 28 credits');
  assert.equal(requests.filter(x=>x.path==='/api/quotes').length,2);
  console.log('PASS resolution change refreshes live backend credit price');
- await page.selectOption('#image-composer-count','2');
+ await page.click('#image-composer-count-increase');
+  assert.equal(await page.locator('#image-composer-count-status').textContent(),'2/4');
  await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.getAttribute('aria-label')==='Generate · 56 credits');
  const quoteCalls=requests.filter(x=>x.path==='/api/quotes');
  assert.equal(quoteCalls.at(-1).data.count,2);
