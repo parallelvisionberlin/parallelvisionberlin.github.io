@@ -2413,10 +2413,27 @@ for(const [id,step] of [['image-composer-count-decrease',-1],['image-composer-co
   });
 }
 $('composer-review-queue').onclick=()=>{$('active').open=true;$('active').scrollIntoView({behavior:'smooth',block:'start'});$('active').querySelector('summary')?.focus();};
-$('image-composer-generate').onclick=({currentTarget:button})=>{
+const imageGenerateButton=$('image-composer-generate');
+const imageQueueAction=()=>imageGenerateButton.getAttribute('aria-controls')==='active';
+let imageQueuePress=false;
+// A slot can open between press and click. A Queue press must stay read-only.
+imageGenerateButton.addEventListener('pointerdown',()=>{imageQueuePress=imageQueueAction();});
+imageGenerateButton.addEventListener('pointercancel',()=>{imageQueuePress=false;});
+imageGenerateButton.addEventListener('keydown',event=>{
+  if(event.key!=='Enter'&&event.key!==' ')return;
+  if(event.repeat){
+    if(imageQueuePress||imageQueueAction())event.preventDefault();
+    return;
+  }
+  imageQueuePress=imageQueueAction();
+});
+imageGenerateButton.onclick=({currentTarget:button})=>{
+  const viewQueue=imageQueuePress||imageQueueAction();
+  imageQueuePress=false;
   if(button.disabled||busy||tool!=='image')return;
-  if(button.getAttribute('aria-controls')==='active'){
+  if(viewQueue){
     const queue=$('active');
+    if(queue.hidden)return;
     queue.open=true;
     queue.querySelector('summary').focus({preventScroll:true});
     void poll();
