@@ -92,6 +92,18 @@ try{
           tools:[...composer.querySelectorAll('[data-deck-control],#image-composer-mobile-more')]
             .map(rect).filter(tool=>tool.width>0&&tool.height>0)
         };
+        if(matchMedia('(min-width:1180px) and (min-height:680px)').matches){
+          const label=base.textContent, compactLabel=base.getAttribute('data-compact-label');
+          base.textContent='References only ⌄';
+          base.dataset.compactLabel='Refs ⌄';
+          const text=document.createRange();
+          text.selectNodeContents(base);
+          const bounds=text.getBoundingClientRect(), button=base.getBoundingClientRect();
+          layout.referencesLabelFits=bounds.left>=button.left&&bounds.right<=button.right;
+          base.textContent=label;
+          if(compactLabel===null)delete base.dataset.compactLabel;
+          else base.dataset.compactLabel=compactLabel;
+        }
         base.hidden=baseHidden;
         if(mobile){
           if(settings===undefined)delete composer.dataset.mobileSettings;
@@ -118,6 +130,7 @@ try{
         const icons=toolbar.tools.filter(tool=>['image-composer-add','scene-characters-open','scene-image-open'].includes(tool.id));
         assert.deepEqual(icons.map(tool=>tool.width),[32,32,32],'Desktop icon buttons use one square size');
         assert.equal(count.width,80,'The count stepper preserves its desktop slot');
+        assert.equal(toolbar.referencesLabelFits,true,'References only fits inside the shared Base slot');
       }
       for(const part of ['minus','status','plus']){
         const item=toolbar[part];

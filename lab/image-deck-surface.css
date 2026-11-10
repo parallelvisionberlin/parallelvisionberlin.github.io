@@ -158,7 +158,8 @@ html:not(.pv-native-lab) #main :is(#app.image-studio-active #image-composer.pv-e
       border-radius:1px;
       transform:translateY(-50%) rotate(45deg);
     }
-    & [data-deck-control="base"]::before{
+    & [data-deck-control="base"][data-compact-label^="Refs"]{padding-inline:3px!important}
+    & [data-deck-control="base"]:not([data-compact-label^="Refs"])::before{
       content:"";
       flex:0 0 13px;
       height:13px;
