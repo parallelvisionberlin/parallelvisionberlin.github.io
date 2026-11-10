@@ -466,9 +466,32 @@ myMoods=createMyMoods({api,assetBlob,moodUI,notify:(...args)=>notify(...args),ac
 $('image-reference-mode').onchange=()=>setImageReferenceMode($('image-reference-mode').value);
 function referencesOnly(){return usesReferenceGuidance()&&imageReferenceMode==='references';}
 function closeReferenceIntent(){
+  const panel=$('composer-reference-intent'),toggle=$('composer-reference-intent-toggle');
+  const restoreFocus=panel.contains(document.activeElement);
   referenceIntentOpen=false;
-  $('composer-reference-intent').hidden=true;
-  $('composer-reference-intent-toggle').setAttribute('aria-expanded','false');
+  panel.hidden=true;
+  toggle.setAttribute('aria-expanded','false');
+  if(restoreFocus&&!toggle.hidden&&!toggle.disabled)toggle.focus({preventScroll:true});
+}
+function positionReferenceIntent(){
+  const panel=$('composer-reference-intent');
+  if(panel.hidden||document.documentElement.classList.contains('pv-native-lab'))return;
+  const parent=panel.offsetParent;
+  if(!parent)return;
+  const anchor=$('composer-reference-intent-toggle').getBoundingClientRect();
+  if(!anchor.width||!anchor.height){closeReferenceIntent();return;}
+  const origin=parent.getBoundingClientRect();
+  const viewport=window.visualViewport;
+  const viewportLeft=viewport?.offsetLeft??0,viewportTop=viewport?.offsetTop??0;
+  const viewportRight=viewportLeft+(viewport?.width??document.documentElement.clientWidth);
+  const viewportBottom=viewportTop+(viewport?.height??window.innerHeight);
+  const margin=8,gap=6;
+  const left=Math.max(viewportLeft+margin,Math.min(anchor.left,viewportRight-panel.offsetWidth-margin));
+  const above=anchor.top-panel.offsetHeight-gap;
+  const top=above>=viewportTop+margin?above
+    :Math.max(viewportTop+margin,Math.min(anchor.bottom+gap,viewportBottom-panel.offsetHeight-margin));
+  panel.style.left=(left-origin.left-parent.clientLeft)+'px';
+  panel.style.top=(top-origin.top-parent.clientTop)+'px';
 }
 function syncReferenceIntentUi(){
   const eligible=tool==='image'&&usesReferenceGuidance();
@@ -483,7 +506,8 @@ function syncReferenceIntentUi(){
   toggle.textContent=(referencesOnly()?'References only':'Base image')+' ⌄';
   // Only narrow phones use this short display label; the control action stays unchanged.
   toggle.dataset.compactLabel=referencesOnly()?'Refs ⌄':'Base ⌄';
-  toggle.title=referencesOnly()?'Create a new composition using all images as references.':'Build on the first image. Your prompt can change anything.';
+  if(document.documentElement.classList.contains('pv-native-lab'))
+    toggle.title=referencesOnly()?'Create a new composition using all images as references.':'Build on the first image. Your prompt can change anything.';
   toggle.setAttribute('aria-expanded',String(referenceIntentOpen));
   panel.hidden=!referenceIntentOpen;
   for(const button of panel.querySelectorAll('[data-reference-intent]')){
@@ -495,6 +519,9 @@ function openReferenceIntent(){
   if(busy||tool!=='image'||!usesReferenceGuidance())return;
   moodUI.close();closeImageModelMenu();closeComposerLibrary();toggleImageSettings(false);
   referenceIntentOpen=true;syncReferenceIntentUi();
+  positionReferenceIntent();
+  if(!document.documentElement.classList.contains('pv-native-lab'))
+    $('composer-reference-intent').querySelector('[data-reference-intent]:not(:disabled)')?.focus({preventScroll:true});
 }
 function setImageReferenceMode(value){
   if(busy||!usesReferenceGuidance()||!['base','references'].includes(value)||(imageEngine==='kling'&&value==='references'))return;
@@ -527,6 +554,8 @@ document.addEventListener('pointerdown',event=>{
 document.addEventListener('keydown',event=>{
   if(referenceIntentOpen&&event.key==='Escape')closeReferenceIntent();
 });
+window.addEventListener('resize',positionReferenceIntent);
+window.visualViewport?.addEventListener('resize',positionReferenceIntent);
 const cardUrls=new Set(), requestControllers=new Set();
 // Private, bounded session cache. Gallery and viewer share original bytes and
 // in-flight reads; each surface owns its own revocable object URL.

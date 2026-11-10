@@ -2935,6 +2935,56 @@
         "Use page scroll in short desktop windows. Keep both output fields accessible and preserve the 38px desktop and 44px phone minimums for Precision versions."
       ],
       "updatedAt": "2026-11-10"
+    },
+    {
+      "id": "image-base-mode-popover",
+      "title": "Compact Base image mode picker",
+      "component": "PV LAB Image Deck",
+      "status": "needs_verification",
+      "summary": "Base image and References only open the same two-choice popover anchored above the toolbar button. The web picker omits the large heading, explanatory cards and footer. It preserves the selected-mode checkmark, model restrictions, the existing photo flow and deck geometry.",
+      "nextAction": "Verify trigger placement on desktop and phone, keyboard dismissal and the existing mocked reference selection flow. Confirm both versioned assets on production after review.",
+      "baselineSha": "02057b10d3c9d181dfff0bdf23f08feb0b53d13e",
+      "reviewedSha": null,
+      "branch": "fix/image-base-mode-popover-20261110",
+      "files": [
+        "lab/lab.js",
+        "lab/image-deck-surface.css",
+        "lab/studio.html",
+        "tests/lab-image-prompt-paste-ui.mjs",
+        "tests/lab-image-oneclick-ui.mjs"
+      ],
+      "links": [
+        {
+          "label": "Image Deck handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI contract",
+          "result": "passed",
+          "scope": "Six local assertions.",
+          "source": "tests/lab-approved-image-ui-contract.test.mjs"
+        },
+        {
+          "label": "Base mode picker browser",
+          "result": "not_run",
+          "scope": "Viewport containment, direct anchor, two compact controls, stable deck and Escape/focus.",
+          "source": "tests/lab-image-prompt-paste-ui.mjs"
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio",
+        "sourceSha": null,
+        "limitations": []
+      },
+      "evidence": [],
+      "blockers": [],
+      "doNotRepeat": [
+        "Keep Base mode in the same toolbar slot and leave upload, model eligibility, reference roles and generation behavior intact."
+      ],
+      "updatedAt": "2026-11-10"
     }
   ]
 }
