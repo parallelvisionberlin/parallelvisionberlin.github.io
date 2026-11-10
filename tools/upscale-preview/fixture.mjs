@@ -47,16 +47,18 @@ export function installFixture() {
   const reset = () => sessionStorage.removeItem(storageKey);
   const id = () => crypto.randomUUID();
 
+  function finishDemoJob(job) {
+    // Only separate jobs created in the demo finish. The original stays in review.
+    if (job.status !== 'queued' || !job.quoteId) return;
+    job.status = 'completed';
+    job.outputId = id();
+    save();
+  }
+
   function settleDemoJobs() {
-    let changed = false;
     for (const job of state.jobs) {
-      // Only separate jobs created in the demo finish. The original stays in review.
-      if (job.status !== 'queued' || !job.quoteId || Date.now() - job.createdAt < 1500) continue;
-      job.status = 'completed';
-      job.outputId = id();
-      changed = true;
+      if (Date.now() - job.createdAt >= 1500) finishDemoJob(job);
     }
-    if (changed) save();
   }
 
   async function demoResult(job) {
@@ -138,6 +140,8 @@ export function installFixture() {
         if (customer) state.balance -= entry.quote.creditCost;
         state.jobs.unshift(job);
         save();
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        finishDemoJob(job);
         return json({job}, 202);
       }
       if (path.startsWith('/api/assets/') && method === 'GET') {
