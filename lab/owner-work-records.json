@@ -68,57 +68,60 @@
       "id": "image-count-stepper-20261110",
       "title": "Higgsfield-style Image Deck quantity stepper",
       "component": "PV LAB Image Deck",
-      "status": "needs_verification",
-      "summary": "Image Deck count dropdown replaced by compact − selected/max + web control. Existing count selection, model restrictions, pricing and customer credit flows are unchanged. PR #948 merged as 97d8daf77b4b; Cloudflare Pages pvlab-studio reported a successful deploy for that exact source.",
-      "nextAction": "Verify exact published HTML/CSS/JS bytes at pvlab.studio against the merged source and inspect the signed-in stepper at 390px and 1440px. Do not treat pre-existing failing browser tests as proof of this new control.",
-      "baselineSha": "f1ebdff1800564e933db6c7cddb8020fc1a18135",
-      "reviewedSha": "97d8daf77b4b37c1c7e4e77380cbe88480d7835a",
-      "branch": "ui/image-count-stepper-20261110",
+      "status": "deployed",
+      "summary": "The Image Deck quantity stepper uses the approved second reference's 32px height, borderless charcoal fill, centered 14px count, and muted step buttons. Desktop retains the 80px toolbar slot after a wider candidate reduced prompt space. The phone uses its existing 88px More slot.",
+      "nextAction": "Refresh the Image Deck to load the new count styling. Confirm the rendering in a signed-in session if account-level observation is needed.",
+      "baselineSha": "89f78b2539d4d212fe9ae5cede8eb1e59e8df989",
+      "reviewedSha": "fcb517cd81a3f7bf03211717e6df97464deb707f",
+      "branch": "fix/image-count-flat-style-20261110",
       "files": [
-        "lab/studio.html",
-        "lab/lab.js",
         "lab/image-count-stepper.css",
-        "tests/lab-studio-layout-ui.mjs",
-        "tests/lab-customer-image-ui.mjs",
-        "tests/lab-assets-ui.cjs",
-        "tests/lab-image-oneclick-ui.mjs",
-        "lab/owner-work-records.json"
+        "lab/studio.html",
+        "tests/lab-image-prompt-paste-ui.mjs"
       ],
       "links": [
         {
           "label": "Draft implementation PR #948",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/948"
+        },
+        {
+          "label": "Duplicate count fix #949",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/949"
+        },
+        {
+          "label": "Count styling release #951",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/951"
         }
       ],
       "tests": [
         {
           "label": "Approved Image UI contract",
           "result": "passed",
-          "scope": "PR head CI on scoped source completed successfully.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/948"
+          "scope": "Six local assertions and the final candidate GitHub Actions job.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42837298760/job/129902805609"
         },
         {
-          "label": "Image prompt paste and Generate suite",
+          "label": "Count styling and Image Deck browser",
           "result": "passed",
-          "scope": "PR head CI passed relevant prompt paste and Image Generate tests; existing count-related fixtures were adapted.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/948"
+          "scope": "Measured 32px height, borderless charcoal, 14px count, original hidden select, toolbar fit, desktop clearance from Generate, and the phone More row. Tested at 1440x900, 1100x700, 390x844, and 390x600.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42837297979/job/129902802813"
         },
         {
-          "label": "Full Image browser parity",
+          "label": "Shared Image Deck browser",
           "result": "failed",
-          "scope": "Existing Guest/Base width parity and Clerk guard failed on PR. No sign-in production flow was verified.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/948"
+          "scope": "Soul and prompt paste passed. The wider suites retained the existing Guest/Base width mismatch and Clerk assertion.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42837298148/job/129902803028"
         }
       ],
       "deployment": {
         "state": "verified",
-        "environment": "Cloudflare Pages pvlab-studio (production project)",
-        "sourceSha": "97d8daf77b4b37c1c7e4e77380cbe88480d7835a",
-        "observedAt": "2026-11-10T13:04:00Z",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/97d8daf77b4b37c1c7e4e77380cbe88480d7835a",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "sourceSha": "472213c678b2dd4b9290917b43c6f6d7f4871478",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/472213c678b2dd4b9290917b43c6f6d7f4871478/checks?check_run_id=129905150519",
         "limitations": [
-          "Cloudflare app check succeeded for the merge commit, but custom-domain bytes and authenticated UI were not independently checked."
-        ]
+          "The affected layout was verified with browser fixtures. Live signed-in interaction was not observed."
+        ],
+        "observedAt": "2026-11-10T14:51:18.600Z"
       },
       "evidence": [
         {
@@ -130,11 +133,18 @@
           "limitations": [
             "Signed-in live count interaction unverified."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Cloudflare Pages check 129905150519 succeeded. Production Studio references 20261110-flat-count1 and the stylesheet bytes match the reviewed merge. SHA-256 6f541322282f4bb85d8f8711ac0f12bc2b49d6f8afdc89270f1b375cd4ff7a16.",
+          "scope": "Live Image Deck count stylesheet and Studio asset version.",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": [
+            "Signed-in browser interaction was tested with fixtures."
+          ]
         }
       ],
-      "blockers": [
-        "No direct custom-domain asset/DOM verification from available tools; pre-existing full browser suite failures."
-      ],
+      "blockers": [],
       "doNotRepeat": [
         "Do not alter provider limits, pricing, native UI, guest composer, Generate placement, Moods or reference controls."
       ],
