@@ -3,7 +3,7 @@
 html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-deck #image-composer-count {
   display:none!important;
 }
-html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-deck #image-composer-count-wrap {
+html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.pv-editorial-deck #image-composer-count-wrap {
   box-sizing:border-box!important;
   flex:0 0 80px!important;
   width:80px!important;
@@ -66,7 +66,7 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   font-variant-numeric:tabular-nums;
 }
 @media(max-width:899px){
-  html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-deck #image-composer-count-wrap {
+  html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.pv-editorial-deck #image-composer-count-wrap {
     flex:0 0 88px!important;
     width:88px!important;
     min-width:88px!important;

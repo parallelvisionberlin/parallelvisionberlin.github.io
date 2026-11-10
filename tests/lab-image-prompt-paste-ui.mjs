@@ -64,6 +64,31 @@ try{
         sizing+'\n'+handler+
         "\n$('prompt').addEventListener('input',fitImageComposerPrompt);fitImageComposerPrompt();"
       });
+      // Browser-visible count regression: no duplicate dropdown or controls outside the slot.
+      if(viewport.width>=1180){
+        const countLayout=await page.evaluate(()=>{
+          const rect=id=>{
+            const element=document.getElementById(id),r=element.getBoundingClientRect();
+            return {left:r.left,right:r.right,width:r.width,display:getComputedStyle(element).display};
+          };
+          return {
+            select:rect('image-composer-count'),
+            wrap:rect('image-composer-count-wrap'),
+            minus:rect('image-composer-count-decrease'),
+            plus:rect('image-composer-count-increase'),
+            status:rect('image-composer-count-status')
+          };
+        });
+        assert.equal(countLayout.select.display,'none',
+          'Image count must not show the old dropdown: '+JSON.stringify(countLayout));
+        assert.ok(countLayout.wrap.width>=78&&countLayout.wrap.width<=82,
+          'Image count must fit its original 80px slot: '+JSON.stringify(countLayout));
+        for(const part of ['minus','status','plus']){
+          const item=countLayout[part],wrap=countLayout.wrap;
+          assert.ok(item.width>0&&item.left>=wrap.left-1&&item.right<=wrap.right+1,
+            part+' must stay inside the count slot: '+JSON.stringify(countLayout));
+        }
+      }
       const editor=page.locator('#image-composer-prompt');
       // The sizing helper must never replace the contextual copy already
       // chosen by syncImageComposer() for a selected Base photograph.
