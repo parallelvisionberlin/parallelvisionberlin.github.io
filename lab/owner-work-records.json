@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-10T13:05:00Z",
+  "updatedAt": "2026-11-10T15:35:54Z",
   "handoffs": [
     {
       "id": "owner",
@@ -2752,6 +2752,75 @@
         "Keep the established Image Deck control order and actions. Treat the Generate action and its geometry as the primary control."
       ],
       "updatedAt": "2026-11-10"
+    },
+    {
+      "id": "image-generate-queue-20261110",
+      "title": "Image Generate handoff and queue access",
+      "component": "PV LAB Image Deck",
+      "status": "needs_verification",
+      "summary": "The web Image button uses a normal cursor while blocked and hides browser tooltips for submission and capacity states. At capacity it opens the existing Queue when there is a server job to review. The two-second single-image owner handoff now also covers PV Still's direct Higgsfield route. A Queue press stays a read-only action if a slot opens mid-click.",
+      "nextAction": "Merge the reconciled branch and verify the Cloudflare Pages release and exact live assets.",
+      "baselineSha": "21999e34f80a3f34d735eb0bc11517624dddf2df",
+      "reviewedSha": "70041f397c94761ead2e0dd8cb5b318ee96348b0",
+      "branch": "fix/image-generate-queue-20261110",
+      "files": [
+        "lab/lab.js",
+        "lab/studio-finish-v2.css",
+        "lab/studio.html",
+        "tests/lab-fastqueue-browser.mjs",
+        "tests/lab-image-generate-disabled-ui.mjs",
+        "tests/lab-image-submit-handoff.test.mjs",
+        ".github/workflows/pv-lab-fastqueue-browser.yml"
+      ],
+      "links": [
+        {
+          "label": "Existing Image submission handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-SUBMIT-WORK-STATE.md"
+        },
+        {
+          "label": "Generate fix PR #954",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/954"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Image UI, handoff and provider safeguards",
+          "result": "passed",
+          "scope": "24 local tests and the exact reviewed Image UI GitHub check.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42844887699/job/129929617188"
+        },
+        {
+          "label": "Desktop and phone button appearance",
+          "result": "passed",
+          "scope": "Normal disabled cursor, stable position and dimensions.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42844887503/job/129929616108"
+        },
+        {
+          "label": "Image queue and button browser",
+          "result": "passed",
+          "scope": "Focused step verified the two-second handoff, both queue states and the slot change during a held press.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42844887799/job/129929617659"
+        },
+        {
+          "label": "Existing mixed-tool viewer check",
+          "result": "failed",
+          "scope": "The same phone Video badge assertion fails on unchanged main and after the passing Image queue step."
+        }
+      ],
+      "deployment": {
+        "state": "pending",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "Signed-in production generation has not been exercised."
+        ]
+      },
+      "evidence": [],
+      "blockers": [],
+      "doNotRepeat": [
+        "Use mocked generation requests for browser verification.",
+        "Keep server capacity, price validation, spending and provider safeguards."
+      ],
+      "updatedAt": "2026-11-10T15:35:54Z"
     }
   ]
 }

@@ -2096,22 +2096,33 @@ function syncImageComposer(){
   $('composer-add-saved-toggle').title=savedLabel;
   $('composer-character').setAttribute('aria-label','Choose trained character');
   const generate=$('image-composer-generate');
+  const generationButton=$('generate');
+  const web=window.__PV_LAB_NATIVE__!==1;
+  const exactPreparing=fastImageHandoff.has(currentImageSubmissionKey());
+  const queueBlocked=!busy&&owner&&generationButton.disabled&&submissionBlocked();
+  const showQueueState=web&&queueBlocked&&!exactPreparing&&!imageSubmissionPending&&
+    !customerPriceIntentPending&&!replacementReviewPending;
+  const viewQueue=showQueueState&&!$('active').hidden;
   const needsReplacementReview=!!currentReplacementIntent()&&!reviewedReplacement();
-  const generateActionLabel=replacementReviewPending?'Reviewing selection':needsReplacementReview?'Review selection':$('generate').textContent;
-  const creditCost=needsReplacementReview?'':$('generate').dataset.credits||'';
+  const generateActionLabel=showQueueState?(viewQueue?'View queue':'Queue full'):
+    replacementReviewPending?'Reviewing selection':needsReplacementReview?'Review selection':generationButton.textContent;
+  const creditCost=showQueueState||needsReplacementReview?'':generationButton.dataset.credits||'';
   const priceState=customerMode?customerImagePricing?.current():null;
   const awaitingCreditPrice=customerMode&&customerGenerationReady&&
     (customerPriceIntentPending||priceState?.status==='checking')&&!creditCost;
   const priceUnavailable=customerMode&&customerGenerationReady&&priceState?.status==='error'&&!creditCost;
   // Reserve a second line even during pricing so Generate never changes size.
   // Keep the button settled while a bound quote loads. Never display an invented credit amount.
-  generate.dataset.credits=creditCost||(priceUnavailable?'Retry credit check':'');
+  generate.dataset.credits=creditCost||(!showQueueState&&priceUnavailable?'Retry credit check':'');
   generate.classList.toggle('has-credit-cost',!!creditCost);
-  generate.classList.toggle('has-price-pending',!creditCost&&(awaitingCreditPrice||priceUnavailable));
+  generate.classList.toggle('has-price-pending',!showQueueState&&!creditCost&&(awaitingCreditPrice||priceUnavailable));
   generate.setAttribute('aria-label',creditCost?'Generate · '+creditCost:generateActionLabel);
+  if(viewQueue)generate.setAttribute('aria-controls','active');
+  else generate.removeAttribute('aria-controls');
   generate.classList.remove('is-submitting');
-  generate.classList.toggle('is-long-label',generateActionLabel.length>16);
-  generate.disabled=$('generate').disabled||replacementReviewPending;
+  generate.classList.toggle('is-long-label',showQueueState||generateActionLabel.length>16);
+  const generateDisabled=generationButton.disabled||replacementReviewPending;
+  generate.disabled=generateDisabled&&!viewQueue;
   generate.setAttribute('aria-busy',String(imageSubmissionPending));
   generate.querySelector('.composer-generate-label').textContent=generateActionLabel;
   const generateSparkle=generate.querySelector('.composer-generate-sparkle');
@@ -2129,20 +2140,16 @@ function syncImageComposer(){
     // but do not show its transient diagnostic beneath Generate.
     progressLine.hidden=!progress||/^Checking price(?:\.{3}|…)?$/i.test(progress.trim());
   }
-  if(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))
-    generate.title='Request started. You can generate another variation in a moment.';
-  else generate.removeAttribute('title');
   const block=$('composer-generation-block'),reason=$('composer-generation-reason'),review=$('composer-review-queue');
-  const queueBlocked=!busy&&owner&&submissionBlocked();
   let message='';
-  if(generate.disabled){
+  if(generateDisabled){
     if(imageSubmissionPending)message='';
     // The action button already indicates busy state. Keep upload preparation out of
     // document flow so the deck does not temporarily acquire a third row.
     else if(busy)message='';
     else if(!owner)message='Sign in to generate.';
     else if(queueBlocked)message=activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===currentProvider())?'A previous request has an unknown status. Review it before generating again.':'The active generation limit has been reached. Wait for a job to finish.';
-    else if(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))message='Request started. You can generate another variation in a moment.';
+    else if(exactPreparing)message='Request started. You can generate another variation in a moment.';
     else if(soulNightFlashUnavailable())message='Night Flash with PV Soul is awaiting provider validation.';
     else if(isSoul2()&&!config.higgsfieldEnabled)message='Connect your Higgsfield API credential in Cloudflare. Open Identity strength for setup details.';
     else if(isSoul2()&&!hf.ready())message='Choose or create a completed Soul ID using the Soul ID control.';
@@ -2156,11 +2163,7 @@ function syncImageComposer(){
     else if(moodUI.invalid(...imageMoodArguments()))message=moodUI.error(...imageMoodArguments());
     else if(!$('prompt').value.trim())message='';
   }
-  // A blocked/uncertain queue belongs in the top navigation Queue popover, not as a third row in the image deck.
-  // Keep generation disabled until reviewed, and preserve the reason in the button tooltip.
-  // Keep duplicate request messages in the Generate tooltip; never add an
-  // extra status row that changes the floating deck height.
-  const exactPreparing=tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey());
+  // Queue details stay in the existing popover and never add a deck row.
   // A selected look without a prompt or photo already has a disabled Generate
   // button and a tooltip. Repeating the hint inline adds an unwanted third row.
   const idleMoodNeedsInput=moodUI.active()&&!imageInputReferences().length&&!$('prompt').value.trim()||(isSoul2()&&!file&&!$('prompt').value.trim());
@@ -2180,9 +2183,12 @@ function syncImageComposer(){
     modelButton.removeAttribute('title');
     modelButton.removeAttribute('aria-description');
   }
-  if(message)generate.setAttribute('aria-description',message);
+  const soulHint=isSoul2()?(customerMode?'Review the live price before generating. ':'Generate starts one image after checking the live price. ')+'PV Soul accepts one base image and one optional trained Soul ID; use Seedream for multiple reference photos.':'';
+  const description=message||(!generateDisabled?soulHint:'');
+  if(description)generate.setAttribute('aria-description',description);
   else generate.removeAttribute('aria-description');
-  generate.title=message?(message+(queueBlocked?' Open Queue at the top right to review it.':'')):(isSoul2()?(customerMode?'Review the live price before generating. ':'Generate starts one image after checking the live price. ')+'PV Soul accepts one base image and one optional trained Soul ID; use Seedream for multiple reference photos.':'');
+  if(web&&(!message||queueBlocked||exactPreparing||imageSubmissionPending||customerPriceIntentPending))generate.removeAttribute('title');
+  else generate.title=message?(message+(queueBlocked?' Open Queue at the top right to review it.':'')):soulHint;
   syncImageReferences();
   fitImageComposerPrompt();
   syncImageGalleryEmpty();
@@ -2407,8 +2413,32 @@ for(const [id,step] of [['image-composer-count-decrease',-1],['image-composer-co
   });
 }
 $('composer-review-queue').onclick=()=>{$('active').open=true;$('active').scrollIntoView({behavior:'smooth',block:'start'});$('active').querySelector('summary')?.focus();};
-$('image-composer-generate').onclick=()=>{
-  if(busy||tool!=='image')return;
+const imageGenerateButton=$('image-composer-generate');
+const imageQueueAction=()=>imageGenerateButton.getAttribute('aria-controls')==='active';
+let imageQueuePress=false;
+// A slot can open between press and click. A Queue press must stay read-only.
+imageGenerateButton.addEventListener('pointerdown',()=>{imageQueuePress=imageQueueAction();});
+imageGenerateButton.addEventListener('pointercancel',()=>{imageQueuePress=false;});
+imageGenerateButton.addEventListener('keydown',event=>{
+  if(event.key!=='Enter'&&event.key!==' ')return;
+  if(event.repeat){
+    if(imageQueuePress||imageQueueAction())event.preventDefault();
+    return;
+  }
+  imageQueuePress=imageQueueAction();
+});
+imageGenerateButton.onclick=({currentTarget:button})=>{
+  const viewQueue=imageQueuePress||imageQueueAction();
+  imageQueuePress=false;
+  if(button.disabled||busy||tool!=='image')return;
+  if(viewQueue){
+    const queue=$('active');
+    if(queue.hidden)return;
+    queue.open=true;
+    queue.querySelector('summary').focus({preventScroll:true});
+    void poll();
+    return;
+  }
   // Show prices only after the customer's explicit Generate click, keeping
   // the editor and references intact. Never attempt unpaid provider work.
   if(customerMode&&customerBillingReady&&window.__PV_LAB_NATIVE__!==1&&
@@ -5745,7 +5775,8 @@ async function submitImageSnapshot(){
   const selectedPose=poseMapSourceId,selectedBase=file,selectedSourceId=sourceId;
   const sourceMode=imageEngine==='soulpro'||isReinterpret();
   const chosen=sourceMode?(selectedBase?[{file:selectedBase,id:selectedSourceId,width:sourceWidth,height:sourceHeight}]:[]):imageEngine==='soul'?[]:imageInputReferences().map(ref=>({file:ref.file,id:ref.id,width:ref.width,height:ref.height,ref}));
-  const fastEligible=!customerMode&&selected.engine==='seedream'&&requested===1&&provider==='spicy';
+  const ownerStill=window.__PV_LAB_NATIVE__!==1&&ownerAccount&&selected.soulProModel==='soul2'&&provider==='higgsfield';
+  const fastEligible=!customerMode&&requested===1&&(selected.engine==='seedream'&&provider==='spicy'||ownerStill);
   const requestKey=fastEligible?currentImageSubmissionKey(selected,requested):'';
   const check=()=>{if(!owner||epoch!==sessionEpoch)throw new Error('Session changed. No further requests submitted.');};
   let feedback=null,dispatched=false,detached=false,fastTicket=null;
