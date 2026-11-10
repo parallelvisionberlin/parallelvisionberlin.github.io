@@ -8,10 +8,12 @@ html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.pv-edito
   flex:0 0 80px!important;
   width:80px!important;
   min-width:80px!important;
-  padding:0 2px!important;
-  border:1px solid #393d39!important;
-  border-radius:9px!important;
-  background:#242625!important;
+  height:32px!important;
+  min-height:32px!important;
+  padding:0 4px!important;
+  border:0!important;
+  border-radius:8px!important;
+  background:#323437!important;
   box-shadow:none!important;
 }
 html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-deck #image-composer-count-wrap::after {
@@ -21,20 +23,18 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   display:none;
 }
 html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-deck .composer-count-stepper {
-  display:flex;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
   align-items:center;
-  justify-content:space-between;
   width:100%;
   height:100%;
-  gap:0;
   white-space:nowrap;
 }
 #image-composer .composer-count-stepper button {
   display:grid;
   place-items:center;
   box-sizing:border-box;
-  flex:0 0 18px;
-  width:18px;
+  width:100%;
   height:28px;
   min-height:28px;
   margin:0;
@@ -42,27 +42,26 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   border:0;
   border-radius:5px;
   background:transparent;
-  color:#e9e7e5;
+  color:#8c8e91;
   font:500 17px/1 Arial,sans-serif;
   cursor:pointer;
 }
 #image-composer .composer-count-stepper button:hover:not(:disabled) {
-  background:#383c39;
+  background:#3d3f42;
+  color:#f5f5f5;
 }
 #image-composer .composer-count-stepper button:focus-visible {
   outline:2px solid #e9e7e5;
   outline-offset:0;
 }
 #image-composer .composer-count-stepper button:disabled {
-  color:#686d69;
+  color:#53565a;
   cursor:default;
 }
 #image-composer .composer-count-stepper output {
-  flex:1;
-  min-width:0;
-  color:#e9e7e5;
+  color:#f5f5f5;
   text-align:center;
-  font:650 12px/1.2 'DM Sans',Arial,sans-serif;
+  font:650 14px/1.2 'DM Sans',Arial,sans-serif;
   font-variant-numeric:tabular-nums;
 }
 @media(max-width:899px){
@@ -70,12 +69,5 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
     flex:0 0 88px!important;
     width:88px!important;
     min-width:88px!important;
-    padding:0 3px!important;
-  }
-  #image-composer .composer-count-stepper button {
-    flex-basis:19px;
-    width:19px;
-    height:27px;
-    min-height:27px;
   }
 }

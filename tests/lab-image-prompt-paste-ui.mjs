@@ -64,30 +64,49 @@ try{
         sizing+'\n'+handler+
         "\n$('prompt').addEventListener('input',fitImageComposerPrompt);fitImageComposerPrompt();"
       });
-      // Browser-visible count regression: no duplicate dropdown or controls outside the slot.
-      if(viewport.width>=1180){
-        const countLayout=await page.evaluate(()=>{
-          const rect=id=>{
-            const element=document.getElementById(id),r=element.getBoundingClientRect();
-            return {left:r.left,right:r.right,width:r.width,display:getComputedStyle(element).display};
-          };
-          return {
-            select:rect('image-composer-count'),
-            wrap:rect('image-composer-count-wrap'),
-            minus:rect('image-composer-count-decrease'),
-            plus:rect('image-composer-count-increase'),
-            status:rect('image-composer-count-status')
-          };
-        });
-        assert.equal(countLayout.select.display,'none',
-          'Image count must not show the old dropdown: '+JSON.stringify(countLayout));
-        assert.ok(countLayout.wrap.width>=78&&countLayout.wrap.width<=82,
-          'Image count must fit its original 80px slot: '+JSON.stringify(countLayout));
-        for(const part of ['minus','status','plus']){
-          const item=countLayout[part],wrap=countLayout.wrap;
-          assert.ok(item.width>0&&item.left>=wrap.left-1&&item.right<=wrap.right+1,
-            part+' must stay inside the count slot: '+JSON.stringify(countLayout));
+      // Measure the visible count stepper, including the phone's open More row.
+      const countLayout=await page.evaluate(()=>{
+        const composer=document.getElementById('image-composer');
+        const mobile=matchMedia('(max-width:899px)').matches;
+        const settings=composer.dataset.mobileSettings;
+        if(mobile)composer.dataset.mobileSettings='open';
+        const rect=id=>{
+          const element=document.getElementById(id),r=element.getBoundingClientRect();
+          const style=getComputedStyle(element);
+          return {left:r.left,right:r.right,width:r.width,height:r.height,
+            display:style.display,border:style.borderTopWidth,background:style.backgroundColor,fontSize:style.fontSize};
+        };
+        const layout={
+          deck:rect('image-composer'),
+          generate:rect('image-composer-generate'),
+          select:rect('image-composer-count'),
+          wrap:rect('image-composer-count-wrap'),
+          minus:rect('image-composer-count-decrease'),
+          plus:rect('image-composer-count-increase'),
+          status:rect('image-composer-count-status')
+        };
+        if(mobile){
+          if(settings===undefined)delete composer.dataset.mobileSettings;
+          else composer.dataset.mobileSettings=settings;
         }
+        return layout;
+      });
+      const {wrap,deck}=countLayout;
+      assert.equal(countLayout.select.display,'none','The original select stays hidden on web');
+      assert.equal(wrap.height,32,'The count stepper uses the reference height');
+      assert.equal(wrap.border,'0px','The count stepper has no outline border');
+      assert.equal(wrap.background,'rgb(50, 52, 55)','The count stepper uses the reference charcoal');
+      assert.equal(countLayout.status.fontSize,'14px','The count stays readable');
+      if(viewport.width>=1180){
+        assert.equal(wrap.width,80,'The count stepper preserves the desktop toolbar slot');
+        assert.ok(wrap.right<=countLayout.generate.left,'The count stepper clears Generate: '+JSON.stringify(countLayout));
+      }
+      assert.ok(wrap.left>=deck.left&&wrap.right<=deck.right,
+        'Count stays inside the Image Deck: '+JSON.stringify(countLayout));
+      for(const part of ['minus','status','plus']){
+        const item=countLayout[part];
+        assert.ok(item.width>0&&item.left>=wrap.left&&item.right<=wrap.right,
+          part+' stays inside the count stepper: '+JSON.stringify(countLayout));
       }
       const editor=page.locator('#image-composer-prompt');
       // The sizing helper must never replace the contextual copy already
