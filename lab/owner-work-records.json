@@ -112,7 +112,8 @@
           "summary": "Source branch contains scoped Image count stepper and adapted test fixtures.",
           "scope": "Web Image count control; no backend writes or provider calls.",
           "observedAt": "2026-11-10",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/948"
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/948",
+          "limitations": []
         }
       ],
       "blockers": [
