@@ -116,7 +116,7 @@ try{
       assert.equal(toolbar.select.display,'none','The original select stays hidden on web');
       assert.equal(toolbar.status.fontSize,phone?'11px':'13px','Count shares the toolbar type scale');
       for(const tool of toolbar.tools){
-        assert.equal(tool.height,phone?35:32,tool.id+' shares the toolbar height');
+        assert.equal(tool.height,phone?35:34,tool.id+' shares the toolbar height');
         assert.equal(tool.border,'0px',tool.id+' has a borderless surface');
         assert.equal(tool.radius,'8px',tool.id+' shares the toolbar corner radius');
         assert.equal(tool.background,'rgb(50, 52, 55)',tool.id+' shares the matte charcoal surface');
@@ -128,7 +128,7 @@ try{
           assert.ok(tool.right<=toolbar.generate.left,tool.id+' clears Generate');
         }
         const icons=toolbar.tools.filter(tool=>['image-composer-add','scene-characters-open','scene-image-open'].includes(tool.id));
-        assert.deepEqual(icons.map(tool=>tool.width),[32,32,32],'Desktop icon buttons use one square size');
+        assert.deepEqual(icons.map(tool=>tool.width),[34,34,34],'Desktop icon buttons use one square size');
         assert.equal(count.width,80,'The count stepper preserves its desktop slot');
         assert.equal(toolbar.referencesLabelFits,true,'References only fits inside the shared Base slot');
       }

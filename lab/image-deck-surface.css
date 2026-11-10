@@ -1,6 +1,6 @@
 /* The web Image Deck shares one surface and type scale for its tools. */
 html:not(.pv-native-lab) #main :is(#app.image-studio-active #image-composer.pv-editorial-deck,#gate.pv-guest-image #pv-guest-composer){
-  --pv-image-tool-height:32px;
+  --pv-image-tool-height:34px;
   --pv-image-tool-fill:#323437;
   --pv-image-tool-hover:#3e4043;
   --pv-image-tool-type:13px;
@@ -107,15 +107,15 @@ html:not(.pv-native-lab) #main :is(#app.image-studio-active #image-composer.pv-e
       display:inline-flex!important;align-items:center!important;flex:0 0 auto!important;
       padding:8px!important;font-size:13px!important;font-weight:700!important;
     }
-    & .composer-add-wrap{display:flex!important;flex:0 0 32px!important;width:32px!important;min-width:32px!important;height:32px!important}
+    & .composer-add-wrap{display:flex!important;flex:0 0 34px!important;width:34px!important;min-width:34px!important;height:34px!important}
     & [data-deck-control="add"]{
-      display:grid!important;place-items:center!important;flex:0 0 32px!important;
-      width:32px!important;min-width:32px!important;padding:0!important;
+      display:grid!important;place-items:center!important;flex:0 0 34px!important;
+      width:34px!important;min-width:34px!important;padding:0!important;
     }
-    & .scene-image-library-wrap{display:flex!important;flex-direction:row!important;align-items:center!important;gap:6px!important;flex:0 0 70px!important;width:70px!important;min-width:70px!important;height:32px!important}
+    & .scene-image-library-wrap{display:flex!important;flex-direction:row!important;align-items:center!important;gap:6px!important;flex:0 0 74px!important;width:74px!important;min-width:74px!important;height:34px!important}
     & :is([data-deck-control="library"],[data-deck-control="characters"]){
-      display:grid!important;place-items:center!important;flex:0 0 32px!important;
-      width:32px!important;min-width:32px!important;
+      display:grid!important;place-items:center!important;flex:0 0 34px!important;
+      width:34px!important;min-width:34px!important;
       padding:0!important;
     }
     & :is([data-deck-control="library"],[data-deck-control="characters"]) svg{width:16px!important;height:16px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.5!important}
