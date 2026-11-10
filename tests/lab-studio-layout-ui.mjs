@@ -531,8 +531,6 @@ try{
   });
   assert.ok(menuPlacement.menuBottom<=menuPlacement.triggerTop+2,
     'Compact library opens above the circular trigger: '+JSON.stringify(menuPlacement));
-  assert.equal(await x.page.locator('#scene-image-menu-categories').isVisible(),true,'Four-square icon opens Elements directly');
-  assert.equal(await x.page.locator('#scene-image-menu-home').isVisible(),false,'Do not require an Elements submenu click');
   assert.equal(await x.page.locator('#scene-image-menu [data-scene-target]').count(),4);
   await x.page.click('#scene-image-menu [data-scene-target="characters"]');
   assert.equal(await x.page.locator('#scene-library-dialog').isVisible(),true);
@@ -592,7 +590,6 @@ try{
   await x.page.click('#scene-close');
   await x.page.click('#image-composer-prompt');
   await x.page.click('#scene-image-open');
-  await x.page.click('#scene-menu-back');
   await x.page.click('#scene-menu-packs');
   assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs');
   assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),true,'Saved packs open the matching Elements-style Photo Packs library');
@@ -1067,11 +1064,7 @@ try{
   });
   assert.ok(libraryMenu.left>=8&&libraryMenu.right<=382,
     'Elements categories menu must remain entirely visible on the phone: '+JSON.stringify(libraryMenu));
-  assert.equal(await x.page.locator('#scene-image-menu-categories').isVisible(),true);
-  const categoriesMenu=await x.page.locator('#scene-image-menu').evaluate(el=>{
-    const r=el.getBoundingClientRect();return {left:r.left,right:r.right};
-  });
-  assert.ok(categoriesMenu.left>=8&&categoriesMenu.right<=382,'Elements categories must fit inside the viewport');
+  assert.equal(await x.page.locator('#scene-menu-packs').isVisible(),true,'Photo packs is a direct menu option on mobile');
   await x.page.locator('#scene-image-open').click();
 
 
