@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-08T22:21:00Z",
+  "updatedAt": "2026-11-10",
   "handoffs": [
     {
       "id": "owner",
@@ -64,6 +64,65 @@
     }
   ],
   "records": [
+    {
+      "id": "image-count-stepper-20261110",
+      "title": "Higgsfield-style Image Deck quantity stepper",
+      "component": "PV LAB Image Deck",
+      "status": "needs_verification",
+      "summary": "On the signed-in web Image Deck only, replace visible image-count select with minus, selected/max count and plus. Keep hidden mirror and existing authoritative native select, provider count options, credit quote, submission and all other deck features intact.",
+      "nextAction": "Confirm relevant browser/approved UI CI and preview layout at 390px and 1440px; merge only if no new relevant regressions, then verify Cloudflare custom-domain asset bytes and signed-in controls.",
+      "baselineSha": "f1ebdff1800564e933db6c7cddb8020fc1a18135",
+      "reviewedSha": null,
+      "branch": "ui/image-count-stepper-20261110",
+      "files": [
+        "lab/studio.html",
+        "lab/lab.js",
+        "lab/image-count-stepper.css",
+        "tests/lab-studio-layout-ui.mjs",
+        "tests/lab-customer-image-ui.mjs",
+        "tests/lab-assets-ui.cjs",
+        "tests/lab-image-oneclick-ui.mjs",
+        "lab/owner-work-records.json"
+      ],
+      "links": [
+        {
+          "label": "Draft implementation PR #948",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/948"
+        }
+      ],
+      "tests": [
+        {
+          "label": "PR Image UI / pricing / browser CI",
+          "result": "not_run",
+          "scope": "CI in progress; browser regression outcomes and signed-in preview not yet validated.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/948"
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab.studio",
+        "sourceSha": null,
+        "limitations": [
+          "Draft PR is not merged; production remains unchanged."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Source branch contains scoped Image count stepper and adapted test fixtures.",
+          "scope": "Web Image count control; no backend writes or provider calls.",
+          "observedAt": "2026-11-10",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/948"
+        }
+      ],
+      "blockers": [
+        "Relevant PR CI and responsive browser verification pending."
+      ],
+      "doNotRepeat": [
+        "Do not alter provider limits, pricing, native UI, guest composer, Generate placement, Moods or reference controls."
+      ],
+      "updatedAt": "2026-11-10"
+    },
     {
       "id": "home-featured-photo-pack-chrome-desert",
       "title": "Chrome Desert homepage photo-pack band",
