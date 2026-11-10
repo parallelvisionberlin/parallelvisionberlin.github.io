@@ -5,8 +5,8 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
 }
 html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.pv-editorial-deck #image-composer-count-wrap {
   box-sizing:border-box!important;
-  flex:0 1 98px!important;
-  width:98px!important;
+  flex:0 0 80px!important;
+  width:80px!important;
   min-width:80px!important;
   height:32px!important;
   min-height:32px!important;

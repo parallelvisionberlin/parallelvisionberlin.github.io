@@ -98,8 +98,8 @@ try{
       assert.equal(wrap.background,'rgb(50, 52, 55)','The count stepper uses the reference charcoal');
       assert.equal(countLayout.status.fontSize,'14px','The count stays readable');
       if(viewport.width>=1180){
-        assert.equal(wrap.width,98,'The desktop count stepper uses the reference width');
-        assert.ok(wrap.right<=countLayout.generate.left,'The count stepper clears Generate');
+        assert.equal(wrap.width,80,'The count stepper preserves the desktop toolbar slot');
+        assert.ok(wrap.right<=countLayout.generate.left,'The count stepper clears Generate: '+JSON.stringify(countLayout));
       }
       assert.ok(wrap.left>=deck.left&&wrap.right<=deck.right,
         'Count stays inside the Image Deck: '+JSON.stringify(countLayout));
