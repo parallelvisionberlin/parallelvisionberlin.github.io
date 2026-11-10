@@ -11,7 +11,7 @@ permissions:
 jobs:
   preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     environment: pvlab-upscale-preview
     steps:
       - name: Report the running verification
@@ -19,13 +19,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
-            -f state=pending -f context=pvlab/upscale-worker-preview \
+            -f state=pending -f context=pvlab/upscale-studio-preview \
             -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-            -f description="Checking the isolated Upscale Worker preview" >/dev/null
+            -f description="Building the isolated Upscale Studio demo" >/dev/null
+
+      - name: Check out the preview tooling
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
       - name: Check out the reviewed Upscale candidate
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: 609b149ce5f94f8b7a03ec7985a6ac2f951b4f6b
+          path: candidate
           persist-credentials: false
 
       - name: Set up Node
@@ -33,24 +40,18 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Wrangler and configure a Worker without bindings
+      - name: Prepare isolated Studio and browser tools
         shell: bash
         run: |
           set -euo pipefail
-          npm install --prefix "$RUNNER_TEMP/pvlab-wrangler" --no-audit --no-fund --save-exact wrangler@4.158.0
-          cat > lab-worker/wrangler-upscale-preview.json <<'JSON'
-          {
-            "name": "parallel-vision-lab",
-            "main": "worker.mjs",
-            "compatibility_date": "2026-09-26",
-            "previews": {}
-          }
-          JSON
+          node tools/upscale-preview/build.mjs candidate tools/upscale-preview/fixture.mjs
+          npm install --prefix "$RUNNER_TEMP/pvlab-preview-tools" --no-audit --no-fund --save-exact wrangler@4.158.0 playwright@1.56.1
+          "$RUNNER_TEMP/pvlab-preview-tools/node_modules/.bin/playwright" install chromium --with-deps
 
-      - name: Create the isolated preview and check its version
+      - name: Publish the demo and confirm the reviewed Worker version
         id: preview
         shell: bash
-        working-directory: lab-worker
+        working-directory: candidate/lab-worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.PVLAB_UPSCALE_PREVIEW_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: a40ce1725295563a7b7db9fc3160480a
@@ -60,34 +61,38 @@ jobs:
             echo "::error::Missing PVLAB_UPSCALE_PREVIEW_TOKEN in the pvlab-upscale-preview environment."
             exit 1
           fi
-          output="$("$RUNNER_TEMP/pvlab-wrangler/node_modules/.bin/wrangler" preview --config wrangler-upscale-preview.json --ignore-base-config --name upscale-pr939 --json)"
+          output="$("$RUNNER_TEMP/pvlab-preview-tools/node_modules/.bin/wrangler" preview --config wrangler-upscale-studio-preview.json --ignore-base-config --name upscale-studio-pr939 --json)"
           preview_url="$(jq -er '.preview.urls[0]' <<<"$output")"
           if [[ ! "$preview_url" =~ ^https://[a-z0-9-]+\.parallelvision\.workers\.dev/?$ ]]; then
             echo "::error::Cloudflare did not return a preview on the expected Workers subdomain."
             exit 1
           fi
-          health_url="${preview_url%/}/health"
-          curl -fsS --retry 3 --retry-all-errors --retry-delay 2 --max-time 15 "$health_url" |
+          curl -fsS --retry 3 --retry-all-errors --retry-delay 2 --max-time 15 "${preview_url%/}/health" |
             jq -e '.ok == true and .upscaleRecovery == "20261109-independent2"' >/dev/null
-          printf 'Verified candidate Worker version at %s\n' "$health_url" >> "$GITHUB_STEP_SUMMARY"
-          printf 'health_url=%s\n' "$health_url" >> "$GITHUB_OUTPUT"
+          printf 'preview_url=%s\n' "$preview_url" >> "$GITHUB_OUTPUT"
+
+      - name: Verify both profiles on mobile and desktop
+        id: browser
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.preview_url }}
+        run: node tools/upscale-preview/smoke.mjs "$PREVIEW_URL" "$RUNNER_TEMP/pvlab-preview-tools/node_modules/playwright/index.mjs"
 
       - name: Report the verification result
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
-          PREVIEW_RESULT: ${{ steps.preview.outcome }}
-          PREVIEW_HEALTH_URL: ${{ steps.preview.outputs.health_url }}
+          BROWSER_RESULT: ${{ steps.browser.outcome }}
+          PREVIEW_URL: ${{ steps.preview.outputs.preview_url }}
         run: |
-          if [[ "$PREVIEW_RESULT" == "success" ]]; then
+          if [[ "$BROWSER_RESULT" == "success" ]]; then
             status=success
-            description="Confirmed upscaleRecovery 20261109-independent2"
-            url="$PREVIEW_HEALTH_URL"
+            description="Verified Upscale Studio demo for both roles at 390px and 1440px"
+            url="$PREVIEW_URL"
           else
             status=failure
-            description="Upscale Worker preview verification failed"
+            description="Upscale Studio preview verification failed"
             url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           fi
           gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
-            -f state="$status" -f context=pvlab/upscale-worker-preview \
+            -f state="$status" -f context=pvlab/upscale-studio-preview \
             -f target_url="$url" -f description="$description" >/dev/null
