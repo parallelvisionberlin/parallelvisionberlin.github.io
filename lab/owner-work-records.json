@@ -2941,17 +2941,15 @@
       "title": "Compact Base image mode picker",
       "component": "PV LAB Image Deck",
       "status": "deployed",
-      "summary": "Base image and References only open the same compact two-choice web popover directly above the toolbar button. The selected choice is marked and Escape restores focus. Phone placement follows the Base button in the More row.",
-      "nextAction": "Refresh Image Studio and click Base image to open the compact picker.",
-      "baselineSha": "02057b10d3c9d181dfff0bdf23f08feb0b53d13e",
-      "reviewedSha": "8cb3ec882ddae061fd610bc94f76591bbce37859",
-      "branch": "fix/image-base-mode-popover-20261110",
+      "summary": "Base image and References only share the desktop image icon, 13px type and padding. Both use a fixed 144px slot so the full References only label fits. The compact mode picker remains anchored to this toolbar button.",
+      "nextAction": "Refresh Image Studio to load the corrected mode button style.",
+      "baselineSha": "2bf9a1bb525b6d7305fbee83d146864f0350cbcd",
+      "reviewedSha": "e9748230cd1f0f7d694defdab8a921da71e44abf",
+      "branch": "fix/image-reference-mode-type-20261110",
       "files": [
-        "lab/lab.js",
         "lab/image-deck-surface.css",
         "lab/studio.html",
-        "tests/lab-image-prompt-paste-ui.mjs",
-        "tests/lab-image-oneclick-ui.mjs"
+        "tests/lab-image-prompt-paste-ui.mjs"
       ],
       "links": [
         {
@@ -2961,6 +2959,10 @@
         {
           "label": "Image Deck handoff",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
+        },
+        {
+          "label": "References only styling correction",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/958"
         }
       ],
       "tests": [
@@ -2987,31 +2989,38 @@
           "result": "documented",
           "scope": "Soul and normal geometry and paste checks pass. The Inspiration background and Clerk timeout failures match the previous main candidate.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42905720470/job/130143058388"
+        },
+        {
+          "label": "Both mode button styles and fit",
+          "result": "passed",
+          "scope": "Matching font, tracking, icon, padding, gap and width. Full References only text fits beside the icon. Toolbar and Generate clearance pass. Both label renders inspected.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42912071115"
         }
       ],
       "deployment": {
         "state": "verified",
         "environment": "Cloudflare Pages pvlab-studio",
-        "sourceSha": "9c0285b20975619d69b571d1ebb60370e30b00b0",
+        "sourceSha": "7ed33b4af58c6440cae1d1f0eb9b142699ba20a8",
         "evidenceUrl": "https://pvlab.studio/studio?tool=image",
         "limitations": [
-          "The production browser was signed out. Interaction was verified with mocked accounts in Chromium."
+          "The production browser was signed out. Desktop and phone style and interaction checks used mocked accounts."
         ]
       },
       "evidence": [
         {
           "kind": "production_asset",
-          "summary": "Cloudflare production check 130145569818 succeeded for the exact merge. Live stylesheet v20261110-base-mode-menu1 has the reviewed preview's parsed CSS hash. The live Studio entry references lab.js v20261110-base-mode-menu2 and the source blobs match the reviewed commit.",
-          "scope": "Published Image Deck stylesheet and versioned JavaScript entry",
+          "summary": "Cloudflare production check 130167626031 succeeded for the exact merge. Production image-deck-surface.css v20261110-base-mode-type1 has the reviewed preview's parsed CSS hash. All changed source blobs match the reviewed commit.",
+          "scope": "Published mode-button typography, icon and spacing",
           "source": "https://pvlab.studio/studio?tool=image",
           "limitations": [
-            "Browser verification compared CSS rules and entry versions."
+            "Browser verification compared parsed stylesheet rules."
           ]
         }
       ],
       "blockers": [],
       "doNotRepeat": [
-        "Keep the mode picker anchored to the Base button, including in the phone More row. Preserve the approved toolbar, photo and generation flows."
+        "Keep the mode picker anchored to the Base button, including in the phone More row. Preserve the approved toolbar, photo and generation flows.",
+        "Keep both mode labels on the same icon and typography rules. Avoid a special References only padding override."
       ],
       "updatedAt": "2026-11-10"
     }
