@@ -2686,14 +2686,13 @@
       "title": "Unified Image Deck toolbar styling",
       "component": "PV LAB Image Deck",
       "status": "deployed",
-      "summary": "Web Image Deck controls share a matte charcoal surface, 8px corners and a consistent type scale. The secondary controls use 32px height on desktop and 35px in the phone layout. Add, Characters and Elements share 32px square desktop controls. Base image, aspect ratio and resolution use compact icons, and References only fits its existing slot.",
-      "nextAction": "Refresh the Image Deck to load the published styles. Inspect in an existing production session if real account observation is needed.",
-      "baselineSha": "21999e34f80a3f34d735eb0bc11517624dddf2df",
-      "reviewedSha": "95e98fc84a8c60c6523b8ecdce23e036c6682033",
-      "branch": "fix/image-deck-controls-20261110",
+      "summary": "Web Image Deck controls share a matte charcoal surface, 8px corners and a consistent type scale. The secondary controls use 34px height on desktop and 35px in the phone layout. Add, Characters and Elements share 34px square desktop controls. Base image, aspect ratio and resolution use compact icons, and References only fits its existing slot.",
+      "nextAction": "Refresh the Image Deck to load the published 34px toolbar.",
+      "baselineSha": "dc07d953560f55007c787855b58b480365aea7cf",
+      "reviewedSha": "f531544cb15d606fafc9ea5af0cfc42da6273057",
+      "branch": "fix/image-deck-tool-height-34-20261110",
       "files": [
         "lab/image-deck-surface.css",
-        "lab/image-count-stepper.css",
         "lab/studio.html",
         "tests/lab-image-prompt-paste-ui.mjs"
       ],
@@ -2705,36 +2704,41 @@
         {
           "label": "Shared Image Deck handoff",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
+        },
+        {
+          "label": "Desktop sizing release #955",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/955"
         }
       ],
       "tests": [
         {
           "label": "Approved Image UI contract",
           "result": "passed",
-          "scope": "Six local assertions on the reviewed source.",
-          "source": "tests/lab-approved-image-ui-contract.test.mjs"
+          "scope": "Six local assertions and the reviewed commit's GitHub Actions check.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42884855704/job/130070353408"
         },
         {
           "label": "Image toolbar browser",
           "result": "passed",
-          "scope": "Shared appearance, count fit, compact prompt and References only label at desktop and phone sizes.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42844232357/job/129927263431"
+          "scope": "34px desktop controls, 34px square desktop shortcuts, 35px phone controls, alignment, and clearance from Generate.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42884855758/job/130070353803"
         },
         {
           "label": "Shared deck browser",
           "result": "failed",
-          "scope": "Soul, normal deck, prompt and direct public/new/returning/owner control parity passed. Broader Inspiration background and Clerk assertions failed.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42844232198/job/129927263183"
+          "scope": "Toolbar, prompt, Soul and direct public/new/returning/owner parity passed. Existing broader Inspiration background and Clerk assertions failed.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42884855531/job/130070352783"
         }
       ],
       "deployment": {
         "state": "verified",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "sourceSha": "cbb3e5ead33e0cdab6219bf9cd48acbb555202d6",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/cbb3e5ead33e0cdab6219bf9cd48acbb555202d6/checks?check_run_id=129929868798",
+        "sourceSha": "711510802eb48587f92e3bdb5baead3e0ec3b4ea",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/711510802eb48587f92e3bdb5baead3e0ec3b4ea/checks?check_run_id=130071980471",
         "limitations": [
           "Authenticated browser tests used fixtures."
-        ]
+        ],
+        "observedAt": "2026-11-10T19:27:37.857Z"
       },
       "evidence": [
         {
@@ -2744,6 +2748,15 @@
           "source": "https://pvlab.studio/studio?tool=image",
           "limitations": [
             "Production sign-in interaction was not observed."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "The published 34px toolbar stylesheet matches the reviewed merge. Cloudflare check 130071980471 succeeded.",
+          "scope": "Desktop Image Deck toolbar styles on the custom production domain.",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": [
+            "Authenticated browser tests used fixtures."
           ]
         }
       ],
