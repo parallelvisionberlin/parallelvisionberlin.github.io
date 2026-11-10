@@ -2856,6 +2856,63 @@
         "Keep server capacity, price validation, spending and provider safeguards."
       ],
       "updatedAt": "2026-11-10T15:41:08Z"
+    },
+    {
+      "id": "upscaler-compact-loaded-deck",
+      "title": "Compact loaded Image Upscaler controls",
+      "component": "PV LAB Image Upscaler",
+      "status": "needs_verification",
+      "summary": "After upload, the Image Upscaler uses a short title, compact source and model buttons, and adjacent Enlargement and Image format fields. On desktop the loaded settings determine the minimum workspace height. Short windows use page scroll. The original image still fits its existing stage.",
+      "nextAction": "Review the loaded-photo browser checks at 1920×910, 1440×740, 1024×520 and 390×844, including both Precision variants. Confirm Cloudflare Pages and both production stylesheet versions after merge.",
+      "baselineSha": "663dce86308cf9fa64d6d0d798b529f0766fc851",
+      "reviewedSha": null,
+      "branch": "fix/upscaler-compact-loaded-deck-20261110",
+      "files": [
+        "lab/upscale-loaded-workspace.css",
+        "lab/video-upscale.css",
+        "lab/studio.html",
+        "tests/lab-upscale-ui.mjs"
+      ],
+      "links": [
+        {
+          "label": "Upscaler handoff",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI contract",
+          "result": "passed",
+          "scope": "Six local contract assertions.",
+          "source": "tests/lab-approved-image-ui-contract.test.mjs"
+        },
+        {
+          "label": "Loaded Upscaler deck",
+          "result": "not_run",
+          "scope": "Chromium upload, processing, Precision expansion, short window, phone and Clear. Synthetic provider responses.",
+          "source": "tests/lab-upscale-ui.mjs"
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio",
+        "sourceSha": null,
+        "limitations": []
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "The final desktop rule in video-upscale.css imposed overflow-y:auto on the loaded inspector after the earlier no-scroll rule.",
+          "scope": "Image Upscaler loaded photo layout",
+          "source": "lab/video-upscale.css",
+          "limitations": []
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "The loaded Image deck should use page scroll at short heights. Keep both settings accessible and the provider, pricing, Queue and source handlers intact."
+      ],
+      "updatedAt": "2026-11-10"
     }
   ]
 }

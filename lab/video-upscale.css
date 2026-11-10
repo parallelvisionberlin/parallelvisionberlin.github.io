@@ -286,8 +286,8 @@
 }
 
 
-/* Override the older, more-specific :has() loaded/empty Image rules.
-   They previously forced the editor to extend below the browser viewport. */
+/* Keep the viewport-sized workspace for the empty editor. With a photo, let
+   the settings define the minimum row height so short windows use page scroll. */
 @media(min-width:781px){
  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #empty:not([hidden])),
  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #preview:not([hidden])){
@@ -295,16 +295,23 @@
    height:calc(100dvh - 102px)!important;
    min-height:0!important;max-height:none!important;overflow:hidden!important;
  }
- #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
-   height:100%!important;min-height:0!important;max-height:100%!important;
-   overflow:hidden!important;display:flex!important;flex-direction:column!important;
+ #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace{
+   grid-template-rows:minmax(calc(100dvh - 102px),auto)!important;
+   height:auto!important;overflow:visible!important;
  }
- #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
-   flex:1 1 auto!important;height:auto!important;min-height:0!important;
-   max-height:none!important;overflow-x:hidden!important;overflow-y:auto!important;
-   padding:76px 20px 12px!important;
+ #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.stage{
+   /* The original photo's pixel dimensions must not size the grid row. */
+   contain:size;
  }
- #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+ #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.controls{
+   height:auto!important;min-height:0!important;max-height:none!important;
+   overflow:visible!important;
+ }
+ #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.controls>.controls-body{
+   flex:1 0 auto!important;height:auto!important;overflow:visible!important;
+   padding:64px 20px 12px!important;
+ }
+ #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.controls>.generate-zone{
    box-sizing:border-box!important;position:relative!important;
    top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;
    flex:0 0 auto!important;width:100%!important;height:auto!important;min-height:0!important;
