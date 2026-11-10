@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-10T15:35:54Z",
+  "updatedAt": "2026-11-10T15:41:08Z",
   "handoffs": [
     {
       "id": "owner",
@@ -2757,9 +2757,9 @@
       "id": "image-generate-queue-20261110",
       "title": "Image Generate handoff and queue access",
       "component": "PV LAB Image Deck",
-      "status": "needs_verification",
+      "status": "deployed",
       "summary": "The web Image button uses a normal cursor while blocked and hides browser tooltips for submission and capacity states. At capacity it opens the existing Queue when there is a server job to review. The two-second single-image owner handoff now also covers PV Still's direct Higgsfield route. A Queue press stays a read-only action if a slot opens mid-click.",
-      "nextAction": "Merge the reconciled branch and verify the Cloudflare Pages release and exact live assets.",
+      "nextAction": "Refresh Image Studio to load the deployed Generate button. Browser behavior was exercised with simulated signed-in jobs.",
       "baselineSha": "21999e34f80a3f34d735eb0bc11517624dddf2df",
       "reviewedSha": "70041f397c94761ead2e0dd8cb5b318ee96348b0",
       "branch": "fix/image-generate-queue-20261110",
@@ -2808,19 +2808,41 @@
         }
       ],
       "deployment": {
-        "state": "pending",
+        "state": "verified",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
         "limitations": [
           "Signed-in production generation has not been exercised."
-        ]
+        ],
+        "sourceSha": "21edda3fd4351ca1ca8186f4a639a1380921b253",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/21edda3fd4351ca1ca8186f4a639a1380921b253/checks?check_run_id=129935425645",
+        "observedAt": "2026-11-10T15:41:08Z"
       },
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "deployment",
+          "summary": "The exact merged commit passed the Cloudflare Pages pvlab-studio deployment check.",
+          "scope": "Cloudflare Pages pvlab-studio production",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/21edda3fd4351ca1ca8186f4a639a1380921b253/checks?check_run_id=129935425645",
+          "observedAt": "2026-11-10T15:41:08Z",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Studio uses the new cache markers and both asset SHA-256 hashes match the reviewed source. lab/lab.js ab2bf3b3321d5776ff887a7d8f02ae58ea6313119dd46423d707dc1b3b4ed46f, lab/studio-finish-v2.css b40f222846ee378ad525fe4a2b4b021cb9b24f7bc67d1ab9271646e79b24f2d1",
+          "scope": "Production Studio HTML and Generate controller and stylesheet bytes",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "observedAt": "2026-11-10T15:41:08Z",
+          "limitations": [
+            "Signed-in generation behavior was tested with simulated jobs."
+          ]
+        }
+      ],
       "blockers": [],
       "doNotRepeat": [
         "Use mocked generation requests for browser verification.",
         "Keep server capacity, price validation, spending and provider safeguards."
       ],
-      "updatedAt": "2026-11-10T15:35:54Z"
+      "updatedAt": "2026-11-10T15:41:08Z"
     }
   ]
 }
