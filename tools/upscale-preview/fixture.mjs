@@ -46,6 +46,30 @@ export function installFixture() {
   const save = () => sessionStorage.setItem(storageKey, JSON.stringify(state));
   const reset = () => sessionStorage.removeItem(storageKey);
   const id = () => crypto.randomUUID();
+
+  function settleDemoJobs() {
+    let changed = false;
+    for (const job of state.jobs) {
+      // Only separate jobs created in the demo finish. The original stays in review.
+      if (job.status !== 'queued' || !job.quoteId || Date.now() - job.createdAt < 1500) continue;
+      job.status = 'completed';
+      job.outputId = id();
+      changed = true;
+    }
+    if (changed) save();
+  }
+
+  async function demoResult(job) {
+    const bitmap = await createImageBitmap(uploads.get(job.sourceId) ?? await sampleBlob);
+    const scale = Math.min(job.settings.scale, 2048 / Math.max(bitmap.width, bitmap.height));
+    const result = document.createElement('canvas');
+    result.width = Math.max(1, Math.round(bitmap.width * scale));
+    result.height = Math.max(1, Math.round(bitmap.height * scale));
+    result.getContext('2d').drawImage(bitmap, 0, 0, result.width, result.height);
+    bitmap.close();
+    const mime = job.settings.outputFormat === 'jpeg' ? 'image/jpeg' : 'image/png';
+    return new Promise(resolve => result.toBlob(resolve, mime, 0.94));
+  }
   const json = (body, status = 200) => Response.json(body, {status});
   const fail = (status, message) => { throw Object.assign(new Error(message), {status}); };
 
@@ -64,6 +88,7 @@ export function installFixture() {
         });
       }
       if (path === '/api/jobs' && method === 'GET') {
+        settleDemoJobs();
         const quoteId = url.searchParams.get('quoteId');
         if (quoteId) return json({job: state.jobs.find(job => job.quoteId === quoteId) ?? null});
         return json({
@@ -117,10 +142,12 @@ export function installFixture() {
       }
       if (path.startsWith('/api/assets/') && method === 'GET') {
         const assetId = path.split('/')[3];
-        const image = uploads.get(assetId) ?? await sampleBlob;
+        const resultJob = state.jobs.find(job => job.outputId === assetId);
+        const image = resultJob ? await demoResult(resultJob) : uploads.get(assetId) ?? await sampleBlob;
         return new Response(image, {headers: {'Content-Type': image.type}});
       }
       if (/^\/api\/jobs\/[^/]+$/.test(path) && method === 'GET') {
+        settleDemoJobs();
         const job = state.jobs.find(item => item.id === path.split('/')[3]);
         return job ? json({job}) : json({error: 'Unknown demo job.'}, 404);
       }

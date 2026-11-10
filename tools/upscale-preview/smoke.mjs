@@ -51,10 +51,15 @@ try {
       const child = await frame.contentFrame();
       const key = 'pvlab-upscale-pr939-' + (role === 'Cliente' ? 'customer' : 'owner');
       await child.waitForFunction(key => JSON.parse(sessionStorage.getItem(key) ?? '{}').jobs?.length === 2, key);
+      await studio.locator('#upscale-result-toolbar').waitFor({state: 'visible', timeout: 25000});
+      assert.match(await studio.locator('#preview-label').innerText(), /Upscaled result/);
       const state = await child.evaluate(key => JSON.parse(sessionStorage.getItem(key)), key);
-      assert.deepEqual(state.jobs.map(job => job.status), ['queued', 'uncertain']);
+      assert.deepEqual(state.jobs.map(job => job.status), ['completed', 'uncertain']);
+      assert.equal(typeof state.jobs[0].outputId, 'string');
       assert.equal(state.balance < 1000, role === 'Cliente');
-      console.log(role + ' at ' + width + 'px: original preserved, decline + one confirmed independent job');
+      await studio.getByRole('button', {name: 'Review Queue', exact: true}).click();
+      assert.equal(await studio.locator('#active').evaluate(element => element.open), true);
+      console.log(role + ' at ' + width + 'px: one independent result, original stays in review');
     }
     assert.deepEqual(external, [], 'The preview must make no requests to external services');
     await context.close();
