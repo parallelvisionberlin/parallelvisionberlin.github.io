@@ -1478,8 +1478,6 @@ $('scene-characters-open').onclick=()=>sceneLibrary.open('characters');
 
 function sceneImageMenuClose(){
   $('scene-image-menu').hidden=true;
-  $('scene-image-menu-home').hidden=false;
-  $('scene-image-menu-categories').hidden=true;
   $('scene-image-open').setAttribute('aria-expanded','false');
 }
 $('scene-image-open').onclick=()=>{
@@ -1489,23 +1487,9 @@ $('scene-image-open').onclick=()=>{
   if(!menu.hidden){sceneImageMenuClose();return;}
   closeComposerLibrary();closeImageModelMenu();closeReferenceIntent();
   moodUI.close();toggleImageSettings(false);
-  // The four-square icon is the Elements shortcut: show its four categories
-  // immediately. Photo Packs still has its own saved-pack entry.
-  $('scene-image-menu-home').hidden=true;
-  $('scene-image-menu-categories').hidden=false;
   menu.hidden=false;
   $('scene-image-open').setAttribute('aria-expanded','true');
   document.querySelector('#scene-image-menu [data-scene-target="characters"]')?.focus({preventScroll:true});
-};
-$('scene-menu-elements').onclick=()=>{
-  $('scene-image-menu-home').hidden=true;
-  $('scene-image-menu-categories').hidden=false;
-  $('scene-menu-back').focus({preventScroll:true});
-};
-$('scene-menu-back').onclick=()=>{
-  $('scene-image-menu-categories').hidden=true;
-  $('scene-image-menu-home').hidden=false;
-  $('scene-menu-elements').focus({preventScroll:true});
 };
 $('scene-menu-packs').onclick=()=>{
   sceneImageMenuClose();
@@ -1519,7 +1503,9 @@ document.addEventListener('click',event=>{
   if(!$('scene-image-library-wrap').contains(event.target))sceneImageMenuClose();
 });
 document.addEventListener('keydown',event=>{
-  if(event.key==='Escape')sceneImageMenuClose();
+  if(event.key!=='Escape'||$('scene-image-menu').hidden)return;
+  sceneImageMenuClose();
+  $('scene-image-open').focus({preventScroll:true});
 });
 
 
