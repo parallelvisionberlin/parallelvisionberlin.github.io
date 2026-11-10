@@ -451,6 +451,19 @@ try{
     'Exact Prompt stays available as a tiny inline switch');
   assert.equal(await x.page.locator('#composer-exact-prompt').isChecked(),false,
     'Automatic prompt enhancement remains enabled by default');
+  assert.equal(await x.page.locator('#image-composer-count').isVisible(),false,
+    'Web Image shows the stepper instead of the old dropdown');
+  assert.equal(await x.page.locator('#image-composer-count-status').textContent(),'1/4',
+    'Seedream initially offers one of four images');
+  await x.page.locator('#image-composer-count-increase').click();
+  assert.equal(await x.page.locator('#image-count').inputValue(),'2',
+    'Desktop + must update the real image count used for quotes and generation');
+  await x.page.locator('#image-composer-count-decrease').click();
+  assert.equal(await x.page.locator('#image-count').inputValue(),'1',
+    'Desktop - restores the original one-image default');
+  assert.equal(await x.page.locator('#image-composer-count-decrease').isDisabled(),true,
+    'At the minimum count the minus action is disabled');
+
   const exactMetrics=await x.page.evaluate(()=>{
     const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {top:r.top,right:r.right,left:r.left,width:r.width};};
     const exact=document.getElementById('composer-exact-prompt-option'),count=document.getElementById('image-composer-count-wrap');
@@ -1065,7 +1078,20 @@ try{
   assert.equal(await x.page.locator('#image-composer-resolution').isVisible(),false,'Secondary resolution is collapsed initially');
   await x.page.locator('#image-composer-mobile-more').click();
   assert.equal(await x.page.locator('#image-composer-resolution').isVisible(),true,'More exposes the original resolution select');
-  assert.equal(await x.page.locator('#image-composer-count').isVisible(),true,'More exposes the original image count select');
+  assert.equal(await x.page.locator('#image-composer-count-status').isVisible(),true,'More exposes the new image count stepper');
+  const countBefore=await x.page.locator('#image-count').inputValue();
+  const mobileChoices=await x.page.locator('#image-count option').evaluateAll(options=>options.map(option=>option.value));
+  const nextCount=mobileChoices[mobileChoices.indexOf(countBefore)+1];
+  if(nextCount){
+    await x.page.locator('#image-composer-count-increase').click();
+    assert.equal(await x.page.locator('#image-count').inputValue(),nextCount,
+      'Mobile + updates the authoritative generation count');
+    assert.equal(await x.page.locator('#image-composer-count-status').textContent(),
+      nextCount+'/'+mobileChoices.at(-1),'Mobile displays selected count and model limit');
+    await x.page.locator('#image-composer-count-decrease').click();
+    assert.equal(await x.page.locator('#image-count').inputValue(),countBefore,
+      'Mobile - restores the authoritative generation count');
+  }
   const extras=await x.page.evaluate(()=>{
     const composer=document.getElementById('image-composer').getBoundingClientRect();
     const labels=['image-composer-resolution-wrap','image-composer-count-wrap']

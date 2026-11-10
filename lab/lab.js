@@ -2058,6 +2058,14 @@ function syncImageComposer(){
     ['image-composer-ratio','ratio'],['image-composer-resolution','resolution'],
     ['image-composer-count','image-count']
   ])synchronizeComposerSelect(copy,real);
+  // The stepper presents the exact same allowed image counts as the existing
+  // selection control, so provider limits, pricing and submit logic stay unchanged.
+  const countChoices=[...$('image-composer-count').options].map(option=>option.value);
+  const countIndex=countChoices.indexOf($('image-composer-count').value);
+  $('image-composer-count-status').textContent=
+    ($('image-composer-count').value||'1')+'/'+(countChoices.at(-1)||'1');
+  $('image-composer-count-decrease').disabled=busy||countIndex<=0;
+  $('image-composer-count-increase').disabled=busy||countIndex>=countChoices.length-1;
   $('image-composer-count-wrap').hidden=$('image-count-control').hidden;
   $('image-composer-resolution').parentElement.hidden=$('resolution-control').hidden;
   $('image-composer-ratio').parentElement.hidden=$('ratio-control').hidden;
@@ -2399,6 +2407,18 @@ for(const [copy,real] of [
   };
   $(copy).addEventListener('input',syncFromComposer);
   $(copy).addEventListener('change',syncFromComposer);
+}
+for(const [id,step] of [['image-composer-count-decrease',-1],['image-composer-count-increase',1]]){
+  $(id).addEventListener('click',()=>{
+    if(busy||$('image-composer-count-wrap').hidden)return;
+    const mirror=$('image-composer-count');
+    const choices=[...mirror.options].map(option=>option.value);
+    const next=choices[choices.indexOf(mirror.value)+step];
+    if(!next)return;
+    mirror.value=next;
+    // Existing mirror input propagation updates the real selector and credit quote.
+    mirror.dispatchEvent(new Event('input',{bubbles:true}));
+  });
 }
 $('composer-review-queue').onclick=()=>{$('active').open=true;$('active').scrollIntoView({behavior:'smooth',block:'start'});$('active').querySelector('summary')?.focus();};
 $('image-composer-generate').onclick=()=>{
