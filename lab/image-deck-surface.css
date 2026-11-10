@@ -114,7 +114,8 @@ html:not(.pv-native-lab) #main :is(#app.image-studio-active #image-composer.pv-e
     }
     & .scene-image-library-wrap{display:flex!important;flex-direction:row!important;align-items:center!important;gap:6px!important;flex:0 0 70px!important;width:70px!important;min-width:70px!important;height:32px!important}
     & :is([data-deck-control="library"],[data-deck-control="characters"]){
-      display:grid!important;place-items:center!important;width:32px!important;min-width:32px!important;
+      display:grid!important;place-items:center!important;flex:0 0 32px!important;
+      width:32px!important;min-width:32px!important;
       padding:0!important;
     }
     & :is([data-deck-control="library"],[data-deck-control="characters"]) svg{width:16px!important;height:16px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.5!important}
