@@ -351,7 +351,7 @@ try{
  await x.page.locator('#save').evaluate(button=>button.click());await ready(x.page);assert.equal(x.accepted(),1);const draft=x.page.locator('.card[data-state="draft"]');await clickAdvanced(x.page);await draft.click();await x.page.click('#image-detail-reuse');await ready(x.page);await clickAdvanced(x.page);assert.equal(await x.page.locator('#prompt').inputValue(),settings.prompt);assert.equal(x.accepted(),1);ok('Saving and reusing a draft do not generate or charge');assert.deepEqual(x.errors,[]);await x.context.close();
 
   x=await workspace();await imageForm(x);
-  await x.page.selectOption('#image-composer-count','2');
+  await x.page.click('#image-composer-count-increase');assert.equal(await x.page.locator('#image-count').inputValue(),'2');
   await x.page.click('#image-composer-generate');await waitAccepted(x,2);await ready(x.page);
   if(x.accepted()!==2)console.error('BATCH_IMAGE_DIAG',JSON.stringify({accepted:x.accepted(),requests:x.requests.filter(r=>['/api/quotes','/api/jobs'].includes(r.path)),errors:x.errors,notice:await x.page.locator('#notice').innerText(),disabled:await x.page.locator('#image-composer-generate').isDisabled(),count:await x.page.locator('#image-composer-count').inputValue()}));
   assert.equal(x.accepted(),2,'Two images require two independent paid submissions');
@@ -646,7 +646,7 @@ try{
 
  // Image upscaling is one paid job per click, independent of the Image batch selector.
  const upscaleForm=async x=>{await x.page.click('#tool-upscale');await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);};
- x=await workspace();await imageForm(x);await x.page.selectOption('#image-count:visible, #image-composer-count:visible','4');await upscaleForm(x);
+ x=await workspace();await imageForm(x);for(let i=0;i<3;i++)await x.page.click('#image-composer-count-increase');assert.equal(await x.page.locator('#image-count').inputValue(),'4');await upscaleForm(x);
  assert.equal(await x.page.locator('#generate').innerText(),'Upscale');assert.match(await x.page.locator('#generation-help').innerText(),/one paid upscaling job/);
  await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.deepEqual(x.dialogs,[]);ok('Upscale ignores Image batch count and creates one job without review');await x.context.close();
  x=await workspace({quoteDelay:300});await upscaleForm(x);await x.page.evaluate(()=>{document.querySelector('#generate').click();document.querySelector('#generate').click();});await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);ok('Rapid repeated Upscale clicks cannot double-submit');await x.context.close();
