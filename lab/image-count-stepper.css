@@ -8,7 +8,7 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   flex:0 0 80px!important;
   width:80px!important;
   min-width:80px!important;
-  padding:0 4px!important;
+  padding:0 2px!important;
   border:1px solid #393d39!important;
   border-radius:9px!important;
   background:#242625!important;
@@ -33,8 +33,8 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   display:grid;
   place-items:center;
   box-sizing:border-box;
-  flex:0 0 20px;
-  width:20px;
+  flex:0 0 18px;
+  width:18px;
   height:28px;
   min-height:28px;
   margin:0;
