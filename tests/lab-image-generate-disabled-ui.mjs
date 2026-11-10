@@ -9,7 +9,7 @@ assert.ok(process.env.PV_PLAYWRIGHT_MODULE,'PV_PLAYWRIGHT_MODULE is required');
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.');
 const html=readFileSync('lab/studio.html','utf8');
-assert.match(html,/image-deck-surface\.css\?[^"']*\bv=20261110-generate-queue1/,'Studio must reload the updated button styles');
+assert.match(html,/studio-finish-v2\.css\?[^"']*\bgenerateQueue=20261110v1/,'Studio must reload the updated button styles');
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png'};
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;

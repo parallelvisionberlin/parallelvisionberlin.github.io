@@ -233,6 +233,7 @@ try{
   await generate.dispatchEvent('click');
   await y.page.waitForFunction(()=>!document.getElementById('image-composer-generate').disabled,undefined,{timeout:2700});
   assert.ok(Date.now()-stillClickedAt>=1900&&Date.now()-stillClickedAt<3000,'PV Still unlocks in two seconds while its quote is pending');
+  assert.equal(await generate.getAttribute('title'),null,'The tooltip stays gone after PV Still unlocks');
   assert.equal(count(y,'/api/higgsfield/quote'),1,'An accidental PV Still repeat does not quote again');
   assert.equal(count(y,'/api/higgsfield/generate'),0);
   await generate.click();

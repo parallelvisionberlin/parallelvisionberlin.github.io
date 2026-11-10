@@ -106,6 +106,9 @@
   opacity:1;
   cursor:not-allowed;
 }
+html:not(.pv-native-lab) #image-composer .composer-generate:disabled:not(.is-submitting){
+  cursor:default!important;
+}
 #image-composer .composer-generate.has-credit-cost:not(.is-submitting)::after{content:attr(data-credits);display:block;font-size:11px;font-weight:500;line-height:1;color:inherit;opacity:.72}
 #image-composer .composer-generate.has-credit-cost .composer-generate-sparkle{display:none!important}
 @media(min-width:901px){

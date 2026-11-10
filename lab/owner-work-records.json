@@ -2693,7 +2693,7 @@
       "branch": "fix/image-generate-queue-20261110",
       "files": [
         "lab/lab.js",
-        "lab/image-deck-surface.css",
+        "lab/studio-finish-v2.css",
         "lab/studio.html",
         "tests/lab-fastqueue-browser.mjs",
         "tests/lab-image-generate-disabled-ui.mjs",

@@ -2183,10 +2183,12 @@ function syncImageComposer(){
     modelButton.removeAttribute('title');
     modelButton.removeAttribute('aria-description');
   }
-  if(message)generate.setAttribute('aria-description',message);
+  const soulHint=isSoul2()?(customerMode?'Review the live price before generating. ':'Generate starts one image after checking the live price. ')+'PV Soul accepts one base image and one optional trained Soul ID; use Seedream for multiple reference photos.':'';
+  const description=message||(!generateDisabled?soulHint:'');
+  if(description)generate.setAttribute('aria-description',description);
   else generate.removeAttribute('aria-description');
-  if(web&&(queueBlocked||exactPreparing||imageSubmissionPending||customerPriceIntentPending))generate.removeAttribute('title');
-  else generate.title=message?(message+(queueBlocked?' Open Queue at the top right to review it.':'')):(isSoul2()?(customerMode?'Review the live price before generating. ':'Generate starts one image after checking the live price. ')+'PV Soul accepts one base image and one optional trained Soul ID; use Seedream for multiple reference photos.':'');
+  if(web&&(!message||queueBlocked||exactPreparing||imageSubmissionPending||customerPriceIntentPending))generate.removeAttribute('title');
+  else generate.title=message?(message+(queueBlocked?' Open Queue at the top right to review it.':'')):soulHint;
   syncImageReferences();
   fitImageComposerPrompt();
   syncImageGalleryEmpty();
