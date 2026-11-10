@@ -2986,7 +2986,7 @@
           "label": "Broader shared deck assertions",
           "result": "documented",
           "scope": "Soul and normal geometry and paste checks pass. The Inspiration background and Clerk timeout failures match the previous main candidate.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42905720559"
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42905720470/job/130143058388"
         }
       ],
       "deployment": {
