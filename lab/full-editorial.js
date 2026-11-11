@@ -889,6 +889,12 @@ if(directStart){entryUrl.searchParams.delete('start');history.replaceState(histo
 if(curatedWorld){
  $('editorial-world-preset').hidden=false;
  $('editorial-review-world').hidden=false;
+ const reviewPhoto=$('panel-generate').querySelector('.atelier-review-photo img');
+ reviewPhoto.src=curatedWorld.hero;
+ reviewPhoto.alt='Chrome Desert world reference, not a generated result';
+ $('panel-generate').querySelector('.atelier-review-photo span').textContent='CHROME DESERT / REFERENCE WORLD';
+ $('panel-generate').querySelector('.stage-index').textContent='02 / 02  GENERATE';
+ $('panel-generate').querySelector('.editorial-final-cta-eyebrow').textContent='02 / THE SERIES';
  const rail=document.querySelector('.editorial-flow-rail [data-flow-step="4"] small');if(rail)rail.textContent='02';
  applyWorldDefaults();
 }
