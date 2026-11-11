@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-10T15:41:08Z",
+  "updatedAt": "2026-11-11",
   "handoffs": [
     {
       "id": "owner",
@@ -3023,6 +3023,113 @@
         "Keep both mode labels on the same icon and typography rules. Avoid a special References only padding override."
       ],
       "updatedAt": "2026-11-10"
+    },
+    {
+      "id": "pv-still-image-count",
+      "title": "PV Still image quantity counter",
+      "component": "Image / PV Still",
+      "status": "deployed",
+      "summary": "Added the shared 1–2 image counter for PV Still. Each image uses its own live quote and job; customer confirmation shows the total. Complete quote validation, two-slot availability checks and stop-on-uncertain handling protect partial batches.",
+      "nextAction": "No implementation work remains. If the owner reports a real provider issue, inspect the returned job and quote before retrying.",
+      "baselineSha": "1255c78b396c00bef6caf8df3bb9a6f004cf6b25",
+      "reviewedSha": "1ab7d0211094c058c428a74db309cf4d34bf12b0",
+      "branch": "fix/pv-still-image-count-20261111",
+      "files": [
+        "lab/lab.js",
+        "lab/studio.html",
+        "tests/lab-night-flash-soul-ui.mjs"
+      ],
+      "links": [
+        {
+          "label": "Merged PR #959",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/959"
+        },
+        {
+          "label": "Owner/customer browser run",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42927467358"
+        },
+        {
+          "label": "Image Studio",
+          "url": "https://pvlab.studio/studio?tool=image"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Image UI contract and submission handoff",
+          "result": "passed",
+          "scope": "12 local unit assertions.",
+          "source": "tests/lab-approved-image-ui-contract.test.mjs"
+        },
+        {
+          "label": "Night Flash Soul unit and browser suite",
+          "result": "passed",
+          "scope": "120 unit assertions plus existing and 12 new owner/customer desktop/phone cases. Two separate jobs, total credits, cancellation, second-quote failure and unconfirmed first job were mocked.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42927467358"
+        },
+        {
+          "label": "Approved Image UI and prompt/paste browser checks",
+          "result": "passed",
+          "scope": "Reviewed candidate. No paid provider requests.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/959"
+        },
+        {
+          "label": "Image preparation and queue handoff browser step",
+          "result": "passed",
+          "scope": "The relevant first queue-smoke step passed. A later unrelated viewer step still fails on the existing phone Video badge assertion.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42927467266"
+        },
+        {
+          "label": "Existing unrelated shared-deck assertions",
+          "result": "documented",
+          "scope": "Existing Inspiration background and Clerk bounded-setup assertions remain. Their source files were unchanged.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/959"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "environment": "pvlab.studio / Cloudflare Pages pvlab-studio",
+        "sourceSha": "d25d01267d706cdb66825ac8474a842e116e0cfe",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=image",
+        "limitations": [
+          "Public verification uses the Cloudflare exact-commit deployment and browser DOM version; shell asset requests are unavailable.",
+          "The counter and two-job flow were verified in mocked desktop/phone owner/customer sessions, not a paid signed-in production generation."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "deployment",
+          "summary": "Cloudflare Pages pvlab-studio check 130221407887 succeeded for the exact merged source commit d25d01267d706cdb66825ac8474a842e116e0cfe. All three deployed source blob SHAs match the reviewed candidate.",
+          "scope": "Production publication, not signed-in provider behaviour.",
+          "source": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/aafad6fb-6732-401d-abe3-3951d98ddd72",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Live Image Studio and the reviewed preview both reference lab.js?v=20261111-pv-still-count1 with the same complete query string. Their image-deck-surface stylesheet references match.",
+          "scope": "Public browser DOM entry/version verification on pvlab.studio after Cloudflare success.",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": [
+            "The verification browser is signed out. No paid production generation was run.",
+            "Direct shell asset downloads are unavailable, so exact source equality uses GitHub blob identity on the deployed commit."
+          ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "Reviewed owner desktop and customer phone counter screenshots from the successful Night Flash Soul suite.",
+          "scope": "Mocked authenticated rendering and interaction. A fixture-only unmocked wallet notice is present in the phone capture.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42927467358",
+          "limitations": [
+            "Screenshots are fixture evidence, not an authenticated production session."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not rework the approved Image deck layout.",
+        "PV Still supports two concurrent provider jobs. Do not offer a larger batch without queue scheduling support.",
+        "Do not reuse a single quote for multiple jobs or submit after an unconfirmed result."
+      ],
+      "updatedAt": "2026-11-11"
     }
   ]
 }
