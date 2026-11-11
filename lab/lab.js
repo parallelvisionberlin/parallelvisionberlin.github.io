@@ -41,7 +41,7 @@ import {saveStudioReturnDraft,readStudioReturnDraft,clearStudioReturnDraft,store
 import {createMediaReferences} from './media-references.js?v=20261031-motion-sound-compact1&priceIdentity=20261029-1';
 import { createSessionRequest } from './session-request.js?v=20261015-canonical-studio1';
 import { createSoulController } from './soul.js?v=20261014-krea2-training1';
-import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, canPrepareImagesInBackground, wanUltrawideWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20261011-reference-prewarm1';
+import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, canPrepareImagesInBackground, wanUltrawideWorkingCopy, imagePreview, imageReferencePreview, cancelImagePreparation } from './image-tools.js?v=20261111-fast-image-preview1';
 import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-limits1&qwen3-zimage=1&nano21=1';
 import {createImageSubmitHandoff,IMAGE_SUBMIT_COOLDOWN_MS} from './image-submit-handoff.js?v=20261031-repeat-cooldown1';
 import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261015-flow2';
@@ -3456,7 +3456,9 @@ async function inspectImage(candidate){
   if(tool==='image'&&imageEngine==='kling'){
     const issue=modelImageInputIssue('kling',[{file:candidate}]);if(issue)throw new Error(issue);
   }
-  const prepared=await imagePreview(candidate),{width,height}=prepared;
+  // Keep Image Deck attachment responsive: one 320px thumbnail instead of
+  // waiting for both thumbnail and an unused 1280px preview conversion.
+  const prepared=await (tool==='image'?imageReferencePreview(candidate):imagePreview(candidate)),{width,height}=prepared;
   if(tool==='image'&&imageEngine==='kling'){
     const issue=modelImageInputIssue('kling',[{file:candidate,width,height}]);if(issue)throw new Error(issue);
   }
@@ -3464,7 +3466,7 @@ async function inspectImage(candidate){
   if(Math.min(width,height)<minimum)throw new Error('Image too small: '+(candidate.name||'photograph')+' ('+width+' × '+height+' px). Minimum '+minimum+' × '+minimum+' px.');
   if(Math.max(width,height)>maxSide)throw new Error('Image dimensions too large: '+(candidate.name||'photograph')+' ('+width+' × '+height+' px). Maximum '+maxSide.toLocaleString()+' pixels per side.');
   if(Math.max(width/height,height/width)>(seedanceInput?2.5:8))throw new Error('Unsupported image proportions: '+(candidate.name||'photograph')+' ('+width+' × '+height+' px). Choose a less extreme aspect ratio.');
-  return {file:candidate,id:null,url:URL.createObjectURL(prepared.preview),thumbUrl:URL.createObjectURL(prepared.thumbnail),width,height};
+  return {file:candidate,id:null,url:URL.createObjectURL(tool==='image'?candidate:prepared.preview),thumbUrl:URL.createObjectURL(prepared.thumbnail),width,height};
 }
 
 async function setImage(candidate,id=null){clearImageComposerNotice();const revision=++imageRevision,item=await inspectImage(candidate);release(item.thumbUrl);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=item.file===candidate?id:null;sourceUrl=item.url;sourceWidth=item.width;sourceHeight=item.height;sourcePixels=item.width*item.height;if(isSoul2()&&!soulRatioExplicit)$('hf-bar-ratio').value='source';syncDefaultRatio(!imageRatioExplicit);$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
