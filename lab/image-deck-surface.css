@@ -334,7 +334,6 @@ html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.has-pv-s
 @media(min-width:1180px) and (min-height:680px){
   html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.has-character-picker){width:min(1064px,calc(100vw - 52px))!important}
   html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.has-character-picker).has-pv-still-character{
-    width:min(1024px,calc(100vw - 52px))!important;
     grid-template-columns:minmax(0,1fr) 76px 144px!important;
     grid-template-rows:minmax(64px,max-content) 41px!important;
     gap:7px 12px!important;padding:14px 20px!important;
