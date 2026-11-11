@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-11T13:35:47.495Z",
+  "updatedAt": "2026-11-11T13:46:40.942Z",
   "handoffs": [
     {
       "id": "owner",
@@ -2970,9 +2970,9 @@
       "component": "PV LAB Image Upscaler",
       "status": "needs_verification",
       "summary": "Owner's 2026-11-11 screenshots reject the old compact source-ready redesign. Keep the approved empty Upscaler two-column inspector, large heading and description, model-card sizes, stacked desktop enlargement/format fields, and anchored Upscale footer while loading a photograph or showing an upscale result. Preserve real Replace image, drag/drop, photo comparison and zoom. Hide stray Video-only Back to create in Image Upscaler.",
-      "nextAction": "Inspect failing assertion in Upscaler/Assets browser CI run 43029300790, correct before merging PR #982. Then confirm Cloudflare Pages publication and independently test signed-in source/result states without paid generation.",
+      "nextAction": "Do not merge PR #982 yet. Latest targeted Upscaler/Assets run 43031689635 still failed; retrieve its final assertion from job logs once completed, fix and rerun the loaded-source 1440/390px geometry check, then verify actual Cloudflare production deployment.",
       "baselineSha": "c5495e9022e88ef0aa1d79bbeb543a88f24c43fb",
-      "reviewedSha": "a4b0cd946fd8bc766e1155c740636a0aabe22e3f",
+      "reviewedSha": "206ac97eafc8eacc7c54e9d629d7f4f8a8282d16",
       "branch": "fix/upscale-lock-workspace-through-upload-20261111",
       "files": [
         "lab/upscale-state-lock.css",
@@ -3016,15 +3016,15 @@
         {
           "label": "Upscaler/Assets browser regression",
           "result": "failed",
-          "scope": "At least one loaded-source browser assertion failed; exact failing assertion requires logs before merge",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43029300790"
+          "scope": "Initial candidate reported loaded inspector overflow-y visible instead of auto. More-specific selector pushed in 206ac97; new run also failed, exact new assertion not yet available from in-progress job.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43031689635"
         }
       ],
       "deployment": {
         "state": "not_started",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
         "limitations": [
-          "Open PR candidate only. No production or authenticated generated-output verification. The broad Upscaler browser check is not yet green."
+          "Candidate CSS and test exist only in PR #982. No production deployment."
         ]
       },
       "evidence": [
@@ -3039,7 +3039,7 @@
         }
       ],
       "blockers": [
-        "Dedicated Upscaler/Assets browser regression has an unresolved failure; do not merge until diagnosed."
+        "Latest Upscaler/Assets browser regression still failed; PR remains draft, unmerged and unverified in production."
       ],
       "doNotRepeat": [
         "Preserve empty-state design as locked reference; loading a photo changes image content, not inspector design.",
