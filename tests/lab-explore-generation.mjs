@@ -101,6 +101,38 @@ try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobil
    }
    assert.ok(layout.drop.height>=150,id+': large separate upload box');
    assert.ok(Math.abs((layout.plus.left+layout.plus.width/2)-(layout.drop.left+layout.drop.width/2))<2,id+': centered plus');
+   if(scenario==='catalogue-phone'){
+    // Exercise the same mobile processing state for all 17 Moods without
+    // uploading, requesting a price or submitting an image generation.
+    const processing=await page.evaluate(()=>{
+     const dialog=document.getElementById('mc-look-dialog');
+     const result=document.getElementById('mc-look-result');
+     const rect=el=>{const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom,height:r.height};};
+     const before=rect(dialog),savedHeight=dialog.style.getPropertyValue('--mc-editor-height');
+     const savedTransition=result.style.transition;
+     dialog.style.setProperty('--mc-editor-height',before.height+'px');
+     dialog.classList.add('is-result-view');result.hidden=false;
+     result.style.transition='none';result.classList.add('is-visible');
+     const card=rect(dialog),frame=rect(document.getElementById('mc-look-result-frame'));
+     const future=['mc-look-result-actions','mc-look-result-balance','mc-look-result-again']
+      .map(id=>getComputedStyle(document.getElementById(id)).display);
+     dialog.classList.remove('is-result-view');
+     result.hidden=true;result.classList.remove('is-visible');
+     result.style.transition=savedTransition;
+     if(savedHeight)dialog.style.setProperty('--mc-editor-height',savedHeight);
+     else dialog.style.removeProperty('--mc-editor-height');
+     return {before,card,frame,future};
+    });
+    assert.ok(Math.abs(processing.card.height-processing.before.height)<2,
+     id+': mobile processing retains the exact photo/editor card height '+JSON.stringify(processing));
+    assert.ok(processing.frame.height>155,
+     id+': mobile loading image receives the unused action area '+JSON.stringify(processing));
+    assert.ok(processing.card.bottom-processing.frame.bottom>=0&&
+     processing.card.bottom-processing.frame.bottom<=32,
+     id+': no unused strip remains below the mobile generation image '+JSON.stringify(processing));
+    assert.deepEqual(processing.future,['none','none','none'],
+     id+': future result actions reserve no invisible rows while generating');
+   }
    if(id==='night-flash')await page.screenshot({path:out+'/'+scenario+'.png'});
    await page.locator('#mc-look-close').click();
   }
