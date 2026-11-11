@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-11T02:46:05.577Z",
+  "updatedAt": "2026-11-11T11:22:34.648Z",
   "handoffs": [
     {
       "id": "owner",
@@ -64,6 +64,65 @@
     }
   ],
   "records": [
+    {
+      "id": "editorial-casting-wheel-20261111",
+      "title": "Full Editorial casting wheel with fixed Create Character card",
+      "component": "PV LAB Full Editorial / Identity",
+      "status": "in_progress",
+      "summary": "Prepare vertical-wheel-to-horizontal scrolling over casting portraits while leaving the Create Character / Upload card fixed to the left. Await selected new model portraits before release.",
+      "nextAction": "Select and add 5–10 distinct approved casting portraits, test the longer horizontal gallery on 1440px desktop and 390px phone, then merge and verify production. Do not publish the wheel-only draft.",
+      "baselineSha": "cde83fad975314077769d9e780618c2dd0b6c950",
+      "reviewedSha": "75cd521af5cfc0937c0645adbe57d70c7dc0ab76",
+      "branch": "feat/editorial-casting-wheel-20261111",
+      "files": [
+        "lab/full-editorial.js",
+        "tests/lab-full-editorial-browser.mjs",
+        "lab/FULL-EDITORIAL-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Draft implementation PR #973",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/973"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Full Editorial focused Node and mocked desktop/mobile browser",
+          "result": "passed",
+          "scope": "29 Node assertions and complete Playwright flow at 1440/390 px, including vertical-wheel horizontal scrolling, fixed card geometry, no accidental selection, and reverse scrolling. No actual paid job.",
+          "observedAt": "2026-11-11T11:22:34.648Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/973"
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "sourceSha": null,
+        "limitations": [
+          "Draft branch only; not merged or deployed.",
+          "New casting portraits awaiting owner selection."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "automated_test",
+          "summary": "Mocked browser and source checks passed for portrait rail wheel movement and independent fixed pinned card.",
+          "scope": "Branch revision, not authenticated production.",
+          "observedAt": "2026-11-11T11:22:34.648Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/973",
+          "limitations": [
+            "New model images not yet selected or tested."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not publish draft before new portraits are accepted.",
+        "Do not modify existing casting art direction, composition, paid quote/generation logic or account flow.",
+        "Do not publish AI-generated rejected candidate faces as the final casting set."
+      ],
+      "updatedAt": "2026-11-11T11:22:34.648Z"
+    },
     {
       "id": "chrome-desert-world-handoff-20261111",
       "title": "Chrome Desert featured world to Full Editorial",

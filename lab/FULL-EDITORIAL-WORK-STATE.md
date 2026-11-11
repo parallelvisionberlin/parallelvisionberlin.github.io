@@ -1,3 +1,13 @@
+## 2026-11-11 / casting wheel preparation (draft, not deployed)
+- Owner wants the Create Character / Upload your photos card fixed at the left and the casting models to advance horizontally when using a vertical mouse wheel over the portraits.
+- Existing desktop layout already keeps the Create Character card outside `#editorial-cast-track`; no styling or grid changes required. The wheel listener is attached only to the portrait track, not the pinned card, page, Composition or other UI.
+- Only a dominant vertical wheel delta is translated to bounded horizontal movement; Ctrl+wheel/browser zoom and native horizontal trackpad movement are untouched. At the left/right edge, normal page scrolling resumes.
+- Existing click-to-select, composition, trackpad scroll, touch swipe, keyboard arrows, pricing, images and guest/account flows stay unchanged.
+- Branch `feat/editorial-casting-wheel-20261111`, draft PR #973: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/973.
+- Focused Node tests: 29 passed; complete mocked Full Editorial browser test at 1440px/390px passed, including wheel movement, anchored card bounds, no selection, and reverse scrolling. No paid jobs.
+- **Hold publication** until the owner selects the new 5–10 casting images; don't use the rejected/generated portraits from the earlier batch automatically. Add accepted images as new selectable casting references, with stable labels and actual image-reference behavior, then verify the longer track and mobile layout.
+- Production not changed by this draft.
+
 ## 2026-11-03 / mobile spacing, quieter navigation and clean portraits
 - Owner approved follow-up tweaks after phone screenshot `libfile_cfe8757ad5108191805ace504b67e776`; published source is PR #818.
 - Baseline `4329685683f4f1b32406926f95fbc8ec1acd0767`; reviewed head `e184c7ac8c5504ccb41fdcc3f7dc1987e5fe467c`; merge `fa5d0c49a82acbfdd1364fee3ff789456a4a0c43`.
