@@ -36,10 +36,10 @@
  width:100%!important;height:100%!important;object-fit:cover!important;
  object-position:50% 35%;filter:none!important;transform:scale(1.15)!important;opacity:1!important;
 }
-/* Dreamcore desktop artwork crop only; leave modal layout, text and controls untouched. */
+/* Dreamcore desktop: shift the 4:3 artwork within its tall crop, not the frame or controls. */
 @media (min-width:601px){
  #mc-look-dialog.mc-photobooth:not(.is-credit-offer) #mc-look-preview[data-mood-id="dreamcore"]{
-  transform:translateX(-2.5%) scale(1.15)!important;
+  object-position:62% 35%!important;transform:scale(1.15)!important;
  }
 }
 #mc-look-dialog.mc-photobooth:not(.is-credit-offer) .mc-look-dialog-media::after{
