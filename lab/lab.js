@@ -1,4 +1,5 @@
 import {prepareViewerReferenceImages} from './viewer-reference-preparation.js?v=20261108-picker1';
+import {createVideoReferenceUploader} from './video-reference-upload.js?v=20261111-preupload1';
 import {soulNightFlashQuoteMatches} from './night-flash-soul.js?v=20261106v1&wonKarNight=20261106v1&ownerNightFlash=20261107v1';
 import {replacementIntent,replacementIntentIssue} from './image-replacement-intent.js?v=20261106-replacement1';
 import {createImageReplacement} from './image-replacement.js?v=20261106-replacement1';
@@ -397,6 +398,7 @@ function swapToolReferences(nextTool){
   references=toolReferenceStates.get(nextTool)||[];
   $('reference-images').value='';
   $('reference-progress').textContent='';
+  $('reference-upload-meter').hidden=true;
   $('reference-list').removeAttribute('aria-busy');
   closeInputPreview();
 }
@@ -3501,6 +3503,45 @@ async function inspectImage(candidate,{referenceOnly=false}={}){
 
 async function setImage(candidate,id=null){clearImageComposerNotice();const revision=++imageRevision,item=await inspectImage(candidate);release(item.thumbUrl);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=item.file===candidate?id:null;sourceUrl=item.url;sourceWidth=item.width;sourceHeight=item.height;sourcePixels=item.width*item.height;if(isSoul2()&&!soulRatioExplicit)$('hf-bar-ratio').value='source';syncDefaultRatio(!imageRatioExplicit);$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
 async function setLastImage(candidate,id=null){const e=epoch,item=await inspectImage(candidate);release(item.thumbUrl);if(e!==epoch||!owner){release(item.url);return false;}release(lastUrl);lastFile=item.file;lastSourceId=item.file===candidate?id:null;lastUrl=item.url;$('last-filemeta').textContent=`${candidate.name||'Last frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;update();return true;}
+
+const videoReferenceUploads=createVideoReferenceUploader({
+  upload:file=>uploadAsset(file),
+  isCurrent:Object.assign(
+    (ref,session)=>owner&&session===epoch&&
+      (references.includes(ref)||toolReferenceStates.get('video')?.includes(ref)),
+    {session:()=>epoch}
+  ),
+  onChange:ref=>{
+    if(tool==='video'&&references.includes(ref)){
+      renderReferences();
+      update();
+    }
+  }
+});
+function startVideoReferenceUpload(ref,{retry=false}={}){
+  return videoReferenceUploads.start(ref,{retry});
+}
+function syncVideoReferenceUploadProgress(){
+  const meter=$('reference-upload-meter');
+  if(tool!=='video'||!references.length){
+    meter.hidden=true;meter.value=0;
+    if(tool==='video')$('reference-progress').textContent='';
+    return;
+  }
+  const states=references.map(ref=>videoReferenceUploads.status(ref).state);
+  const complete=states.filter(state=>state==='ready').length;
+  const failed=states.filter(state=>state==='error').length;
+  const inFlight=states.filter(state=>state==='uploading').length;
+  meter.max=references.length;meter.value=complete;meter.hidden=!inFlight&&!failed;
+  const status=$('reference-progress');
+  status.textContent=failed
+    ?failed+' upload'+(failed===1?'':'s')+' failed. Use Retry upload below. No generation submitted.'
+    :inFlight?'Uploading references · '+complete+' of '+references.length+' uploaded'
+    :complete===references.length?'All '+complete+' references uploaded.'
+    :'References attached · '+complete+' of '+references.length+' uploaded';
+  status.dataset.uploadState=failed?'error':inFlight?'uploading':complete===references.length?'ready':'idle';
+}
+
 function syncReferenceRemovalState(){
   for(const button of document.querySelectorAll('#reference-list .reference-element-item .reference-actions button'))button.disabled=busy;
 }
@@ -3530,7 +3571,28 @@ function renderReferences(){
       remove.onclick=()=>{if(busy)return;closeInputPreview();for(let j=references.length-1;j>=0;j--){if(references[j].elementId===r.elementId){releaseReference(references[j]);references.splice(j,1);}}
         if(!references.length){imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();}
         renderReferences();refreshInputPreview();update();};
-      controls.append(remove);item.append(img,fields,controls);fragment.append(item);return;
+      controls.append(remove);
+      if(typeof tool!=='undefined'&&tool==='video'){
+        const group=references.filter(ref=>ref.elementId===r.elementId);
+        const failures=group.filter(ref=>videoReferenceUploads.status(ref).state==='error');
+        const uploading=group.some(ref=>videoReferenceUploads.status(ref).state==='uploading');
+        const complete=group.filter(ref=>videoReferenceUploads.status(ref).state==='ready').length;
+        const status=document.createElement('small');
+        status.className='pv-ref-upload-state'+(failures.length?' is-error':'');
+        status.textContent=failures.length?failures.length+' upload failed':
+          uploading?'Uploading '+complete+' of '+group.length+'…':
+          complete===group.length?'All '+complete+' uploaded':'Waiting to upload';
+        fields.append(status);
+        if(failures.length){
+          const retry=document.createElement('button');retry.type='button';
+          retry.className='pv-ref-upload-retry';retry.textContent='Retry upload';
+          retry.disabled=busy;retry.setAttribute('aria-label','Retry uploads for '+r.elementName);
+          retry.onclick=()=>{if(!busy&&owner)for(const ref of failures)
+            void startVideoReferenceUpload(ref,{retry:true}).catch(()=>{});};
+          controls.append(retry);
+        }
+      }
+      item.append(img,fields,controls);fragment.append(item);return;
     }
     const item=document.createElement('div');item.className='reference-item';
     const img=document.createElement('img');img.src=r.thumbUrl;img.alt='Input reference '+(i+1);img.width=68;img.height=82;img.decoding='async';
@@ -3563,7 +3625,27 @@ function renderReferences(){
     const controls=document.createElement('div');controls.className='reference-actions';
     const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.onclick=()=>{if(busy)return;closeInputPreview();releaseReference(r);references.splice(i,1);if(!references.length){imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();}if(imageEngine==='fal')poseMapSourceId=null;renderReferences();refreshInputPreview();update();};
     const up=document.createElement('button');up.type='button';up.textContent='Up';up.disabled=i===0||(usesReferenceGuidance()&&i===1&&references[0].role==='base');up.onclick=()=>{if(busy||i===0)return;closeInputPreview();[references[i-1],references[i]]=[references[i],references[i-1]];if(imageEngine==='fal')poseMapSourceId=null;renderReferences();refreshInputPreview();update();};
-    controls.append(up,remove);item.append(img,fields,controls);fragment.append(item);
+    controls.append(up,remove);
+    if(tool==='video'){
+      const upload=videoReferenceUploads.status(r);
+      const status=document.createElement('small');
+      status.className='pv-ref-upload-state is-'+upload.state;
+      status.textContent=upload.state==='ready'?'Uploaded':
+        upload.state==='uploading'?'Uploading…':
+        upload.state==='error'?'Upload failed':'Waiting to upload';
+      if(upload.message)status.title=upload.message;
+      fields.append(status);
+      if(upload.state==='error'){
+        const retry=document.createElement('button');
+        retry.type='button';retry.className='pv-ref-upload-retry';
+        retry.textContent='Retry upload';
+        retry.setAttribute('aria-label','Retry upload of reference '+(i+1));
+        retry.disabled=busy;
+        retry.onclick=()=>{if(!busy&&owner)void startVideoReferenceUpload(r,{retry:true}).catch(()=>{});};
+        controls.prepend(retry);
+      }
+    }
+    item.append(img,fields,controls);fragment.append(item);
   });
   syncDefaultRatio();box.replaceChildren(fragment);box.scrollTop=scroll;$('ref-count').textContent=`${references.length} / ${referenceLimit()}`;
   const transformPhotos=$('pv-transform-reference-strip');
@@ -3594,6 +3676,7 @@ function renderReferences(){
     }
   }
   sceneLibrary?.renderSelected();
+  if(typeof tool!=='undefined'&&tool==='video')syncVideoReferenceUploadProgress();
 }
 async function addReferences(list,ids=[],labels=[]){
   clearImageComposerNotice();
@@ -3618,6 +3701,12 @@ async function addReferences(list,ids=[],labels=[]){
        if(explicitBaseAfterElement&&i===0&&!item.elementId){
          imageReferenceMode='base';assignImageBase(references,item);closeReferenceIntent();
        }
+      // Preparing a reference is a deliberate attachment. Transfer it now,
+      // without triggering a provider quote, generation or wallet debit.
+      // The price preview and Generate reuse this exact in-flight promise.
+      if(tool==='video'&&['reference','transform'].includes(mode)&&
+         (!customerMode||customerCreditBalance>0))
+        void startVideoReferenceUpload(item).catch(()=>{});
       renderReferences();refreshInputPreview();update();
       await new Promise(resolve=>setTimeout(resolve,0));
     }
@@ -3625,7 +3714,8 @@ async function addReferences(list,ids=[],labels=[]){
     if(e===epoch&&tool===selectedTool&&references===selectedReferences){
       $('reference-list').setAttribute('aria-busy','false');
       const attachedName=labels[0]?.elementName;
-      $('reference-progress').textContent=added?(attachedName?'Character '+attachedName+' attached.':'Reference images ready.'):'';
+      if(tool==='video')syncVideoReferenceUploadProgress();
+      else $('reference-progress').textContent=added?(attachedName?'Character '+attachedName+' attached.':'Reference images ready.'):'';
       update();
       // Load every thumbnail first; prewarming must not delay the next preview
       // behind an expensive 34 MP decode/encode in the image-worker queue.
@@ -3760,10 +3850,13 @@ async function ensureReferences(){
     if(!valid())throw new Error('Studio changed during reference upload. Nothing submitted.');
     const r=selected[i];
     if(!r.id){
-      notify('Uploading original reference '+(i+1)+' of '+selected.length+'…');
-      const id=await uploadAsset(r.file);
+      if(tool==='video'){
+        await startVideoReferenceUpload(r);
+      }else{
+        notify('Uploading original reference '+(i+1)+' of '+selected.length+'…');
+        r.id=await uploadAsset(r.file);
+      }
       if(!valid()||selected[i]!==r)throw new Error('References changed during upload. Nothing submitted.');
-      r.id=id;
     }
   }
   return selected.map(r=>r.id);
