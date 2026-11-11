@@ -41,7 +41,7 @@ import {saveStudioReturnDraft,readStudioReturnDraft,clearStudioReturnDraft,store
 import {createMediaReferences} from './media-references.js?v=20261031-motion-sound-compact1&priceIdentity=20261029-1';
 import { createSessionRequest } from './session-request.js?v=20261015-canonical-studio1';
 import { createSoulController } from './soul.js?v=20261014-krea2-training1';
-import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, canPrepareImagesInBackground, wanUltrawideWorkingCopy, imagePreview, imageReferencePreview, cancelImagePreparation } from './image-tools.js?v=20261111-fast-image-preview1';
+import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, canPrepareImagesInBackground, wanUltrawideWorkingCopy, imagePreview, imageReferencePreview, cancelImagePreparation } from './image-tools.js?v=20261111-priority-preview1';
 import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-limits1&qwen3-zimage=1&nano21=1';
 import {createImageSubmitHandoff,IMAGE_SUBMIT_COOLDOWN_MS} from './image-submit-handoff.js?v=20261031-repeat-cooldown1';
 import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261015-flow2';
