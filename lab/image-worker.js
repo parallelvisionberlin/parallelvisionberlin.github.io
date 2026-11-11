@@ -1,5 +1,5 @@
 // Browser-local worker. No network, storage, API keys, prompts or generation requests.
-import { runImageTask } from './image-tools.js?v=20261111-fast-image-preview1';
+import { runImageTask } from './image-tools.js?v=20261111-qwen-working-copy1';
 let queue = Promise.resolve();
 self.onmessage = ({ data }) => {
   queue = queue.catch(() => {}).then(async () => {

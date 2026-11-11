@@ -42,12 +42,12 @@ import {saveStudioReturnDraft,readStudioReturnDraft,clearStudioReturnDraft,store
 import {createMediaReferences} from './media-references.js?v=20261031-motion-sound-compact1&priceIdentity=20261029-1&metroEffects=20261111-1';
 import { createSessionRequest } from './session-request.js?v=20261015-canonical-studio1';
 import { createSoulController } from './soul.js?v=20261014-krea2-training1';
-import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, canPrepareImagesInBackground, wanUltrawideWorkingCopy, imagePreview, imageReferencePreview, cancelImagePreparation } from './image-tools.js?v=20261111-priority-preview2';
-import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-limits1&qwen3-zimage=1&nano21=1';
+import { PROVIDER_IMAGE_LIMIT, QWEN_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, qwenWorkingCopy, seedreamWorkingCopy, canPrepareImagesInBackground, wanUltrawideWorkingCopy, imagePreview, imageReferencePreview, cancelImagePreparation } from './image-tools.js?v=20261111-qwen-working-copy1';
+import {modelImageInputIssue} from './image-model-limits.js?v=20261111-qwen-auto-copy1';
 import {createImageSubmitHandoff,IMAGE_SUBMIT_COOLDOWN_MS} from './image-submit-handoff.js?v=20261031-repeat-cooldown1';
 import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261111-restore-result-strip2';
 import {createVideoUpscaler} from './video-upscale.js?v=20261102-upload-validation1';
-import {createSeedreamReferencePreparer} from './seedream-reference-prep.js?v=20261011-reference-prewarm1';
+import {createSeedreamReferencePreparer,seedreamPrepKind} from './seedream-reference-prep.js?v=20261111-qwen-auto-copy1';
 import {createReferencePackStudio} from './reference-pack-studio.js?v=20261018-gallery-create2';
 import {createVideoStartFrameMaker,attachVideoReferenceBrowserDrop,attachVideoReferenceTileDrop} from './video-start-frame-maker.js?v=20261031-reference-tile-drop1';
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
@@ -364,14 +364,21 @@ const seedreamPreparer=createSeedreamReferencePreparer({
   pixelCopy:seedreamWorkingCopy,byteCopy:providerWorkingCopy,
   canBackground:canPrepareImagesInBackground
 });
+const qwenPreparer=createSeedreamReferencePreparer({
+  pixelCopy:qwenWorkingCopy,byteCopy:qwenWorkingCopy,
+  kindFor:item=>seedreamPrepKind(item,{pixelLimit:72000000,byteLimit:QWEN_IMAGE_LIMIT}),
+  canBackground:canPrepareImagesInBackground
+});
 function prewarmSeedreamReference(item){
-  if(!owner||tool!=='image'||imageEngine!=='seedream')return;
-  const task=seedreamPreparer.warm(item);
+  if(!owner||tool!=='image')return;
+  const preparer=imageEngine==='seedream'?seedreamPreparer:imageEngine==='qwen3'?qwenPreparer:null;
+  if(!preparer)return;
+  const task=preparer.warm(item);
   // Speculative failures stay silent. Generate can retry the normal path.
   if(task)void task.catch(()=>{});
 }
 function prewarmSeedreamDeck(){
-  if(!owner||tool!=='image'||imageEngine!=='seedream')return;
+  if(!owner||tool!=='image'||!['seedream','qwen3'].includes(imageEngine))return;
   for(const item of references)prewarmSeedreamReference(item);
 }
 let upscaleQuote=null,upscaleQuoteNeedsCheck=false,upscaleQuoteTimer=null,upscalePriceMessage='',upscaleManualReviewRequired=false,upscaleManualReviewKey='';
@@ -3477,7 +3484,7 @@ function resetPreview(){
   }
 }
 function refreshInputPreview(){autoPreview=null;if(tool!=='image'||!resultUrl)resetPreview();}
-function releaseReference(item){seedreamPreparer.forget(item.file);release(item.url);release(item.thumbUrl);}
+function releaseReference(item){seedreamPreparer.forget(item.file);qwenPreparer.forget(item.file);release(item.url);release(item.thumbUrl);}
 function closeInputPreview(){const dialog=$('input-preview-dialog');if(dialog.open)dialog.close();$('input-preview-image').removeAttribute('src');}
 function viewReference(item,index){
   if(!owner)return;
@@ -3488,7 +3495,7 @@ function viewReference(item,index){
 }
 $('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image').removeAttribute('src');});
 
-function clearMedia(){toolSourceStates.delete(tool);toolReferenceStates.delete(tool);$('reference-list').removeAttribute('aria-busy');if(tool==='video'){videoLoadJobId=null;videoLoadErrorJobId=null;++videoSelectionRevision;videoStartFrameHandoff=false;mediaRefs.clear();frameMaker?.clear();}if(tool==='image'){inspirationMoodId=null;imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();poseMapSourceId=null;$('pose-preview-status').textContent='';}if(tool==='upscale')clearUpscalePrice();closeInputPreview();$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
+function clearMedia(){toolSourceStates.delete(tool);toolReferenceStates.delete(tool);$('reference-list').removeAttribute('aria-busy');if(tool==='video'){videoLoadJobId=null;videoLoadErrorJobId=null;++videoSelectionRevision;videoStartFrameHandoff=false;mediaRefs.clear();frameMaker?.clear();}if(tool==='image'){inspirationMoodId=null;imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();qwenPreparer.clear();poseMapSourceId=null;$('pose-preview-status').textContent='';}if(tool==='upscale')clearUpscalePrice();closeInputPreview();$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
 async function inspectImage(candidate,{referenceOnly=false}={}){
   if(tool==='upscale'&&candidate?.size>20*1024*1024)candidate=await prepareUpscaleInput(candidate,{maxBytes:20*1024*1024});
   if(window.__PV_LAB_NATIVE__===1)candidate=await preparePhotoInput(candidate,{maxBytes:20*1024*1024});
@@ -5138,6 +5145,7 @@ async function prepareQuoteInputs(inputs,snapshot=null){
     // Dimensions are known from inspectImage. If a legacy input omitted them,
     // decode it before quoting rather than silently passing through an unsafe ID.
     const seedreamInput=['seedream','seedreamlite'].includes(selectedEngine)&&(snapshot?true:tool==='image');
+    const qwenInput=selectedEngine==='qwen3'&&(snapshot?true:tool==='image');
     const hasDimensions=Number.isSafeInteger(Number(item.width))&&Number(item.width)>0
       &&Number.isSafeInteger(Number(item.height))&&Number(item.height)>0;
     // Legacy restored drafts may lack width/height. Pass measured dimensions
@@ -5147,10 +5155,10 @@ async function prepareQuoteInputs(inputs,snapshot=null){
       :item;
     const pixels=seedreamInput?Number(prepareItem.width)*Number(prepareItem.height):0;
     const resizeForSeedream=pixels>SEEDREAM_INPUT_MAX_PIXELS;
-    if(!resizeForSeedream&&item.file.size<=PROVIDER_IMAGE_LIMIT){
+    if(!resizeForSeedream&&item.file.size<=(qwenInput?QWEN_IMAGE_LIMIT:PROVIDER_IMAGE_LIMIT)){
       checkPreparation();return item.id;
     }
-    const cacheKey=resizeForSeedream?'seedream-pixels:'+item.id:item.id;
+    const cacheKey=qwenInput?'qwen:'+item.id:resizeForSeedream?'seedream-pixels:'+item.id:item.id;
     let copy=workingCopies.get(cacheKey);
     if(!copy||Date.now()-copy.at>900000){
       snapshot?.onProgress?.('Optimizing references',
@@ -5162,7 +5170,10 @@ async function prepareQuoteInputs(inputs,snapshot=null){
       // local result. No local work is duplicated when Generate is pressed.
       const prepared=seedreamInput
         ?await seedreamPreparer.forSubmission(prepareItem)
+        :qwenInput?await qwenPreparer.forSubmission(item)
         :(resizeForSeedream?await seedreamWorkingCopy(item.file):await providerWorkingCopy(item.file));
+      if(!prepared||qwenInput&&prepared.size>QWEN_IMAGE_LIMIT)
+        throw new Error('Qwen needs a reference under 10 MB. The original is unchanged. Nothing submitted.');
       checkPreparation();
       const id=await uploadAsset(prepared);checkPreparation();copy={id,at:Date.now()};
       workingCopies.set(cacheKey,copy);
