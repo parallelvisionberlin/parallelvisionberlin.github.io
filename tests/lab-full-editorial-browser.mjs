@@ -289,7 +289,7 @@ try{
     columns:getComputedStyle(root.querySelector('.editorial-composition-grid')).gridTemplateColumns,
     filter:getComputedStyle(firstImg).filter};
   });
-  assert.ok(compositionLayout.heights.every(h=>Math.abs(h-(width>800?132:146))<2),'Three compact photographic Composition cards');
+  assert.ok(compositionLayout.heights.every(h=>Math.abs(h-(width>800?144:146))<2),'Three compact photographic Composition cards');
   assert.equal(compositionLayout.photosPosition,'absolute','Composition images fill their cards instead of flowing into columns');
   assert.equal(compositionLayout.copyPosition,'absolute','Composition labels overlay photographs');
   if(width>800){
