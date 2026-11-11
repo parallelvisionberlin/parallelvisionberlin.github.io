@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {runImageTask,seedreamWorkingDimensions,SEEDREAM_INPUT_MAX_PIXELS} from '../lab/image-tools.js';
 
 const src=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
-const begin=src.indexOf('async function inspectImage(candidate){');
+const begin=src.indexOf('async function inspectImage(candidate,{referenceOnly=false}={}){');
 const end=src.indexOf('\nasync function setImage(',begin);
 assert.ok(begin>=0&&end>begin,'Use the actual Image Studio upload validator, not a replica');
 const inspectorSource=src.slice(begin,end);
