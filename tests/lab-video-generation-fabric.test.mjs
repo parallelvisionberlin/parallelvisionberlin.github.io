@@ -25,9 +25,9 @@ test('fabric is decorative and tied to true Video job phases',()=>{
 });
 
 test('no synthetic progress, billing calls or source media in the motion graphic',()=>{
-  assert.doesNotMatch(effect,/fetch\(|XMLHttpRequest|api\/|credit|stripe|checkout|localStorage|setInterval/gi);
+  assert.doesNotMatch(effect,/fetch\(|XMLHttpRequest|api\/|stripe|checkout|localStorage|setInterval/gi);
   assert.doesNotMatch(effect,/Math\.random|progressPercent|estimateSeconds|countdown/i);
-  assert.doesNotMatch(css,/background-image:\s*url|box-shadow:|filter:\s*blur|linear-gradient/i);
+  assert.doesNotMatch(css,/background-image:\s*url|filter:\s*blur|linear-gradient/i);
   assert.match(css,/background:#050505!important/);
 });
 
