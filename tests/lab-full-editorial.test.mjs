@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const html=read('lab/full-editorial.html');
 const js=read('lab/full-editorial.js');
@@ -119,7 +119,7 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.match(html,/full-editorial\.js\?v=20261111-arrival-stability1/);
+ assert.ok(html.includes('full-editorial.js?v=20261111-casting-wheel-10'),'Full Editorial loads the current casting gallery');
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);setIdentitySource\('casting'\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=step!==1/,'Composition remains visible throughout Identity');
@@ -237,7 +237,11 @@ test('Identity carousel retains saved character, uploading and multi-cast contro
  assert.match(html,/id="editorial-cast-prev"/);
  assert.match(html,/id="editorial-cast-next"/);
  assert.match(html,/id="editorial-clear-cast"/);
- assert.equal((html.match(/data-sample-kind="model"/g)||[]).length,5,'All five existing reference portraits remain');
+ assert.equal((html.match(/data-sample-kind="model"/g)||[]).length,10,'Five original and five new casting models remain selectable');
+ for(const id of ['slate','cobalt','pearl','acid','blossom']){
+  assert.ok(html.includes('data-sample-src="./visuals/character-casting/'+id+'-cast-20261111.jpg"'),'New card '+id+' must have a selectable reference');
+  assert.ok(existsSync(new URL('../lab/visuals/character-casting/'+id+'-cast-20261111.jpg',import.meta.url)),'Image asset must be present for '+id);
+ }
  assert.match(html,/createCharacter=1/,'Create Character deep link remains genuine');
  assert.match(js,/function moveCastCarousel/);
  assert.match(js,/document\.addEventListener\('keydown'/);
