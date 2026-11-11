@@ -41,3 +41,18 @@ test('catalog has 45 unique scene concepts, eight categories, working local cove
   const existing=['Dream Blur','Flash Leather','Fisheye 2000','Green Haze'];
   assert.ok(existing.every(name=>!names.has(name)),'original approved cards cannot be duplicated');
 });
+
+
+test('Inspiration gallery keeps complete portrait cards and scrolls within the dialog',()=>{
+  const css=read('inspiration-catalog.css');
+  const js=read('inspiration-catalog.js');
+  assert.match(css,/grid-auto-rows:max-content/);
+  assert.match(css,/align-content:start/);
+  assert.match(css,/flex:1 1 auto;min-height:0/);
+  assert.match(css,/padding:24px 32px 42px;overflow-y:auto/);
+  assert.match(css,/display:block;flex:0 0 auto;align-self:stretch/);
+  assert.match(css,/aspect-ratio:3\/4/);
+  assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(js,/viewAll\.textContent='Explore all'/);
+  assert.match(js,/inspiration-catalog\.css\?v=20261111-full-portrait1/);
+});
