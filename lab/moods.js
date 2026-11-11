@@ -216,10 +216,14 @@ const ALL_MOODS=Object.freeze([
     "preview": "/lab/mood-bank/2026-10-11/soft-pastel-film/preview.webp",
     "previewFull": "/lab/mood-bank/2026-10-11/soft-pastel-film/originals/soft-paste-1-.png",
     "description": "Quiet creamy daylight",
-    "direction": "Airy premium analog photography with creamy neutrals, soft daylight, restrained powdered pastel hues, gentle shadow separation, subtle grain, natural skin color and elegant optical softness without loss of detail.",
-    "subtle": "Slightly creamy daylight and reduced color harshness; keep contrast intelligible.",
-    "intense": "Deliberate pastel art direction and diffused morning atmosphere, retaining real texture.",
-    "avoid": "overexposed white void, artificial pink skin, blurred facial details"
+    "defaultIntensity": 70,
+    "direction": "SOFT PASTEL FILM V2 / SOURCE-AWARE 35MM COLOR NEGATIVE. Edit the supplied photograph, never restage it. Apply an unmistakably photographic, softly pastel analog color response: creamy ivory highlight roll-off, delicate powder-rose and peach notes only where the source colors support them, subtle cool pastel separation in environmental neutrals, fine irregular film grain naturally embedded in skin, fabrics and shadows, and gentle optical diffusion with preserved facial detail. Follow existing natural or practical light direction and time of day. Retain photographic midtone depth, real dark materials, readable shadows and highlight texture. Dark, indoor or low-key originals remain atmospheric rather than becoming bright morning scenes. Preserve the original skin complexion, freckles, pores, facial structure, hair and eye color. No uniform milky wash, beautification or invented daylight. If there is a Base, retain the exact person, garment, body proportions, pose, camera viewpoint, crop and setting. Explicit user edits and reference roles take priority.",
+    "subtle": "1-34% / DELICATE: gently soften hard color, add fine emulsion texture and creamy roll-off to already bright areas. Keep the source exposure and contrast almost unchanged.",
+    "moderate": "35-69% / VISIBLE FILM: add warm-cream highlight separation, subtle blush/cool-pastel color response and naturally integrated grain. Keep existing dark exposure and facial texture.",
+    "immersive": "70-89% / SIGNATURE PASTEL FILM: confidently visible but restrained analog color, luminous creamy highlights without clipping, soft optical edges and fine grain. Faces and original shadow density retain depth; no global exposure lift.",
+    "intense": "90-99% / EXPRESSIVE FILM: stronger powder-color separation, print-like color density, more tactile grain and plausible gentle halation around existing bright edges. Preserve skin hue, shadow depth, highlight detail and original lighting.",
+    "climax": "100% / MAXIMUM PHOTOGRAPHIC FILM: the richest credible pastel color-negative treatment, distinct creamy print hues and optical texture across the entire frame. Strong analog personality without bleaching skin, lifting blacks to white, changing wardrobe or place, or inventing sunlight. Original identity and composition are non-negotiable.",
+    "avoid": "overexposed white void, washed-out faces, clipped blonde hair, bleached complexions, flat grey or milky shadows, uniform pink filter, excessive exposure lift, changed hair or eye color, invented morning sunlight or windows, beauty airbrushing, plastic skin, blurred facial details, pose or crop drift, fake borders, pasted grain"
   },
   {
     "id": "80s-film",
@@ -568,6 +572,11 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
           ?[lite?mood.compact:mood.direction,
             'CINEMA STRENGTH '+intensity+'/100: increase original-light film density and atmosphere, never add theatrical light sources or decorative film borders.',
             intensity<=34?mood.subtle:intensity<=75?mood.moderate:intensity<=89?mood.intense:mood.climax
+          ].join(' ')
+        :mood.id==='soft-pastel-film'
+          ?[mood.direction,
+            'FILM STRENGTH '+intensity+'/100: photographic color and emulsion character only, not a change of identity, location, time of day or exposure logic.',
+            intensity<=34?mood.subtle:intensity<=69?mood.moderate:intensity<=89?mood.immersive:intensity<100?mood.intense:mood.climax
           ].join(' ')
         :intensity<=34?mood.subtle:intensity>=76?mood.direction+' '+mood.intense:mood.direction;
   const preservation=referenceCount>0
