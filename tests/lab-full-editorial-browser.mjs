@@ -193,7 +193,13 @@ try{
    assert.ok(textClearance.kickerTop>=textClearance.heroTop-2,'Stage kicker remains inside photographic hero');
    assert.ok(textClearance.subtitleBottom<=textClearance.heroBottom-15,'Subtitle clears the hero edge: '+JSON.stringify(textClearance));
    assert.equal(textClearance.buttonRadius,'0px','Continue has square corners');
-   assert.notEqual(textClearance.disabledBackground,'rgb(244, 241, 234)','Disabled Continue is dark');
+   // Wait for the page's existing scoped Identity CSS to finish, not a transient generic button style.
+   await page.waitForFunction(()=>{
+    const next=document.getElementById('step-next');
+    return next.disabled&&getComputedStyle(next).backgroundColor!=='rgb(244, 241, 234)';
+   },null,{timeout:5000});
+   const settledDisabledColor=await page.locator('#step-next').evaluate(el=>getComputedStyle(el).backgroundColor);
+   assert.notEqual(settledDisabledColor,'rgb(244, 241, 234)','Disabled Continue is dark');
    assert.match(emptyBounds.buttonBackground,/rgba?\(\s*(?:0|1\d|2\d|3\d)/,'Disabled Continue uses dark editorial styling');
    await page.locator('#editorial-top-back').click();
    assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
@@ -221,7 +227,7 @@ try{
     assert.ok(Math.abs(geometry.captionLeft)<=2&&Math.abs(geometry.captionRight)<=2,'Caption shading reaches both card edges without an inset rectangle');
     assert.equal(geometry.imageBorder,'0px','No second border inside the portrait');
     assert.equal(geometry.columns,2,'Pinned tile and gallery make two tracks');assert.ok(geometry.secondLeft>geometry.firstLeft);
-    assert.ok(Math.abs(geometry.thirdTop-geometry.top)<3,'Casting portraits remain in one horizontal row');
+    assert.ok(Math.abs(geometry.thirdTop-geometry.top)<=3.5,'Casting portraits stay in one horizontal row despite the 3px hover transition');
     assert.ok(geometry.top<320,'Real casting appears near the top: '+JSON.stringify(geometry));
     assert.ok(Math.abs(geometry.footerBottom-844)<2,'Continue stays at viewport bottom');
     assert.ok(geometry.continue>=44);assert.equal(geometry.arrow,'none');assert.equal(geometry.overflow,false);
