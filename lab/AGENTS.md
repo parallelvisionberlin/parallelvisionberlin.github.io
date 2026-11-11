@@ -30,6 +30,6 @@ These instructions apply to all changes under `lab/`, in addition to the reposit
 
 ## Shared Image deck, including Soul
 - The normal web Image deck is the locked design for every Image engine, including PV Soul Pro and Higgsfield Soul. Model selection may change available controls, never introduce another shell, grid, prompt sizing or Generate placement.
-- Keep Soul identity selection in the existing toolbar and source uploads in the existing +/reference strip. Preserve their original handlers, model restrictions, native layout, pricing and provider logic.
+- Owner-approved 2026-11-11 exception: web PV Still uses one square Character tile beside Generate, slightly shorter than Generate. It replaces both the long identity button and the left person shortcut; selected identities fill it with their private portrait. Other models retain their toolbar character control. Source uploads stay in the existing +/reference strip. Preserve original picker handlers, model restrictions, native layout, pricing and provider logic.
 - The `is-pv-soul` and `has-character-picker` legacy layout classes are native-only. Web Soul must use the normal `pv-editorial-deck` rules.
-- Preserve the same prompt, toolbar, reference and Generate geometry across models. Run `tests/lab-soul-deck-parity-ui.mjs` with the three existing Image browser suites when changing this contract.
+- Preserve the shared prompt, reference and Generate sizing across models; PV Still alone has the approved Character tile and fits its shorter toolbar. Run `tests/lab-soul-deck-parity-ui.mjs` with the three existing Image browser suites when changing this contract.
