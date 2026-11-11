@@ -52,6 +52,19 @@ test('carousel shows six unchanged-sized cards on wide desktop and two on mobile
   assert.match(js,/target\.isContentEditable/);
   assert.match(js,/document\.querySelector\('dialog\[open\]'\)/);
 });
+test('both Inspiration rows support mouse-wheel browsing without trapping page scroll',()=>{
+  const js=read('inspiration-carousel.js');
+  const html=read('studio.html');
+  assert.match(js,/track\.addEventListener\('wheel',event=>/);
+  assert.match(js,/Math\.abs\(event\.deltaY\)<=Math\.abs\(event\.deltaX\)/);
+  assert.match(js,/event\.ctrlKey\|\|event\.metaKey/);
+  assert.match(js,/direction<0&&pos<=2/);
+  assert.match(js,/direction>0&&pos>=limit-2/);
+  assert.match(js,/event\.preventDefault\(\)/);
+  assert.match(js,/move\(direction\)/);
+  assert.match(js,/\},\{passive:false\}\)/);
+  assert.match(html,/inspiration-carousel\.js\?v=20261019-keyboard2&inspirationCatalog=20261111-eros1&wheelScroll=20261112v1/);
+});
 test('carousel navigation cannot invoke paid jobs or rewrite the current prompt',()=>{
   const code=read('inspiration-carousel.js'),looks=read('inspiration-looks.js');
   assert.doesNotMatch(code,/fetch\(|\/api\/|submit\(|dispatchEvent\(|\.click\(/);
