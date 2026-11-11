@@ -111,7 +111,7 @@ try{
       assert.equal(palettes.identityInToolbar,false,'PV Still identity is the approved portrait tile beside Generate');
       assert.equal(await page.locator('.image-composer-toolbar > #composer-character').count(),1,'Only one PV Still character control');
       assert.equal(await page.locator('#scene-characters-open').isVisible(),false,'Duplicate character shortcut is hidden');
-      assert.equal(await page.locator('#composer-character-name').innerText(),'Character','Empty tile caption');
+      assert.equal(await page.locator('#composer-character-name').textContent(),'Character','Empty tile caption');
       assert.equal(palettes.soul.color,'rgb(220, 255, 0)','Mood text remains legible on the dark control');
       assert.equal(palettes.soul.clear,palettes.soul.color,'Clear action remains legible too');
       if(viewport.width>=1180){
@@ -168,24 +168,26 @@ try{
       await page.locator('#composer-library-cards').getByRole('button',{name:/Fixture identity/}).click();
       await page.locator('#composer-library-close').click();
       await page.waitForFunction(()=>document.querySelector('#composer-character-photo img')?.naturalWidth>0);
-      assert.equal(await page.locator('#composer-character-name').innerText(),'Fixture identity','Selected name appears over the portrait');
+      assert.equal(await page.locator('#composer-character-name').textContent(),'Fixture identity','Selected name appears over the portrait');
       assert.equal(await page.locator('#composer-character').getAttribute('aria-label'),'Change character: Fixture identity');
       const portrait=await page.locator('#composer-character').evaluate(tile=>{
         const photo=tile.querySelector('img'),box=tile.getBoundingClientRect(),image=photo.getBoundingClientRect();
         const generate=document.getElementById('image-composer-generate').getBoundingClientRect();
-        return {width:box.width,height:box.height,imageWidth:image.width,imageHeight:image.height,fit:getComputedStyle(photo).objectFit,generateHeight:generate.height,bottom:box.bottom,generateBottom:generate.bottom};
+        const controls=tile.closest('#image-composer').querySelector('.composer-controls').getBoundingClientRect();
+        return {width:box.width,height:box.height,imageWidth:image.width,imageHeight:image.height,fit:getComputedStyle(photo).objectFit,generateHeight:generate.height,bottom:box.bottom,generateBottom:generate.bottom,left:box.x,controlsRight:controls.right};
       });
+      await page.screenshot({path:'test-results/night-flash-soul-character-selected-'+role+'-'+viewport.width+'.png'});
+      if(viewport.width>=1180)assert.ok(portrait.controlsRight+6<=portrait.left,'Selected-character controls fit before the tile: '+JSON.stringify(portrait));
       assert.ok(Math.abs(portrait.width-portrait.height)<1,'Character box remains square');
       assert.ok(portrait.height<portrait.generateHeight&&portrait.height>=portrait.generateHeight*.85,'Character box is only slightly shorter than Generate');
       assert.ok(Math.abs(portrait.bottom-portrait.generateBottom)<1,'Tile and Generate share a bottom edge');
       assert.ok(portrait.imageWidth>=portrait.width-3&&portrait.imageHeight>=portrait.height-3,'Portrait fills the Character box');
       assert.equal(portrait.fit,'cover');
-      await page.screenshot({path:'test-results/night-flash-soul-character-selected-'+role+'-'+viewport.width+'.png'});
       await page.locator('#composer-character').click();
       await page.locator('#composer-library-cards').getByRole('button',{name:'No character',exact:true}).click();
       await page.locator('#composer-library-close').click();
       assert.equal(await page.locator('#composer-character-photo img').count(),0,'Clearing selection removes the previous portrait');
-      assert.equal(await page.locator('#composer-character-name').innerText(),'Character');
+      assert.equal(await page.locator('#composer-character-name').textContent(),'Character');
       await page.locator('#composer-character').click();
       await page.locator('#composer-library-cards').getByRole('button',{name:/Fixture identity/}).click();
       await page.locator('#composer-library-close').click();
