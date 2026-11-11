@@ -43,8 +43,10 @@
     overflow:hidden!important;
   }
   /* Original left inspector: keep the size, copy and rhythm from the
-     empty page. More content scrolls *inside* it instead of shrinking it. */
-  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.controls>.controls-body{
+     empty page. More content scrolls *inside* it instead of shrinking it.
+     Body+html specificity is intentional: source-ready video-upscale.css
+     previously overrides overflow to visible with an important shorthand. */
+  html body #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.controls>.controls-body{
     box-sizing:border-box!important;
     flex:1 1 auto!important;height:auto!important;min-height:0!important;
     max-height:none!important;
