@@ -176,9 +176,9 @@ test('Campaign composition portraits have the approved 185px fashion-editorial t
 test('Identity hero becomes 12px shorter and Composition cards 12px taller on regular desktop only',()=>{
  const c=read('lab/full-editorial-identity-refresh.css');
  assert.match(c,/PVLAB_IDENTITY_HERO_COMPOSITION_BALANCE_20261111/);
- assert.match(c,/clamp\\(237px,calc\\(29svh - 12px\\),281px\\)/,'Tall desktop hero preserves its responsive clamp');
- assert.match(c,/clamp\\(236px,calc\\(31svh - 12px\\),273px\\)/,'Regular desktop hero loses only 12px');
- assert.match(c,/@media\\(min-width:801px\\) and \\(min-height:761px\\)/,'Composition increase excludes mobile and short desktop');
+ assert.match(c,/clamp\(237px,calc\(29svh - 12px\),281px\)/,'Tall desktop hero preserves its responsive clamp');
+ assert.match(c,/clamp\(236px,calc\(31svh - 12px\),273px\)/,'Regular desktop hero loses only 12px');
+ assert.match(c,/@media\(min-width:801px\) and \(min-height:761px\)/,'Composition increase excludes mobile and short desktop');
  assert.match(c,/height:144px!important;min-height:144px!important/,'All three Composition cards gain 12px');
  assert.match(c,/height:110px!important;min-height:110px!important/,'Short-desktop compact cards remain unchanged');
  assert.match(c,/height:146px!important;min-height:146px!important/,'Phone composition remains unchanged');
