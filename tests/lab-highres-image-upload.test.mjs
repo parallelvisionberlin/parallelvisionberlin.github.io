@@ -25,10 +25,11 @@ function inspectFor(tool='image',imageEngine='seedream',engine='seedance'){
 const phonePhoto=()=>({name:'IMG_8786.jpeg',type:'image/jpeg',size:8*1024*1024,width:6048,height:8064});
 
 test('Image deck accepts 6048 x 8064 under 20 MB without changing source bytes',async()=>{
-  const original=phonePhoto(),prepared=await inspectFor()(original);
+  const original=phonePhoto(),prepared=await inspectFor()(original,{referenceOnly:true});
   assert.strictEqual(prepared.file,original,'Original is retained, never silently recompressed on upload');
   assert.equal(prepared.url,'blob:original','Image Deck full-size inspection uses the original, no second WebP encode');
   assert.equal(prepared.thumbUrl,'blob:preview','The deck tile uses a small encoded thumbnail');
+  assert.equal((await inspectFor()(original)).url,'blob:preview','Image source frames retain a prepared full preview');
   assert.equal(prepared.width,6048);
   assert.equal(prepared.height,8064);
   assert.equal(6048*8064,48771072);
