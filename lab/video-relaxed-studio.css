@@ -327,7 +327,7 @@ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.
 }
 /* Progress counts actual finished private reference uploads, never the costed video job. */
 #app.video-studio-active #reference-upload-meter{
-  grid-column:1/-1;width:100%;height:3px;margin:0;border:0;overflow:hidden;
+  grid-column:1/-1;width:100%;height:3px;margin:0;border:0;
   border-radius:4px;background:#303137;accent-color:#c6c6ca;
 }
 #app.video-studio-active #reference-upload-meter[hidden]{display:none!important}
