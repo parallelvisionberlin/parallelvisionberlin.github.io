@@ -451,7 +451,7 @@ body.editorial-web #panel-model #editorial-saved-rail .editorial-cast-arrow{z-in
 
 @media(min-width:801px){
  body.editorial-web .editorial-flow{padding-top:0!important}
- body.editorial-web #panel-model .stage-visual{height:clamp(249px,29svh,293px)!important;border:0!important}
+ body.editorial-web #panel-model .stage-visual{height:clamp(237px,calc(29svh - 12px),281px)!important;border:0!important}
  body.editorial-web #panel-model .stage-visual>img{
   object-position:54% 24%!important;filter:brightness(.69) contrast(1.04);
  }
@@ -624,7 +624,7 @@ body.editorial-web .flow-main > #editorial-casting-controls .editorial-compositi
 /* Image-2 reference: retain the strong portrait hero and full casting photographs.
    Natural page scrolling is preferable to squeezing art into a dashboard on low windows. */
 @media(min-width:801px) and (max-height:950px){
- body.editorial-web #panel-model .stage-visual{height:clamp(248px,31svh,285px)!important}
+ body.editorial-web #panel-model .stage-visual{height:clamp(236px,calc(31svh - 12px),273px)!important}
  body.editorial-web #panel-model .stage-copy{bottom:clamp(57px,7svh,78px)!important}
  body.editorial-web #panel-model .stage-copy h2{
   font-size:clamp(72px,6.4vw,100px)!important;margin:6px 0 10px!important
@@ -644,6 +644,16 @@ body.editorial-web .flow-main > #editorial-casting-controls .editorial-compositi
  body.editorial-web #panel-model .editorial-cast-rail{height:clamp(192px,32svh,238px)!important}
  body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-option{
   height:110px!important;min-height:110px!important
+ }
+}
+
+/* PVLAB_IDENTITY_HERO_COMPOSITION_BALANCE_20261111
+   Desktop only. Give the three Composition choices 12px of vertical space
+   reclaimed from the Identity hero, without moving the casting cards or
+   changing the compact <=760px desktop and <=800px mobile layouts. */
+@media(min-width:801px) and (min-height:761px){
+ body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-option{
+  height:144px!important;min-height:144px!important;
  }
 }
 
