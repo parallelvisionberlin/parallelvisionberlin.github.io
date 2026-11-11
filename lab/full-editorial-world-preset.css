@@ -1,0 +1,61 @@
+/* Chrome Desert world handoff. Scoped to the optional preset, not the normal Full Editorial flow. */
+.editorial-world-preset{
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  gap:20px;
+  min-height:116px;
+  margin:0 0 25px;
+  padding:13px;
+  border:1px solid #343331;
+  background:#111211;
+  color:#f2eee7;
+}
+.editorial-world-preset[hidden],.editorial-review-world[hidden]{display:none!important}
+.editorial-world-preset img{width:144px;height:88px;flex:none;object-fit:cover;object-position:center}
+.editorial-world-preset-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.editorial-world-preset-copy small,.editorial-review-world small{
+  color:#b9b2a6;
+  font-family:inherit;
+  font-size:10px;
+  font-weight:650;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+.editorial-world-preset-copy strong{font-size:clamp(21px,2.5vw,32px);font-weight:600;letter-spacing:-.04em}
+.editorial-world-preset-copy p{margin:0;color:#c8c3ba;font-size:13px;line-height:1.45}
+.editorial-world-preset > a{
+  color:#eee8dd;
+  flex:none;
+  border-bottom:1px solid #817d76;
+  padding:4px 0;
+  font-size:12px;
+  text-decoration:none;
+}
+.editorial-world-active:not(.editorial-world-editing) .editorial-flow-rail [data-flow-step="2"],
+.editorial-world-active:not(.editorial-world-editing) .editorial-flow-rail [data-flow-step="3"]{display:none}
+.editorial-review-world{
+  display:flex;
+  gap:13px;
+  align-items:center;
+  margin-bottom:14px;
+  padding:12px;
+  border:1px solid #363330;
+  background:#121211;
+}
+.editorial-review-world img{width:96px;height:70px;flex:none;object-fit:cover}
+.editorial-review-world-copy{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0}
+.editorial-review-world strong{color:#f4efe7;font-size:17px}
+.editorial-review-world span{color:#c8c3bb;font-size:12px}
+.editorial-review-world button{border:0;background:transparent;padding:8px;color:#f4efe7;text-decoration:underline;cursor:pointer}
+@media(max-width:700px){
+  .editorial-world-preset{gap:10px;margin-bottom:18px;padding:9px;min-height:90px;flex-wrap:wrap}
+  .editorial-world-preset img{width:80px;height:85px;object-position:50%}
+  .editorial-world-preset-copy strong{font-size:22px}
+  .editorial-world-preset-copy p{font-size:12px}
+  .editorial-world-preset > a{margin-left:90px}
+  .editorial-review-world{gap:10px;padding:9px}
+  .editorial-review-world img{width:66px;height:65px}
+  .editorial-review-world strong{font-size:15px}
+  .editorial-review-world button{font-size:12px}
+}

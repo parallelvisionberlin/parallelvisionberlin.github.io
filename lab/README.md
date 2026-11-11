@@ -12,6 +12,7 @@ Homepage character creation invitation and Elements deep link: [Character homepa
 
 Image person, object and outfit replacement flow, approved behavior and implementation audit: [Image replacement work state](IMAGE-REPLACEMENT-WORK-STATE.md).
 Phone homepage spacing, hero crop and text-only CTA preference: [Mobile homepage work state](HOME-MOBILE-WORK-STATE.md).
+Chrome Desert featured world and one-click editorial preset: [Chrome Desert work state](CHROME-DESERT-WORK-STATE.md).
 Homepage image-to-motion second-hero chapter: [Homepage showcase work state](HOME-SHOWCASE-WORK-STATE.md).
 
 Studio loading identity and motion work: [Studio boot work state](STUDIO-BOOT-WORK-STATE.md).

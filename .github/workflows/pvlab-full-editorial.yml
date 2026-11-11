@@ -12,6 +12,7 @@ on:
       - 'lab/studios-menu.js'
       - 'lab/studio.html'
       - 'lab/visuals/editorial-directions/**'
+      - 'lab/visuals/featured-worlds/chrome-desert/**'
       - 'tests/lab-full-editorial*'
       - '.github/workflows/pvlab-full-editorial.yml'
   workflow_dispatch:
@@ -35,6 +36,7 @@ jobs:
             /lab/fonts/
             /lab/visuals/character-casting/
             /lab/visuals/editorial-directions/
+            /lab/visuals/featured-worlds/chrome-desert/
             /lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg
             /tests/lab-full-editorial*
             /tests/lab-approved-image-ui-contract.test.mjs
