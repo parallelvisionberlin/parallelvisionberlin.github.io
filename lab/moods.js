@@ -68,7 +68,7 @@ const ALL_MOODS=Object.freeze([
     "id": "hong-kong-nights",
     "name": "Hong Kong Nights",
     "category": "Cinema",
-    "preview": "/lab/mood-references/hong-kong-nights/supervalu.jpg",
+    "preview": "https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/e06ac253-47c4-47b4-80e0-b90df2949f45.png",
     "description": "Nocturnal movie light, green humid fog, wet streets and dark cinematic edges",
     "direction": "Dreamlike 1990s Hong Kong night-film photography. Turn the light into a believable dark, moody film scene, not a flat green filter. Cinematic darkened frame edges, deep neutral shadow pockets, warm believable skin and rare red or amber practicals. Visible translucent petrol-green mist hangs in distant air and near backlit real light sources or existing windows, never sprayed over the subject. Night exteriors show convincing rain-slick existing pavement with broken tungsten and green reflections, even if originally dry; do not invent streets, lamps or a rainstorm. Indoors the furniture and floor stay dry; atmospheric humidity can appear through an existing window. Two photographic references guide optical night depth and humid street reflections, never their people, cars, signs or locations. Preserve the original Base person, clothing, camera, framing and architecture. Organic pushed 35mm texture without plastic green faces, graphic borders or pasted fog.",
     "subtle": "Restrained film-night light, dark corners, faint source-lit green humid depth and outdoor surface sheen. Preserve original people, geometry and clothing.",
