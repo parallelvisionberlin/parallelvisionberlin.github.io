@@ -1570,7 +1570,7 @@ function syncComposerOptions(){
   $('composer-character').disabled=busy;
   const portrait=isSoul2()?hf.current()?.portraitAssetId:identity?soulProIdentity.refs?.[0]?.id:trained?composerCharacterAsset($('soul-character').value):packs.find(p=>p.id===$('pack-select').value)?.refs?.[0]?.id;
   const key=selected+':'+(portrait||'')+':'+(trained?$('soul-character').value:'');
-  if(key!==composerPortraitKey){composerPortraitKey=key;composerAssetPhoto($('composer-character-photo'),portrait,isSoul2()&&hf.current()||trained&&$('soul-character').value?selected:'',trained?$('soul-character').value:'');}
+  if(key!==composerPortraitKey){composerPortraitKey=key;composerAssetPhoto($('composer-character-photo'),portrait,trained&&$('soul-character').value?selected:'',trained?$('soul-character').value:'');}
   if(!$('composer-library').hidden)renderComposerLibrary();
 }
 function closeComposerLibrary(){
