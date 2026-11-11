@@ -45,7 +45,7 @@ import { createSoulController } from './soul.js?v=20261014-krea2-training1';
 import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, canPrepareImagesInBackground, wanUltrawideWorkingCopy, imagePreview, imageReferencePreview, cancelImagePreparation } from './image-tools.js?v=20261111-priority-preview2';
 import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-limits1&qwen3-zimage=1&nano21=1';
 import {createImageSubmitHandoff,IMAGE_SUBMIT_COOLDOWN_MS} from './image-submit-handoff.js?v=20261031-repeat-cooldown1';
-import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261111-inline-compare-zoom1';
+import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261111-restore-result-strip2';
 import {createVideoUpscaler} from './video-upscale.js?v=20261102-upload-validation1';
 import {createSeedreamReferencePreparer} from './seedream-reference-prep.js?v=20261011-reference-prewarm1';
 import {createReferencePackStudio} from './reference-pack-studio.js?v=20261018-gallery-create2';
