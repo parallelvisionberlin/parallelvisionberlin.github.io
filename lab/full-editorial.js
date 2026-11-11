@@ -380,33 +380,20 @@ function renderDirections(){
 function validateStep(){if(step===1&&modelGroups.length<1){status('Add at least one photograph of your model.',true);$('model-drop').focus();return false;}
  if(step===2&&needsStylingChoice(Boolean(curatedWorld),files.outfit.length+savedRefs.outfit.length,$('styling-direction').value)){status('Add a garment image or describe your styling.',true);$('styling-direction').focus();return false;}
  return true;}
-// The two public scenery sources are cropped to exclude every pictured model.
-function croppedWorldFile(reference){
- return new Promise((resolve,reject)=>{
-  const image=new Image();
-  image.onerror=()=>reject(new Error('Chrome Desert world artwork could not load.'));
-  image.onload=()=>{
-   try{
-    const crop=reference.crop,sx=Math.round(image.naturalWidth*crop.x),sy=Math.round(image.naturalHeight*crop.y);
-    const sw=Math.min(image.naturalWidth-sx,Math.round(image.naturalWidth*crop.width));
-    const sh=Math.min(image.naturalHeight-sy,Math.round(image.naturalHeight*crop.height));
-    if(sw<1||sh<1)throw new Error('Invalid Chrome Desert crop.');
-    const scale=Math.min(1,1280/sw),canvas=document.createElement('canvas');
-    canvas.width=Math.round(sw*scale);canvas.height=Math.round(sh*scale);
-    const context=canvas.getContext('2d');if(!context)throw new Error('Could not prepare the world reference.');
-    context.drawImage(image,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
-    canvas.toBlob(blob=>blob?resolve(new File([blob],reference.name,{type:'image/jpeg'})):reject(new Error('Could not encode the world reference.')),'image/jpeg',.85);
-   }catch(error){reject(error)}
-  };
-  image.src=reference.src;
- });
+// Curated scenery-only files were cropped from owner originals at publish time.
+async function worldReferenceFile(reference){
+ const response=await fetch(reference.src,{cache:'force-cache'});
+ if(!response.ok)throw new Error('Chrome Desert environment could not load.');
+ const blob=await response.blob();
+ if(blob.type!=='image/jpeg'||blob.size===0||blob.size>20*1024*1024)throw new Error('Chrome Desert scenery file is invalid.');
+ return new File([blob],reference.name,{type:'image/jpeg'});
 }
 async function loadWorldReferences(){
  if(!curatedWorld)return;
  if(worldLoadPromise)return worldLoadPromise;
  const token=++worldLoadVersion;worldLoadError=null;
  worldLoadPromise=(async()=>{
-  const references=await Promise.all(curatedWorld.environments.map(croppedWorldFile));
+  const references=await Promise.all(curatedWorld.environments.map(worldReferenceFile));
   if(token!==worldLoadVersion)return;
   if(files.location.length===0)addFiles('location',references);
  })().catch(error=>{

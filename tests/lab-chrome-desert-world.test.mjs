@@ -15,6 +15,7 @@ test('Chrome Desert is explicitly allowlisted, not arbitrary URL-supplied prompt
  assert.equal(resolveEditorialWorld('?world=other'),null);
  assert.equal(resolveEditorialWorld('?world=https://evil.invalid'),null);
  assert.equal(CHROME_DESERT.environments.length,2);
+ for(const reference of CHROME_DESERT.environments){assert.ok(existsSync(path.join(root,'lab',reference.src.slice(2))));assert.ok(!reference.crop,'Crop stays in approved static asset, not runtime');}
  for(const src of CHROME_DESERT.gallery)assert.ok(existsSync(path.join(root,'lab',src.slice(2))),src);
 });
 test('preset skips Styling and Location, ordinary Full Editorial retains four steps',()=>{
@@ -32,8 +33,8 @@ test('preset handoff, crop, credit preflight and review are present',()=>{
  assert.match(full,/const curatedWorld=resolveEditorialWorld\(location\.search\)/);
  assert.match(full,/if\(curatedWorld\)void loadWorldReferences\(\)/);
  assert.match(full,/curatedWorld\?curatedWorld\.prompt/);
- assert.match(full,/function croppedWorldFile\(reference\)/);
- assert.match(full,/context\.drawImage\(image,sx,sy,sw,sh/);
+ assert.match(full,/async function worldReferenceFile\(reference\)/);
+ assert.match(full,/await fetch\(reference\.src/);
  assert.match(full,/await loadWorldReferences\(\);if\(worldLoadError\)throw worldLoadError/);
  assert.match(full,/previousEditorialStep\(step,Boolean\(curatedWorld\)\)/);
  assert.match(full,/nextEditorialStep\(step,Boolean\(curatedWorld\)\)/);

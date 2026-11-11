@@ -8,10 +8,10 @@ export const CHROME_DESERT = Object.freeze({
     './visuals/featured-worlds/chrome-desert/installation.jpg',
     './visuals/featured-worlds/chrome-desert/curved.jpg'
   ],
-  // Cropped in the browser before upload so curated fashion models are not given as identity references.
+  // Model-free scenery crops are prepared once, never using pictured fashion models as identity references.
   environments:[
-    {src:'./visuals/featured-worlds/chrome-desert/installation.jpg',name:'chrome-desert-mirrored-architecture.jpg',crop:{x:0,y:0,width:.66,height:1}},
-    {src:'./visuals/featured-worlds/chrome-desert/curved.jpg',name:'chrome-desert-curved-sculpture.jpg',crop:{x:0,y:0,width:.64,height:1}}
+    {src:'./visuals/featured-worlds/chrome-desert/environment-installation.jpg',name:'chrome-desert-mirrored-architecture.jpg'},
+    {src:'./visuals/featured-worlds/chrome-desert/environment-curved.jpg',name:'chrome-desert-curved-sculpture.jpg'}
   ],
   description:'An arid landscape, monumental mirrored sculpture and real golden-hour light.',
   prompt:'Curated environment preset: Chrome Desert. A grounded, monumental desert landscape with physically plausible sculptural polished-metal architecture, reflective planes and sweeping curved mirrors, rocky geological formations and open sky. Natural warm late-afternoon sunlight, long believable shadows, crisp real reflections, restrained analog grain and tactile materials. Compose a cohesive, photorealistic luxury fashion campaign, not fantasy or generic science fiction. The people in PV LAB reference-world artwork are NOT identity or clothing references; use only the user-selected cast and their chosen garments, and do not copy poses, faces or wardrobe from curated artwork.'
