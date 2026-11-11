@@ -3441,7 +3441,7 @@ function viewReference(item,index){
 $('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image').removeAttribute('src');});
 
 function clearMedia(){toolSourceStates.delete(tool);toolReferenceStates.delete(tool);$('reference-list').removeAttribute('aria-busy');if(tool==='video'){videoLoadJobId=null;videoLoadErrorJobId=null;++videoSelectionRevision;videoStartFrameHandoff=false;mediaRefs.clear();frameMaker?.clear();}if(tool==='image'){inspirationMoodId=null;imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();poseMapSourceId=null;$('pose-preview-status').textContent='';}if(tool==='upscale')clearUpscalePrice();closeInputPreview();$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
-async function inspectImage(candidate){
+async function inspectImage(candidate,{referenceOnly=false}={}){
   if(tool==='upscale'&&candidate?.size>20*1024*1024)candidate=await prepareUpscaleInput(candidate,{maxBytes:20*1024*1024});
   if(window.__PV_LAB_NATIVE__===1)candidate=await preparePhotoInput(candidate,{maxBytes:20*1024*1024});
   if(!candidate)throw new Error('No image was provided. Drop a JPG, PNG or WebP photograph.');
@@ -3456,9 +3456,10 @@ async function inspectImage(candidate){
   if(tool==='image'&&imageEngine==='kling'){
     const issue=modelImageInputIssue('kling',[{file:candidate}]);if(issue)throw new Error(issue);
   }
-  // Keep Image Deck attachment responsive: one 320px thumbnail instead of
-  // waiting for both thumbnail and an unused 1280px preview conversion.
-  const prepared=await (tool==='image'?imageReferencePreview(candidate):imagePreview(candidate)),{width,height}=prepared;
+  // Only Image Deck references skip the unused 1280px conversion.
+  // Source frames and other studios retain their original preview behavior.
+  const fastReference=tool==='image'&&referenceOnly;
+  const prepared=await (fastReference?imageReferencePreview(candidate):imagePreview(candidate)),{width,height}=prepared;
   if(tool==='image'&&imageEngine==='kling'){
     const issue=modelImageInputIssue('kling',[{file:candidate,width,height}]);if(issue)throw new Error(issue);
   }
@@ -3466,7 +3467,7 @@ async function inspectImage(candidate){
   if(Math.min(width,height)<minimum)throw new Error('Image too small: '+(candidate.name||'photograph')+' ('+width+' × '+height+' px). Minimum '+minimum+' × '+minimum+' px.');
   if(Math.max(width,height)>maxSide)throw new Error('Image dimensions too large: '+(candidate.name||'photograph')+' ('+width+' × '+height+' px). Maximum '+maxSide.toLocaleString()+' pixels per side.');
   if(Math.max(width/height,height/width)>(seedanceInput?2.5:8))throw new Error('Unsupported image proportions: '+(candidate.name||'photograph')+' ('+width+' × '+height+' px). Choose a less extreme aspect ratio.');
-  return {file:candidate,id:null,url:URL.createObjectURL(tool==='image'?candidate:prepared.preview),thumbUrl:URL.createObjectURL(prepared.thumbnail),width,height};
+  return {file:candidate,id:null,url:URL.createObjectURL(fastReference?candidate:prepared.preview),thumbUrl:URL.createObjectURL(prepared.thumbnail),width,height};
 }
 
 async function setImage(candidate,id=null){clearImageComposerNotice();const revision=++imageRevision,item=await inspectImage(candidate);release(item.thumbUrl);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=item.file===candidate?id:null;sourceUrl=item.url;sourceWidth=item.width;sourceHeight=item.height;sourcePixels=item.width*item.height;if(isSoul2()&&!soulRatioExplicit)$('hf-bar-ratio').value='source';syncDefaultRatio(!imageRatioExplicit);$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
@@ -3578,7 +3579,7 @@ async function addReferences(list,ids=[],labels=[]){
       if(tool==='image'){
         const issue=modelImageInputIssue(imageEngine,[...references,{file:incoming[i]}]);if(issue)throw new Error(issue);
       }
-      const item=await inspectImage(incoming[i]);
+      const item=await inspectImage(incoming[i],{referenceOnly:true});
       if(e!==epoch||!owner||tool!==selectedTool||references!==selectedReferences){releaseReference(item);return;}
       item.id=item.file===incoming[i]?(ids[i]||null):null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';
        item.elementId=labels[i]?.elementId||null;item.elementName=labels[i]?.elementName||'';item.elementCategory=labels[i]?.elementCategory||'';
