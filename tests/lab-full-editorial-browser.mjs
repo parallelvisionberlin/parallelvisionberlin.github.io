@@ -127,11 +127,12 @@ try{
    const layout=await page.evaluate(()=>{
     const rect=selector=>document.querySelector(selector).getBoundingClientRect();
     const hero=rect('#panel-model .stage-visual'),header=rect('.editorial-header'),rail=rect('.editorial-flow-rail'),back=rect('.progress-top'),cards=rect('#casting-reference-gallery');
-    return {heroBelowHeader:hero.top>=header.bottom,topGap:hero.top-header.bottom,heroHeight:hero.height,railHidden:getComputedStyle(document.querySelector('.editorial-flow-rail')).display==='none',backInside:back.top>=hero.top&&back.bottom<=hero.bottom,cardsVisible:cards.bottom<=innerHeight-12};
+    return {heroBelowHeader:hero.top>=header.bottom,topGap:hero.top-header.bottom,heroHeight:hero.height,compositionHeight:rect('.editorial-composition-option').height,railHidden:getComputedStyle(document.querySelector('.editorial-flow-rail')).display==='none',backInside:back.top>=hero.top&&back.bottom<=hero.bottom,cardsVisible:cards.bottom<=innerHeight-12};
    });
    assert.equal(layout.heroBelowHeader,true,'Sticky header does not cover hero controls');
    assert.ok(layout.topGap<=13,'Hero begins immediately below the header');
-   assert.ok(layout.heroHeight>=248&&layout.heroHeight<=286,'Identity uses approved large photographic hero');
+   assert.ok(layout.heroHeight>=236&&layout.heroHeight<=274,'Identity hero is only 12px shorter: '+JSON.stringify(layout));
+   assert.ok(Math.abs(layout.compositionHeight-144)<1,'Composition cards gain 12px at 1440px without changing card widths: '+JSON.stringify(layout));
    for(const key of ['railHidden','backInside','cardsVisible'])assert.equal(layout[key],true,key);
    const emptyBounds=await page.evaluate(()=>{
     const r=selector=>document.querySelector(selector).getBoundingClientRect();
@@ -288,7 +289,7 @@ try{
     columns:getComputedStyle(root.querySelector('.editorial-composition-grid')).gridTemplateColumns,
     filter:getComputedStyle(firstImg).filter};
   });
-  assert.ok(compositionLayout.heights.every(h=>Math.abs(h-(width>800?132:146))<2),'Three compact photographic Composition cards');
+  assert.ok(compositionLayout.heights.every(h=>Math.abs(h-(width>800?144:146))<2),'Three compact photographic Composition cards');
   assert.equal(compositionLayout.photosPosition,'absolute','Composition images fill their cards instead of flowing into columns');
   assert.equal(compositionLayout.copyPosition,'absolute','Composition labels overlay photographs');
   if(width>800){

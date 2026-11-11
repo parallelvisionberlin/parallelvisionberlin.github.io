@@ -110,7 +110,7 @@ test('Identity casting uses the approved photographic layout rather than standal
  const identityCss=read('lab/full-editorial-identity-refresh.css');
  assert.match(identityCss,/scroll-snap-type:x mandatory/,'Casting supports a horizontal snap carousel');
  assert.match(identityCss,/position:sticky!important/,'Selection dock follows the active viewport');
- assert.match(html,/full-editorial-identity-refresh\.css\?v=20261111-continue-height3/);
+ assert.match(html,/full-editorial-identity-refresh\.css\?v=20261111-identity-proportion1/);
 
  const atelierCss=read('lab/full-editorial-atelier.css');
  assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
@@ -171,6 +171,17 @@ test('Campaign composition portraits have the approved 185px fashion-editorial t
  assert.match(c,/brightness\(\.83\) saturate\(\.82\)/,'Photography is visibly brighter');
  assert.match(c,/\.editorial-composition-option::after/,'Gradient remains readable over photography');
  assert.match(c,/height:172px;min-height:172px/,'The mobile carousel maintains a comfortable card height');
+});
+
+test('Identity hero becomes 12px shorter and Composition cards 12px taller on regular desktop only',()=>{
+ const c=read('lab/full-editorial-identity-refresh.css');
+ assert.match(c,/PVLAB_IDENTITY_HERO_COMPOSITION_BALANCE_20261111/);
+ assert.match(c,/clamp\(237px,calc\(29svh - 12px\),281px\)/,'Tall desktop hero preserves its responsive clamp');
+ assert.match(c,/clamp\(236px,calc\(31svh - 12px\),273px\)/,'Regular desktop hero loses only 12px');
+ assert.match(c,/@media\(min-width:801px\) and \(min-height:761px\)/,'Composition increase excludes mobile and short desktop');
+ assert.match(c,/height:144px!important;min-height:144px!important/,'All three Composition cards gain 12px');
+ assert.match(c,/height:110px!important;min-height:110px!important/,'Short-desktop compact cards remain unchanged');
+ assert.match(c,/height:146px!important;min-height:146px!important/,'Phone composition remains unchanged');
 });
 
 test('Empty Identity fits compactly and final Generate has editorial visual hierarchy',()=>{
@@ -255,7 +266,7 @@ test('Identity matches wide editorial reference without losing narrow desktop sc
  assert.match(s,/max-width:1550px/);
  assert.match(s,/max-width:1760px!important/);
  assert.match(s,/object-position:54% 24%/);
- assert.match(s,/height:clamp\(248px,31svh,285px\)/);
+ assert.match(s,/height:clamp\(236px,calc\(31svh - 12px\),273px\)/);
  assert.match(s,/height:clamp\(258px,31svh,294px\)/);
 });
 
