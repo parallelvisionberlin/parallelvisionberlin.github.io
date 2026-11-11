@@ -1,4 +1,4 @@
-@font-face{font-family:DM;src:url('./fonts/dm-sans-latin-v17.woff2') format('woff2');font-display:swap;font-style:normal;font-weight:300 700}
+@font-face{font-family:DM;src:url('./fonts/dm-sans-latin-v17.woff2') format('woff2');font-display:block;font-style:normal;font-weight:300 700}
 :root{--base:#08090a;--panel:#0f1113;--panel2:#17191c;--line:#34363a;--ink:#f4f4f2;--muted:#a5a5aa;--subtle:#76797f;--white:#f4f1e9;color-scheme:dark}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;background:var(--base)}
