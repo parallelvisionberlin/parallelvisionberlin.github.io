@@ -254,7 +254,7 @@ try{
   }
   let {page,context,errors}=await openViewport(390,844);
   try{
-    assert.equal(await page.locator('.pv-guest-card').count(),52,'Eight original cards plus 44 additional Inspiration scenes');
+    assert.equal(await page.locator('.pv-guest-card').count(),14,'Eight original cards plus six featured Inspiration scenes');
     const height=await page.locator('.pv-guest-card').first().evaluate(e=>e.getBoundingClientRect().height);
     assert.ok(height>185&&height<216,'390px phone keeps the cards about 15% shorter: '+height);
     const forward=page.locator('#gate .inspiration-nav-next');
