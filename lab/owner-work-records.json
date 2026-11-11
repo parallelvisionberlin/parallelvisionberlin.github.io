@@ -3133,21 +3133,18 @@
     },
     {
       "id": "pv-still-character-tile",
-      "title": "Approved PV Still Character portrait box and compact decks",
+      "title": "Locked Image deck frame and PV Still Character portrait box",
       "component": "Image / PV Still and Seedream",
       "status": "deployed",
-      "summary": "PV Still uses one square Character tile beside Generate, with a small plus at the upper left and a small caption at the bottom, matching the owner-approved Higgsfield reference. Selecting a saved identity fills it with its private portrait and name; clearing restores the placeholder. The old long identity button and duplicate left person shortcut are replaced. Seedream retains Base image/settings and its toolbar person shortcut. Desktop widths are 1024px for PV Still and 1064px for other signed-in Image models. The tile is 76px beside 84px Generate; phone pairing is 50px/56px.",
-      "nextAction": "No implementation work remains after verified publication. Any real-account portrait loading issue should be checked against its private portrait asset request.",
-      "baselineSha": "915945682736b510ce40905aa84d9df3bbe63a2d",
-      "reviewedSha": "e3c13430ff05398a35dfb4831f4fd92731761373",
-      "branch": "fix/pv-still-character-tile-20261111",
+      "summary": "All signed-in Image models, including PV Still and Seedream, share the same 1064px desktop frame, horizontal bounds and bottom anchor. Generate keeps the same desktop position. PV Still's square Character tile changes only internal controls and displays the selected private portrait/name. There is no model-specific frame width. Long prompts and references may grow upward. The Character tile remains 76px beside 84px Generate, with a 50px/56px phone pairing.",
+      "nextAction": "No implementation work remains for model-switch width locking. Preserve the shared frame when adding or changing model controls.",
+      "baselineSha": "739b9b3fde2092b259997b7a98e8be83b950ba1d",
+      "reviewedSha": "0abab479b35f32520f325025116d7c9b97798206",
+      "branch": "fix/image-deck-locked-frame-20261111",
       "files": [
         "lab/AGENTS.md",
         "lab/image-deck-surface.css",
-        "lab/image-editorial-deck.js",
-        "lab/lab.js",
         "lab/studio.html",
-        "tests/lab-night-flash-soul-ui.mjs",
         "tests/lab-soul-deck-parity-ui.mjs"
       ],
       "links": [
@@ -3162,75 +3159,73 @@
         {
           "label": "Passing owner/customer browser run",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42940026659"
+        },
+        {
+          "label": "Locked Image frame PR",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/966"
+        },
+        {
+          "label": "Frame and account browser run",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42943376493"
         }
       ],
       "tests": [
         {
-          "label": "Image UI, input and submission unit checks",
+          "label": "Approved Image UI contract",
           "result": "passed",
-          "scope": "16 local assertions: approved prompt/UI, image submit handoff, and high-resolution image validation.",
+          "scope": "Six local assertions and the approved Image UI workflow on the reviewed head. Syntax and diff checks passed.",
           "source": "tests/lab-approved-image-ui-contract.test.mjs"
         },
         {
-          "label": "Night Flash Soul integration",
+          "label": "Locked frame geometry",
           "result": "passed",
-          "scope": "120 unit assertions plus owner/customer Studio at 1440px and 390px. Selected portrait loads and fills the square, name/accessible label update, clearing removes the photo, switching models restores the correct control. Existing two-image submission and replacement checks pass.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42940026659"
+          "scope": "All 20 combinations at 1920/1440/1100/390/320px, with/without photos and short/long prompts, compare deck x/right/width/bottom against the standard Image model. Desktop also compares Generate x/right/width/height/bottom. Pasted/cleared prompt checks passed.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42943376493"
         },
         {
-          "label": "Shared deck geometry and prompt checks",
+          "label": "Owner/customer portrait and submission integration",
           "result": "passed",
-          "scope": "1920/1440/1100/390/320px with empty/long directions, with/without source photos. Square sizing and separate Character/Generate areas are checked. Pasted and cleared Image prompts pass.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42940026659"
+          "scope": "The full existing Night Flash Soul suite passed after the width correction: 120 unit assertions and owner/customer browser sessions at 1440px/390px, including selected portraits, clearing, switching models, two-image quotes and submission mocks.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42943376493"
         },
         {
-          "label": "Approved Image UI workflow",
-          "result": "passed",
-          "scope": "Final reviewed candidate. Existing exact prompt copy and provider safeguards remain.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/961"
-        },
-        {
-          "label": "Existing unrelated CI assertions",
+          "label": "Existing broader UI assertions",
           "result": "documented",
-          "scope": "Inspiration background and Clerk bounded-setup assertions remain in shared first-image/layout suites. Compact prompt still has the old minimum 17px assertion against the existing 15px Generate style. These assertions were not weakened.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/961"
+          "scope": "The first-image suite reports a pre-existing signed-in/guest frame mismatch; that entry comparison is separate from signed-in model switching. The later layout suite still reports the existing Clerk bounded-setup assertion. No assertions were weakened.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/966"
         }
       ],
       "deployment": {
         "state": "verified",
         "environment": "pvlab.studio / Cloudflare Pages pvlab-studio",
-        "sourceSha": "842488c2ba8f189c1a4e685d221b602b39494148",
+        "sourceSha": "5a98f6efb85afe622b81c7eb01787c7cf553b1af",
         "evidenceUrl": "https://pvlab.studio/studio?tool=image",
         "limitations": [
-          "The authenticated picker, private portrait preview and generation behaviour are tested through mocked owner/customer browser sessions; no paid production generation is required.",
-          "The production browser was signed out. Live verification confirms the deployed entry/layout versions and stylesheet content; authenticated portrait behavior is covered by the mocked role tests."
+          "Public browser verification confirms the deployed stylesheet. Model-switch geometry and authenticated portrait behaviour are verified through mocked browser sessions, not a real signed-in production account."
         ]
       },
       "evidence": [
         {
-          "kind": "fixture",
-          "summary": "Reviewed owner desktop and customer phone selected-portrait renders. The private portrait image fills the tile, caption sits at its bottom, the tile is slightly shorter than Generate and has no overlap. The duplicate left person shortcut is absent.",
-          "scope": "Synthetic owner/customer browser sessions using mocked private assets; not a real signed-in production account.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42940026659",
-          "limitations": [
-            "No paid generation was run."
-          ]
+          "kind": "automated_test",
+          "summary": "Frame equality across models and desktop Generate alignment passed in all 20 geometry states. Owner/customer portrait and generation mocks also passed.",
+          "scope": "Synthetic browser fixtures, no paid requests.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42943376493",
+          "limitations": []
         },
         {
           "kind": "deployment",
-          "summary": "Cloudflare Pages pvlab-studio check 130260743655 succeeded for the exact merged commit 842488c2ba8f189c1a4e685d221b602b39494148. All seven merged file blobs match the reviewed candidate.",
-          "scope": "Production source publication.",
-          "source": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/388afd61-113a-428c-b7e8-45bb49c24987",
+          "summary": "Cloudflare Pages check 130272140128 succeeded for exact merged commit 5a98f6efb85afe622b81c7eb01787c7cf553b1af. All four merged file blobs match the reviewed source.",
+          "scope": "Production publication.",
+          "source": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/91034e4b-59fd-42f2-ae77-ec7eaca92a08",
           "limitations": []
         },
         {
           "kind": "production_asset",
-          "summary": "Public Image Studio loads lab.js, image-editorial-deck.js and image-deck-surface.css with version 20261111-character-tile1. Entry/layout/style URLs match the reviewed preview; all 28,196 characters of the rendered stylesheet rules match exactly.",
-          "scope": "Live custom-domain browser DOM/CSS verification after exact-commit Cloudflare success.",
+          "summary": "Live Image Studio loads image-deck-surface.css?v=20261111-locked-deck1. Browser CSSOM contains the shared 1064px rule and Character tile styles, with no 1024px override.",
+          "scope": "Public custom-domain asset verification.",
           "source": "https://pvlab.studio/studio?tool=image",
           "limitations": [
-            "Production browser is signed out; no paid generation was run.",
-            "Direct shell asset requests are unavailable. Exact source identity is established through the deployed GitHub blob SHAs and matching live DOM/style evidence."
+            "The verification browser is signed out."
           ]
         }
       ],
@@ -3239,7 +3234,8 @@
         "Use the approved small-plus/top-left and Character-caption/bottom-left tile, not a large central person icon.",
         "PV Still has one visible direct character selector. Do not restore the duplicate left person shortcut.",
         "Use the selected private portrait asset, never a sample face or source/base photograph.",
-        "Retain the current photo-attachment speed work and image count support."
+        "Retain the current photo-attachment speed work and image count support.",
+        "Never give PV Still or any other Image model a separate outer deck width. Use the one shared signed-in desktop frame and keep Generate anchored."
       ],
       "updatedAt": "2026-11-11"
     }
