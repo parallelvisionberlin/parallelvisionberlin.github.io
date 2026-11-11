@@ -67,7 +67,7 @@ try{
   await page.waitForFunction(()=>!document.getElementById('generate').dataset.credits);
   const geometry=await page.locator('#generate').evaluate(el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return {right:r.right,width:r.width,radius:s.borderRadius,after:getComputedStyle(el,'::after').maskImage};});
   assert.ok(geometry.right<=width+1&&geometry.width>100);
-  assert.equal(geometry.radius,'12px','Preserve the approved Film dossier Generate radius');assert.equal(geometry.after,'none');
+  assert.equal(geometry.radius,width>=821?'12px':'16px','Preserve the approved desktop and mobile Generate radius');assert.equal(geometry.after,'none');
   assert.deepEqual(errors,[]);
   const beforeFailure=quotes.length;
   await page.locator('#prompt').fill('Reject quote');
