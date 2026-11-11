@@ -1563,11 +1563,14 @@ function syncComposerOptions(){
   for(const el of target.querySelectorAll('input,select,textarea'))el.disabled=busy;
   const identity=imageEngine==='soulpro',trained=imageEngine==='soul';
   const selected=isSoul2()?(hf.current()?.name||'Choose character'):identity?'Nina FOK':trained?($('soul-character').selectedOptions[0]?.textContent||'Character'):packs.find(p=>p.id===$('pack-select').value)?.name||'References';
-  $('composer-character-name').textContent=selected;if(isSoul2())$('composer-character').title=hf.current()?'Selected character: '+selected:'Choose a saved character. Without one, the face may change.';
+  const portraitTile=isSoul2()&&window.__PV_LAB_NATIVE__!==1;
+  $('composer-character-name').textContent=portraitTile&&!hf.current()?'Character':selected;
+  $('composer-character').classList.toggle('has-selected-character',isSoul2()&&!!hf.current());
+  if(isSoul2())$('composer-character').title=hf.current()?'Selected character: '+selected:'Choose a saved character. Without one, the face may change.';
   $('composer-character').disabled=busy;
   const portrait=isSoul2()?hf.current()?.portraitAssetId:identity?soulProIdentity.refs?.[0]?.id:trained?composerCharacterAsset($('soul-character').value):packs.find(p=>p.id===$('pack-select').value)?.refs?.[0]?.id;
   const key=selected+':'+(portrait||'')+':'+(trained?$('soul-character').value:'');
-  if(key!==composerPortraitKey){composerPortraitKey=key;composerAssetPhoto($('composer-character-photo'),portrait,trained&&$('soul-character').value?selected:'',trained?$('soul-character').value:'');}
+  if(key!==composerPortraitKey){composerPortraitKey=key;composerAssetPhoto($('composer-character-photo'),portrait,isSoul2()&&hf.current()||trained&&$('soul-character').value?selected:'',trained?$('soul-character').value:'');}
   if(!$('composer-library').hidden)renderComposerLibrary();
 }
 function closeComposerLibrary(){
@@ -2128,7 +2131,7 @@ function syncImageComposer(){
   const savedLabel=isSoul2()?'Soul IDs':imageEngine==='soul'?'Trained LoRAs':'Saved photo packs';
   $('composer-add-saved-toggle').setAttribute('aria-label','Open '+savedLabel);
   $('composer-add-saved-toggle').title=savedLabel;
-  $('composer-character').setAttribute('aria-label','Choose trained character');
+  $('composer-character').setAttribute('aria-label',isSoul2()?(hf.current()?'Change character: '+hf.current().name:'Choose character'):'Choose trained character');
   const generate=$('image-composer-generate');
   const generationButton=$('generate');
   const web=window.__PV_LAB_NATIVE__!==1;
@@ -5725,6 +5728,15 @@ try{clerk=await loadLabAccount();clerk.addListener(()=>void sync());await sync()
 // Soul composer: capabilities use the shared web Image deck. Legacy layout classes belong only to the native app.
 function syncSoulBar(){
   const active=isSoul2(),native=window.__PV_LAB_NATIVE__===1;imageComposer.classList.toggle('is-pv-soul',active&&native);imageComposer.classList.toggle('is-seedream',tool==='image'&&['seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy','gemini','gemini21'].includes(imageEngine));imageComposer.classList.toggle('has-soul-source',active&&!!sourceUrl);
+  imageComposer.classList.toggle('has-pv-still-character',active&&!native);
+  if(!native){
+    const character=$('composer-character'),controls=imageComposer.querySelector('.composer-controls');
+    const target=active?imageComposer.querySelector('.image-composer-toolbar'):controls;
+    character.dataset.deckControl=active?'character':'identity';
+    character.classList.add('composer-settings-pill');
+    if(character.parentElement!==target)target.insertBefore(character,$(active?'image-composer-generate':'image-composer-edit-area'));
+    $('scene-characters-open').hidden=active;
+  }
   document.querySelectorAll('.hf-bar-control').forEach(el=>el.hidden=!active);
   $('hf-bar-source').hidden=!active||!!sourceUrl||!native;
   if(!active)return;
