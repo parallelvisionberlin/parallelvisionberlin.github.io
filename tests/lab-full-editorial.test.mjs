@@ -212,9 +212,9 @@ test('Identity typography clears Back and progress rail; Continue uses a subdued
  assert.doesNotMatch(c.slice(c.indexOf('PVLAB_IDENTITY_HERO_TEXT_CTA_20261101')),/#editorial-cast-empty:not/,'No state-dependent hero geometry');
  assert.match(html,/id="step-next" class="primary"/,'Existing continue action and semantics unchanged');
  const labelCss=read('lab/full-editorial-identity-refresh.css');
- assert.match(labelCss,/transform:scaleY\\(1\\.055\\)/,'Continue lettering grows taller without resizing button');
- assert.match(labelCss,/font-size:15px;\\s*font-weight:650/,'Continue is marginally larger');
- assert.match(labelCss,/font-size:14\\.5px;\\s*font-weight:410/,'to styling remains lighter');
+ assert.match(labelCss,/transform:scaleY\(1\.055\)/,'Continue lettering grows taller without resizing button');
+ assert.match(labelCss,/font-size:15px;\s*font-weight:650/,'Continue is marginally larger');
+ assert.match(labelCss,/font-size:14\.5px;\s*font-weight:410/,'to styling remains lighter');
 });
 
 test('Identity carousel retains saved character, uploading and multi-cast controls',()=>{
