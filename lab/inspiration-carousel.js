@@ -36,6 +36,25 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
     event.preventDefault();
     move(event.key==='ArrowRight'?1:-1);
   });
+  // Vertical mouse-wheel motion browses Inspiration horizontally while hovered.
+  // Keep native horizontal trackpad motion and let the page scroll at either edge.
+  let lastWheelStep=0;
+  let lastWheelDirection=0;
+  track.addEventListener('wheel',event=>{
+    if(event.defaultPrevented||event.ctrlKey||event.metaKey)return;
+    if(Math.abs(event.deltaY)<=Math.abs(event.deltaX))return;
+    const direction=Math.sign(event.deltaY);
+    const limit=Math.max(0,track.scrollWidth-track.clientWidth);
+    if(limit<3||!direction)return;
+    const pos=track.scrollLeft;
+    if((direction<0&&pos<=2)||(direction>0&&pos>=limit-2))return;
+    event.preventDefault();
+    const now=performance.now();
+    if(direction===lastWheelDirection&&now-lastWheelStep<230)return;
+    lastWheelStep=now;
+    lastWheelDirection=direction;
+    move(direction);
+  },{passive:false});
   track.addEventListener('scroll',queue,{passive:true});
   if('ResizeObserver' in window)new ResizeObserver(queue).observe(track);
   else window.addEventListener('resize',queue,{passive:true});
