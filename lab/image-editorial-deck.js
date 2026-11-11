@@ -74,6 +74,7 @@
     if(!surface||!grid)return;
     surface.classList.remove('pv-phone-inspiration-lift');
     surface.style.removeProperty('--pv-phone-inspiration-lift');
+    grid.classList.remove('pv-phone-inspiration-compact-cards');
     grid.style.removeProperty('--pv-phone-inspiration-card-height');
     if(!small.matches||!visible||!deck.classList.contains('pv-deck-expanded')||
       document.documentElement.classList.contains('pv-native-lab')||
@@ -95,7 +96,10 @@
       const natural=first.getBoundingClientRect().height;
       const minimum=innerHeight<690?120:Math.min(160,Math.max(140,innerHeight*.2));
       const target=Math.max(minimum,Math.floor(natural-remaining));
-      if(target<natural-1)grid.style.setProperty('--pv-phone-inspiration-card-height',target+'px');
+      if(target<natural-1){
+        grid.classList.add('pv-phone-inspiration-compact-cards');
+        grid.style.setProperty('--pv-phone-inspiration-card-height',target+'px');
+      }
     }
   }
   function fitDeckOrigin(surface,visible){
