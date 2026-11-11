@@ -106,7 +106,7 @@ try{
   assert.equal(await page.locator('.editorial-cast-pinned').count(),1,'One pinned Create Character and upload card');
   assert.match(await page.locator('.editorial-create-character').getAttribute('href'),/createCharacter=1/);
   const carouselState=await castTrack.evaluate(el=>({width:el.clientWidth,full:el.scrollWidth,count:el.querySelectorAll('.atelier-reference').length}));
-  assert.equal(carouselState.count,5,'All five photographic casting references remain');
+  assert.equal(carouselState.count,10,'Original five plus five approved new casting references');
   assert.ok(carouselState.full>carouselState.width+30,'The casting gallery scrolls horizontally');
   assert.equal(await page.locator('#editorial-cast-prev').isDisabled(),true);
   await page.locator('#editorial-cast-next').click();
@@ -116,6 +116,43 @@ try{
   await page.keyboard.press('ArrowLeft');
   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<9);
   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,'Keyboard browsing does not change selection');
+
+
+  if(width>800){
+   const before=await page.evaluate(()=>({
+    left:document.getElementById('editorial-cast-track').scrollLeft,
+    pinned:document.querySelector('.editorial-cast-pinned').getBoundingClientRect().toJSON(),
+    pageY:scrollY
+   }));
+   await castTrack.locator('.atelier-reference').first().hover();
+   await page.mouse.wheel(0,440);
+   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft>90);
+   const after=await page.evaluate(()=>({
+    left:document.getElementById('editorial-cast-track').scrollLeft,
+    pinned:document.querySelector('.editorial-cast-pinned').getBoundingClientRect().toJSON(),
+    pageY:scrollY
+   }));
+   assert.ok(after.left>before.left,'Wheel over gallery moves portraits horizontally');
+   assert.ok(Math.abs(after.pinned.x-before.pinned.x)<1&&Math.abs(after.pinned.y-before.pinned.y)<1,'Create Character stays fixed');
+   assert.ok(Math.abs(after.pageY-before.pageY)<1,'Scroll belongs to the gallery');
+   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,'Wheel never selects a model');
+   await page.mouse.wheel(0,-440);
+   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<30);
+  }
+  for(const id of ['slate','cobalt','pearl','acid','blossom']){
+   const card=page.locator('#editorial-cast-track [data-sample-label="'+id[0].toUpperCase()+id.slice(1)+' portrait"]');
+   assert.equal(await card.count(),1,'New casting card exists: '+id);
+   assert.ok((await card.getAttribute('data-sample-src')).endsWith(id+'-cast-20261111.jpg'));
+  }
+  const slate=page.locator('#editorial-cast-track [data-sample-label="Slate portrait"]');
+  await slate.click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===1);
+  assert.equal(await slate.getAttribute('aria-pressed'),'true','New model selection sets identity');
+  await slate.click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===0);
+  assert.equal(await slate.getAttribute('aria-pressed'),'false','New model can be deselected');
+  await castTrack.evaluate(track=>{track.style.scrollBehavior='auto';track.scrollLeft=0;track.style.scrollBehavior='';});
+  await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<3);
 
   let baselineCastSizes=null;
   if(width>800){
@@ -158,7 +195,11 @@ try{
    assert.ok(textClearance.kickerTop>=textClearance.heroTop-2,'Stage kicker remains inside photographic hero');
    assert.ok(textClearance.subtitleBottom<=textClearance.heroBottom-15,'Subtitle clears the hero edge: '+JSON.stringify(textClearance));
    assert.equal(textClearance.buttonRadius,'0px','Continue has square corners');
-   assert.notEqual(textClearance.disabledBackground,'rgb(244, 241, 234)','Disabled Continue is dark');
+   await page.waitForFunction(()=>{
+    const next=document.getElementById('step-next');
+    return next.disabled&&getComputedStyle(next).backgroundColor!=='rgb(244, 241, 234)';
+   },null,{timeout:5000});
+   assert.notEqual(await page.locator('#step-next').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(244, 241, 234)','Disabled Continue is dark');
    assert.match(emptyBounds.buttonBackground,/rgba?\(\s*(?:0|1\d|2\d|3\d)/,'Disabled Continue uses dark editorial styling');
    await page.locator('#editorial-top-back').click();
    assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
@@ -186,7 +227,7 @@ try{
     assert.ok(Math.abs(geometry.captionLeft)<=2&&Math.abs(geometry.captionRight)<=2,'Caption shading reaches both card edges without an inset rectangle');
     assert.equal(geometry.imageBorder,'0px','No second border inside the portrait');
     assert.equal(geometry.columns,2,'Pinned tile and gallery make two tracks');assert.ok(geometry.secondLeft>geometry.firstLeft);
-    assert.ok(Math.abs(geometry.thirdTop-geometry.top)<3,'Casting portraits remain in one horizontal row');
+    assert.ok(Math.abs(geometry.thirdTop-geometry.top)<=3.5,'Casting portraits remain in one horizontal row, including the 3px hover lift');
     assert.ok(geometry.top<320,'Real casting appears near the top: '+JSON.stringify(geometry));
     assert.ok(Math.abs(geometry.footerBottom-844)<2,'Continue stays at viewport bottom');
     assert.ok(geometry.continue>=44);assert.equal(geometry.arrow,'none');assert.equal(geometry.overflow,false);
@@ -211,7 +252,7 @@ try{
    assert.equal(await page.locator('#saved-character-gallery .editorial-saved-cast:visible').count(),1,'Private saved characters still support search');
    await page.locator('#editorial-mobile-search').click();
    await page.locator('[data-source-view="casting"]').click();
-   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference:visible').count(),5);
+   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference:visible').count(),10);
    const uploadsBeforePicker=uploadCount;const picker=page.waitForEvent('filechooser');await page.locator('#model-drop').click();await picker;
    assert.equal(uploadCount,uploadsBeforePicker,'Opening the file chooser sends no upload or paid request');
    await page.screenshot({path:'test-results/editorial/390-mobile-casting.png'});
@@ -514,7 +555,7 @@ try{
    const panel=get('.flow-main'),track=get('#editorial-cast-track'),
     cards=Array.from(document.querySelectorAll('#editorial-cast-track .atelier-reference')).map(el=>el.getBoundingClientRect());
    return {width:innerWidth,mainWidth:panel.width,heroHeight:get('#panel-model .stage-visual').height,
-    trackWidth:track.width,firstLeft:cards[0].left,lastRight:cards.at(-1).right,trackRight:track.right,
+    trackWidth:track.width,firstLeft:cards[0].left,originalFifthRight:cards[4].right,lastRight:cards.at(-1).right,trackRight:track.right,
     fullWidth:document.getElementById('editorial-cast-track').scrollWidth,
     compositionBottom:get('#editorial-composition-choices').bottom};
   });
@@ -537,7 +578,8 @@ try{
   assert.ok(Math.abs(heroCopy.left)<=3,'Identity title is left-aligned with the hero: '+JSON.stringify(heroCopy));
   assert.ok(heroCopy.top>=0&&heroCopy.top<=45,'Hero intro begins high like the approved reference: '+JSON.stringify(heroCopy));
   assert.equal(heroCopy.separated,true,'Back control stays clear of the hero title');
-  assert.ok(geometry.lastRight<=geometry.trackRight+2,'All five casting photos visible without clipping: '+JSON.stringify(geometry));
+  assert.ok(geometry.originalFifthRight<=geometry.trackRight+2,'Original five portraits remain visible on wide desktop: '+JSON.stringify(geometry));
+  assert.ok(geometry.lastRight>geometry.trackRight+80,'Longer gallery scrolls horizontally: '+JSON.stringify(geometry));
   assert.ok(geometry.firstLeft<geometry.lastRight,'Original portraits in natural order');
   await page.locator('#casting-reference-gallery .atelier-reference').first().click();
   await page.locator('#casting-reference-gallery .atelier-reference').nth(2).click();
@@ -578,6 +620,7 @@ try{
   await page.locator('#editorial-flow').waitFor({state:'visible'});
   assert.equal(await page.locator('#panel-model').isVisible(),true,'Homepage CTA opens Identity directly');
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),0,'Homepage also opens with an empty cast');
+  await page.locator('#editorial-casting-controls').waitFor({state:'visible',timeout:5000});
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Homepage Identity exposes Composition with disabled choices');
   assert.equal(await page.locator('#editorial-casting-controls').getAttribute('data-cast-state'),'empty');
   assert.equal(await page.locator('[data-cast-composition="together"]').isDisabled(),true,'Not selectable until two models');
