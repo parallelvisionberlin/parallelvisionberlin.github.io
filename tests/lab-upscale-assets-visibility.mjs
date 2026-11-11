@@ -160,6 +160,20 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     await page.locator('#pv-upscale-dropzone').click({position:{x:12,y:12}});
     assert.equal((await areaChooser).isMultiple(),false,'Clicking inside the large drop area opens the same upload input');
     const emptyCanvasHeight=geometry.canvas.height;
+    // Lock the approved empty inspector geometry before loading a source.
+    const emptyInspector=await page.evaluate(()=>{
+      const css=sel=>getComputedStyle(document.querySelector(sel));
+      const box=sel=>document.querySelector(sel).getBoundingClientRect();
+      return {
+        titleSize:css('.pv-upscale-workspace-intro h2').fontSize,
+        kickerVisible:css('.pv-upscale-kicker').display!=='none',
+        descriptionVisible:css('.pv-upscale-workspace-intro p').display!=='none',
+        modelHeight:box('#upscale-model-trigger').height,
+        generateTop:box('#generate').top,
+        controlsWidth:box('.workspace>.controls').width,
+        stageWidth:box('.workspace>.stage').width
+      };
+    });
     await page.evaluate(()=>{
       const preview=document.getElementById('preview'),empty=document.getElementById('empty');
       preview.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="140"><rect width="100" height="140" fill="#4c5360"/></svg>');
@@ -184,6 +198,35 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       'Loaded photograph retains the approved full-sized stage: '+JSON.stringify(loaded));
     assert.equal(loaded.photoFit,'contain','Loaded photo shows all content without cropping');
     assert.equal(loaded.chipBeforeModel,true,'Source photo chip appears above the model cards');
+    const loadedInspector=await page.evaluate(()=>{
+      const css=sel=>getComputedStyle(document.querySelector(sel));
+      const box=sel=>document.querySelector(sel).getBoundingClientRect();
+      return {
+        titleSize:css('.pv-upscale-workspace-intro h2').fontSize,
+        kickerVisible:css('.pv-upscale-kicker').display!=='none',
+        descriptionVisible:css('.pv-upscale-workspace-intro p').display!=='none',
+        modelHeight:box('#upscale-model-trigger').height,
+        generateTop:box('#generate').top,
+        controlsWidth:box('.workspace>.controls').width,
+        stageWidth:box('.workspace>.stage').width,
+        sourceScroll:css('.workspace>.controls>.controls-body').overflowY,
+        backVisible:css('#pv-video-history-back').display!=='none'
+      };
+    });
+    assert.equal(loadedInspector.kickerVisible,true,profile+': source upload must never hide the original kicker');
+    assert.equal(loadedInspector.descriptionVisible,true,profile+': source upload must never hide the original description');
+    assert.equal(loadedInspector.titleSize,emptyInspector.titleSize,profile+': source upload must not shrink Upscale heading');
+    assert.ok(Math.abs(loadedInspector.modelHeight-emptyInspector.modelHeight)<2,
+      profile+': model cards retain original heights after upload');
+    assert.ok(Math.abs(loadedInspector.controlsWidth-emptyInspector.controlsWidth)<2&&
+      Math.abs(loadedInspector.stageWidth-emptyInspector.stageWidth)<2,
+      profile+': editor columns stay locked on photo upload');
+    assert.equal(loadedInspector.backVisible,false,profile+': video Back to create must never appear in Image Upscaler');
+    if(profile==='desktop'){
+      assert.equal(loadedInspector.sourceScroll,'auto','Loaded desktop settings scroll inside the original inspector');
+      assert.ok(Math.abs(loadedInspector.generateTop-emptyInspector.generateTop)<3,
+        'Upscale CTA stays anchored in the original footer, not midway through the inspector');
+    }
     await page.waitForFunction(()=>document.getElementById('app').classList.contains('pv-upscale-source-ready'));
     assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),true,'Source image remains available after upload');
     const secondaryChooser=page.waitForEvent('filechooser');
