@@ -69,7 +69,7 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
   // Locking that exact height gives the model rows the recovered space without
   // changing the outer popup size, anchor, width or scroll behavior.
   const layoutMeasure=document.createElement('div');layoutMeasure.className='pv-video-model-foot';
-  layoutMeasure.textContent='Extend uses Higgsfield. Provider policies still apply.';
+  layoutMeasure.textContent='Extend uses SpicyAPI. Provider and model policies still apply.';
   popover.append(head,searchWrap,filterRow,list,layoutMeasure);
   document.body.append(popover);
   let open=false,lastFingerprint='',lastSelection='',searchText='',uncensoredOnly=false,moreExpanded=false;

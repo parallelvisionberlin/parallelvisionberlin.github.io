@@ -36,7 +36,7 @@ test('Studio keeps all models, hides promotion badges, and preserves subtle Vide
   assert.match(lab,/readProviderPolicyDetails\(userId\)/);
   assert.match(video,/pv-video-model-moderation-dot/);
   assert.match(video,/filterRow.hidden=!policyDetails/);
-  assert.match(video,/Extend uses Higgsfield\. Provider policies still apply\./);
+  assert.match(video,/Extend uses SpicyAPI\. Provider and model policies still apply\./);
   assert.match(account,/id="settings-model-policy-details"/);
   assert.match(account,/saved in this browser for your account/);
 });

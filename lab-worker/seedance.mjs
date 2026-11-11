@@ -32,7 +32,7 @@ export function seedanceParameters(value,{fail,referenceLabels}) {
   const seed=value.seed==null||value.seed===''?null:Number(value.seed);
   if(seed!==null&&(!Number.isInteger(seed)||seed<0||seed>2147483647))fail(400,'Invalid Seedance seed.');
   if(value.model&&value.model!==SEEDANCE[mode])fail(400,'Seedance model and mode do not match.');
-  return {type:'video',...(['extend','transform'].includes(mode)?{provider:'higgsfield'}:{}),engine:'seedance',model:SEEDANCE[mode],mode,...(mode==='transform'?{transformType:'replace-character'}:{}),prompt,duration,resolution,aspectRatio,seed,audio:value.audio!==false,
+  return {type:'video',...(mode==='transform'?{provider:'higgsfield'}:mode==='extend'?{provider:'spicy'}:{}),engine:'seedance',model:SEEDANCE[mode],mode,...(mode==='transform'?{transformType:'replace-character'}:{}),prompt,duration,resolution,aspectRatio,seed,audio:value.audio!==false,
     referenceRoles:referenceLabels(value.referenceRoles,30),referenceVideos:mediaLabels(value.referenceVideos,fail),referenceAudio:mediaLabels(value.referenceAudio,fail)};
 }
 export async function prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput}) {
@@ -51,6 +51,18 @@ export async function prepareSeedance(env,owner,data,p,url,{fail,source,sources,
       p.transferSourceIds=providerImages.map(a=>a.id);
     }
     if(url){input.image_url=await signedInput(env,url,providerImages[0].id);if(last)input.last_image_url=await signedInput(env,url,providerImages[1].id);}
+  }else if(p.mode==='extend'){
+    const ids=data.referenceVideoIds||[];
+    if(!Array.isArray(ids)||ids.length!==1||p.referenceVideos.length!==1||data.referenceAudioIds?.length||p.referenceAudio.length||data.lastSourceId)
+      fail(400,'Choose exactly one source video to extend, without other video or audio references.');
+    if(data.sourceId&&data.sourceId!==ids[0])fail(400,'The selected extension video must match the source.');
+    if(data.referenceSourceIds?.length||data.transferSourceIds?.length||p.referenceRoles.length)
+      fail(400,'SpicyAPI Seedance Extend accepts a source video, not extra identity photos. Remove attached images or use Reference mode. Nothing generated.');
+    primary=await source(env,owner,ids[0]);
+    if(!['video/mp4','video/quicktime'].includes(primary.mime))fail(400,'Choose an MP4 or MOV video to extend.');
+    p.referenceVideoIds=[primary.id];
+    delete input.aspect_ratio;
+    if(url)input.video_url=await signedInput(env,url,primary.id,3600);
   }else if(p.mode==='text'){
     if(data.sourceId||data.lastSourceId||data.referenceSourceIds?.length||data.referenceVideoIds?.length||data.referenceAudioIds?.length)fail(400,'Text-to-video does not accept source media.');
   }else{
@@ -79,10 +91,11 @@ export async function prepareSeedance(env,owner,data,p,url,{fail,source,sources,
     if(!images.length&&!p.referenceVideoIds.length&&!p.referenceAudioIds.length)fail(400,'Add at least one image, video or audio reference.');
     if(url&&providerImages.length)input.reference_image_urls=await Promise.all(providerImages.map(a=>signedInput(env,url,a.id)));
   }
-  if(p.mode!=='reference'){
+  if(!['reference','extend'].includes(p.mode)){
     if(p.referenceVideos.length||p.referenceAudio.length)fail(400,'Video and audio references require reference mode.');
     p.referenceRoles=[];
   }
+  if(p.mode==='extend')p.referenceRoles=[];
   if(p.seed!==null)input.seed=p.seed;
   return {primary,input};
 }

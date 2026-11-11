@@ -13,7 +13,7 @@ import {processSignupWelcomeEmails} from './signup-welcome-email.mjs';
 import {allowedLabParty} from './native-auth.mjs';
 import {BROWSER_ORIGINS,LEGACY_ISSUER,STUDIO_ISSUER,originsForClerkSession} from './clerk-issuer-policy.mjs';
 import {linkedStudioIdentity,migrationRoute} from './clerk-migration.mjs';
-import {prepareVideoExtension,quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
+import {submitVideoExtension} from './higgsfield-video.mjs';
 import {prepareCharacterTransform,quoteCharacterTransform,submitCharacterTransform} from './higgsfield-video-transform.mjs';
 import {klingSpicyParameters,prepareKlingSpicyInput} from './kling-spicy.mjs';
 import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd,verifyClosureBilling} from './customer-billing.mjs';
@@ -396,11 +396,9 @@ function assembledPrompt(p) {
 }
 async function prepareInput(env,owner,data,p,url) {
   await validateImageReplacement(env,owner,data,p,{fail,source,falImageBytes,storedImageDimensions});
-  if(p.engine==='seedance'&&p.mode==='extend')return prepareVideoExtension(env,owner,data,p,{fail,source,sources});
   if(p.engine==='seedance'&&p.mode==='transform'){const {original}=await prepareCharacterTransform(env,owner,data,p,{fail,source,sources});return {primary:original,input:{}};}
   if(p.engine==='kling'){if(url)fail(400,'Use the Kling image generation route.');const ids=data.referenceSourceIds||[],refs=ids.length?await sources(env,owner,ids,1):[];p.referenceSourceIds=refs.map(a=>a.id);return {primary:refs[0]||null,input:{}};}
   if(p.engine==='kling3')return prepareKlingSpicyInput(env,owner,data,p,url,{fail,source,signedInput});
-  if(p.provider==='higgsfield'&&p.mode==='extend'){const primary=await source(env,owner,data.sourceId);if(!['video/mp4','video/quicktime'].includes(primary.mime))fail(400,'Choose a video to extend.');p.referenceVideoIds=[primary.id];return {primary,input:{}};}
   if(p.provider==='higgsfield'){if(url)fail(400,'Use the Soul 2 generation route.');const primary=await source(env,owner,data.sourceId);return {primary,input:{}};}
   if(p.mode==='upscale'&&p.provider==='fal'){
     if(data.lastSourceId||data.referenceSourceIds?.length||data.transferSourceIds?.length)fail(400,'Upscale uses one original source image and no extra references or compressed working copies.');
@@ -412,7 +410,7 @@ async function prepareInput(env,owner,data,p,url) {
     return prepareSeedanceVariant(env,owner,data,p,url,{fail,source,sources,signedInput});
   if(p.engine==='seedance'){
     const prepared=await prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput});
-    if(p.prompt)prepared.input.prompt=assembledPrompt(p);return prepared;
+    if(p.prompt)prepared.input.prompt=p.mode==='extend'?p.prompt:assembledPrompt(p);return prepared;
   }
   if(p.provider==='fal'&&['h3maxfal','omni'].includes(p.engine)){
     let primary=null,imageUrls=[],imageUrl=null,endImageUrl=null;
@@ -1945,7 +1943,6 @@ async function route(request,env,ctx) {
     if(quoteCount>1&&!(p.type==='image'&&['seedream','seedreamlite','flash','qwen3','zspicy'].includes(p.engine)&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for SpicyAPI image generation.');
     if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0))fail(400,'Add a prompt or at least one reference photograph.');
     if(p.provider==='higgsfield'&&p.mode==='transform')return json(await quoteCharacterTransform(env,owner,data,p,url,hfDeps()));
-    if(p.provider==='higgsfield'&&p.mode==='extend')return json(await quoteVideoExtension(env,owner,data,p,url,hfDeps()));
     if(p.provider==='fal'&&p.engine==='video-upscale'){
       if(!env.FAL_KEY)fail(503,'fal.ai video upscaling is not configured on this Worker.');
       if(data.lastSourceId||data.referenceSourceIds?.length||data.transferSourceIds?.length)
