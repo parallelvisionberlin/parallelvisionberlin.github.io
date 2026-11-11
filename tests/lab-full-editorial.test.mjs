@@ -110,7 +110,7 @@ test('Identity casting uses the approved photographic layout rather than standal
  const identityCss=read('lab/full-editorial-identity-refresh.css');
  assert.match(identityCss,/scroll-snap-type:x mandatory/,'Casting supports a horizontal snap carousel');
  assert.match(identityCss,/position:sticky!important/,'Selection dock follows the active viewport');
- assert.match(html,/full-editorial-identity-refresh\.css\?v=20261111-identity-proportion1/);
+ assert.match(html,/full-editorial-identity-refresh\.css\?v=20261111-normal-wheel1/);
 
  const atelierCss=read('lab/full-editorial-atelier.css');
  assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
@@ -119,7 +119,7 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.ok(html.includes('full-editorial.js?v=20261111-casting-wheel-10'),'Full Editorial loads the current casting gallery');
+ assert.ok(html.includes('full-editorial.js?v=20261111-normal-wheel1'),'Full Editorial loads the current casting gallery');
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);setIdentitySource\('casting'\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=step!==1/,'Composition remains visible throughout Identity');
@@ -290,4 +290,12 @@ test('Identity uses an available bundled bold fallback when Impact is missing',(
  assert.equal((s.match(/font-family:Impact,'Arial Narrow',DM,Arial,sans-serif!important/g)||[]).length,2);
  assert.match(s,/font-synthesis:none!important/);
  assert.doesNotMatch(s,/font-weight:900!important/);
+});
+
+test('Identity desktop wheel moves the whole casting area without mandatory snap',()=>{
+ const styles=read('lab/full-editorial-identity-refresh.css');
+ assert.match(styles,/PVLAB_CASTING_WHEEL_NORMAL_DELTA_20261111/);
+ assert.match(styles,/@media \(min-width:801px\)[\s\S]*?#editorial-cast-track\.editorial-cast-track\s*\{\s*scroll-snap-type:none!important/);
+ assert.match(js,/\$\('casting-reference-gallery'\)\.addEventListener\('wheel',handleCastingWheel,\{passive:false\}\)/);
+ assert.doesNotMatch(js,/\$\('editorial-cast-track'\)\.addEventListener\('wheel',handleCastingWheel/);
 });

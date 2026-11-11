@@ -837,7 +837,8 @@ function setupCastCarousel(){
  }
  if('MutationObserver' in window)new MutationObserver(updateCastCarouselControls)
   .observe($('saved-character-gallery'),{childList:true});
- $('editorial-cast-track').addEventListener('wheel',handleCastingWheel,{passive:false});
+ // Wheel over the entire casting gallery moves portraits, never the pinned tile.
+ $('casting-reference-gallery').addEventListener('wheel',handleCastingWheel,{passive:false});
  window.addEventListener('resize',updateCastCarouselControls);
  document.addEventListener('keydown',event=>{
   if(step!==1||!['ArrowLeft','ArrowRight'].includes(event.key))return;

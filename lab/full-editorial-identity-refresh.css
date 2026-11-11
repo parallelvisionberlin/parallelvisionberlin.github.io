@@ -714,3 +714,13 @@ body.editorial-web .flow-main > #editorial-casting-controls .editorial-compositi
   letter-spacing:-.018em;
  }
 }
+
+/* PVLAB_CASTING_WHEEL_NORMAL_DELTA_20261111
+   Desktop wheel scrolling should follow ordinary small deltas, not snap back.
+   Mobile touch snap, card sizes, and the fixed Create Character tile stay unchanged. */
+@media (min-width:801px) {
+ body.editorial-web #panel-model #editorial-cast-track.editorial-cast-track {
+  scroll-snap-type:none!important;
+  scroll-behavior:auto!important;
+ }
+}
