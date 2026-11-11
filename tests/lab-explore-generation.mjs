@@ -390,6 +390,11 @@ try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobil
        assert.ok(layout.frame.bottom<=layout.dialog.bottom+2,
          'Result loading/preview is not clipped beneath modal '+JSON.stringify(layout));
      }
+     if(layout.viewport.width<=600&&await page.locator('#mc-look-result-loading').isVisible()){
+       assert.ok(layout.dialog.bottom-layout.frame.bottom>=0&&
+         layout.dialog.bottom-layout.frame.bottom<=32,
+         scenario+': real mobile processing leaves no dead space under Silver Darkroom '+JSON.stringify(layout));
+     }
      if(['phone','small'].includes(scenario)){
         const state=await page.evaluate(()=>{
           const d=document.getElementById('mc-look-dialog'),p=d.querySelector('.mc-look-dialog-media'),
