@@ -1,57 +1,116 @@
-/* Scoped to Image Inspiration; does not style the Moods chooser. */
+/* PV LAB Image Inspiration only. Keep Image Studio and generation UI unchanged. */
 .inspiration-carousel-shell{position:relative}
 .inspiration-carousel-shell .pv-inspiration-view-all{
-  position:absolute;right:0;top:-38px;z-index:5;padding:8px 12px;
-  background:rgba(18,19,21,.86);border:1px solid rgba(255,255,255,.23);
-  border-radius:7px;color:#e9e8e5;font:600 12px/1.2 "DM Sans",Arial,sans-serif;
-  white-space:nowrap;cursor:pointer;letter-spacing:0;
+  position:absolute;right:0;top:-40px;z-index:5;
+  padding:5px 0 7px;appearance:none;background:transparent;
+  border:0;border-bottom:1px solid rgba(245,243,240,.64);border-radius:0;
+  color:#f6f5f2;font:450 13px/1.1 "DM Sans",Arial,sans-serif;
+  letter-spacing:-.01em;white-space:nowrap;cursor:pointer;
+  text-shadow:0 1px 12px rgba(0,0,0,.7);
+  transition:color .18s ease,border-color .18s ease;
 }
-.inspiration-carousel-shell .pv-inspiration-view-all:hover{background:#303033;border-color:#bbb}
-.inspiration-carousel-shell .pv-inspiration-view-all:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.inspiration-carousel-shell .pv-inspiration-view-all:hover{
+  color:#fff;border-bottom-color:#fff;background:transparent;
+}
+.inspiration-carousel-shell .pv-inspiration-view-all:focus-visible{outline:2px solid #fff;outline-offset:4px}
 @media(max-width:680px){
-  .inspiration-carousel-shell .pv-inspiration-view-all{top:-35px;font-size:11px;padding:7px 9px}
+  .inspiration-carousel-shell .pv-inspiration-view-all{top:-36px;font-size:12px;padding:5px 0 6px}
 }
 .pv-inspiration-catalog{
-  position:fixed;inset:4vh 3vw;box-sizing:border-box;margin:auto;
-  width:min(1440px,94vw);height:min(92vh,980px);max-width:none;max-height:none;
-  padding:0;background:#0b0b0d;color:#f5f4f1;border:1px solid #353538;
-  border-radius:13px;box-shadow:0 26px 80px #000b;overflow:hidden;
+  position:fixed;inset:0;box-sizing:border-box;margin:auto;
+  width:min(1420px,calc(100vw - 60px));height:min(92dvh,1080px);
+  max-width:none;max-height:none;min-height:0;
+  padding:0;background:#0c0d0f;color:#f3f3f1;
+  border:1px solid rgba(255,255,255,.17);border-radius:9px;
+  box-shadow:0 28px 90px rgba(0,0,0,.74);overflow:hidden;
   font-family:"DM Sans",Arial,sans-serif;z-index:99999;
 }
 .pv-inspiration-catalog::backdrop{background:rgba(0,0,0,.88)}
 .pv-inspiration-catalog[open]{display:flex;flex-direction:column}
-.pv-inspiration-catalog-header{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:25px 30px 14px}
-.pv-inspiration-catalog-header h2{font-size:clamp(21px,3vw,32px);font-weight:650;letter-spacing:-.04em;margin:0}
-.pv-inspiration-catalog-header p{margin:5px 0 0;color:#aaa9aa;font-size:12px}
+.pv-inspiration-catalog-header{
+  flex:0 0 auto;display:flex;align-items:flex-start;justify-content:space-between;
+  gap:24px;padding:27px 32px 15px;
+}
+.pv-inspiration-catalog-header h2{
+  margin:0;color:#f5f4f2;font:450 clamp(29px,2.5vw,39px)/1.1 "DM Sans",Arial,sans-serif;
+  letter-spacing:-.05em;
+}
+.pv-inspiration-catalog-header p{
+  margin:9px 0 0;color:#a9a9a9;font:400 13px/1.45 "DM Sans",Arial,sans-serif;
+  letter-spacing:-.005em;
+}
 .pv-inspiration-catalog-close{
-  color:#eee;background:#222326;border:1px solid #424246;
-  padding:10px 14px;border-radius:8px;font:600 12px "DM Sans",Arial,sans-serif;cursor:pointer;
+  flex:0 0 auto;appearance:none;background:transparent;color:#ddd;
+  border:0;border-bottom:1px solid rgba(255,255,255,.4);border-radius:0;
+  padding:5px 0 7px;margin-top:9px;
+  font:450 12px/1.2 "DM Sans",Arial,sans-serif;
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
 }
-.pv-inspiration-catalog-filters{display:flex;flex-wrap:nowrap;gap:7px;overflow-x:auto;padding:7px 30px 21px;scrollbar-width:thin;flex:none}
+.pv-inspiration-catalog-close:hover{color:#fff;border-bottom-color:#fff}
+.pv-inspiration-catalog-filters{
+  flex:0 0 auto;display:flex;flex-wrap:nowrap;gap:22px;overflow-x:auto;
+  padding:8px 32px 0;margin:0;scrollbar-width:thin;
+  border-bottom:1px solid rgba(255,255,255,.13);
+}
 .pv-inspiration-catalog-filters button{
-  border:1px solid #333438;background:#1b1b1e;color:#ddd;
-  border-radius:7px;padding:9px 12px;white-space:nowrap;cursor:pointer;font:600 12px "DM Sans",Arial,sans-serif;
+  flex:0 0 auto;appearance:none;
+  color:#9c9d9f;background:transparent;border:0;border-bottom:2px solid transparent;
+  border-radius:0;padding:8px 0 13px;white-space:nowrap;cursor:pointer;
+  font:450 13px/1.2 "DM Sans",Arial,sans-serif;letter-spacing:-.018em;
+  transition:color .16s ease,border-color .16s ease;
 }
-.pv-inspiration-catalog-filters button[aria-pressed="true"]{background:#eee;color:#111;border-color:#eee}
-.pv-inspiration-catalog-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:13px;padding:0 30px 30px;overflow-y:auto;overscroll-behavior:contain}
+.pv-inspiration-catalog-filters button:hover{color:#eee}
+.pv-inspiration-catalog-filters button[aria-pressed="true"]{
+  color:#f6f5f2;background:transparent;border-bottom-color:#f0efed;
+}
+.pv-inspiration-catalog-grid{
+  flex:1 1 auto;min-height:0;min-width:0;
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-auto-rows:max-content;align-content:start;align-items:start;
+  column-gap:18px;row-gap:27px;
+  padding:24px 32px 42px;overflow-y:auto;overflow-x:hidden;
+  overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#4d4d50 transparent;
+}
 .pv-inspiration-catalog-card{
-  display:flex;min-width:0;flex-direction:column;text-align:left;padding:0 0 12px;
-  border:1px solid #333438;border-radius:9px;overflow:hidden;background:#171719;color:#eee;cursor:pointer;
+  display:flex;flex-direction:column;align-self:start;
+  height:auto;min-height:0;min-width:0;margin:0;padding:0 0 4px;
+  text-align:left;appearance:none;overflow:visible;
+  border:0;border-radius:0;background:transparent;color:#f0efed;cursor:pointer;
   font-family:"DM Sans",Arial,sans-serif;
 }
-.pv-inspiration-catalog-card img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;object-position:center;background:#252527}
-.pv-inspiration-catalog-card strong{display:block;font-size:13px;font-weight:600;padding:11px 11px 0;line-height:1.3}
-.pv-inspiration-catalog-card small{display:block;font-size:10px;color:#aaa;padding:5px 11px 0}
-.pv-inspiration-catalog-card:hover{border-color:#b9b9b9}
-.pv-inspiration-catalog-card:focus-visible,.pv-inspiration-catalog-close:focus-visible,
-.pv-inspiration-catalog-filters button:focus-visible{outline:2px solid #fff;outline-offset:2px}
-@media(max-width:1150px){.pv-inspiration-catalog-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:680px){
- .pv-inspiration-catalog{inset:1vh 1vw;width:98vw;height:98vh;border-radius:9px}
- .pv-inspiration-catalog-header{padding:18px 15px 10px}
- .pv-inspiration-catalog-header p{font-size:11px}
- .pv-inspiration-catalog-filters{padding:7px 15px 14px}
- .pv-inspiration-catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:0 15px 20px}
- .pv-inspiration-catalog-card strong{font-size:12px}
+.pv-inspiration-catalog-card img{
+  display:block;flex:0 0 auto;align-self:stretch;
+  width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;object-position:center;
+  border-radius:5px;background:#202125;
 }
-@media(prefers-reduced-motion:reduce){.pv-inspiration-catalog *{scroll-behavior:auto!important}}
+.pv-inspiration-catalog-card strong{
+  display:block;padding:12px 0 0;font:450 16px/1.25 "DM Sans",Arial,sans-serif;
+  letter-spacing:-.03em;color:#f2f1ef;
+}
+.pv-inspiration-catalog-card small{
+  display:block;padding:5px 0 0;color:#a6a5a5;
+  font:400 11px/1.25 "DM Sans",Arial,sans-serif;letter-spacing:.015em;
+}
+.pv-inspiration-catalog-card:hover img{filter:brightness(1.085)}
+.pv-inspiration-catalog-card:focus-visible,.pv-inspiration-catalog-close:focus-visible,
+.pv-inspiration-catalog-filters button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+@media(max-width:1100px){
+  .pv-inspiration-catalog-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:23px 15px}
+}
+@media(max-width:720px){
+  .pv-inspiration-catalog{width:calc(100vw - 18px);height:calc(100dvh - 18px);border-radius:7px}
+  .pv-inspiration-catalog-header{padding:21px 17px 14px;gap:12px}
+  .pv-inspiration-catalog-header h2{font-size:30px}
+  .pv-inspiration-catalog-header p{font-size:12px}
+  .pv-inspiration-catalog-close{font-size:11px}
+  .pv-inspiration-catalog-filters{gap:19px;padding:6px 17px 0}
+  .pv-inspiration-catalog-filters button{font-size:12px;padding-bottom:12px}
+  .pv-inspiration-catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:21px 11px;padding:18px 17px 28px}
+  .pv-inspiration-catalog-card strong{font-size:14px;padding-top:10px}
+  .pv-inspiration-catalog-card small{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+  .pv-inspiration-catalog *,.inspiration-carousel-shell .pv-inspiration-view-all{
+    scroll-behavior:auto!important;transition:none!important;
+  }
+}

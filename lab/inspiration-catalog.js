@@ -113,9 +113,9 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   for(const item of sorted.slice(0,6))if(!inTrack.has(item.title.toLowerCase()))track.append(carouselCard(item,guest));
   const viewAll=document.createElement('button');
   viewAll.type='button';viewAll.className='pv-inspiration-view-all';
-  viewAll.textContent='View all';viewAll.setAttribute('aria-label','View all Inspiration cards');
+  viewAll.textContent='Explore all';viewAll.setAttribute('aria-label','Explore all Inspiration looks');
   viewAll.addEventListener('click',openAll);shell.append(viewAll);
 }
 const stylesheet=document.createElement('link');
-stylesheet.rel='stylesheet';stylesheet.href='./inspiration-catalog.css?v=20261111-1';
+stylesheet.rel='stylesheet';stylesheet.href='./inspiration-catalog.css?v=20261111-full-portrait1';
 document.head.append(stylesheet);
