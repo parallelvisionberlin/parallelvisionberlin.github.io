@@ -125,8 +125,14 @@ try{
     pageY:scrollY
    }));
    await castTrack.locator('.atelier-reference').first().hover();
-   await page.mouse.wheel(0,440);
-   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft>90);
+   await page.mouse.wheel(0,100);
+   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft>=80);
+   const firstWheel=await castTrack.evaluate(el=>el.scrollLeft);
+   assert.ok(firstWheel>=80&&firstWheel<=150,'A normal 100px wheel moves the portraits without snapping back: '+firstWheel);
+   await page.mouse.wheel(0,35);
+   await page.waitForFunction(left=>document.getElementById('editorial-cast-track').scrollLeft>left+18,firstWheel);
+   await page.mouse.wheel(0,305);
+   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft>350);
    const after=await page.evaluate(()=>({
     left:document.getElementById('editorial-cast-track').scrollLeft,
     pinned:document.querySelector('.editorial-cast-pinned').getBoundingClientRect().toJSON(),
@@ -138,6 +144,15 @@ try{
    assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,'Wheel never selects a model');
    await page.mouse.wheel(0,-440);
    await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<30);
+   await page.locator('.editorial-cast-pinned').hover();
+   const pinnedBefore=await page.locator('.editorial-cast-pinned').boundingBox();
+   await page.mouse.wheel(0,100);
+   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft>=80);
+   const pinnedAfter=await page.locator('.editorial-cast-pinned').boundingBox();
+   assert.ok(Math.abs(pinnedAfter.x-pinnedBefore.x)<1&&Math.abs(pinnedAfter.y-pinnedBefore.y)<1,'The Create Character tile remains fixed when wheel is over it');
+   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,'Wheel does not select any model');
+   await castTrack.evaluate(el=>el.scrollTo({left:0,behavior:'instant'}));
+   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<3);
   }
   for(const id of ['slate','cobalt','pearl','acid','blossom']){
    const card=page.locator('#editorial-cast-track [data-sample-label="'+id[0].toUpperCase()+id.slice(1)+' portrait"]');
