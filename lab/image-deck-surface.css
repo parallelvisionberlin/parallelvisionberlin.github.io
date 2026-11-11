@@ -300,7 +300,7 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
    with one entry point and a slightly smaller square beside Generate. */
 html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.has-pv-still-character{
   --pv-character-size:76px;
-  & .scene-image-library-wrap{flex:0 0 34px!important;width:34px!important;min-width:34px!important}
+  & #scene-image-library-wrap{flex:0 0 34px!important;width:34px!important;min-width:34px!important}
   & #scene-characters-open{display:none!important}
   & #composer-character:not([hidden]){
     display:block!important;position:relative!important;box-sizing:border-box!important;
