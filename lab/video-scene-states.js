@@ -77,7 +77,7 @@ function mountVideoSceneStates(){
     byId('pv-video-current-resolution').textContent=quoteOption('resolution').toUpperCase();
     const ratio=byId('ratio'),ratioHidden=ratio?.closest('label')?.hidden;
     byId('pv-video-current-ratio').textContent=ratioHidden?'Source':quoteOption('ratio');
-    byId('pv-video-current-audio').textContent=byId('audio')?.disabled?'Unavailable':byId('audio')?.checked?'On':'Off';
+    byId('pv-video-current-audio').textContent=engine?.value==='kling4'?'Included':byId('audio')?.disabled?'Unavailable':byId('audio')?.checked?'On':'Off';
     const transform=mode==='transform';
     const transformInfo=byId('pv-transform-inspector');
     if(transformInfo)transformInfo.hidden=!transform;

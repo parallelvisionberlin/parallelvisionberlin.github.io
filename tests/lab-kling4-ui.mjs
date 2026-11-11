@@ -56,6 +56,8 @@ try{
   await page.evaluate(()=>window.__kling.frame());
   assert.ok((await page.evaluate(()=>window.__kling.inputs())).sourceId);
   await page.locator('#kling4-settings summary').click();
+  assert.equal(await page.locator('#kling4-settings').evaluate(e=>getComputedStyle(e).order),'5');
+  assert.equal(await page.locator('#pv-video-current-audio').textContent(),'Included');
   await page.screenshot({path:'test-results/kling4-settings-'+width+'.png',fullPage:true});
   await page.evaluate(()=>window.__kling.mode('transform'));
   assert.match(await page.locator('#mode-transform').innerText(),/Edit video/);
