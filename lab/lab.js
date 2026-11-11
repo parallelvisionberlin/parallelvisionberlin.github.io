@@ -1,4 +1,4 @@
-import {createKling4Controls} from './kling4-controls.js?v=20261111-1';
+import {createKling4Controls} from './kling4-controls.js?v=20261111-2';
 import {prepareViewerReferenceImages} from './viewer-reference-preparation.js?v=20261108-picker1';
 import {createVideoReferenceUploader} from './video-reference-upload.js?v=20261111-preupload1';
 import {soulNightFlashQuoteMatches} from './night-flash-soul.js?v=20261106v1&wonKarNight=20261106v1&ownerNightFlash=20261107v1';

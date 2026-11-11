@@ -51,6 +51,26 @@ try{
   const inputs=await page.evaluate(()=>window.__kling.inputs());assert.equal(inputs.referenceSourceIds.length,6);
   await page.locator('#prompt').fill('Follow the same character through the studio.');
   const selected=await page.evaluate(()=>window.__kling.settings());assert.equal(selected.provider,'fal');assert.equal(selected.engine,'kling4');assert.equal(selected.audio,true);
+  await page.locator('#kling4-settings summary').click();
+  await page.getByRole('button',{name:'Add Element',exact:true}).click();
+  await page.getByLabel('Element 1 name',{exact:true}).fill('Alma');
+  await page.getByLabel('Choose front photo, then other views',{exact:true}).evaluate(input=>{
+    const files=new DataTransfer();files.items.add(new File(['synthetic'],'alma-front.png',{type:'image/png'}));input.files=files.files;input.dispatchEvent(new Event('change'));
+  });
+  await page.locator('#kling4-settings small').filter({hasText:'alma-front.png'}).waitFor();
+  await page.getByRole('button',{name:'Add shot',exact:true}).click();
+  await page.getByLabel('Shot 1 direction',{exact:true}).fill('Slow orbit around @Element1.');
+  await page.getByLabel('Shot 1 duration in seconds',{exact:true}).fill('5');
+  const advanced=await page.evaluate(()=>window.__kling.inputs());assert.equal(advanced.kling4Media.elements[0].imageSourceIds.length,1);
+  assert.equal((await page.evaluate(()=>window.__kling.settings())).kling4.elements[0].name,'Alma');
+  await page.evaluate(()=>window.__kling.mode('text'));
+  assert.equal((await page.evaluate(()=>window.__kling.settings())).kling4.elements.length,0,'Hidden Elements do not leak into Text mode');
+  assert.equal((await page.evaluate(()=>window.__kling.inputs())).kling4Media.elements.length,0);
+  await page.evaluate(()=>window.__kling.mode('transform'));
+  assert.equal((await page.evaluate(()=>window.__kling.settings())).kling4.shots.length,0,'Hidden shots do not leak into video editing');
+  await page.evaluate(()=>window.__kling.mode('reference'));
+  assert.equal((await page.evaluate(()=>window.__kling.settings())).kling4.shots.length,1,'Returning to References keeps the draft');
+  await page.locator('#video-model-control').scrollIntoViewIfNeeded();
   await page.screenshot({path:'test-results/kling4-references-'+width+'.png',fullPage:true});
   await page.evaluate(()=>{window.__kling.clear();window.__kling.mode('start');});
   await page.evaluate(()=>window.__kling.frame());

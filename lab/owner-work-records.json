@@ -3350,12 +3350,12 @@
       "id": "kling4-fal-video",
       "title": "Kling 4.0 via fal in the existing Video Studio",
       "component": "Video model, references, frames and editing",
-      "summary": "Kling 4.0 integration prepared with fal canonical text, frames, reference and edit endpoints. Existing Video shell reused. 78 local checks and dedicated 390px/1440px browser CI passed. Worker publication is blocked on Cloudflare authentication.",
-      "nextAction": "Review CI screenshots, deploy the matching Worker through authenticated Cloudflare access, verify nonbillable quotes, then merge and verify frontend assets. No paid generation has run.",
+      "summary": "Kling 4.0 via fal prepared in the existing Video shell. Polished advanced settings, file selection, keyboard access and mode-specific drafts. Initial and follow-up 390px/1440px browser tests passed; expanded polish browser checks pending. Worker publication remains blocked on Cloudflare authentication.",
+      "nextAction": "Complete expanded browser checks and inspect final screenshots; deploy matching Worker via authenticated Cloudflare, verify nonbillable quotes, then merge frontend and verify production bytes. No paid generation submitted.",
       "status": "needs_verification",
-      "updatedAt": "2026-11-11T14:05:00Z",
+      "updatedAt": "2026-11-11T14:06:00Z",
       "baselineSha": "450dc12e65116490ed3772c0f885f58ef9c4ddf5",
-      "reviewedSha": "2f3e4bd24db682810193256673dd1fd8d6b22a4c",
+      "reviewedSha": "1011a8868edbf5b2fa77b8975535b73c9153ad9e",
       "branch": "codex/kling4-fal",
       "files": [
         ".github/workflows/lab-video-credit-preview.yml",
@@ -3402,7 +3402,13 @@
         },
         {
           "label": "Screenshot review corrections",
-          "scope": "Reviewed actual 390px and 1440px captures. Added native flex order for Kling settings below reference controls and corrected fixed native audio to Included; 25 affected contracts pass. Browser rerun pending.",
+          "scope": "Actual screenshots reviewed at 390px and 1440px. Settings order and native audio Included label both confirmed by browser CI run 43032021847.",
+          "result": "passed",
+          "source": "tests/lab-kling4-ui.mjs"
+        },
+        {
+          "label": "Polished Kling controls",
+          "scope": "24 affected contract tests and static build pass. Expanded browser checks cover Element media, shot configuration and switching modes without hidden controls leaking into requests. Browser rerun pending.",
           "result": "documented",
           "source": "tests/lab-kling4-ui.mjs"
         }
