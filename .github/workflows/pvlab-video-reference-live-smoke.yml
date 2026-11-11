@@ -1,0 +1,69 @@
+name: PV LAB Video reference upload production smoke
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pvlab-video-reference-live-smoke.yml'
+      - 'lab/studio.html'
+      - 'lab/lab.js'
+      - 'lab/video-reference-upload.js'
+      - 'lab/video-relaxed-studio.css'
+      - 'tests/lab-video-credit-preview-ui.mjs'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pvlab-video-reference-live-smoke.yml'
+      - 'lab/studio.html'
+      - 'lab/lab.js'
+      - 'lab/video-reference-upload.js'
+      - 'lab/video-relaxed-studio.css'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-video-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify the versioned production Video Studio assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            ready=1
+            fetch(){
+              local name="$1" path="$2"
+              local join='?'; [[ "$path" == *'?'* ]] && join='&'
+              code="$(curl -L -sS --connect-timeout 8 --max-time 20 -H 'Cache-Control: no-cache' -o "/tmp/$name" -w '%{http_code}' "https://pvlab.studio/$path${join}video-preupload-smoke=20261111-$attempt")" || code="network-failure"
+              echo "$name HTTP $code"
+              if [[ "$code" != 200 ]]; then ready=0; fi
+            }
+            fetch studio 'studio?tool=video&preupload=20261111'
+            fetch script 'lab.js'
+            fetch helper 'video-reference-upload.js'
+            fetch styles 'video-relaxed-studio.css'
+            check(){
+              if ! grep -Fq "$2" "/tmp/$1" 2>/dev/null; then
+                echo "NOT LIVE: $3"; ready=0
+              fi
+            }
+            check studio 'id="reference-upload-meter"' 'reference progress meter'
+            check studio 'videoRefPreupload=20261111v1' 'Studio JS cache marker'
+            check studio 'refPreupload=20261111-1' 'Studio CSS cache marker'
+            check script 'createVideoReferenceUploader' 'deduplicated upload import'
+            check script 'startVideoReferenceUpload(item)' 'early reference upload'
+            check script 'await startVideoReferenceUpload(r)' 'Generate reuses reference upload'
+            check helper 'Select Retry on the photo before generating' 'explicit retry contract'
+            check styles 'font-weight:350!important;opacity:.68!important' 'thin credit label'
+            check styles 'content:none!important;display:none!important;mask:none!important' 'hidden diamond icon'
+            if [[ "$ready" == 1 ]]; then
+              echo 'PASS: production serves the Video pre-upload source, retry UI, and simplified Generate styling.'
+              echo 'NOTE: this read-only check does not verify a signed-in private upload or charge credits.'
+              exit 0
+            fi
+            sleep 6
+          done
+          echo 'FAIL: production Video source does not match merged implementation.'
+          exit 1
