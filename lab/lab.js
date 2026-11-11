@@ -3571,7 +3571,28 @@ function renderReferences(){
       remove.onclick=()=>{if(busy)return;closeInputPreview();for(let j=references.length-1;j>=0;j--){if(references[j].elementId===r.elementId){releaseReference(references[j]);references.splice(j,1);}}
         if(!references.length){imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();}
         renderReferences();refreshInputPreview();update();};
-      controls.append(remove);item.append(img,fields,controls);fragment.append(item);return;
+      controls.append(remove);
+      if(typeof tool!=='undefined'&&tool==='video'){
+        const group=references.filter(ref=>ref.elementId===r.elementId);
+        const failures=group.filter(ref=>videoReferenceUploads.status(ref).state==='error');
+        const uploading=group.some(ref=>videoReferenceUploads.status(ref).state==='uploading');
+        const complete=group.filter(ref=>videoReferenceUploads.status(ref).state==='ready').length;
+        const status=document.createElement('small');
+        status.className='pv-ref-upload-state'+(failures.length?' is-error':'');
+        status.textContent=failures.length?failures.length+' upload failed':
+          uploading?'Uploading '+complete+' of '+group.length+'…':
+          complete===group.length?'All '+complete+' uploaded':'Waiting to upload';
+        fields.append(status);
+        if(failures.length){
+          const retry=document.createElement('button');retry.type='button';
+          retry.className='pv-ref-upload-retry';retry.textContent='Retry upload';
+          retry.disabled=busy;retry.setAttribute('aria-label','Retry uploads for '+r.elementName);
+          retry.onclick=()=>{if(!busy&&owner)for(const ref of failures)
+            void startVideoReferenceUpload(ref,{retry:true}).catch(()=>{});};
+          controls.append(retry);
+        }
+      }
+      item.append(img,fields,controls);fragment.append(item);return;
     }
     const item=document.createElement('div');item.className='reference-item';
     const img=document.createElement('img');img.src=r.thumbUrl;img.alt='Input reference '+(i+1);img.width=68;img.height=82;img.decoding='async';
