@@ -640,7 +640,19 @@ try{
   assert.equal(await page.locator('#panel-model').isVisible(),true,'World CTA opens Identity directly');
   assert.equal(await page.locator('#panel-style').isVisible(),false,'Styling is optional');
   assert.match(await page.locator('#progress-title').textContent(),/1 \/ 2/);
-  await page.waitForFunction(()=>document.querySelectorAll('#location-thumbs img').length===2,null,{timeout:10000});
+  try{
+   await page.waitForFunction(()=>document.querySelectorAll('#location-thumbs img').length===2,null,{timeout:8000});
+  }catch(error){
+   const diagnostic=await page.evaluate(()=>({
+    status:document.querySelector('#editorial-status')?.textContent,
+    thumbnails:document.querySelectorAll('#location-thumbs img').length,
+    worldLink:location.href,
+    scenery:performance.getEntriesByType('resource').filter(r=>r.name.includes('chrome-desert')).map(r=>({name:r.name,status:r.responseStatus,duration:r.duration})),
+    thumbnailMarkup:document.querySelector('#location-thumbs')?.innerHTML.slice(0,500),
+    hasFile:typeof File
+   }));
+   throw new Error('Chrome Desert world references missing: '+JSON.stringify(diagnostic)+' / '+errors.join('|'),{cause:error});
+  }
   assert.equal(jobCount,beforeJobs);
   assert.equal(quoteCount,beforeQuotes);
   await page.locator('#casting-reference-gallery .atelier-reference').first().click();
