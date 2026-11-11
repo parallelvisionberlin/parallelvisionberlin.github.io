@@ -54,6 +54,14 @@ try{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4179/lab/full-editorial.html',{waitUntil:'domcontentloaded'});
   await page.locator('.editorial-hero-art img').evaluate(img=>img.decode().catch(()=>{}));
+  await page.evaluate(()=>document.fonts.ready);
+  const arrival=await page.evaluate(()=>({
+   scrollY:window.scrollY,
+   heroTop:document.getElementById('editorial-hero').getBoundingClientRect().top,
+   headerBottom:document.querySelector('.editorial-header').getBoundingClientRect().bottom
+  }));
+  assert.ok(Math.abs(arrival.scrollY)<2,'Hero arrival never moves page during initialization: '+JSON.stringify(arrival));
+  assert.ok(Math.abs(arrival.heroTop-arrival.headerBottom)<3,'Hero stays directly below navigation: '+JSON.stringify(arrival));
   await page.screenshot({path:'test-results/editorial/'+width+'-hero.png',fullPage:width===390});
   await page.locator('#editorial-start').click();
   // A condensed display face is already heavy; do not artificially bold it

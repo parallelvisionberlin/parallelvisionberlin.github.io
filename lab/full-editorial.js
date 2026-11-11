@@ -215,7 +215,7 @@ function go(next){step=next;const panels=['model','style','mood','generate','pro
  // The casting track has width 0 on the welcome screen; measure only once Identity is visible.
  if(next===1)requestAnimationFrame(updateCastCarouselControls);
  if(next===4)updateSeriesSummary();
- if(next===0){window.scrollTo({top:0,left:0,behavior:'instant'});document.getElementById('editorial-hero').scrollIntoView({block:'start',behavior:'instant'});}else{document.getElementById('editorial-flow').scrollIntoView({block:'start',behavior:'instant'});}
+ if(next===0){window.scrollTo({top:0,left:0,behavior:'instant'});}else{document.getElementById('editorial-flow').scrollIntoView({block:'start',behavior:'instant'});}
 }
 function updateOptions(){for(const b of $('count-options').querySelectorAll('button'))b.classList.toggle('is-selected',Number(b.dataset.count)===chosenCount);
  for(const b of $('ratio-options').querySelectorAll('button'))b.classList.toggle('is-selected',b.dataset.ratio===chosenRatio);}

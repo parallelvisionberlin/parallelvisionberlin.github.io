@@ -110,7 +110,7 @@ test('Identity casting uses the approved photographic layout rather than standal
  const identityCss=read('lab/full-editorial-identity-refresh.css');
  assert.match(identityCss,/scroll-snap-type:x mandatory/,'Casting supports a horizontal snap carousel');
  assert.match(identityCss,/position:sticky!important/,'Selection dock follows the active viewport');
- assert.match(html,/full-editorial-identity-refresh\.css\?v=20261111-continue-height2/);
+ assert.match(html,/full-editorial-identity-refresh\.css\?v=20261111-continue-height3/);
 
  const atelierCss=read('lab/full-editorial-atelier.css');
  assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
@@ -119,7 +119,7 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.match(html,/full-editorial\.js\?v=20261111-continue-type1/);
+ assert.match(html,/full-editorial\.js\?v=20261111-arrival-stability1/);
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);setIdentitySource\('casting'\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=step!==1/,'Composition remains visible throughout Identity');
@@ -211,10 +211,14 @@ test('Identity typography clears Back and progress rail; Continue uses a subdued
  assert.match(c,/#step-next:disabled/);
  assert.doesNotMatch(c.slice(c.indexOf('PVLAB_IDENTITY_HERO_TEXT_CTA_20261101')),/#editorial-cast-empty:not/,'No state-dependent hero geometry');
  assert.match(html,/id="step-next" class="primary"/,'Existing continue action and semantics unchanged');
+ assert.match(html, /full-editorial\.css\?v=20261111-arrival-stability1/, 'Full Editorial loads updated primary stylesheet');
+ assert.match(html, /rel="preload" href="\.\/fonts\/dm-sans-latin-v17\.woff2" as="font" type="font\/woff2" crossorigin/, 'DM Sans is fetched before the first hero paint');
+ assert.match(css, /font-display:block/, 'Avoid visible fallback-font swap during arrival');
+ assert.doesNotMatch(js, /getElementById\('editorial-hero'\)\.scrollIntoView/, 'Startup does not redundantly scroll the arrival hero');
  const labelCss=read('lab/full-editorial-identity-refresh.css');
- assert.match(labelCss,/transform:scaleY\(1\.055\)/,'Continue lettering grows taller without resizing button');
- assert.match(labelCss,/font-size:15px;\s*font-weight:650/,'Continue is marginally larger');
- assert.match(labelCss,/font-size:14\.5px;\s*font-weight:410/,'to styling remains lighter');
+ assert.match(labelCss,/transform:scaleY\(1\.1\)/,'Continue lettering grows taller without resizing button');
+ assert.match(labelCss,/font-size:16px;\s*font-weight:650/,'Continue is marginally larger');
+ assert.match(labelCss,/font-size:15\.5px;\s*font-weight:410/,'to styling remains lighter');
 });
 
 test('Identity carousel retains saved character, uploading and multi-cast controls',()=>{
