@@ -31,7 +31,7 @@ export function cancelImagePreparation() {
 }
 function workerTask(operation, file) {
   if (!imageWorker) {
-    imageWorker = new Worker(new URL('./image-worker.js?v=20261010-seedream-pixels2', import.meta.url), { type: 'module' });
+    imageWorker = new Worker(new URL('./image-worker.js?v=20261111-fast-image-preview1', import.meta.url), { type: 'module' });
     imageWorker.onmessage = ({ data }) => {
       const task = pending.get(data.id); if (!task) return;
       pending.delete(data.id); clearTimeout(task.timer);
@@ -89,6 +89,9 @@ function processLocally(operation, file,{backgroundOnly=false}={}) {
 }
 export async function imageDimensions(file) { return processLocally('dimensions', file); }
 export async function imagePreview(file) { return processLocally('preview', file); }
+// Image Deck only needs a small tile at import time. The original file provides
+// the full-size inspection view without a second 1280px WebP conversion.
+export async function imageReferencePreview(file) { return processLocally('reference-preview', file); }
 export async function providerWorkingCopy(file,options={}) {
   if (file.size <= PROVIDER_IMAGE_LIMIT) return file;
   const { blob } = await processLocally('working-copy', file,options);
@@ -138,9 +141,10 @@ export async function runImageTask(operation, file) {
       if (!blob?.size) throw new Error('Your browser could not encode this image.');
       return blob;
     };
-    if (operation === 'preview') {
+    if (operation === 'preview' || operation === 'reference-preview') {
       const fit = edge => { const scale = Math.min(1, edge / Math.max(width, height)); draw(Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale))); };
       fit(320); const thumbnail = await encode(0.84);
+      if (operation === 'reference-preview') return { ...dimensions, thumbnail };
       fit(1280); const preview = await encode(0.90);
       return { ...dimensions, thumbnail, preview };
     }
