@@ -634,6 +634,8 @@ try{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   const beforeJobs=jobCount,beforeQuotes=quoteCount;
   await page.goto('http://127.0.0.1:4179/lab/index.html',{waitUntil:'domcontentloaded'});
+  await page.locator('#featured-photo-pack img').evaluateAll(images=>Promise.all(images.map(image=>image.decode().catch(()=>{}))));
+  await page.locator('#featured-photo-pack').screenshot({path:'test-results/editorial/'+width+'-chrome-desert-home.png'});
   await page.locator('#featured-photo-pack .pv-photo-pack-action').click();
   await page.waitForURL('**/full-editorial.html?world=chrome-desert');
   await page.locator('#editorial-world-preset').waitFor({state:'visible'});
@@ -660,6 +662,8 @@ try{
   await page.locator('#step-next').click();
   assert.equal(await page.locator('#panel-generate').isVisible(),true,'Choose subject to go straight to review');
   assert.equal(await page.locator('#editorial-review-world').isVisible(),true);
+  assert.match(await page.locator('#panel-generate .stage-index').textContent(),/02 \/ 02/,'World step count matches the two-step route');
+  assert.match(await page.locator('#panel-generate .atelier-review-photo img').getAttribute('src'),/featured-worlds\/chrome-desert\/hero\.jpg/,'Review uses the actual selected Chrome Desert photograph');
   assert.match(await page.locator('#review-location-text').textContent(),/Chrome Desert/);
   await page.waitForFunction(()=>/^\d[\d,]* credits$/.test(document.getElementById('editorial-cost').textContent),null,{timeout:12000});
   assert.ok(quoteCount>=beforeQuotes+4,'Receives actual four-shot quotes');
