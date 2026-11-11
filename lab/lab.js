@@ -1110,6 +1110,8 @@ async function fetchVideoCreditPrice(snapshot,check){
   const originals=await ensureInputs();check();
   const inputs=await prepareQuoteInputs(originals);check();
   const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:snapshot.settings}});check();
+  if(snapshot.settings.engine==='seedance'&&snapshot.settings.mode==='extend'&&(q.provider!=='SpicyAPI'||q.settings?.provider!=='spicy'))
+    throw new Error('Seedance Extend requires the SpicyAPI backend release. Nothing generated or charged.');
   return videoCreditPreview(q,snapshot.settings);
 }
 function applyVideoCreditPrice(){
@@ -3995,6 +3997,8 @@ $('generate').onclick=async()=>{if(tool==='image')return submitImageSnapshot();
   notify(selectedTool==='upscale'?'Checking live upscale price before submission…':'Requesting a live price. No generation submitted.');
   const q=previewQuote||await api('/api/quotes',{method:'POST',body:{...inputs,settings:settings()}});
   if(!owner||epoch!==sessionEpoch||tool!==selectedTool)throw new Error('Session or tool changed. No generation submitted.');
+  if(selectedTool==='video'&&engine==='seedance'&&mode==='extend'&&(q.provider!=='SpicyAPI'||q.settings?.provider!=='spicy'))
+    throw new Error('Seedance Extend requires the SpicyAPI backend release. Nothing generated or charged.');
   if(selectedTool==='upscale'){
     if(q.settings.type!=='image'||q.settings.mode!=='upscale')throw new Error('Unexpected upscale quote. No generation submitted.');
     await submitQuotedGeneration(q,sessionEpoch);
