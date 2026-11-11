@@ -12,7 +12,7 @@ test('Image Inspiration expands original eight cards without modifying Moods',()
   const guest=read('studio-guest-image.js');
   assert.equal((html.match(/data-guest-mood="/g)||[]).length,8);
   assert.equal((html.match(/data-welcome-mood="/g)||[]).length,8);
-  assert.equal(INSPIRATION_SCENES.length,44);
+  assert.equal(INSPIRATION_SCENES.length,45);
   assert.match(read('inspiration-carousel.js'),/import '.\/inspiration-catalog\.js/);
   assert.match(catalog,/\.inspiration-carousel-shell/);
   assert.match(catalog,/inspiration-view-all/);
@@ -27,7 +27,7 @@ test('Image Inspiration expands original eight cards without modifying Moods',()
   assert.doesNotMatch(catalog,/\/api\/|fetch\(|submitImage|createGeneration/);
 });
 
-test('catalog has 44 unique scene concepts, eight categories, working local covers and editable photographic prompts',()=>{
+test('catalog has 45 unique scene concepts, eight categories, working local covers and editable photographic prompts',()=>{
   const ids=new Set(),names=new Set(),categories=new Set();
   for(const scene of INSPIRATION_SCENES){
     assert.ok(!ids.has(scene.id),'duplicate id '+scene.id);
