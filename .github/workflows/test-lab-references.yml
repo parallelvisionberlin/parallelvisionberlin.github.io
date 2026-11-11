@@ -42,10 +42,18 @@ jobs:
         run: node --test tests/lab-worker.test.mjs tests/lab-krea3-fashion.test.mjs tests/lab-smart-prompts.test.mjs tests/lab-mood-references.test.mjs tests/lab-dream-blur.test.mjs
       - name: Verify reference preview stability without API or paid jobs
         run: node --test tests/lab-reference-preview-stability.test.mjs
+      - name: Verify Image Deck preview priority
+        run: node --test tests/lab-image-preview-priority.test.mjs
       - name: Install browser test runner
         run: |
           npm install --no-save --no-package-lock playwright
           npx playwright install chromium --with-deps
+      - name: Benchmark preview responsiveness against current main
+        env:
+          PV_PLAYWRIGHT_MODULE: ${{ github.workspace }}/node_modules/playwright/index.mjs
+        run: |
+          git fetch --depth=1 origin main
+          node tests/lab-image-preview-benchmark.mjs
       - name: Test reference deck with mocked API
         env:
           PV_PLAYWRIGHT_MODULE: ${{ github.workspace }}/node_modules/playwright/index.mjs
