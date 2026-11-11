@@ -59,7 +59,10 @@ window.addEventListener('pv-inspiration-concept',event=>{
   if(!scene||typeof scene.prompt!=='string'||!scene.prompt.trim()||!gate||gate.hidden)return;
   selected='';
   prompt.value=scene.prompt.slice(0,5000);
-  showSelection();storeDraft();
+  showSelection();
+  // Catalog selections are programmatic writes: notify the same deck sizing
+  // controller as typing or choosing a built-in Inspiration card.
+  prompt.dispatchEvent(new Event('input',{bubbles:true}));
   scene.applied=true;
   if(window.matchMedia('(max-width:680px)').matches&&document.activeElement===prompt)prompt.blur();
 });

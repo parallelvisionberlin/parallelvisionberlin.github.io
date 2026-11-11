@@ -66,6 +66,47 @@
     const finalLift=Math.min(finalOverlap,Math.max(0,title.getBoundingClientRect().top-top));
     if(finalLift)surface.style.setProperty('--pv-welcome-deck-lift',Math.ceil(finalLift)+'px');
   }
+  // On phones a long prompt grows the fixed dock upward. Reposition only the
+  // Inspiration entrance within the space beneath the header, then shorten
+  // the photo if a short in-app browser leaves insufficient room. Neither
+  // History nor the separate Moods grid uses this adjustment.
+  function fitPhoneInspiration(surface,grid,deck,visible){
+    if(!surface||!grid)return;
+    surface.style.removeProperty('--pv-phone-inspiration-lift');
+    grid.classList.remove('pv-phone-inspiration-compact-cards');
+    grid.style.removeProperty('--pv-phone-inspiration-card-height');
+    if(!small.matches||!visible||!deck.classList.contains('pv-deck-expanded')||
+      document.documentElement.classList.contains('pv-native-lab')||
+      document.documentElement.classList.contains('pv-image-previews-hidden')){
+      // welcome is observed for class mutations. Only change this class on a
+      // genuine state transition to avoid a self-triggering layout loop.
+      if(surface.classList.contains('pv-phone-inspiration-lift'))
+        surface.classList.remove('pv-phone-inspiration-lift');
+      return;
+    }
+    const title=surface.querySelector('h1,h2');
+    const first=grid.querySelector(':scope > button');
+    if(!title||!first)return;
+    surface.classList.add('pv-phone-inspiration-lift');
+    const header=document.getElementById('studio-header');
+    const headerBottom=header?.getBoundingClientRect().bottom||0;
+    const availableLift=Math.max(0,title.getBoundingClientRect().top-headerBottom-12);
+    const overlap=Math.max(0,grid.getBoundingClientRect().bottom-deck.getBoundingClientRect().top+12);
+    const lift=Math.ceil(Math.min(overlap,availableLift));
+    if(lift>0)surface.style.setProperty('--pv-phone-inspiration-lift',lift+'px');
+    // Preserve original image size whenever shifting into the spare top
+    // space suffices. Only short browser chrome requires a height reduction.
+    const remaining=Math.max(0,grid.getBoundingClientRect().bottom-deck.getBoundingClientRect().top+12);
+    if(remaining>1){
+      const natural=first.getBoundingClientRect().height;
+      const minimum=innerHeight<690?120:Math.min(160,Math.max(140,innerHeight*.2));
+      const target=Math.max(minimum,Math.floor(natural-remaining));
+      if(target<natural-1){
+        grid.classList.add('pv-phone-inspiration-compact-cards');
+        grid.style.setProperty('--pv-phone-inspiration-card-height',target+'px');
+      }
+    }
+  }
   function fitDeckOrigin(surface,visible){
     if(!welcomeWidth.matches||!visible){surface.style.removeProperty('--pv-image-deck-top');return;}
     // Original History is 142px tall and 30px above the viewport edge.
@@ -143,6 +184,10 @@
     fitDeckOrigin(guest,!document.getElementById('gate').hidden);
     clearWelcomeDeck(welcome,cards,real,real.classList.contains('pv-welcome-deck'));
     clearWelcomeDeck(guestContent,guestCards,guest,!gate.hidden&&gate.dataset.guestTool==='image'&&
+      !gate.querySelector('#pv-guest-closed-state:not([hidden])'));
+    fitPhoneInspiration(welcome,cards,real,!app.hidden&&app.classList.contains('image-studio-active')&&
+      welcome&&!welcome.hidden&&empty&&!empty.hidden);
+    fitPhoneInspiration(guestContent,guestCards,guest,!gate.hidden&&gate.dataset.guestTool==='image'&&
       !gate.querySelector('#pv-guest-closed-state:not([hidden])'));
     if(welcomeWidth.matches&&!app.hidden&&app.classList.contains('image-studio-active'))
       app.style.setProperty('--pv-image-deck-reserve',Math.ceil(real.getBoundingClientRect().height+46)+'px');

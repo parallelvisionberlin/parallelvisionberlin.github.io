@@ -141,6 +141,19 @@ try{
           'Selected Mood retains the approved restrained photo spacing');
       }
       assert.ok(long.prompt.height>=100&&long.prompt.height<=133,'Long public prompt stays bounded');
+      // Expanded Inspiration must make room for the fixed Generate deck,
+      // including small iOS in-app browser viewports.
+      const guestClearance=await page.evaluate(()=>{
+        const card=document.querySelector('#pv-guest-cards .pv-guest-card').getBoundingClientRect();
+        const dock=document.getElementById('pv-guest-composer').getBoundingClientRect();
+        const title=document.getElementById('pv-guest-title').getBoundingClientRect();
+        const header=document.getElementById('studio-header').getBoundingClientRect();
+        return {cardBottom:card.bottom,deckTop:dock.top,titleTop:title.top,headerBottom:header.bottom,
+          lifted:document.querySelector('#gate .pv-guest-content').classList.contains('pv-phone-inspiration-lift')};
+      });
+      assert.equal(guestClearance.lifted,true,'Expanded public Inspiration computes a safe top lift');
+      assert.ok(guestClearance.cardBottom<=guestClearance.deckTop-8,
+        'Public Inspiration cards must clear the expanded fixed prompt dock: '+JSON.stringify(guestClearance));
       assert.ok(long.generate.bottom<=height&&long.doc<=width+1,'Long prompt does not clip Generate or widen the page');
       const stateBeforeScroll=await page.evaluate(()=>{
         const deck=document.getElementById('pv-guest-composer');
@@ -245,8 +258,17 @@ try{
       const signedExpanded=await signedCards();
       assert.ok(Math.abs(signedExpanded.height-signedRest.height)<1,
         'Signed-in Image photos remain full size when the prompt expands');
-      assert.ok(Math.abs(signedExpanded.titleGap-signedRest.titleGap)<2,
-        'Signed-in Image photos retain their title clearance when the prompt expands: '+JSON.stringify({signedRest,signedExpanded}));
+      assert.ok(signedExpanded.titleGap>=12&&signedExpanded.titleGap<=signedRest.titleGap+2,
+        'Signed-in Image photos keep enough title clearance while moving toward the prompt dock: '+JSON.stringify({signedRest,signedExpanded}));
+      const signedClearance=await page.evaluate(()=>{
+        const card=document.querySelector('#lab-welcome-presets .lab-welcome-preset').getBoundingClientRect();
+        const dock=document.getElementById('image-composer').getBoundingClientRect();
+        return {cardBottom:card.bottom,deckTop:dock.top,
+          lifted:document.getElementById('lab-welcome-start').classList.contains('pv-phone-inspiration-lift')};
+      });
+      assert.equal(signedClearance.lifted,true,'Expanded signed-in Inspiration computes a safe top lift');
+      assert.ok(signedClearance.cardBottom<=signedClearance.deckTop-8,
+        'Signed-in Inspiration cards must clear the expanded dock: '+JSON.stringify(signedClearance));
       await page.screenshot({path:`test-results/mobile-image-signed-${width}-${height}.png`});
       assert.deepEqual(errors,[]);
       console.log('PASS compact guest Image, disclosure, bounded text, blur/clear and signed font at '+width+'x'+height);
