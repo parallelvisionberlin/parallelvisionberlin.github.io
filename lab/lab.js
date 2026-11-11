@@ -2649,7 +2649,8 @@ let videoSelectionRevision=0;
 let videoLoadJobId=null,videoLoadErrorJobId=null;
 
 /* Effects reuses the existing Video quote, submit, history and credit pipeline. */
-let effectViewOpen=false,activeVideoEffect=null,effectGalleryTicket=0,applyingVideoEffect=false;
+let effectViewOpen=false,activeVideoEffect=null,effectGalleryTicket=0,applyingVideoEffect=false,effectsReturnScrollY=0;
+const studioDocumentTitle=document.title;
 const effectPicker=$('effect-gallery-picker'),effectPickerUrls=new Set();
 function refreshEffectsView(){
   // "owner" means signed-in here. The server-verified session "owner: true" is separate.
@@ -2662,6 +2663,9 @@ function refreshEffectsView(){
     if(owner&&new URLSearchParams(location.search).has('effects'))updateEffectUrl(false);
   }
   const explorer=effectViewOpen&&effectsAllowed&&tool==='video'&&!fashionActive&&!retouchActive&&!assetLibrary?.active();
+  // Effects replaces the visible Studio document. Only its own page can scroll.
+  document.body.classList.toggle('pv-effects-page',explorer);
+  document.title=explorer?'Effects | PV LAB':studioDocumentTitle;
   $('app').classList.toggle('effects-explore-active',explorer);
   $('video-effects-explore').hidden=!explorer;
   mainWorkspace.hidden=explorer;
@@ -2680,12 +2684,18 @@ function updateEffectUrl(open){
   if(open)url.searchParams.set('effects','1');else url.searchParams.delete('effects');
   if(url.href!==location.href)history.replaceState(history.state,'',url);
 }
-function closeEffectsView(){effectViewOpen=false;updateEffectUrl(false);refreshEffectsView();}
+function closeEffectsView({restoreScroll=false}={}){
+  const wasOpen=effectViewOpen;
+  effectViewOpen=false;updateEffectUrl(false);refreshEffectsView();
+  if(wasOpen)window.scrollTo({top:restoreScroll?effectsReturnScrollY:0,behavior:'instant'});
+}
 function openEffectsView({scroll=true}={}){
   if(!owner||!ownerAccount||busy)return;
   if(tool!=='video')setTool('video');
+  if(!effectViewOpen)effectsReturnScrollY=window.scrollY;
   effectViewOpen=true;updateEffectUrl(true);refreshEffectsView();
-  if(scroll)$('video-effects-explore').scrollIntoView({behavior:'instant',block:'start'});
+  // Never scroll the Video canvas into view when entering the Effects route.
+  if(scroll)window.scrollTo({top:0,behavior:'instant'});
 }
 function clearEffectPickerUrls(){
   ++effectGalleryTicket;
