@@ -501,8 +501,8 @@ try{
   assert.ok(!hovered.boxShadow.includes('0.87')&&!hovered.boxShadow.includes('0.33'),
     'The earlier overbright halo must be removed: '+hovered.boxShadow);
   await page.mouse.move(2,2);
-  assert.equal(await page.locator('.lab-welcome-preset').count(),52,
-    'The original eight welcome cards remain mounted ahead of 44 additional Inspiration scenes');
+  assert.equal(await page.locator('.lab-welcome-preset').count(),14,
+    'The original eight welcome cards remain mounted ahead of six featured Inspiration scenes');
   // Navigate the real gallery before submitting a job, so queue callbacks
   // cannot close the Inspiration view during the click regression.
   const welcomeNext=page.locator('.lab-welcome-carousel .inspiration-nav-next');
