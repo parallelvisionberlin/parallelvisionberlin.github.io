@@ -376,9 +376,9 @@
     translate:0 calc(0px - var(--pv-phone-inspiration-lift,0px))!important;
   }
   html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]
-    .pv-guest-content.pv-phone-inspiration-lift .pv-guest-card,
+    .pv-guest-content.pv-phone-inspiration-lift .pv-guest-cards.pv-phone-inspiration-compact-cards .pv-guest-card,
   html:not(.pv-native-lab) #app.image-studio-active
-    #lab-welcome-start.pv-phone-inspiration-lift .lab-welcome-preset{
+    #lab-welcome-start.pv-phone-inspiration-lift .lab-welcome-presets.pv-phone-inspiration-compact-cards .lab-welcome-preset{
     height:var(--pv-phone-inspiration-card-height)!important;
   }
 }
