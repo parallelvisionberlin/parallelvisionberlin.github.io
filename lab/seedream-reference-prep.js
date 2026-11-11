@@ -10,13 +10,13 @@ export function seedreamPrepKind(item,{pixelLimit=36000000,byteLimit=10*1024*102
 }
 
 export function createSeedreamReferencePreparer({
-  pixelCopy,byteCopy,canBackground=()=>false,now=()=>Date.now(),ttlMs=15*60*1000
+  pixelCopy,byteCopy,kindFor=seedreamPrepKind,canBackground=()=>false,now=()=>Date.now(),ttlMs=15*60*1000
 }={}){
   if(typeof pixelCopy!=='function'||typeof byteCopy!=='function')
     throw new TypeError('Seedream preparation requires pixel and byte optimizers.');
   let prepared=new WeakMap(),inflight=new WeakMap(),revision=0;
   function prepare(item,{background=false}={}){
-    const kind=seedreamPrepKind(item);
+    const kind=kindFor(item);
     if(!kind)return null;
     const source=item.file,existing=prepared.get(source);
     if(existing?.kind===kind&&now()>=existing.at&&now()-existing.at<ttlMs)
@@ -50,7 +50,7 @@ export function createSeedreamReferencePreparer({
     warm:item=>prepare(item,{background:true}),
     forSubmission:item=>prepare(item,{background:false}),
     status(item){
-      const kind=seedreamPrepKind(item);
+      const kind=kindFor(item);
       if(!kind)return 'not-needed';
       const cached=prepared.get(item.file);
       if(cached?.kind===kind&&now()>=cached.at&&now()-cached.at<ttlMs)return 'ready';
