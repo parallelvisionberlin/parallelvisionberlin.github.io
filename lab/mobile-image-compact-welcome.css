@@ -369,8 +369,14 @@
     .pv-guest-carousel{margin-top:8px!important}
   html:not(.pv-native-lab) #app.image-studio-active:has(#image-composer.pv-deck-expanded)
     #lab-welcome-start:not([hidden]) .lab-welcome-carousel{margin-top:8px!important}
+  /* Never translate .pv-guest-content itself: it owns the position:fixed
+     composer. A transformed ancestor would rebase that fixed dock and cause
+     keyboard/scroll drift. Move only the heading and carousel siblings. */
   html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]
-    .pv-guest-content.pv-phone-inspiration-lift,
+    .pv-guest-content.pv-phone-inspiration-lift
+    > :is(.pv-guest-kicker,h1,.pv-guest-subtitle,.pv-guest-credit-note,.pv-guest-carousel){
+    translate:0 calc(0px - var(--pv-phone-inspiration-lift,0px))!important;
+  }
   html:not(.pv-native-lab) #app.image-studio-active
     #lab-welcome-start.pv-phone-inspiration-lift{
     translate:0 calc(0px - var(--pv-phone-inspiration-lift,0px))!important;
