@@ -65,6 +65,45 @@
   ],
   "records": [
     {
+      "id": "chrome-desert-world-handoff-20261111",
+      "title": "Chrome Desert featured world to Full Editorial",
+      "component": "PV LAB homepage / Full Editorial",
+      "status": "in-progress",
+      "summary": "Build an owner-approved curated Chrome Desert world from 3 original photographs, with a direct subject-to-review Full Editorial preset and optional styling/location edits.",
+      "nextAction": "Review branch, run focused Chrome Desert and approved Image UI checks, inspect 390px and desktop layout, then merge only if green and separately verify Cloudflare Pages production. No paid generation tests.",
+      "baselineSha": "739b9b3fde2092b259997b7a98e8be83b950ba1d",
+      "branch": "feat/chrome-desert-featured-world-20261111",
+      "files": [
+        "lab/index.html",
+        "lab/home-featured-photo-pack.css",
+        "lab/visuals/featured-worlds/chrome-desert/hero.jpg",
+        "lab/visuals/featured-worlds/chrome-desert/installation.jpg",
+        "lab/visuals/featured-worlds/chrome-desert/curved.jpg",
+        "lab/editorial-world-presets.js",
+        "lab/full-editorial.js",
+        "lab/full-editorial.html",
+        "lab/full-editorial-world-preset.css",
+        "tests/lab-chrome-desert-world.test.mjs",
+        "tests/lab-home-featured-photo-pack.test.mjs",
+        "lab/CHROME-DESERT-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Design and source checkpoint",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/feat/chrome-desert-featured-world-20261111/lab/CHROME-DESERT-WORK-STATE.md"
+        }
+      ],
+      "tests": [],
+      "blockers": [],
+      "doNotRepeat": [
+        "Preserve original Full Editorial step order and paid generation behavior for ordinary entries.",
+        "Do not preload curated people as customer identity or wardrobe.",
+        "Do not give preset images to customer private Photo Packs automatically.",
+        "Do not publish on a failed or unverified release."
+      ],
+      "updatedAt": "2026-11-11T01:52:20.920Z"
+    },
+    {
       "id": "image-count-stepper-20261110",
       "title": "Higgsfield-style Image Deck quantity stepper",
       "component": "PV LAB Image Deck",

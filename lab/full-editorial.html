@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="./full-editorial-atelier.css?v=20261105-scene-photography1">
 <link rel="stylesheet" href="./full-editorial-mobile-casting.css?v=20261103-casting2">
 <link rel="stylesheet" href="./full-editorial-identity-refresh.css?v=20261106-typography6">
+<link rel="stylesheet" href="./full-editorial-world-preset.css?v=20261111-chrome-desert-world1">
 <link rel="stylesheet" href="./studios-menu.css?v=20261101-unified-reveal1">
 </head>
 <body>
@@ -66,6 +67,11 @@
        <div class="stage-copy"><span class="stage-index">01 / 04 &nbsp; THE SUBJECT</span><h2 id="model-heading">Identity</h2><p>Choose your cast.</p></div>
      </div>
      <div class="atelier-workspace">
+       <div class="editorial-world-preset" id="editorial-world-preset" hidden>
+         <img src="./visuals/featured-worlds/chrome-desert/hero.jpg" alt="Mirrored desert installation" width="1600" height="900">
+         <div class="editorial-world-preset-copy"><small>World selected / Ready to use</small><strong>Chrome Desert</strong><p>Architecture, desert light and atmosphere are already set. Choose who appears.</p></div>
+         <a href="./full-editorial.html?start=1">Start from scratch</a>
+       </div>
        <div class="atelier-section-top editorial-casting-top">
          <h3>Choose your cast</h3>
          <button type="button" id="editorial-mobile-upload" class="editorial-mobile-control">+ Upload yours</button>
@@ -159,6 +165,11 @@
        <div class="atelier-review-main">
          <span class="stage-index">04 / 04 &nbsp; GENERATE</span><h2 id="settings-heading">Generate your editorial.</h2>
          <p class="step-intro">Review your references and settings. Generate starts the set at the credit cost shown below.</p>
+         <div class="editorial-review-world" id="editorial-review-world" hidden>
+           <img src="./visuals/featured-worlds/chrome-desert/hero.jpg" alt="Chrome Desert world" width="1600" height="900">
+           <div class="editorial-review-world-copy"><small>Featured world applied</small><strong>Chrome Desert</strong><span>Mirrored desert architecture and golden-hour light. Your chosen cast, not the models in the artwork.</span></div>
+           <button type="button" data-edit-step="3">Edit world</button>
+         </div>
          <div class="selection-summary" aria-label="Your actual selected references">
            <div class="selection-item"><div class="selection-image" id="review-model-thumb" aria-hidden="true"></div><div class="selection-info"><span>IDENTITY</span><strong id="review-model-text">No model selected</strong><button type="button" data-edit-step="1">Edit</button></div></div>
            <div class="selection-item"><div class="selection-image" id="review-outfit-thumb" aria-hidden="true"></div><div class="selection-info"><span>STYLING</span><strong id="review-outfit-text">No garments selected</strong><button type="button" data-edit-step="2">Edit</button></div></div>

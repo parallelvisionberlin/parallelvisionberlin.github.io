@@ -1,6 +1,7 @@
 // Browser-only casting presentation; native app keeps its existing layout.
 if(!window.__PV_LAB_NATIVE__)document.body.classList.add('editorial-web');
 import {takeModelPhotos} from './editorial-model-handoff.js?v=20261102-eight-photos1';
+import {resolveEditorialWorld,nextEditorialStep,previousEditorialStep,needsStylingChoice} from './editorial-world-presets.js?v=20261111-chrome-desert1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1';
 import {createSessionRequest} from './session-request.js?v=20261015-canonical-studio1';
 
@@ -38,6 +39,16 @@ directionSets.location=[
  {id:'abstract-space',name:'Abstract',image:sceneAtlas,atlasFrame:4,prompt:'Minimal abstract installation of tangible sculptural materials in a grounded photographic environment.'},
  {id:'urban',name:'Urban',image:sceneAtlas,atlasFrame:5,prompt:'Contemporary urban environment with natural perspective, lived-in details and credible architectural light.'}
 ];
+const curatedWorld=resolveEditorialWorld(location.search);
+let worldLoadPromise=null,worldLoadError=null,worldLoadVersion=0;
+if(curatedWorld)document.body.classList.add('editorial-world-active');
+function applyWorldDefaults(){
+ if(!curatedWorld)return;
+ selectedDirections.location='desert';
+ $('editorial-time').value='golden';
+ $('editorial-palette').value='warm';
+ $('editorial-atmosphere').value='cinematic';
+}
 let clerk=null,profile=null,sessionKey='',epoch=0,step=0,directionTab='location',selectedDirections={location:null,moods:null,material:null};
 let chosenCount=4,chosenRatio='3:4',castComposition='mixed',quote=null,quoteBusy=false,quoteError=false,quoteTimer=null,quoteExpiryTimer=null,submitting=false,uncertain=false,pollTimeout=null;
 let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0,progressBatchStart=0,progressBatchSize=4;
@@ -158,13 +169,16 @@ function resetAll(){invalidateQuote();clearTimeout(pollTimeout);submitting=false
  for(const id of ['styling-direction','location-direction','editorial-prompt'])$(id).value='';
  $('garment-guide').value='70';$('mood-guide').value='60';
  chosenCount=4;chosenRatio='3:4';castComposition='mixed';selectedDirections={location:null,moods:null,material:null};directionTab='location';for(const id of ['editorial-time','editorial-atmosphere','editorial-palette'])$(id).selectedIndex=0;
+ worldLoadVersion++;worldLoadPromise=null;worldLoadError=null;applyWorldDefaults();
  for(const input of ['model-files','outfit-files','location-files'])$(input).value='';
- renderFiles();renderDirections();updateOptions();refreshSliderLabels();setIdentitySource('casting');go(0);status('');
+ renderFiles();renderDirections();updateOptions();refreshSliderLabels();setIdentitySource('casting');go(curatedWorld?1:0);status('');
+ if(curatedWorld)void loadWorldReferences();
 }
 function go(next){step=next;const panels=['model','style','mood','generate','progress','results'];
  for(let i=0;i<panels.length;i++)$('panel-'+panels[i]).hidden=i!==Math.max(0,next-1);
  $('editorial-hero').hidden=next!==0;$('editorial-flow').hidden=next===0;
  document.body.classList.toggle('editorial-is-generating',next===5);
+ document.body.classList.toggle('editorial-world-editing',Boolean(curatedWorld&&(next===2||next===3)));
  const navigation=$('stage-navigation'),stage=$('panel-'+panels[Math.max(0,next-1)])?.querySelector('.stage-visual');
  if(stage)stage.append(navigation);else document.querySelector('.flow-main').prepend(navigation);
  $('step-footer').hidden=next>=5||next<=0;
@@ -182,6 +196,16 @@ function go(next){step=next;const panels=['model','style','mood','generate','pro
   const label=document.createElement('span');label.className='editorial-next-label';label.textContent='Continue to styling';
   const compact=document.createElement('span');compact.className='editorial-next-mobile';compact.textContent='Continue';compact.setAttribute('aria-hidden','true');
   $('step-next').replaceChildren(label,compact);
+ }
+ if(curatedWorld){
+  if(next===1){
+   $('progress-title').textContent='STEP 1 / 2';$('step-indicator').style.width='50%';
+   const label=$('step-next').querySelector('.editorial-next-label');if(label)label.textContent='Continue to review';
+  }else if(next===4){
+   $('progress-title').textContent='STEP 2 / 2';$('step-indicator').style.width='100%';
+  }else if(next===2||next===3){
+   $('step-next').textContent='Save and review';
+  }
  }
  $('step-next').disabled=next===1&&modelGroups.length===0;
  renderIdentityFooter();invalidateQuote();updateGenerationMotion();
@@ -284,10 +308,10 @@ function updateSeriesSummary(){
  showImage('review-model-thumb',source('model'));
  model.textContent=modelGroups.length?(modelGroups.length+' model'+(modelGroups.length===1?'':'s')+' / '+count('model')+' reference photo'+(count('model')===1?'':'s')+(modelGroups.length>1?' / '+({mixed:'Solo + group',alternating:'Solo only',together:'Group only'}[castComposition]):'')):'No model selected';
  showImage('review-outfit-thumb',source('outfit'));
- $('review-outfit-text').textContent=count('outfit')?count('outfit')+' wardrobe reference'+(count('outfit')===1?'':'s'):$('styling-direction').value.trim()?'Described wardrobe':'No wardrobe selected';
+ $('review-outfit-text').textContent=count('outfit')?count('outfit')+' wardrobe reference'+(count('outfit')===1?'':'s'):$('styling-direction').value.trim()?'Described wardrobe':curatedWorld?'Keep subject styling':'No wardrobe selected';
  const picks=Object.entries(selectedDirections).map(([k,id])=>directionSets[k].find(d=>d.id===id)).filter(Boolean);
- showImage('review-location-thumb',source('location')||picks[0]?.image||null);
- $('review-location-text').textContent=picks.length?picks.map(d=>d.name).join(' / '):count('location')?count('location')+' uploaded location reference'+(count('location')===1?'':'s'):$('location-direction').value.trim()?'Custom location direction':'Unspecified / natural';
+ showImage('review-location-thumb',curatedWorld?.hero||source('location')||picks[0]?.image||null);
+ $('review-location-text').textContent=curatedWorld?'Chrome Desert / '+count('location')+' environment reference'+(count('location')===1?'':'s'):picks.length?picks.map(d=>d.name).join(' / '):count('location')?count('location')+' uploaded location reference'+(count('location')===1?'':'s'):$('location-direction').value.trim()?'Custom location direction':'Unspecified / natural';
 }
 function refreshSampleStates(){
  for(const button of document.querySelectorAll('[data-sample-kind]')){
@@ -354,8 +378,42 @@ function renderDirections(){
  updateSeriesSummary();
 }
 function validateStep(){if(step===1&&modelGroups.length<1){status('Add at least one photograph of your model.',true);$('model-drop').focus();return false;}
- if(step===2&&!files.outfit.length&&!savedRefs.outfit.length&&!$('styling-direction').value.trim()){status('Add a garment image or describe your styling.',true);$('styling-direction').focus();return false;}
+ if(step===2&&needsStylingChoice(Boolean(curatedWorld),files.outfit.length+savedRefs.outfit.length,$('styling-direction').value)){status('Add a garment image or describe your styling.',true);$('styling-direction').focus();return false;}
  return true;}
+// The two public scenery sources are cropped to exclude every pictured model.
+function croppedWorldFile(reference){
+ return new Promise((resolve,reject)=>{
+  const image=new Image();
+  image.onerror=()=>reject(new Error('Chrome Desert world artwork could not load.'));
+  image.onload=()=>{
+   try{
+    const crop=reference.crop,sx=Math.round(image.naturalWidth*crop.x),sy=Math.round(image.naturalHeight*crop.y);
+    const sw=Math.min(image.naturalWidth-sx,Math.round(image.naturalWidth*crop.width));
+    const sh=Math.min(image.naturalHeight-sy,Math.round(image.naturalHeight*crop.height));
+    if(sw<1||sh<1)throw new Error('Invalid Chrome Desert crop.');
+    const scale=Math.min(1,1280/sw),canvas=document.createElement('canvas');
+    canvas.width=Math.round(sw*scale);canvas.height=Math.round(sh*scale);
+    const context=canvas.getContext('2d');if(!context)throw new Error('Could not prepare the world reference.');
+    context.drawImage(image,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
+    canvas.toBlob(blob=>blob?resolve(new File([blob],reference.name,{type:'image/jpeg'})):reject(new Error('Could not encode the world reference.')),'image/jpeg',.85);
+   }catch(error){reject(error)}
+  };
+  image.src=reference.src;
+ });
+}
+async function loadWorldReferences(){
+ if(!curatedWorld)return;
+ if(worldLoadPromise)return worldLoadPromise;
+ const token=++worldLoadVersion;worldLoadError=null;
+ worldLoadPromise=(async()=>{
+  const references=await Promise.all(curatedWorld.environments.map(croppedWorldFile));
+  if(token!==worldLoadVersion)return;
+  if(files.location.length===0)addFiles('location',references);
+ })().catch(error=>{
+  if(token===worldLoadVersion){worldLoadError=error;status(error.message||'Chrome Desert could not load.',true)}
+ });
+ return worldLoadPromise;
+}
 async function api(path,{method='GET',body,headers={}}={}){
  const version=epoch;const init={method,headers:{...headers}};
  if(body!==undefined){if(body instanceof Blob)init.body=body;else{init.headers['Content-Type']='application/json';init.body=JSON.stringify(body)}}
@@ -374,8 +432,10 @@ function getSettings(){
  const parts=[
   'PV LAB Full Editorial series. Photorealistic high-fashion campaign photography, grounded natural skin texture, convincing fabric and plausible anatomy. Cohesive visual direction across the series, realistic lighting, non-plastic skin and restrained retouching.',
   'Preserve the recognizable facial identity from identity reference photographs as faithfully as the model can; use them for facial features, not the original pose or background. Identity importance '+identity+' percent as creative guidance.',
-  'Translate garment references onto the selected person or cast without copying the original reference wearer. Prioritize believable cloth fit and material detail. Garment importance '+emphasis+' percent as creative guidance.',
-  'Editorial art direction: '+moodText+' '+lighting+' '+atmosphere+' '+palette+' Mood importance '+mood+' percent as creative guidance.',
+  curatedWorld&&!files.outfit.length&&!savedRefs.outfit.length&&!$('styling-direction').value.trim()
+   ?"Keep the chosen subject's own clothing where possible. Do not copy any clothing, face or pose from curated-world scenery photographs."
+   :'Translate garment references onto the selected person or cast without copying the original reference wearer. Prioritize believable cloth fit and material detail. Garment importance '+emphasis+' percent as creative guidance.',
+  'Editorial art direction: '+(curatedWorld?curatedWorld.prompt+' ':'')+moodText+' '+lighting+' '+atmosphere+' '+palette+' Mood importance '+mood+' percent as creative guidance.',
   $('styling-direction').value.trim(),$('location-direction').value.trim(),$('editorial-prompt').value.trim(),
   'Frame one standalone photograph with a considered editorial pose. Maintain the same selected identity or cast, palette, materials and location language across the series; vary framing and body posture naturally between distinct images.'
  ];
@@ -581,6 +641,7 @@ async function prepareBatch(){
  if(!remain){go(6);return}
  const revisionId=revision;quoteBusy=true;quoteError=false;syncGenerateAction();
  try{
+  if(curatedWorld){await loadWorldReferences();if(worldLoadError)throw worldLoadError;if(revisionId!==revision)return;}
   const settings=getSettings();const references=await uploadReferences();if(revisionId!==revision)return;
   const plans=Array.from({length:Math.min(4,remain)},(_,i)=>editorialShotPlan(results.length+i,chosenCount,references,settings));
   // Preflight is non-billable. No paid job is submitted until the user presses Generate.
@@ -728,9 +789,9 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape')closeMobileM
 siteHeader.querySelector('nav').addEventListener('click',event=>{if(event.target.closest('a'))closeMobileMenu()});
 document.addEventListener('click',event=>{if(!siteHeader.contains(event.target))closeMobileMenu()});
 $('editorial-start').addEventListener('click',()=>{go(1);status('')});
-$('step-back').addEventListener('click',()=>{if(!submitting){go(Math.max(0,step-1));status('')}});
-$('editorial-top-back').addEventListener('click',()=>{if(!submitting){go(Math.max(0,step-1));status('')}});
-$('step-next').addEventListener('click',()=>{if(submitting)return;if(step===4)return;if(validateStep()){go(step+1);status('')}});
+$('step-back').addEventListener('click',()=>{if(!submitting){go(previousEditorialStep(step,Boolean(curatedWorld)));status('')}});
+$('editorial-top-back').addEventListener('click',()=>{if(!submitting){go(previousEditorialStep(step,Boolean(curatedWorld)));status('')}});
+$('step-next').addEventListener('click',()=>{if(submitting)return;if(step===4)return;if(validateStep()){go(nextEditorialStep(step,Boolean(curatedWorld)));status('')}});
 $('editorial-generate').addEventListener('click',()=>void generateEditorial().catch(error=>status(error.message,true)));
 $('editorial-reset').addEventListener('click',()=>{if(submitting){status('A paid generation is running. Open History before starting another.',true);return}resetAll()});
 for(const b of document.querySelectorAll('[data-sample-kind]'))b.addEventListener('click',()=>void toggleSample(b));
@@ -836,9 +897,16 @@ $('progress-history').addEventListener('click',()=>location.assign('./studio.htm
 $('editorial-signin').addEventListener('click',()=>void signIn().catch(e=>status(e.message,true)));
 window.addEventListener('pagehide',()=>{for(const url of savedCharacterThumbnails.values())URL.revokeObjectURL(url);for(const url of objectUrls.values())URL.revokeObjectURL(url);for(const r of results)if(r.url)URL.revokeObjectURL(r.url)});
 const entryUrl=new URL(location.href),modelPhoto=entryUrl.searchParams.get('modelPhoto');
-const directStart=entryUrl.searchParams.get('start')==='1';
+const directStart=entryUrl.searchParams.get('start')==='1'||Boolean(curatedWorld);
 if(directStart){entryUrl.searchParams.delete('start');history.replaceState(history.state,'',entryUrl.href)}
+if(curatedWorld){
+ $('editorial-world-preset').hidden=false;
+ $('editorial-review-world').hidden=false;
+ const rail=document.querySelector('.editorial-flow-rail [data-flow-step="4"] small');if(rail)rail.textContent='02';
+ applyWorldDefaults();
+}
 renderDirections();renderFiles();updateOptions();refreshSliderLabels();updateSeriesSummary();setIdentitySource('casting');go(directStart?1:0);
+if(curatedWorld)void loadWorldReferences();
 if(modelPhoto){
  entryUrl.searchParams.delete('modelPhoto');history.replaceState(history.state,'',entryUrl.href);
  try{
