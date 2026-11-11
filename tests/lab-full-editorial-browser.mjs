@@ -22,7 +22,7 @@ const server=http.createServer(async(req,res)=>{
  if(u.pathname==='/api/quotes'){
   const chunks=[];for await(const chunk of req)chunks.push(chunk);
   const input=JSON.parse(Buffer.concat(chunks).toString());quoteCount++;
-  assert.equal(input.count,1);assert.equal(input.referenceSourceIds.length,2);
+  assert.equal(input.count,1);assert.ok([2,3].includes(input.referenceSourceIds.length),'Normal editorial uses 2 refs; curated world uses 3');
   quotedPrompts.push(input.settings.prompt);
   const list=Array.from({length:input.count},(_,i)=>({id:'quote-'+quoteCount+'-'+i,settings:input.settings,expiresAt:Date.now()+quoteTTL,creditCost:input.settings.resolution==='2k'?70:35}));
   for(const q of list)quoted.set(q.id,q);
@@ -626,6 +626,53 @@ try{
   assert.equal(await page.locator('#model-thumbs .editorial-model-extra-thumb').count(),7,'Back retains every view');
   assert.equal(uploadCount,startUploads,'Transfer stays local until explicit credit review');
   assert.equal(jobCount,startJobs);assert.equal(quoteCount,startQuotes);
+  await page.close();
+ }
+ // Chrome Desert's homepage CTA has a distinct two-step path; no generation on navigation.
+ for(const width of [1440,390]){
+  const page=await browser.newPage({viewport:{width,height:900}});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const beforeJobs=jobCount,beforeQuotes=quoteCount;
+  await page.goto('http://127.0.0.1:4179/lab/index.html',{waitUntil:'domcontentloaded'});
+  await page.locator('#featured-photo-pack .pv-photo-pack-action').click();
+  await page.waitForURL('**/full-editorial.html?world=chrome-desert');
+  await page.locator('#editorial-world-preset').waitFor({state:'visible'});
+  assert.equal(await page.locator('#panel-model').isVisible(),true,'World CTA opens Identity directly');
+  assert.equal(await page.locator('#panel-style').isVisible(),false,'Styling is optional');
+  assert.match(await page.locator('#progress-title').textContent(),/1 \/ 2/);
+  try{
+   await page.waitForFunction(()=>document.querySelectorAll('#location-thumbs img').length===2,null,{timeout:8000});
+  }catch(error){
+   const diagnostic=await page.evaluate(()=>({
+    status:document.querySelector('#editorial-status')?.textContent,
+    thumbnails:document.querySelectorAll('#location-thumbs img').length,
+    worldLink:location.href,
+    scenery:performance.getEntriesByType('resource').filter(r=>r.name.includes('chrome-desert')).map(r=>({name:r.name,status:r.responseStatus,duration:r.duration})),
+    thumbnailMarkup:document.querySelector('#location-thumbs')?.innerHTML.slice(0,500),
+    hasFile:typeof File
+   }));
+   throw new Error('Chrome Desert world references missing: '+JSON.stringify(diagnostic)+' / '+errors.join('|'),{cause:error});
+  }
+  assert.equal(jobCount,beforeJobs);
+  assert.equal(quoteCount,beforeQuotes);
+  await page.locator('#casting-reference-gallery .atelier-reference').first().click();
+  await page.waitForFunction(()=>!document.getElementById('step-next').disabled);
+  await page.locator('#step-next').click();
+  assert.equal(await page.locator('#panel-generate').isVisible(),true,'Choose subject to go straight to review');
+  assert.equal(await page.locator('#editorial-review-world').isVisible(),true);
+  assert.match(await page.locator('#review-location-text').textContent(),/Chrome Desert/);
+  await page.waitForFunction(()=>/^\d[\d,]* credits$/.test(document.getElementById('editorial-cost').textContent),null,{timeout:12000});
+  assert.ok(quoteCount>=beforeQuotes+4,'Receives actual four-shot quotes');
+  assert.equal(jobCount,beforeJobs,'Review never submits a paid job');
+  assert.ok(quotedPrompts.some(p=>p.includes('Curated environment preset: Chrome Desert')),'Quote uses curated direction');
+  await page.locator('#editorial-review-world [data-edit-step="3"]').click();
+  assert.equal(await page.locator('#panel-mood').isVisible(),true,'Location can be edited');
+  await page.locator('#step-next').click();
+  assert.equal(await page.locator('#panel-generate').isVisible(),true,'Edit returns to review');
+  const dimensions=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:innerWidth}));
+  assert.ok(dimensions.scroll<=dimensions.viewport+3,'No horizontal overflow: '+JSON.stringify(dimensions));
+  assert.equal(errors.length,0,'Browser exceptions: '+errors.join(' | '));
+  await page.screenshot({path:'test-results/editorial/'+width+'-chrome-desert-world.png'});
   await page.close();
  }
  console.log('PASS Full Editorial 1440/390 steps, uploads, inline live quote, stale/expired quote guards, one-click batch, no ambiguous retries, real result assets and overflow');

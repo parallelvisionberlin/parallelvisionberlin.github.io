@@ -156,3 +156,20 @@
 @media(prefers-reduced-motion:reduce){
   .pv-photo-pack-action{transition:none}
 }
+/* Three original Chrome Desert photographs: one dominant frame, two supporting views. */
+.pv-photo-pack-visual .pv-photo-pack-main{left:0;top:9%;width:91%;height:81%;object-position:center;transform:rotate(-.4deg)}
+.pv-photo-pack-visual .pv-photo-pack-sheet{left:5%;top:7%;width:88%;height:81%;opacity:.52}
+.pv-photo-pack-visual .pv-photo-pack-detail{
+  position:absolute;z-index:3;right:3%;top:10%;width:18%;height:40%;
+  display:block;object-fit:cover;object-position:center;
+  box-shadow:0 14px 32px rgba(0,0,0,.46);
+}
+.pv-photo-pack-visual .pv-photo-pack-inset{
+  z-index:4;right:5%;bottom:7%;width:28%;height:39%;
+  border:3px solid #141515;object-fit:cover;object-position:center;
+}
+@media(max-width:700px){
+  .pv-photo-pack-visual .pv-photo-pack-main{left:3%;top:7%;width:91%;height:84%}
+  .pv-photo-pack-visual .pv-photo-pack-detail{width:26%;height:39%;right:3%;top:6%}
+  .pv-photo-pack-visual .pv-photo-pack-inset{width:36%;height:41%;right:5%;bottom:4%;border-width:2px}
+}
