@@ -92,6 +92,35 @@ export async function imagePreview(file) { return processLocally('preview', file
 // Image Deck only needs a small tile at import time. The original file provides
 // the full-size inspection view without a second 1280px WebP conversion.
 export async function imageReferencePreview(file) { return processLocally('reference-preview', file); }
+// Fast local drop path for Image Deck references. No canvas, WebP encode,
+// worker startup or network upload is required before a tile can appear.
+// Image.onload supplies original dimensions without a second preview file.
+// URL ownership transfers to the caller on success; failures revoke it here.
+export function imageReferenceLocalPreview(file){
+  const url=URL.createObjectURL(file);
+  return new Promise((resolve,reject)=>{
+    let image,done=false,timer;
+    const finish=(error,details)=>{
+      if(done)return;
+      done=true;clearTimeout(timer);
+      if(image){image.onload=null;image.onerror=null;}
+      if(error){URL.revokeObjectURL(url);reject(error);}
+      else resolve({width:details.width,height:details.height,url,thumbUrl:url});
+    };
+    try{
+      image=new Image();
+      image.onload=()=>{
+        const width=image.naturalWidth,height=image.naturalHeight;
+        if(!Number.isSafeInteger(width)||!Number.isSafeInteger(height)||width<1||height<1||
+          width*height>MAX_PIXELS){finish(new Error('Use an image up to 72 megapixels.'));return;}
+        finish(null,{width,height});
+      };
+      image.onerror=()=>finish(new Error('This photograph could not be read. Choose another JPG, PNG or WebP.'));
+      timer=setTimeout(()=>finish(new Error('This photograph took too long to open. Try a smaller image.')),20000);
+      image.src=url;
+    }catch(error){finish(error);}
+  });
+}
 export async function providerWorkingCopy(file,options={}) {
   if (file.size <= PROVIDER_IMAGE_LIMIT) return file;
   const { blob } = await processLocally('working-copy', file,options);
