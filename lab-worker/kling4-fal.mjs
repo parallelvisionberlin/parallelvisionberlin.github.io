@@ -29,7 +29,7 @@ export function kling4Parameters(value,{fail,referenceLabels}){
   });
   if(cleanElements.filter(e=>e.kind==='video').length>3||voiceIds.length+cleanElements.filter(e=>e.voiceId).length>3)fail(400,'Use up to three video Elements and three voices in total.');
   if(!['reference','transform'].includes(mode)&&(elements.length||voiceIds.length||value.referenceVideos?.length))fail(400,'Elements, voices and video references require Reference set or Edit video.');
-  return {type:'video',provider:'fal',engine:'kling4',model:KLING4_FAL[mode],mode,prompt,duration,resolution,aspectRatio,seed:null,audio:true,referenceRoles:referenceLabels(value.referenceRoles,10),referenceVideos:[],referenceAudio:[],kling4:{shots:multiPrompt,voiceIds:[...voiceIds],elements:cleanElements}};
+  return {type:'video',provider:'fal',engine:'kling4',model:KLING4_FAL[mode],mode,prompt,duration,resolution,aspectRatio,seed:null,audio:true,referenceRoles:['reference','transform'].includes(mode)?referenceLabels(value.referenceRoles,10):[],referenceVideos:[],referenceAudio:[],kling4:{shots:multiPrompt,voiceIds:[...voiceIds],elements:cleanElements}};
 }
 export function kling4EstimateMicros(p){
   const seconds=p.kling4VideoSeconds||0;
@@ -52,7 +52,8 @@ export async function prepareKling4(env,owner,data,p,url,{fail,source,signedInpu
   if(p.prompt)input.prompt=p.prompt;
   if(p.kling4.shots.length)input.multi_prompt=p.kling4.shots;
   if(p.mode!=='start')input.aspect_ratio=p.aspectRatio;
-  const imageAssets=[],videoAssets=[],videoMetadata=[];
+  if(p.referenceRoles.length&&p.referenceRoles.length!==ids.length)fail(400,'Reference notes must match the selected image order.');
+  const imageAssets=[],videoAssets=[],videoMetadata=new Map();
   const loadImage=async id=>{
     const a=await source(env,owner,id);
     if(!['image/png','image/jpeg','image/webp'].includes(a.mime)||a.bytes>30*1048576)fail(400,'Kling images must be JPG, PNG or WebP up to 30 MiB.');
@@ -66,7 +67,7 @@ export async function prepareKling4(env,owner,data,p,url,{fail,source,signedInpu
     if(!['video/mp4','video/quicktime'].includes(a.mime)||a.bytes>20*1048576)fail(400,'Use a standard MP4 video up to 20 MiB.');
     const m=await readVideo(a);
     if(m.duration<3||m.duration>(element?8.05:30.05)||Math.min(m.width,m.height)<700||Math.max(m.width,m.height)>4553||m.width/m.height<0.4||m.width/m.height>2.5||m.fps<23.9||m.fps>60.05)fail(400,'Kling videos need at least 700 pixels per side, 24–60 fps and 3–30 seconds (3–8 for Elements).');
-    videoSeconds+=m.duration;videoAssets.push(a);videoMetadata.push(m);return url?await signedInput(env,url,a.id,86400):a.id;
+    videoSeconds+=m.duration;videoAssets.push(a);videoMetadata.set(a.id,m);return url?await signedInput(env,url,a.id,86400):a.id;
   };
   if(startId)input.start_image_url=await loadImage(startId);
   if(p.mode==='start'&&!startId)fail(400,'Choose an opening frame.');
@@ -101,7 +102,7 @@ export async function prepareKling4(env,owner,data,p,url,{fail,source,signedInpu
   if(notes.length){input.prompt=[p.prompt,...notes].join('\n');if(input.prompt.length>26000)fail(400,'Prompt and reference notes exceed the Kling limit.');}
   if(p.kling4.voiceIds.length)input.voice_ids=p.kling4.voiceIds;
   p.referenceSourceIds=[...ids];p.lastSourceId=data.lastSourceId||null;p.referenceVideoIds=[...videoIds];p.referenceAudioIds=[];
-  p.referenceVideos=videoAssets.slice(0,videoIds.length).map(a=>({name:a.filename||'Video',seconds:videoMetadata[videoAssets.indexOf(a)].duration,note:String(data.settings?.referenceVideos?.[videoAssets.indexOf(a)]?.note||'').slice(0,300)}));
+  p.referenceVideos=videoIds.map((id,i)=>({name:videoAssets.find(a=>a.id===id).filename||'Video',seconds:videoMetadata.get(id).duration,note:String(data.settings?.referenceVideos?.[i]?.note||'').slice(0,300)}));
   p.kling4Media={startSourceId:media.startSourceId||null,endSourceId:media.endSourceId||null,middleSourceIds:[...middle],elements:elementMedia.map(e=>({imageSourceIds:e.imageSourceIds||[],videoSourceId:e.videoSourceId||null}))};p.kling4VideoSeconds=videoSeconds;
   return {primary:p.mode==='transform'?videoAssets[0]:imageAssets[0]||videoAssets[0]||null,input};
 }

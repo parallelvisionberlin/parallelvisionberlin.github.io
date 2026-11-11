@@ -3350,12 +3350,12 @@
       "id": "kling4-fal-video",
       "title": "Kling 4.0 via fal in the existing Video Studio",
       "component": "Video model, references, frames and editing",
-      "summary": "Add canonical fal Kling 4 endpoints using the existing Video controls, confirmation, credit pricing and private asset pipeline. Local contracts pass. Browser CI and Worker publication are pending.",
-      "nextAction": "Run dedicated browser CI, visually inspect 390px and 1440px screenshots, deploy the matching Worker before merging the frontend, then verify production assets and one authorized generation.",
+      "summary": "Kling 4.0 integration prepared with fal canonical text, frames, reference and edit endpoints. Existing Video shell reused. 78 local checks and dedicated 390px/1440px browser CI passed. Worker publication is blocked on Cloudflare authentication.",
+      "nextAction": "Review CI screenshots, deploy the matching Worker through authenticated Cloudflare access, verify nonbillable quotes, then merge and verify frontend assets. No paid generation has run.",
       "status": "needs_verification",
-      "updatedAt": "2026-11-11T14:40:00Z",
+      "updatedAt": "2026-11-11T13:43:00Z",
       "baselineSha": "450dc12e65116490ed3772c0f885f58ef9c4ddf5",
-      "reviewedSha": null,
+      "reviewedSha": "f0f83e0199b1bd71361910ba7dd5b55763c6d797",
       "branch": "codex/kling4-fal",
       "files": [
         ".github/workflows/lab-video-credit-preview.yml",
@@ -3376,24 +3376,32 @@
         {
           "label": "fal Kling 4 schema",
           "url": "https://fal.ai/models/kling/v4/reference-to-video/api"
+        },
+        {
+          "label": "Implementation PR",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/984"
+        },
+        {
+          "label": "Kling browser CI",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43030910092"
         }
       ],
       "tests": [
         {
           "label": "Scoped contracts",
-          "scope": "Kling parameters, private media, video pricing, Image/Video UI contracts, safety and fal recovery. See PR CI for final totals.",
+          "scope": "78 scoped tests passed locally, including Kling contracts, private sources, source-video billing, legacy Kling 3, fal recovery, customer quotes, Image/Video UI and prompt safety.",
           "result": "passed",
           "source": "tests/lab-kling4-fal.test.mjs"
         },
         {
           "label": "Native Video browser",
-          "scope": "390px and 1440px. Local Chromium fails on the sandbox socket restriction. Dedicated CI test added with synthetic account and media.",
-          "result": "not_run",
+          "scope": "Dedicated actual-module browser regression passed in GitHub CI at 390px and 1440px. Existing Generate scrolling step also passed. Local Chromium remained blocked by sandbox sockets.",
+          "result": "passed",
           "source": "tests/lab-kling4-ui.mjs"
         }
       ],
       "deployment": {
-        "state": "not_started",
+        "state": "blocked",
         "environment": "Cloudflare Worker parallel-vision-lab and Pages pvlab-studio",
         "sourceSha": null,
         "limitations": [
@@ -3412,7 +3420,7 @@
         }
       ],
       "blockers": [
-        "Local browser launch blocked by sandbox. Cloudflare Worker deployment access still needs verification."
+        "Cloudflare browser redirected to /login and no local deployment credentials are configured. Worker deployment must precede frontend publication."
       ],
       "doNotRepeat": [
         "No ToAPIs integration. Keep the existing Video shell and Kling 3.0.",
