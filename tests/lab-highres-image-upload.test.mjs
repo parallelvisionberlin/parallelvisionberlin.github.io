@@ -13,10 +13,11 @@ function inspectFor(tool='image',imageEngine='seedream',engine='seedance'){
   const ctx={
     window:{__PV_LAB_NATIVE__:0},tool,imageEngine,engine,
     imagePreview:async file=>({width:file.width,height:file.height,preview:{},thumbnail:{}}),
+    imageReferencePreview:async file=>({width:file.width,height:file.height,thumbnail:{}}),
     prepareElementPhoto:async (file,{maxSide})=>Math.max(file.width,file.height)>maxSide
       ?{...file,width:Math.floor(file.width*maxSide/Math.max(file.width,file.height)),height:Math.floor(file.height*maxSide/Math.max(file.width,file.height)),size:4*1024*1024}:file,
     modelImageInputIssue:()=>null,
-    URL:{createObjectURL:()=> 'blob:preview'},
+    URL:{createObjectURL:blob=>blob?.name?'blob:original':'blob:preview'},
     preparePhotoInput:()=>{throw Error('Native input not expected here');}
   };
   return new Function('ctx','with(ctx){'+inspectorSource+';return inspectImage;}')(ctx);
@@ -26,6 +27,8 @@ const phonePhoto=()=>({name:'IMG_8786.jpeg',type:'image/jpeg',size:8*1024*1024,w
 test('Image deck accepts 6048 x 8064 under 20 MB without changing source bytes',async()=>{
   const original=phonePhoto(),prepared=await inspectFor()(original);
   assert.strictEqual(prepared.file,original,'Original is retained, never silently recompressed on upload');
+  assert.equal(prepared.url,'blob:original','Image Deck full-size inspection uses the original, no second WebP encode');
+  assert.equal(prepared.thumbUrl,'blob:preview','The deck tile uses a small encoded thumbnail');
   assert.equal(prepared.width,6048);
   assert.equal(prepared.height,8064);
   assert.equal(6048*8064,48771072);
@@ -48,6 +51,7 @@ test('Real Image validator retains 12K dimension ceiling, 20MB file ceiling and 
 test('Video silently prepares an oversized working copy, while Upscaler preserves its source',async()=>{
   const original=phonePhoto(),video=await inspectFor('video','seedream','seedance')(original);
   assert.notStrictEqual(video.file,original);
+  assert.equal(video.url,'blob:preview','Video keeps the existing prepared preview');
   assert.ok(Math.max(video.width,video.height)<=6000);
   assert.equal(original.height,8064,'The chosen original is untouched');
   const upscale=await inspectFor('upscale')(original);
