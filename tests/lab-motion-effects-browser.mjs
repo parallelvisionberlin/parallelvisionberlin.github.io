@@ -24,6 +24,7 @@ await new Promise(r=>server.listen(4198,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
 const api='https://parallel-vision-lab.parallelvision.workers.dev';
 const still=readFileSync('lab/mood-previews/dream-blur-20261015.jpg');
+const demoVideo=readFileSync('lab/visuals/flesh-zero/hero-mobile.mp4');
 const assetId='30000000-0000-4000-8000-000000000081';
 const imageJob={id:'30000000-0000-4000-8000-000000000080',outputId:assetId,status:'completed',createdAt:Date.now(),
   settings:{type:'image',engine:'seedream',mode:'image',prompt:'Portrait',resolution:'2k',aspectRatio:'1:1',referenceSourceIds:[]}};
@@ -34,12 +35,15 @@ try{
     page.on('pageerror',error=>errors.push(error.message));
     await context.route('https://**/*',async route=>{
       const req=route.request(),url=new URL(req.url());
+      if(url.hostname==='v3b.fal.media')return route.fulfill({status:200,contentType:'video/mp4',headers:{'access-control-allow-origin':'*'},body:demoVideo});
       if(!url.href.startsWith(api)){await route.abort();return;}
       const path=url.pathname,method=req.method();
       requests.push({path,method});
       const send=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
       if(path==='/api/jobs'&&method==='GET')return send({jobs:[imageJob],next:null,activeJobs:[],concurrency:{image:4,video:1}});
       if(path==='/api/packs')return send({packs:[]});
+      if(path==='/api/uploads'&&method==='POST')return send({id:assetId});
+      if(path==='/api/reference-uploads'&&method==='POST')return send({id:assetId});
       if(path==='/api/assets/'+assetId||path==='/api/assets/'+assetId+'/thumbnail')
         return route.fulfill({status:200,contentType:'image/jpeg',body:still});
       if(path==='/api/quotes'&&method==='POST'){
@@ -66,32 +70,30 @@ try{
     await page.evaluate(()=>window.__labTest.setOwnerAccess(true));
     assert.equal(await page.locator('#tool-effects').isVisible(),true,'Verified owner sees Effects navigation');
     await page.click('#tool-effects');
-    assert.equal(await page.locator('.video-effect-card').count(),3);
+    assert.equal(await page.locator('.video-effect-card').count(),1);
     assert.equal(await page.locator('#video-effects-explore').isVisible(),true);
+    assert.equal(await page.locator('[data-effect="metro-blonde"]').count(),1);
     assert.equal(requests.filter(r=>r.path==='/api/quotes').length,0);
-    await page.click('[data-effect="liquid-metal"]');
-    assert.equal(await page.locator('#video-effects-explore').isVisible(),false);
+    await page.locator('.video-effect-photo-input').setInputFiles({
+      name:'identity.jpg',mimeType:'image/jpeg',buffer:still
+    });
+    assert.equal(await page.locator('.video-effect-card.has-identity').count(),1);
+    await page.click('[data-effect="metro-blonde"] .video-effect-card-activate');
+    await page.waitForFunction(()=>document.querySelector('#video-effects-explore')?.hidden===true);
     assert.equal(await page.locator('#video-engine').inputValue(),'seedance');
-    assert.equal(await page.locator('#duration').inputValue(),'5');
     assert.equal(await page.locator('#resolution').inputValue(),'720p');
     assert.equal(await page.locator('#audio').isChecked(),false);
-    assert.match(await page.locator('#prompt').inputValue(),/liquid chrome/i);
+    assert.match(await page.locator('#prompt').inputValue(),/Replace the blonde woman/i);
+    await page.waitForFunction(()=>document.querySelector('#video-reference-list')?.textContent.includes('METROBLONDE.mp4'));
     assert.equal(await page.locator('#video-effect-active').isVisible(),true);
-    await page.click('#video-effect-from-gallery');
-    await page.locator('.effect-gallery-choice').first().click();
-    await page.waitForFunction(()=>document.querySelector('#filemeta')?.textContent.includes('effect-start-frame'));
-    assert.equal(await page.locator('#effect-gallery-picker').evaluate(el=>el.open),false);
     assert.equal(requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length,0);
-    await page.click('#generate');
-    await page.locator('#quote-dialog').waitFor({state:'visible'});
-    assert.equal(requests.filter(r=>r.path==='/api/quotes'&&r.method==='POST').length,1);
-    assert.equal(requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length,0);
+    assert.equal(requests.filter(r=>r.path==='/api/quotes'&&r.method==='POST').length,0);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'No horizontal overflow at '+width);
     assert.deepEqual(errors,[],'No client runtime errors at '+width);
     await page.evaluate(()=>window.__labTest.setOwnerAccess(false));
     assert.equal(await page.locator('#tool-effects').isVisible(),false,'Removing owner access hides Effects immediately');
     assert.equal(await page.locator('#video-effect-active').isVisible(),false,'Selected effect is not exposed to customer');
-    console.log('PASS Motion Effects + private original + price review at '+width+'px, zero paid submissions');
+    console.log('PASS owner-only Metro Blonde video + identity Transform handoff at '+width+'px, zero paid submissions');
     await context.close();
   }
 }finally{

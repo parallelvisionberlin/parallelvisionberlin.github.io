@@ -27,7 +27,7 @@ import {captureReferralCode,claimReferral} from './referral-capture.js?v=2026101
 captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261013-character-studio1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1&seedance15-4k=1&publicLabels=20261017-1';
-import {mountVideoEffectsGallery,resolveVideoEffect} from './video-effects.js?v=20261016-1';
+import {mountVideoEffectsGallery,resolveVideoEffect} from './video-effects.js?v=20261111-metro1';
 import {createVideoModelPicker} from './video-model-picker.js?v=20261111-spicy-extend1';
 import {readProviderPolicyDetails} from './model-policy-preferences.js?v=20261028-1';
 import {videoCustomerQuoteLabels,videoCreditPreview} from './video-euro-pricing.js?creditPreview=20261029-1&v=20261024-credits1';
@@ -39,7 +39,7 @@ import {HONG_KONG_VARIANTS} from './hong-kong-variants.js?v=20261018-user-origin
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&fisheye=20261020v1&fisheyeCover=20261021v1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&dreamBlurExposure=20261102v2';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
 import {saveStudioReturnDraft,readStudioReturnDraft,clearStudioReturnDraft,storedImageFile} from './studio-return-draft.js?v=20261016-moods-return1';
-import {createMediaReferences} from './media-references.js?v=20261031-motion-sound-compact1&priceIdentity=20261029-1';
+import {createMediaReferences} from './media-references.js?v=20261031-motion-sound-compact1&priceIdentity=20261029-1&metroEffects=20261111-1';
 import { createSessionRequest } from './session-request.js?v=20261015-canonical-studio1';
 import { createSoulController } from './soul.js?v=20261014-krea2-training1';
 import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, canPrepareImagesInBackground, wanUltrawideWorkingCopy, imagePreview, imageReferencePreview, cancelImagePreparation } from './image-tools.js?v=20261111-priority-preview2';
@@ -2658,7 +2658,7 @@ function refreshEffectsView(){
   $('app').classList.toggle('effects-explore-active',explorer);
   $('video-effects-explore').hidden=!explorer;
   mainWorkspace.hidden=explorer;
-  const chip=!!activeVideoEffect&&owner&&tool==='video'&&!explorer&&mode==='start'&&engine===activeVideoEffect.engine;
+  const chip=!!activeVideoEffect&&owner&&tool==='video'&&!explorer&&mode===activeVideoEffect.mode&&engine===activeVideoEffect.engine;
   $('video-effect-active').hidden=!chip;
   if(chip)$('video-effect-name').textContent=activeVideoEffect.name+($('prompt').value.trim()===activeVideoEffect.prompt?'':' · Edited');
   $('tool-effects').classList.toggle('active',explorer);
@@ -2712,7 +2712,7 @@ async function openEffectImagePicker(){
     const thumbnails=[];
     for(const job of jobs){
       const button=document.createElement('button');button.type='button';button.className='effect-gallery-choice';
-      button.setAttribute('aria-label','Use saved image as effect start frame');
+      button.setAttribute('aria-label','Use saved photograph in the selected video template');
       const img=document.createElement('img');img.alt='Saved image preview';img.loading='lazy';
       const title=document.createElement('span');title.textContent=(job.settings?.engine||'Image')+' · Open';
       button.append(img,title);grid.append(button);thumbnails.push({id:job.outputId,img});
@@ -2723,7 +2723,11 @@ async function openEffectImagePicker(){
           try{
             const original=await assetFile(job.outputId,'effect-start-frame');
             if(!owner||requestEpoch!==epoch||ticket!==effectGalleryTicket)return;
-            if(await setImage(original,job.outputId)){
+            if(activeVideoEffect?.mode==='transform'&&mode==='transform'){
+              await addReferences([original],[job.outputId],[{role:'identity'}]);
+              closeEffectPicker();
+              notify('Saved identity photograph attached. Review the video and exact credit quote before generating.');
+            }else if(await setImage(original,job.outputId)){
               closeEffectPicker();
               notify('Saved photograph loaded as your start frame. Review the motion prompt and live price to generate.');
             }
@@ -2746,43 +2750,56 @@ async function openEffectImagePicker(){
     if(owner&&requestEpoch===epoch&&ticket===effectGalleryTicket)status.textContent='Could not open Gallery: '+error.message;
   }
 }
-async function chooseVideoEffect(id){
+async function chooseVideoEffect(id,identityPhoto=null){
   if(!owner||!ownerAccount||busy)return;
   const resolved=resolveVideoEffect(id,config.videoEngines);
   if(!resolved.ok)throw new Error(resolved.message);
   const {effect,settings:plan}=resolved;
+  if(plan.mode!=='transform')throw new Error('This template requires the Transform editor.');
   if(tool!=='video')setTool('video');
-  const extras=!!lastFile||references.length>0||mediaRefs.count()>0;
-  if(extras&&!confirm('This effect uses one start frame. Clear existing extra references and the optional end frame? Saved History will not be changed.'))return;
-  const existingFile=extras?file:null,existingId=extras?sourceId:null;
-  if(extras)clearMedia();
+  const replaceExisting=!!file||!!lastFile||references.length>0||mediaRefs.count()>0;
+  if(replaceExisting&&!confirm('Load '+effect.name+' and replace current unsaved Video inputs? Saved History remains unchanged.'))return;
+  // Read the owner-provided template video before changing the current editor.
+  // The media reference module performs the normal 20 MiB / 4-30s checks.
+  const session=epoch;
+  let response;
+  try{response=await fetch(effect.previewVideo,{mode:'cors',credentials:'omit'});}
+  catch{throw new Error('The Metro Blonde video could not be loaded. Your existing Video work was not changed.');}
+  if(!response.ok)throw new Error('The Metro Blonde video is unavailable ('+response.status+'). Your Video work was not changed.');
+  const declaredSize=Number(response.headers.get('content-length'))||0;
+  if(declaredSize>20*1048576)throw new Error('The template video exceeds the supported Transform source limit.');
+  const clip=await response.blob();
+  if(!clip.size||clip.size>20*1048576)throw new Error('The template source is not a valid video under 20 MiB.');
+  if(!owner||!ownerAccount||epoch!==session||!effectViewOpen)throw new Error('Your session or page changed while loading the template.');
+  const sourceVideo=new File([clip],'METROBLONDE.mp4',{type:'video/mp4'});
+  if(replaceExisting)clearMedia();
   if(engine!==plan.engine){
     $('video-engine').value=plan.engine;
     $('video-engine').onchange();
-    if(engine!==plan.engine)throw new Error('The required video model could not be selected. Nothing generated.');
+    if(engine!==plan.engine)throw new Error('Seedance 2.5 Transform is not enabled. Nothing generated.');
   }
-  setMode('start');
-  $('duration').value=String(plan.duration);
+  setMode('transform');
   $('resolution').value=plan.resolution;
   $('audio').checked=plan.audio;
   $('prompt').value=plan.prompt;
   $('seed').value='';
-  if(existingFile)await setImage(existingFile,existingId);
+  await mediaRefs.addVideoFiles([sourceVideo]);
+  if(identityPhoto)await addReferences([identityPhoto]);
   activeVideoEffect=effect;
   closeEffectsView();update();refreshEffectsView();
-  notify(effect.name+' loaded. Choose a start photograph, then review the exact credit quote. No video has been generated.');
+  notify(effect.name+' is ready in Transform. '+(identityPhoto?'Your identity photo is attached.':'Add your identity photograph.')+' Review the exact credit price before Generate.');
 }
-mountVideoEffectsGallery($('video-effects-grid'),id=>{
+mountVideoEffectsGallery($('video-effects-grid'),(id,photo)=>{
   if(applyingVideoEffect||busy||!owner||!ownerAccount)return;
   applyingVideoEffect=true;
-  void chooseVideoEffect(id).catch(error=>{if(owner)notify(error.message,true);}).finally(()=>{
+  void chooseVideoEffect(id,photo).catch(error=>{if(owner)notify(error.message,true);}).finally(()=>{
     applyingVideoEffect=false;
   });
-});
+},message=>{if(owner&&ownerAccount)notify(message,true);});
 $('tool-effects').onclick=()=>openEffectsView();
 $('video-effects-custom').onclick=closeEffectsView;
 $('video-effect-change').onclick=()=>openEffectsView();
-$('video-effect-upload').onclick=()=>{if(owner&&ownerAccount&&!busy&&!$('image').disabled)$('image').click();};
+$('video-effect-upload').onclick=()=>{if(!owner||!ownerAccount||busy)return;if(activeVideoEffect?.mode==='transform'&&mode==='transform')$('reference-images').click();else if(!$('image').disabled)$('image').click();};
 $('video-effect-from-gallery').onclick=()=>void openEffectImagePicker();
 $('prompt').addEventListener('input',refreshEffectsView);
 
@@ -3798,7 +3815,7 @@ function setMode(nextMode){
   if(tool==='video'&&selectedVideoJob)clearVideoHistorySelection({reset:false,suppressAuto:true});
   const modes=VIDEO_MODELS[engine].modes;mode=modes.includes(nextMode)?nextMode:modes[0];
   if(mode!=='extend'&&['text','start','reference'].includes(mode))lastVideoCreateMode=mode;
-  if(mode!=='start')activeVideoEffect=null;
+  if(activeVideoEffect&&mode!==activeVideoEffect.mode)activeVideoEffect=null;
   configureVideoControls();resetPreview();update();refreshEffectsView();
 }
 $('mode-extend').onclick=()=>{if(!busy)setMode('extend');};

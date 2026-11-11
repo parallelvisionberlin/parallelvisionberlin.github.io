@@ -75,6 +75,8 @@ export function createMediaReferences({element,owner,busy,epoch,action,changed,u
   return {
     identity:()=>['video','audio'].map(kind=>groups[kind].map(r=>r.url)),
     firstVideo:()=>groups.video[0]||null,
+    // Reuse the normal local video validation for curated owner Effects templates.
+    addVideoFiles:files=>add(files,'video'),
     count:()=>groups.video.length+groups.audio.length,
     labels:kind=>groups[kind].map(r=>({name:r.file.name,seconds:r.seconds,note:r.note})),
     clear(){for(const kind of ['video','audio']){groups[kind].forEach(release);groups[kind]=[];element(kind+'-references').value='';render(kind);}},
