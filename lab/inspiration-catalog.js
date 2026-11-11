@@ -110,7 +110,7 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   const guest=track.classList.contains('pv-guest-cards');
   const inTrack=new Set([...track.querySelectorAll(':scope > button')].map(button=>
     (button.querySelector('span,strong')?.firstChild?.textContent||'').trim().toLowerCase()));
-  for(const item of sorted)if(!inTrack.has(item.title.toLowerCase()))track.append(carouselCard(item,guest));
+  for(const item of sorted.slice(0,6))if(!inTrack.has(item.title.toLowerCase()))track.append(carouselCard(item,guest));
   const viewAll=document.createElement('button');
   viewAll.type='button';viewAll.className='pv-inspiration-view-all';
   viewAll.textContent='View all';viewAll.setAttribute('aria-label','View all Inspiration cards');
