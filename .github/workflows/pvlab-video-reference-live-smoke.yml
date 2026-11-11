@@ -35,7 +35,8 @@ jobs:
             ready=1
             fetch(){
               local name="$1" path="$2"
-              code="$(curl -L -sS --connect-timeout 8 --max-time 20 -H 'Cache-Control: no-cache' -o "/tmp/$name" -w '%{http_code}' "https://pvlab.studio/$path?video-preupload-smoke=20261111-$attempt")" || code="network-failure"
+              local join='?'; [[ "$path" == *'?'* ]] && join='&'
+              code="$(curl -L -sS --connect-timeout 8 --max-time 20 -H 'Cache-Control: no-cache' -o "/tmp/$name" -w '%{http_code}' "https://pvlab.studio/$path${join}video-preupload-smoke=20261111-$attempt")" || code="network-failure"
               echo "$name HTTP $code"
               if [[ "$code" != 200 ]]; then ready=0; fi
             }
