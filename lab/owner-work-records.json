@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-11T02:46:05.577Z",
+  "updatedAt": "2026-11-11T14:40:00Z",
   "handoffs": [
     {
       "id": "owner",
@@ -3345,6 +3345,100 @@
         "Never give PV Still or any other Image model a separate outer deck width. Use the one shared signed-in desktop frame and keep Generate anchored."
       ],
       "updatedAt": "2026-11-11"
+    },
+    {
+      "id": "kling4-fal-video",
+      "title": "Kling 4.0 via fal in the existing Video Studio",
+      "component": "Video model, references, frames and editing",
+      "summary": "Kling 4.0 via fal prepared in the existing Video shell. Polished advanced settings, file selection, keyboard access and mode-specific drafts. Initial and follow-up 390px/1440px browser tests passed; expanded polish browser checks pending. Worker publication remains blocked on Cloudflare authentication.",
+      "nextAction": "Complete expanded browser checks and inspect final screenshots; deploy matching Worker via authenticated Cloudflare, verify nonbillable quotes, then merge frontend and verify production bytes. No paid generation submitted.",
+      "status": "needs_verification",
+      "updatedAt": "2026-11-11T14:06:00Z",
+      "baselineSha": "450dc12e65116490ed3772c0f885f58ef9c4ddf5",
+      "reviewedSha": "1011a8868edbf5b2fa77b8975535b73c9153ad9e",
+      "branch": "codex/kling4-fal",
+      "files": [
+        ".github/workflows/lab-video-credit-preview.yml",
+        "lab-worker/fal-video.mjs",
+        "lab-worker/worker.mjs",
+        "lab/lab.js",
+        "lab/studio.html",
+        "lab/video-editorial-deck.js",
+        "lab/video-model-picker.js",
+        "lab/video-models.js",
+        "lab/video-refresh.css",
+        "lab-worker/kling4-fal.mjs",
+        "lab/kling4-controls.js",
+        "tests/lab-kling4-fal.test.mjs",
+        "tests/lab-kling4-ui.mjs",
+        "lab/video-scene-states.js"
+      ],
+      "links": [
+        {
+          "label": "fal Kling 4 schema",
+          "url": "https://fal.ai/models/kling/v4/reference-to-video/api"
+        },
+        {
+          "label": "Implementation PR",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/984"
+        },
+        {
+          "label": "Kling browser CI",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43030910092"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Scoped contracts",
+          "scope": "78 scoped tests passed locally, including Kling contracts, private sources, source-video billing, legacy Kling 3, fal recovery, customer quotes, Image/Video UI and prompt safety.",
+          "result": "passed",
+          "source": "tests/lab-kling4-fal.test.mjs"
+        },
+        {
+          "label": "Native Video browser",
+          "scope": "Dedicated actual-module browser regression passed in GitHub CI at 390px and 1440px. Existing Generate scrolling step also passed. Local Chromium remained blocked by sandbox sockets.",
+          "result": "passed",
+          "source": "tests/lab-kling4-ui.mjs"
+        },
+        {
+          "label": "Screenshot review corrections",
+          "scope": "Actual screenshots reviewed at 390px and 1440px. Settings order and native audio Included label both confirmed by browser CI run 43032021847.",
+          "result": "passed",
+          "source": "tests/lab-kling4-ui.mjs"
+        },
+        {
+          "label": "Polished Kling controls",
+          "scope": "24 affected contract tests and static build pass. Expanded browser checks cover Element media, shot configuration and switching modes without hidden controls leaking into requests. Browser rerun pending.",
+          "result": "documented",
+          "source": "tests/lab-kling4-ui.mjs"
+        }
+      ],
+      "deployment": {
+        "state": "blocked",
+        "environment": "Cloudflare Worker parallel-vision-lab and Pages pvlab-studio",
+        "sourceSha": null,
+        "limitations": [
+          "No Worker or frontend publication yet. Worker must be deployed first. No paid generation or real signed-in verification performed."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "documented",
+          "summary": "Canonical four Kling v4 endpoints and all exposed schema fields read through the connected fal catalog.",
+          "scope": "Text, frames, reference, edit, up to 7 Elements, 10 images, 5 videos, 15 combined assets. Audio/seed toggles are absent in this API schema.",
+          "source": "https://fal.ai/models/kling/v4/reference-to-video/api",
+          "limitations": [
+            "Provider schema and pricing are declarations, not a completed generation."
+          ]
+        }
+      ],
+      "blockers": [
+        "Cloudflare browser redirected to /login and no local deployment credentials are configured. Worker deployment must precede frontend publication."
+      ],
+      "doNotRepeat": [
+        "No ToAPIs integration. Keep the existing Video shell and Kling 3.0.",
+        "Do not advertise manual seed or audio-off controls absent from the fal schema."
+      ]
     }
   ]
 }

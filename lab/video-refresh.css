@@ -346,3 +346,23 @@
   color:#969ba5;
   overflow-wrap:anywhere;
 }
+
+/* Kling settings extend the existing Video panel, without changing its shell. */
+#app.video-studio-active #kling4-settings:not([hidden]){order:5;display:block;margin:8px 0}
+#app.video-studio-active #kling4-settings>summary{display:flex;align-items:center;justify-content:space-between;min-height:39px;box-sizing:border-box;padding:9px 11px;border:1px solid #383b43;border-radius:10px;background:#131516;color:#ededef;font:500 12px/1.4 'DM Sans',Arial,sans-serif;cursor:pointer;list-style:none}
+#app.video-studio-active #kling4-settings>summary::-webkit-details-marker{display:none}
+#app.video-studio-active #kling4-settings>summary::after{content:'';width:6px;height:6px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg);margin-right:3px}
+#app.video-studio-active #kling4-settings[open]>summary::after{transform:rotate(225deg)}
+#app.video-studio-active #kling4-settings :is(summary,button,input,select,textarea):focus-visible{outline:2px solid #afb3bb;outline-offset:2px}
+#app.video-studio-active #kling4-settings>div{display:grid;gap:12px;padding:8px 0}
+#app.video-studio-active #kling4-settings section{min-width:0;display:grid;gap:8px}
+#app.video-studio-active #kling4-settings section>.label{margin:0;color:#d4d5d9;font-size:11px;font-weight:500}
+#app.video-studio-active #kling4-settings :is(input,select,textarea){box-sizing:border-box;max-width:100%;min-width:0}
+#app.video-studio-active #kling4-settings .reference-fields{display:grid;gap:8px;margin:8px 0;padding:10px;border:1px solid #303238;border-radius:9px}
+#app.video-studio-active #kling4-settings .reference-fields label{margin:0}
+#app.video-studio-active #kling4-settings .reference-fields textarea{min-height:72px;resize:vertical}
+#app.video-studio-active #kling4-settings .kling4-upload>.drop{width:100%;min-height:64px;height:auto;margin:0;padding:12px;color:#d4d5d9;font:500 11px/1.5 'DM Sans',Arial,sans-serif}
+#app.video-studio-active #kling4-settings .reference-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+#app.video-studio-active #kling4-settings .reference-actions span{min-width:0;overflow-wrap:anywhere;font-size:11px}
+#app.video-studio-active #kling4-settings .quiet{justify-self:start;min-height:34px;white-space:normal}
+#app.video-studio-active #kling4-settings :is(small,.fine){overflow-wrap:anywhere;font-size:11px;line-height:1.6;margin:0}
