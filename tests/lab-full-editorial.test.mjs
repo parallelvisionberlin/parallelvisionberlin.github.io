@@ -266,7 +266,7 @@ test('Identity matches wide editorial reference without losing narrow desktop sc
  assert.match(s,/max-width:1550px/);
  assert.match(s,/max-width:1760px!important/);
  assert.match(s,/object-position:54% 24%/);
- assert.match(s,/height:clamp\(248px,31svh,285px\)/);
+ assert.match(s,/height:clamp\(236px,calc\(31svh - 12px\),273px\)/);
  assert.match(s,/height:clamp\(258px,31svh,294px\)/);
 });
 
