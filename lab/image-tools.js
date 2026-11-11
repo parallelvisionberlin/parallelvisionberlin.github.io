@@ -1,5 +1,8 @@
 // Local browser preparation only. Display previews never replace original uploads.
 export const PROVIDER_IMAGE_LIMIT = 10 * 1024 * 1024;
+// Qwen's provider limit is decimal MB, not MiB. Keep conversion headroom.
+export const QWEN_IMAGE_LIMIT = 10000000;
+const QWEN_WORKING_TARGET = 9800000;
 // The Seedream edit provider rejects images above 36 megapixels, even when
 // the encoded file is under 10 MiB. Keep headroom for integer rounding.
 export const SEEDREAM_INPUT_MAX_PIXELS = 36000000;
@@ -44,7 +47,7 @@ function workerTask(operation,file) {
   const tasks=reference?referencePending:pending;
   let worker=reference?referenceWorker:imageWorker;
   if(!worker){
-    worker=new Worker(new URL('./image-worker.js?v=20261111-fast-image-preview1',import.meta.url),{type:'module'});
+    worker=new Worker(new URL('./image-worker.js?v=20261111-qwen-working-copy1',import.meta.url),{type:'module'});
     if(reference)referenceWorker=worker;else imageWorker=worker;
     worker.onmessage=({data})=>{
       const task=tasks.get(data.id);if(!task)return;
@@ -114,6 +117,14 @@ export async function providerWorkingCopy(file,options={}) {
   const { blob } = await processLocally('working-copy', file,options);
   const name = (file.name || 'reference').replace(/\.[^.]+$/, '') + '-working-copy.webp';
   return new File([blob], name, { type: 'image/webp' });
+}
+export async function qwenWorkingCopy(file,options={}) {
+  if(file.size<=QWEN_IMAGE_LIMIT)return file;
+  const {blob}=await processLocally('qwen-working-copy',file,options);
+  if(!blob?.size||blob.size>QWEN_IMAGE_LIMIT)
+    throw new Error('Could not prepare a Qwen reference under 10 MB. Original unchanged. Nothing submitted.');
+  const name=(file.name||'reference').replace(/\.[^.]+$/,'')+'-qwen-working.webp';
+  return new File([blob],name,{type:'image/webp',lastModified:file.lastModified});
 }
 export async function seedreamWorkingCopy(file,options={}) {
   const {blob} = await processLocally('seedream-working-copy',file,options);
@@ -207,6 +218,22 @@ export async function runImageTask(operation, file) {
         }
       }
       throw new Error('The Seedream working copy is still above 10 MiB. Choose a smaller source image; your original is unchanged. No generation submitted.');
+    }
+    if (operation === 'qwen-working-copy') {
+      // Preserve every source pixel when possible. Only reduce dimensions
+      // if compression alone cannot satisfy Qwen's decimal 10 MB limit.
+      for(const factor of [1,.9,.8,.7,.6,.5]){
+        const outputWidth=Math.max(1,Math.floor(width*factor));
+        const outputHeight=Math.max(1,Math.floor(height*factor));
+        draw(outputWidth,outputHeight);
+        for(const quality of [.96,.9,.84,.76,.68]){
+          const blob=await encode(quality);
+          if(blob.type==='image/webp'&&blob.size<=QWEN_WORKING_TARGET)
+            return {...dimensions,outputWidth,outputHeight,blob};
+          await yieldUI();
+        }
+      }
+      throw new Error('Could not prepare this Qwen reference under 10 MB. Choose a smaller photograph; the original is unchanged. Nothing submitted.');
     }
     if (operation !== 'working-copy') throw new Error('Unknown image operation.');
     draw(width,height);
