@@ -15,14 +15,15 @@ export function createUpscaleResultUI({download,again,loadSource}) {
   const toolbar=document.createElement('div');
   toolbar.id='upscale-result-toolbar';toolbar.hidden=true;
   toolbar.innerHTML='<div class="upscale-result-info"><div class="upscale-result-title"><span class="upscale-result-check" aria-hidden="true">✓</span><strong>Upscaled result</strong><span class="upscale-result-scale"></span></div><p class="upscale-result-dimensions"></p></div><div class="upscale-result-actions"><button class="upscale-compare-button" type="button" aria-pressed="false">Compare</button><button class="upscale-again-button" type="button" title="Review settings before starting another paid upscale">Upscale again</button><button class="upscale-download-button" type="button"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 17v3h16v-3"/></svg><span>Download image</span></button></div>';
-  // Result controls stay on the photograph canvas, not in a separate footer.
-  canvas.append(toolbar);
+  // Keep the established Upscaler result strip beneath the image. Never position it inside the canvas.
+  stage.insertBefore(toolbar,stage.querySelector('.stagefoot'));
   const toast=document.createElement('div');
   toast.id='upscale-complete-toast';toast.hidden=true;toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');
   canvas.append(toast);
   const frame=comparison.querySelector('.upscale-compare-frame');
   const before=comparison.querySelector('.upscale-before'),after=comparison.querySelector('.upscale-after');
   const range=comparison.querySelector('.upscale-compare-range');
+  const zoomControls=comparison.querySelector('.upscale-zoom-controls');
   const zoomLevel=comparison.querySelector('.upscale-zoom-level');
   const zoomReset=comparison.querySelector('.upscale-zoom-reset');
   const compareButton=toolbar.querySelector('.upscale-compare-button');
@@ -40,6 +41,7 @@ export function createUpscaleResultUI({download,again,loadSource}) {
     before.style.transform=transform;
     after.style.transform=transform;
     zoomLevel.textContent=Math.round(zoom*100)+'%';
+    zoomControls.hidden=zoom===1;
     zoomReset.hidden=zoom===1;
   }
   function resetZoom(){zoom=1;zoomX=0;zoomY=0;applyZoom();}
