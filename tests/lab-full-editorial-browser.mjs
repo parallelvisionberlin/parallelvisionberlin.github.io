@@ -620,6 +620,8 @@ try{
   await page.locator('#editorial-flow').waitFor({state:'visible'});
   assert.equal(await page.locator('#panel-model').isVisible(),true,'Homepage CTA opens Identity directly');
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),0,'Homepage also opens with an empty cast');
+  // Composition is placed after the footer asynchronously during the direct-entry handoff.
+  await page.locator('#editorial-casting-controls').waitFor({state:'visible',timeout:5000});
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Homepage Identity exposes Composition with disabled choices');
   assert.equal(await page.locator('#editorial-casting-controls').getAttribute('data-cast-state'),'empty');
   assert.equal(await page.locator('[data-cast-composition="together"]').isDisabled(),true,'Not selectable until two models');
