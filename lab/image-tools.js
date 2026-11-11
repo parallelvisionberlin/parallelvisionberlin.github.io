@@ -15,41 +15,56 @@ export function seedreamWorkingDimensions(width,height) {
 }
 export const UPSCALE_PIXELS = Object.freeze({ '2k': 4194304, '4k': 16777216, '8k': 67108864 });
 const MAX_PIXELS = 72000000;
-let imageWorker = null, workerUnavailable = false, taskId = 0, generation = 0;
-let queue = Promise.resolve();
-const pending = new Map();
+let imageWorker = null, referenceWorker = null;
+let workerUnavailable = false, referenceWorkerUnavailable = false, taskId = 0, generation = 0;
+let queue = Promise.resolve(), referenceQueue = Promise.resolve();
+const pending = new Map(), referencePending = new Map();
 const cancelled = () => new DOMException('Image preparation cancelled.', 'AbortError');
 const yieldUI = () => new Promise(resolve => setTimeout(resolve, 0));
 
-function stopWorker(error) {
-  imageWorker?.terminate(); imageWorker = null;
-  for (const task of pending.values()) { clearTimeout(task.timer); task.reject(error); }
-  pending.clear();
+function stopWorker(error,kind='all') {
+  if(kind!=='reference'){
+    imageWorker?.terminate();imageWorker=null;
+    for(const task of pending.values()){clearTimeout(task.timer);task.reject(error);}
+    pending.clear();
+  }
+  if(kind!=='general'){
+    referenceWorker?.terminate();referenceWorker=null;
+    for(const task of referencePending.values()){clearTimeout(task.timer);task.reject(error);}
+    referencePending.clear();
+  }
 }
 export function cancelImagePreparation() {
-  generation++; stopWorker(cancelled()); queue = Promise.resolve();
+  generation++;stopWorker(cancelled());
+  queue=Promise.resolve();referenceQueue=Promise.resolve();
 }
-function workerTask(operation, file) {
-  if (!imageWorker) {
-    imageWorker = new Worker(new URL('./image-worker.js?v=20261111-fast-image-preview1', import.meta.url), { type: 'module' });
-    imageWorker.onmessage = ({ data }) => {
-      const task = pending.get(data.id); if (!task) return;
-      pending.delete(data.id); clearTimeout(task.timer);
-      if (data.error) { const error = new Error(data.error); error.code = data.code; task.reject(error); }
+function workerTask(operation,file) {
+  // Thumbnail requests must never queue behind speculative large Seedream copies.
+  const reference=operation==='reference-preview';
+  const tasks=reference?referencePending:pending;
+  let worker=reference?referenceWorker:imageWorker;
+  if(!worker){
+    worker=new Worker(new URL('./image-worker.js?v=20261111-fast-image-preview1',import.meta.url),{type:'module'});
+    if(reference)referenceWorker=worker;else imageWorker=worker;
+    worker.onmessage=({data})=>{
+      const task=tasks.get(data.id);if(!task)return;
+      tasks.delete(data.id);clearTimeout(task.timer);
+      if(data.error){const error=new Error(data.error);error.code=data.code;task.reject(error);}
       else task.resolve(data.result);
     };
-    imageWorker.onerror = event => {
-      event.preventDefault(); workerUnavailable = true;
-      const error = new Error('Background image preparation is unavailable.'); error.code = 'unavailable';
-      stopWorker(error);
+    worker.onerror=event=>{
+      event.preventDefault();
+      if(reference)referenceWorkerUnavailable=true;else workerUnavailable=true;
+      const error=new Error('Background image preparation is unavailable.');error.code='unavailable';
+      stopWorker(error,reference?'reference':'general');
     };
   }
-  return new Promise((resolve, reject) => {
-    const id = ++taskId;
-    const timer = setTimeout(() => stopWorker(new Error('Image preparation took too long. Try a smaller working file; the original is unchanged.')), 60000);
-    pending.set(id, { resolve, reject, timer });
-    try { imageWorker.postMessage({ id, operation, file }); }
-    catch (error) { clearTimeout(timer); pending.delete(id); reject(error); }
+  return new Promise((resolve,reject)=>{
+    const id=++taskId;
+    const timer=setTimeout(()=>stopWorker(new Error('Image preparation took too long. Try a smaller working file; the original is unchanged.'),reference?'reference':'general'),60000);
+    tasks.set(id,{resolve,reject,timer});
+    try{worker.postMessage({id,operation,file});}
+    catch(error){clearTimeout(timer);tasks.delete(id);reject(error);}
   });
 }
 export function canPrepareImagesInBackground(){
@@ -59,33 +74,35 @@ const backgroundUnavailable=()=>{
   const error=new Error('Background image preparation is unavailable.');error.code='unavailable';
   return error;
 };
-function processLocally(operation, file,{backgroundOnly=false}={}) {
-  // Prewarm never falls back to CPU-heavy canvas work on the UI thread.
-  // Explicit Generate still retains the original fallback on older browsers.
-  if(backgroundOnly&&!canPrepareImagesInBackground())
-    return Promise.reject(backgroundUnavailable());
-  const requestedGeneration = generation;
-  const result = queue.catch(() => {}).then(async () => {
-    if (requestedGeneration !== generation) throw cancelled();
+function processLocally(operation,file,{backgroundOnly=false}={}) {
+  if(backgroundOnly&&!canPrepareImagesInBackground())return Promise.reject(backgroundUnavailable());
+  const reference=operation==='reference-preview';
+  const requestedGeneration=generation;
+  const targetQueue=reference?referenceQueue:queue;
+  const result=targetQueue.catch(()=>{}).then(async()=>{
+    if(requestedGeneration!==generation)throw cancelled();
     await yieldUI();
     let data;
-    if (!workerUnavailable && typeof Worker !== 'undefined' && typeof OffscreenCanvas !== 'undefined') {
-      try { data = await workerTask(operation, file); }
-      catch (error) {
-        if (error.code !== 'unavailable') throw error;
-        workerUnavailable = true;
+    const unavailable=reference?referenceWorkerUnavailable:workerUnavailable;
+    if(!unavailable&&typeof Worker!=='undefined'&&typeof OffscreenCanvas!=='undefined'){
+      try{data=await workerTask(operation,file);}
+      catch(error){
+        if(error.code!=='unavailable')throw error;
+        if(reference)referenceWorkerUnavailable=true;else workerUnavailable=true;
         if(backgroundOnly)throw error;
       }
     }
-    if (requestedGeneration !== generation) throw cancelled();
-    if (!data) {
+    if(requestedGeneration!==generation)throw cancelled();
+    if(!data){
       if(backgroundOnly)throw backgroundUnavailable();
-      data = await runImageTask(operation, file);
+      data=await runImageTask(operation,file);
     }
-    if (requestedGeneration !== generation) throw cancelled();
-    await yieldUI(); return data;
+    if(requestedGeneration!==generation)throw cancelled();
+    await yieldUI();return data;
   });
-  queue = result.catch(() => {}); return result;
+  if(reference)referenceQueue=result.catch(()=>{});
+  else queue=result.catch(()=>{});
+  return result;
 }
 export async function imageDimensions(file) { return processLocally('dimensions', file); }
 export async function imagePreview(file) { return processLocally('preview', file); }
