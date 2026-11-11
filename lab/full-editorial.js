@@ -496,6 +496,7 @@ function setIdentitySource(source){
   const savedRail=$('editorial-saved-rail');
   if(castRail&&savedRail.parentElement!==castRail)castRail.append(savedRail);
   $('casting-reference-gallery').hidden=false;
+  $('casting-reference-gallery').setAttribute('aria-label',saved?'Your saved characters and Create Character':'PV LAB example character references');
   for(const id of ['editorial-cast-track','editorial-cast-prev','editorial-cast-next'])$(id).hidden=saved;
  }else{
   $('casting-reference-gallery').hidden=saved;
