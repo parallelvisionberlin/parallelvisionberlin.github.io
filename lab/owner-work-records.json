@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-11T02:46:05.577Z",
+  "updatedAt": "2026-11-11T13:46:40.942Z",
   "handoffs": [
     {
       "id": "owner",
@@ -2966,82 +2966,87 @@
     },
     {
       "id": "upscaler-compact-loaded-deck",
-      "title": "Compact loaded Image Upscaler controls",
+      "title": "Upscaler canonical layout locked across photo upload",
       "component": "PV LAB Image Upscaler",
-      "status": "deployed",
-      "summary": "After upload, the Image Upscaler uses a short heading, compact source and model controls, and adjacent 38px Enlargement and Image format fields. The desktop deck grows with its settings and uses page scroll in short windows. The original photo remains contained in the existing preview.",
-      "nextAction": "Refresh the Upscaler to load the new styles.",
-      "baselineSha": "663dce86308cf9fa64d6d0d798b529f0766fc851",
-      "reviewedSha": "be0c76da20a122676d0707fa930c711e5b518f70",
-      "branch": "fix/upscaler-compact-loaded-deck-20261110",
+      "status": "needs_verification",
+      "summary": "Owner's 2026-11-11 screenshots reject the old compact source-ready redesign. Keep the approved empty Upscaler two-column inspector, large heading and description, model-card sizes, stacked desktop enlargement/format fields, and anchored Upscale footer while loading a photograph or showing an upscale result. Preserve real Replace image, drag/drop, photo comparison and zoom. Hide stray Video-only Back to create in Image Upscaler.",
+      "nextAction": "Do not merge PR #982 yet. Latest targeted Upscaler/Assets run 43031689635 still failed; retrieve its final assertion from job logs once completed, fix and rerun the loaded-source 1440/390px geometry check, then verify actual Cloudflare production deployment.",
+      "baselineSha": "c5495e9022e88ef0aa1d79bbeb543a88f24c43fb",
+      "reviewedSha": "206ac97eafc8eacc7c54e9d629d7f4f8a8282d16",
+      "branch": "fix/upscale-lock-workspace-through-upload-20261111",
       "files": [
-        "lab/upscale-loaded-workspace.css",
-        "lab/video-upscale.css",
+        "lab/upscale-state-lock.css",
         "lab/studio.html",
-        "tests/lab-upscale-ui.mjs"
+        "tests/lab-upscale-assets-visibility.mjs",
+        "lab/owner-work-records.json"
       ],
       "links": [
         {
-          "label": "Merged Upscaler change",
+          "label": "Current locked-layout candidate PR #982",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/982"
+        },
+        {
+          "label": "Prior compact variant PR #956 (superseded direction)",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/956"
         },
         {
-          "label": "Upscaler handoff",
+          "label": "Upscaler scoped handoff",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
         }
       ],
       "tests": [
         {
+          "label": "Static site validation",
+          "result": "passed",
+          "scope": "Candidate #982 static site validation for new state-lock CSS",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43029301079"
+        },
+        {
           "label": "Approved Image UI contract",
           "result": "passed",
-          "scope": "All six local and CI assertions.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895934790"
+          "scope": "Existing Image UI contract unchanged",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43029300869"
         },
         {
-          "label": "Loaded Upscaler deck",
+          "label": "Video Upscaler parity",
           "result": "passed",
-          "scope": "Both Precision versions at 1920×910, 1440×740, 1024×520 and 390×844. Real photo, no nested scroll, two adjacent settings, accessible Upscale action. Mocked upload, processing, Clear, Assets and Image/Video parity passed.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895934892"
+          "scope": "Video Upscaler validation separate from Image Upscaler CSS lock",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43029301135"
         },
         {
-          "label": "Video Upscaler",
-          "result": "passed",
-          "scope": "Provider and frontend validation on the same commit.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895935213"
+          "label": "Upscaler/Assets browser regression",
+          "result": "failed",
+          "scope": "Initial candidate reported loaded inspector overflow-y visible instead of auto. More-specific selector pushed in 206ac97; new run also failed, exact new assertion not yet available from in-progress job.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43031689635"
         }
       ],
       "deployment": {
-        "state": "verified",
-        "environment": "Cloudflare Pages pvlab-studio",
-        "sourceSha": "8811c4155d598aab72bfb151c1a53ebc5bcd2b39",
-        "evidenceUrl": "https://pvlab.studio/studio?tool=upscale",
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
         "limitations": [
-          "The public browser verified versioned CSS and parsed rules. The loaded and processing states were exercised in Chromium with mocked provider responses."
+          "Candidate CSS and test exist only in PR #982. No production deployment."
         ]
       },
       "evidence": [
         {
           "kind": "source",
-          "summary": "The later desktop layout in video-upscale.css reintroduced the loaded Image deck's overflow-y:auto rule. The loaded settings now set the minimum row height.",
-          "scope": "Image Upscaler loaded photo layout",
-          "source": "lab/video-upscale.css",
-          "limitations": []
-        },
-        {
-          "kind": "production_asset",
-          "summary": "Cloudflare production check 130112018535 succeeded for the exact merge. Both production versioned stylesheet rule hashes match the reviewed Pages preview.",
-          "scope": "upscale-loaded-workspace.css v20261110-compact-photo-deck2 and video-upscale.css v20261110-compact-photo-deck1",
-          "source": "https://pvlab.studio/studio?tool=upscale",
+          "summary": "The original source-ready CSS introduces compact title, hidden kicker/description, model/card shrink, auto-height layout and shifted generate action. The new image-only final stylesheet attempts to restore the empty-state geometry.",
+          "scope": "Image Upscaler inspector and result after upload",
+          "source": "lab/upscale-state-lock.css",
           "limitations": [
-            "Browser comparison used parsed CSS rules, with exact source blobs checked against the reviewed commit."
+            "Browser regression failure must be diagnosed before merge."
           ]
         }
       ],
-      "blockers": [],
-      "doNotRepeat": [
-        "Use page scroll in short desktop windows. Keep both output fields accessible and preserve the 38px desktop and 44px phone minimums for Precision versions."
+      "blockers": [
+        "Latest Upscaler/Assets browser regression still failed; PR remains draft, unmerged and unverified in production."
       ],
-      "updatedAt": "2026-11-10"
+      "doNotRepeat": [
+        "Preserve empty-state design as locked reference; loading a photo changes image content, not inspector design.",
+        "Do not move Generate, replace upload logic or change Model/Topaz/provider/credits/Queue/Video Upscaler to repair this layout.",
+        "Do not mark deployment or signed-in result flow verified from a PR merge alone."
+      ],
+      "updatedAt": "2026-11-11"
     },
     {
       "id": "image-base-mode-popover",
