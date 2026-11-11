@@ -242,6 +242,9 @@ try{
    await page.locator('#editorial-mobile-menu').click();
    assert.equal(await page.locator('#editorial-mobile-search').isVisible(),false,'Casting has no redundant search field');
    await page.locator('#saved-character').click();
+   assert.equal(await page.locator('#casting-reference-gallery').isVisible(),true,'Phone My Characters keeps the existing casting gallery');
+   assert.equal(await page.locator('.editorial-cast-pinned').isVisible(),true,'Phone My Characters retains its pinned Create Character');
+   assert.equal(await page.locator('#editorial-cast-track').isVisible(),false,'Phone public portraits are replaced by saved characters');
    await page.locator('#editorial-mobile-search').click();
    await page.locator('#editorial-cast-search').fill('Test Actor');
    await page.locator('#saved-character-gallery .editorial-saved-cast').first().waitFor();
@@ -379,10 +382,29 @@ try{
    const remainingCover=await page.locator('#model-thumbs .editorial-model-cover img').first().getAttribute('src');
    const compositionImages=await page.locator('.editorial-composition-art img').evaluateAll(els=>els.map(img=>img.getAttribute('src')));
    assert.ok(compositionImages.every(src=>src===remainingCover),'Removed model is not retained in disabled Composition photos');
-   // Saved Characters is a real source tab; one saved pack produces one person.
+   // Swapping source tabs keeps the approved Identity frame, pinned card and
+   // Composition shelf in precisely the same positions.
+  const beforeSaved=await page.evaluate(()=>{
+   const box=id=>{const r=document.querySelector(id).getBoundingClientRect();return {top:r.top,left:r.left,width:r.width,height:r.height}};
+   return {gallery:box('#casting-reference-gallery'),pinned:box('.editorial-cast-pinned'),footer:box('#step-footer'),composition:box('#editorial-casting-controls')};
+  });
   await page.locator('#saved-character').click();
   await page.locator('#saved-character-gallery .editorial-saved-cast').first().waitFor();
   assert.equal(await page.locator('#editorial-saved-rail').isVisible(),true);
+  assert.equal(await page.locator('#casting-reference-gallery').isVisible(),true,'My Characters reuses the same visible gallery');
+  assert.equal(await page.locator('#editorial-cast-track').isVisible(),false,'Public portraits are swapped out rather than displayed above saved characters');
+  assert.equal(await page.locator('.editorial-cast-pinned').isVisible(),true,'Create Character stays locked in the same place');
+  assert.equal(await page.locator('#editorial-saved-rail').evaluate(el=>el.parentElement.classList.contains('editorial-cast-rail')),true,'Saved portraits render inside the original portrait rail');
+  if(width>800){
+   assert.equal(await page.locator('#panel-model .editorial-casting-top h3').isVisible(),false,'No second Choose your cast heading');
+   assert.equal(await page.locator('#editorial-cast-search').isVisible(),true,'Saved character search remains available');
+  }
+  const afterSaved=await page.evaluate(()=>{
+   const box=id=>{const r=document.querySelector(id).getBoundingClientRect();return {top:r.top,left:r.left,width:r.width,height:r.height}};
+   return {gallery:box('#casting-reference-gallery'),pinned:box('.editorial-cast-pinned'),footer:box('#step-footer'),composition:box('#editorial-casting-controls')};
+  });
+  for(const key of Object.keys(beforeSaved))for(const property of Object.keys(beforeSaved[key]))
+   assert.ok(Math.abs(beforeSaved[key][property]-afterSaved[key][property])<2,'My Characters must not resize/reposition '+key+'.'+property+': '+JSON.stringify({beforeSaved,afterSaved}));
   assert.equal(await page.locator('#editorial-saved-prev').isDisabled(),true);
   assert.equal(await page.locator('#editorial-saved-next').isDisabled(),true);
 

@@ -96,6 +96,19 @@ test('Progress reuses the homepage ivory film and keeps results prominent',()=>{
  assert.match(read('lab/full-editorial-atelier.css'),/font-size:clamp\(34px,3.4vw,56px\)/);
 });
 
+test('My Characters swaps into the same Identity gallery instead of adding a second layout',()=>{
+ const c=read('lab/full-editorial-identity-refresh.css');
+ assert.match(c,/PVLAB_IDENTITY_SAVED_IN_PLACE_20261111/);
+ assert.match(js,/castRail\.append\(savedRail\)/,'Saved rail is inserted in the existing photo frame');
+ assert.match(js,/\$\('casting-reference-gallery'\)\.hidden=false/,'Pinned Create Character stays visible');
+ assert.match(js,/\['editorial-cast-track','editorial-cast-prev','editorial-cast-next'\]/,'Only the portrait track and its arrows swap');
+ assert.match(c,/#casting-reference-gallery \.editorial-cast-rail > #editorial-saved-rail:not\(\[hidden\]\)/);
+ assert.match(c,/height:100%!important;min-height:0!important/,'Saved rail fills the existing portrait height');
+ assert.match(c,/#panel-model\[data-model-mode="saved"\] \.editorial-casting-tabs/,'Saved tab keeps the same top tab geometry');
+ assert.match(c,/#panel-model\[data-model-mode="saved"\] \.editorial-casting-top h3/,'No extra Choose your cast title');
+ assert.match(c,/@media\(min-width:801px\)/,'Desktop change is scoped');
+});
+
 test('Identity casting uses the approved photographic layout rather than standalone form rows',()=>{
  const stage=html.slice(html.indexOf('id="panel-model"'),html.indexOf('id="panel-style"'));
  const top=stage.slice(stage.indexOf('editorial-casting-top'),stage.indexOf('id="casting-reference-gallery"'));
@@ -110,7 +123,7 @@ test('Identity casting uses the approved photographic layout rather than standal
  const identityCss=read('lab/full-editorial-identity-refresh.css');
  assert.match(identityCss,/scroll-snap-type:x mandatory/,'Casting supports a horizontal snap carousel');
  assert.match(identityCss,/position:sticky!important/,'Selection dock follows the active viewport');
- assert.match(html,/full-editorial-identity-refresh\.css\?v=20261111-identity-proportion1/);
+ assert.match(html,/full-editorial-identity-refresh\.css\?v=20261111-saved-rail1/);
 
  const atelierCss=read('lab/full-editorial-atelier.css');
  assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
@@ -119,7 +132,7 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.ok(html.includes('full-editorial.js?v=20261111-casting-wheel-10'),'Full Editorial loads the current casting gallery');
+ assert.ok(html.includes('full-editorial.js?v=20261111-saved-rail1'),'Full Editorial loads the current casting gallery');
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);setIdentitySource\('casting'\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=step!==1/,'Composition remains visible throughout Identity');

@@ -489,7 +489,18 @@ async function uploadReferences(){
 
 function setIdentitySource(source){
  const saved=source==='saved';
- $('casting-reference-gallery').hidden=saved;
+ // Browser Identity keeps one locked casting frame. My Characters swaps the
+ // portrait rail in place, rather than adding a second gallery below it.
+ if(document.body.classList.contains('editorial-web')){
+  const castRail=document.querySelector('#casting-reference-gallery .editorial-cast-rail');
+  const savedRail=$('editorial-saved-rail');
+  if(castRail&&savedRail.parentElement!==castRail)castRail.append(savedRail);
+  $('casting-reference-gallery').hidden=false;
+  $('casting-reference-gallery').setAttribute('aria-label',saved?'Your saved characters and Create Character':'PV LAB example character references');
+  for(const id of ['editorial-cast-track','editorial-cast-prev','editorial-cast-next'])$(id).hidden=saved;
+ }else{
+  $('casting-reference-gallery').hidden=saved;
+ }
  $('saved-character-gallery').hidden=!saved;
  $('editorial-saved-rail').hidden=!saved;
  $('panel-model').dataset.modelMode=saved?'saved':'casting';
