@@ -211,7 +211,7 @@ test('Identity typography clears Back and progress rail; Continue uses a subdued
  assert.match(c,/#step-next:disabled/);
  assert.doesNotMatch(c.slice(c.indexOf('PVLAB_IDENTITY_HERO_TEXT_CTA_20261101')),/#editorial-cast-empty:not/,'No state-dependent hero geometry');
  assert.match(html,/id="step-next" class="primary"/,'Existing continue action and semantics unchanged');
- assert.match(html, /full-editorial\.css\\?v=20261111-arrival-stability1/, 'Full Editorial loads updated primary stylesheet');
+ assert.match(html, /full-editorial\.css\?v=20261111-arrival-stability1/, 'Full Editorial loads updated primary stylesheet');
  assert.match(html, /rel="preload" href="\.\/fonts\/dm-sans-latin-v17\.woff2" as="font" type="font\/woff2" crossorigin/, 'DM Sans is fetched before the first hero paint');
  assert.match(css, /font-display:block/, 'Avoid visible fallback-font swap during arrival');
  assert.doesNotMatch(js, /getElementById\('editorial-hero'\)\.scrollIntoView/, 'Startup does not redundantly scroll the arrival hero');
