@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {runImageTask,seedreamWorkingDimensions,SEEDREAM_INPUT_MAX_PIXELS} from '../lab/image-tools.js';
+import {runImageTask,imageReferenceLocalPreview,seedreamWorkingDimensions,SEEDREAM_INPUT_MAX_PIXELS} from '../lab/image-tools.js';
 
 const src=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
 const begin=src.indexOf('async function inspectImage(candidate,{referenceOnly=false}={}){');
@@ -13,7 +13,7 @@ function inspectFor(tool='image',imageEngine='seedream',engine='seedance'){
   const ctx={
     window:{__PV_LAB_NATIVE__:0},tool,imageEngine,engine,
     imagePreview:async file=>({width:file.width,height:file.height,preview:{},thumbnail:{}}),
-    imageReferencePreview:async file=>({width:file.width,height:file.height,thumbnail:{}}),
+    imageReferenceLocalPreview:async file=>({width:file.width,height:file.height,url:'blob:original',thumbUrl:'blob:original'}),
     prepareElementPhoto:async (file,{maxSide})=>Math.max(file.width,file.height)>maxSide
       ?{...file,width:Math.floor(file.width*maxSide/Math.max(file.width,file.height)),height:Math.floor(file.height*maxSide/Math.max(file.width,file.height)),size:4*1024*1024}:file,
     modelImageInputIssue:()=>null,
@@ -28,7 +28,7 @@ test('Image deck accepts 6048 x 8064 under 20 MB without changing source bytes',
   const original=phonePhoto(),prepared=await inspectFor()(original,{referenceOnly:true});
   assert.strictEqual(prepared.file,original,'Original is retained, never silently recompressed on upload');
   assert.equal(prepared.url,'blob:original','Image Deck full-size inspection uses the original, no second WebP encode');
-  assert.equal(prepared.thumbUrl,'blob:preview','The deck tile uses a small encoded thumbnail');
+  assert.equal(prepared.thumbUrl,'blob:original','The deck tile uses the local source without waiting for conversion');
   assert.equal((await inspectFor()(original)).url,'blob:preview','Image source frames retain a prepared full preview');
   assert.equal(prepared.width,6048);
   assert.equal(prepared.height,8064);
@@ -85,5 +85,31 @@ test('Image reference preview encodes only a 320px tile while other tools retain
     else globalThis.createImageBitmap=previousBitmap;
     if(previousCanvas===undefined)delete globalThis.OffscreenCanvas;
     else globalThis.OffscreenCanvas=previousCanvas;
+  }
+});
+
+test('Image Deck local reference probe uses browser dimensions with no worker/canvas encoding',async()=>{
+  const originalImage=globalThis.Image,originalURL=globalThis.URL,events=[],sample={name:'test.jpg'};
+  globalThis.URL={createObjectURL(file){assert.equal(file,sample);events.push('open');return 'blob:local-reference';},revokeObjectURL(url){events.push('revoke '+url);}};
+  globalThis.Image=class{
+    naturalWidth=6048;naturalHeight=8064;
+    set src(value){events.push('load '+value);queueMicrotask(()=>this.onload?.());}
+  };
+  try{
+    const result=await imageReferenceLocalPreview(sample);
+    assert.equal(result.url,'blob:local-reference');
+    assert.equal(result.thumbUrl,result.url);
+    assert.equal(result.width*result.height,48771072);
+    assert.deepEqual(events,['open','load blob:local-reference'],'A valid reference incurs no WebP conversion');
+    globalThis.Image=class{
+      naturalWidth=20000;naturalHeight=20000;
+      set src(value){queueMicrotask(()=>this.onload?.());}
+    };
+    await assert.rejects(imageReferenceLocalPreview(sample),/72 megapixels/);
+    assert.equal(events.at(-1),'revoke blob:local-reference','Rejected dimensions release the original object URL');
+  }finally{
+    if(originalImage===undefined)delete globalThis.Image;
+    else globalThis.Image=originalImage;
+    globalThis.URL=originalURL;
   }
 });
