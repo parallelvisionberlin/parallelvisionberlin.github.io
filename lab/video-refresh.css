@@ -346,3 +346,10 @@
   color:#969ba5;
   overflow-wrap:anywhere;
 }
+
+/* Kling settings extend the existing Video panel, without changing its shell. */
+#app.video-studio-active #kling4-settings:not([hidden]){display:block;margin:8px 0}
+#app.video-studio-active #kling4-settings>div{display:grid;gap:12px;padding:8px 0}
+#app.video-studio-active #kling4-settings :is(input,select,textarea){box-sizing:border-box;max-width:100%;min-width:0}
+#app.video-studio-active #kling4-settings .reference-fields{display:grid;gap:8px;margin:8px 0}
+#app.video-studio-active #kling4-settings small{overflow-wrap:anywhere}

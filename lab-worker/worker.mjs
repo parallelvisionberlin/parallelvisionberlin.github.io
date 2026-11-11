@@ -51,6 +51,7 @@ import {seedreamLiteParameters,seedreamLiteInput,SEEDREAM_LITE_TEXT,SEEDREAM_LIT
 import {creditsForJobUsd} from './job-pricing.mjs';
 import {NANO21_MODEL,NANO21_STANDARD_MICROS,nano21Request,nano21ImagePart} from './nano-banana-21.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
+import {kling4Parameters,prepareKling4} from './kling4-fal.mjs';
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
 import {falUpscaleParameters,storedImageDimensions,setFalUpscaleDimensions,falUpscaleEstimateMicros,buildFalUpscaleInput} from './fal-upscale.mjs';
 import {videoUpscaleParameters,inspectUpscaleMp4,quotedVideoUpscale,videoUpscaleEstimateMicros,buildVideoUpscaleInput,VIDEO_UPSCALE_MAX_BYTES} from './video-upscale.mjs';
@@ -210,7 +211,7 @@ async function config(env,owner) {
   }
   return first(env,'SELECT * FROM settings WHERE owner_id=?',owner);
 }
-function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,imageReplacementEnabled:true,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:c?.customer_no_daily_cap?null:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance','seedance15','seedance4k','kling3',...(falEnabled?['h3maxfal','omni']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Kling 3.0 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
+function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,imageReplacementEnabled:true,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:c?.customer_no_daily_cap?null:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance','seedance15','seedance4k','kling3',...(falEnabled?['h3maxfal','omni','kling4']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Kling 3.0 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
 async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET') {
   let r;
   try {
@@ -294,6 +295,7 @@ function parseParameters(value) {
     if(!['2k','4k','8k'].includes(value.resolution)||!['jpeg','png','webp'].includes(value.outputFormat||'jpeg'))fail(400,'Choose 2K, 4K or 8K and JPEG, PNG or WebP.');
     return {type:'image',provider:'spicy',upscaleEngine:'spicy',model:UPSCALER,mode:'upscale',prompt:'',resolution:value.resolution,aspectRatio:'auto',outputFormat:value.outputFormat||'jpeg',referenceRoles:[]};
   }
+  if(value.type==='video'&&value.engine==='kling4')return kling4Parameters(value,{fail,referenceLabels});
   if(value.type!=='image'&&['h3maxfal','omni'].includes(value.engine))return falVideoParameters(value,{fail,referenceLabels});
   if(value.type!=='image'&&value.engine==='seedance')return seedanceParameters(value,{fail,referenceLabels});
   if(value.type!=='image'&&value.engine==='kling3')return klingSpicyParameters(value,{fail});
@@ -398,6 +400,13 @@ async function prepareInput(env,owner,data,p,url) {
   await validateImageReplacement(env,owner,data,p,{fail,source,falImageBytes,storedImageDimensions});
   if(p.engine==='seedance'&&p.mode==='transform'){const {original}=await prepareCharacterTransform(env,owner,data,p,{fail,source,sources});return {primary:original,input:{}};}
   if(p.engine==='kling'){if(url)fail(400,'Use the Kling image generation route.');const ids=data.referenceSourceIds||[],refs=ids.length?await sources(env,owner,ids,1):[];p.referenceSourceIds=refs.map(a=>a.id);return {primary:refs[0]||null,input:{}};}
+  if(p.engine==='kling4')return prepareKling4(env,owner,data,p,url,{fail,source,signedInput,
+    readImage:async asset=>storedImageDimensions(await falImageBytes(env,asset),asset.mime),
+    readVideo:async asset=>{
+      const object=await env.LAB_MEDIA.get(asset.object_key);
+      if(!object)fail(404,'Source video is missing. Upload it again.');
+      return inspectUpscaleMp4(new Uint8Array(await object.arrayBuffer()));
+    }});
   if(p.engine==='kling3')return prepareKlingSpicyInput(env,owner,data,p,url,{fail,source,signedInput});
   if(p.provider==='higgsfield'){if(url)fail(400,'Use the Soul 2 generation route.');const primary=await source(env,owner,data.sourceId);return {primary,input:{}};}
   if(p.mode==='upscale'&&p.provider==='fal'){
@@ -601,6 +610,8 @@ function linkedSourceIds(row) {
       if(UUID.test(p[key]||''))ids.add(p[key]);
     for(const key of ['referenceSourceIds','transferSourceIds','referenceVideoIds','referenceAudioIds'])
       if(Array.isArray(p[key]))for(const id of p[key])if(UUID.test(id||''))ids.add(id);
+    for(const id of [p.kling4Media?.startSourceId,p.kling4Media?.endSourceId,...(p.kling4Media?.middleSourceIds||[])])if(UUID.test(id||''))ids.add(id);
+    for(const element of p.kling4Media?.elements||[])for(const id of [...(element.imageSourceIds||[]),element.videoSourceId])if(UUID.test(id||''))ids.add(id);
     const replacement=p.replacement;
     for(const id of [replacement?.originalSourceId,replacement?.maskSourceId,...(replacement?.referenceSourceIds||[])])
       if(UUID.test(id||''))ids.add(id);
@@ -1941,7 +1952,7 @@ async function route(request,env,ctx) {
     const quoteCount=data.count===undefined?1:Number(data.count);
     if(!Number.isInteger(quoteCount)||quoteCount<1||quoteCount>4)fail(400,'Choose 1 to 4 images for one price check.');
     if(quoteCount>1&&!(p.type==='image'&&['seedream','seedreamlite','flash','qwen3','zspicy'].includes(p.engine)&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for SpicyAPI image generation.');
-    if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0))fail(400,'Add a prompt or at least one reference photograph.');
+    if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(p.engine==='kling4'&&(p.mode==='start'||p.kling4.shots.length))&&!(supportsReferenceGuidance(p)&&Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0))fail(400,'Add a prompt or at least one reference photograph.');
     if(p.provider==='higgsfield'&&p.mode==='transform')return json(await quoteCharacterTransform(env,owner,data,p,url,hfDeps()));
     if(p.provider==='fal'&&p.engine==='video-upscale'){
       if(!env.FAL_KEY)fail(503,'fal.ai video upscaling is not configured on this Worker.');

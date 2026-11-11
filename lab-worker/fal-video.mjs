@@ -1,3 +1,4 @@
+import {kling4EstimateMicros} from './kling4-fal.mjs';
 // Direct fal.ai video integrations for PV Lab.
 // Provider safety settings stay enabled; provider/model/account policies can reject a request.
 export const FAL_H3_MAX_REFERENCE='minimax/h3-max/reference-to-video';
@@ -38,6 +39,7 @@ export function falVideoParameters(value,{fail,referenceLabels}){
 }
 
 export function falVideoEstimateMicros(p){
+  if(p.engine==='kling4')return kling4EstimateMicros(p);
   let usd;
   if(p.engine==='h3maxfal'){
     usd=p.duration*H3_RATES[p.resolution];

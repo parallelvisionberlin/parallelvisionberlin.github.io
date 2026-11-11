@@ -1,10 +1,10 @@
 name: PV LAB Video credit preview
 on:
   pull_request:
-    paths: ['lab/lab.js', 'lab/media-references.js', 'lab/video-input-action.js', 'lab/video-scene-states.js', 'lab/video-euro-pricing.js', 'lab/video-relaxed-studio.css', 'lab/video-composer-single-scroll.css', 'lab/studio.html', 'tests/lab-video-generate-scroll-ui.mjs', 'tests/lab-video-single-scroll.test.mjs', 'tests/lab-video-credit-preview-ui.mjs', '.github/workflows/lab-video-credit-preview.yml']
+    paths: ['lab/lab.js', 'lab/kling4-controls.js', 'lab/video-models.js', 'lab-worker/kling4-fal.mjs', 'tests/lab-kling4-fal.test.mjs', 'tests/lab-kling4-ui.mjs', 'lab/media-references.js', 'lab/video-input-action.js', 'lab/video-scene-states.js', 'lab/video-euro-pricing.js', 'lab/video-relaxed-studio.css', 'lab/video-composer-single-scroll.css', 'lab/studio.html', 'tests/lab-video-generate-scroll-ui.mjs', 'tests/lab-video-single-scroll.test.mjs', 'tests/lab-video-credit-preview-ui.mjs', '.github/workflows/lab-video-credit-preview.yml']
   push:
     branches: [main]
-    paths: ['lab/lab.js', 'lab/media-references.js', 'lab/video-input-action.js', 'lab/video-scene-states.js', 'lab/video-euro-pricing.js', 'lab/video-relaxed-studio.css', 'lab/video-composer-single-scroll.css', 'lab/studio.html', 'tests/lab-video-generate-scroll-ui.mjs', 'tests/lab-video-single-scroll.test.mjs', 'tests/lab-video-credit-preview-ui.mjs', '.github/workflows/lab-video-credit-preview.yml']
+    paths: ['lab/lab.js', 'lab/kling4-controls.js', 'lab/video-models.js', 'lab-worker/kling4-fal.mjs', 'tests/lab-kling4-fal.test.mjs', 'tests/lab-kling4-ui.mjs', 'lab/media-references.js', 'lab/video-input-action.js', 'lab/video-scene-states.js', 'lab/video-euro-pricing.js', 'lab/video-relaxed-studio.css', 'lab/video-composer-single-scroll.css', 'lab/studio.html', 'tests/lab-video-generate-scroll-ui.mjs', 'tests/lab-video-single-scroll.test.mjs', 'tests/lab-video-credit-preview-ui.mjs', '.github/workflows/lab-video-credit-preview.yml']
 jobs:
   video-credit-preview:
     runs-on: ubuntu-latest
@@ -23,6 +23,12 @@ jobs:
       - run: node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-customer-image-quotes.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-video-character-removal.test.mjs tests/lab-video-input-action.test.mjs tests/lab-video-scene-states.test.mjs tests/lab-video-single-scroll.test.mjs
       - run: npm install --prefix /tmp/pv-video-credit playwright
       - run: /tmp/pv-video-credit/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify Kling 4 contracts and native Video controls
+        run: |
+          node --test tests/lab-kling4-fal.test.mjs
+          node tests/lab-kling4-ui.mjs
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-video-credit/node_modules/playwright/index.mjs
       - name: Verify Generate stays visible while settings scroll
         run: node tests/lab-video-generate-scroll-ui.mjs
         env:
@@ -35,6 +41,7 @@ jobs:
         with:
           name: video-credit-preview
           path: |
+            test-results/kling4-*.png
             test-results/video-credit-button-*.png
             test-results/video-generate-scroll-*.png
           if-no-files-found: ignore

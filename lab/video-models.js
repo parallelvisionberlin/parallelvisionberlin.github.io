@@ -58,6 +58,11 @@ export const VIDEO_MODELS = Object.freeze({
     modes:['start'],resolutions:['4k'],ratios:['auto'],
     endpoints:{start:'bytedance/seedance-2.5-spicy/image-to-video'}
   }),
+  kling4: Object.freeze({
+    label:'Kling 4.0',minSeconds:3,maxSeconds:30,maxImages:10,
+    modes:['start','reference','text','transform'],resolutions:['720p','1080p'],ratios:['auto','16:9','9:16','1:1','21:9'],
+    endpoints:{start:'kling/v4/image-to-video',reference:'kling/v4/reference-to-video',text:'kling/v4/text-to-video',transform:'kling/v4/video-to-video/edit'}
+  }),
   kling3: Object.freeze({
     label:'Kling 3.0',minSeconds:3,maxSeconds:15,maxImages:0,
     modes:['start','text'],resolutions:['1080p'],ratios:['auto','16:9','9:16','1:1'],
@@ -71,6 +76,7 @@ export const VIDEO_MODELS = Object.freeze({
   })
 });
 export function engineFor(settings = {}) {
+  if(settings.engine==='kling4'||String(settings.model||'').startsWith('kling/v4/'))return 'kling4';
   if(settings.engine==='kling3'||settings.engine==='klinghf'||/^kling\/3\.0\/(image-to-video|text-to-video)$/.test(settings.model||'')||/^kling-video\/v3\.0\/pro\/(image-to-video|text-to-video)$/.test(settings.model||''))return 'kling3';
   if (settings.engine === 'omni' || /^google\/gemini-omni-flash\/v1\.1\//.test(settings.model || '')) return 'omni';
   if (settings.engine === 'h3maxfal' || settings.model === 'minimax/h3-max/reference-to-video' && settings.provider === 'fal') return 'h3maxfal';
