@@ -72,13 +72,18 @@
   // History nor the separate Moods grid uses this adjustment.
   function fitPhoneInspiration(surface,grid,deck,visible){
     if(!surface||!grid)return;
-    surface.classList.remove('pv-phone-inspiration-lift');
     surface.style.removeProperty('--pv-phone-inspiration-lift');
     grid.classList.remove('pv-phone-inspiration-compact-cards');
     grid.style.removeProperty('--pv-phone-inspiration-card-height');
     if(!small.matches||!visible||!deck.classList.contains('pv-deck-expanded')||
       document.documentElement.classList.contains('pv-native-lab')||
-      document.documentElement.classList.contains('pv-image-previews-hidden'))return;
+      document.documentElement.classList.contains('pv-image-previews-hidden')){
+      // welcome is observed for class mutations. Only change this class on a
+      // genuine state transition to avoid a self-triggering layout loop.
+      if(surface.classList.contains('pv-phone-inspiration-lift'))
+        surface.classList.remove('pv-phone-inspiration-lift');
+      return;
+    }
     const title=surface.querySelector('h1,h2');
     const first=grid.querySelector(':scope > button');
     if(!title||!first)return;
