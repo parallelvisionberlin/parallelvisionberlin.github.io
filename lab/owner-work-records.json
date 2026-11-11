@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-11T02:23:10.390Z",
+  "updatedAt": "2026-11-11T02:46:05.577Z",
   "handoffs": [
     {
       "id": "owner",
@@ -68,9 +68,9 @@
       "id": "chrome-desert-world-handoff-20261111",
       "title": "Chrome Desert featured world to Full Editorial",
       "component": "PV LAB homepage / Full Editorial",
-      "status": "in_progress",
-      "summary": "Build an owner-approved curated Chrome Desert world from 3 original photographs, with a direct subject-to-review Full Editorial preset and optional styling/location edits.",
-      "nextAction": "Focused Chrome Desert tests pass on PR #964; review rendering and complete remaining relevant checks, resolve known unrelated baseline failures if needed, then merge and verify Cloudflare production. Do not run paid generation tests.",
+      "status": "deployed",
+      "summary": "Chrome Desert is now a published 3-photo featured world; USE THIS WORLD opens Full Editorial with two model-free scenery references, optional styling/location, and direct Identity-to-priced-review for the visitor's subject.",
+      "nextAction": "Public feature complete. Optional signed-in customer quote and paid generation verification remains separate; no paid job was submitted during this release. Track real usage and conversion separately.",
       "baselineSha": "739b9b3fde2092b259997b7a98e8be83b950ba1d",
       "branch": "feat/chrome-desert-featured-world-20261111",
       "files": [
@@ -97,7 +97,36 @@
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/964"
         }
       ],
-      "tests": [],
+      "tests": [
+        {
+          "label": "Chrome Desert and existing Full Editorial focused Node tests",
+          "result": "passed",
+          "scope": "36/36 tests on the reviewed PR branch; normal Full Editorial, Chrome Desert allowlist, all image assets, navigation and Image UI contracts.",
+          "observedAt": "2026-11-11T02:46:05.577Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/964"
+        },
+        {
+          "label": "Mock Full Editorial browser on desktop and mobile",
+          "result": "passed",
+          "scope": "Playwright 1440px/390px, normal original flow plus world click-through to quote, subject selection, optional world edit and zero paid job submissions.",
+          "observedAt": "2026-11-11T02:46:05.577Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42945741446"
+        },
+        {
+          "label": "Live guest production browser",
+          "result": "passed",
+          "scope": "pvlab.studio at 1440px and 390px: 3 hero photos loaded, CTA handoff, 2 environment references loaded, Identity to Review, no horizontal overflow, no browser exceptions and no paid job.",
+          "observedAt": "2026-11-11T02:46:05.577Z",
+          "source": "https://pvlab.studio/"
+        },
+        {
+          "label": "Approved Image UI, static validation, assets and Owner",
+          "result": "passed",
+          "scope": "Relevant PR #964 GitHub Actions checks passed; unrelated pre-existing repository-wide failures were not changed or masked.",
+          "observedAt": "2026-11-11T02:46:05.577Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/964"
+        }
+      ],
       "blockers": [],
       "doNotRepeat": [
         "Preserve original Full Editorial step order and paid generation behavior for ordinary entries.",
@@ -105,18 +134,42 @@
         "Do not give preset images to customer private Photo Packs automatically.",
         "Do not publish on a failed or unverified release."
       ],
-      "updatedAt": "2026-11-11T01:56:36.833Z",
+      "updatedAt": "2026-11-11T02:46:05.577Z",
       "deployment": {
-        "state": "not_started",
+        "state": "verified",
+        "sourceSha": "6fe930c143d45f3efdd5c35f1d5ddb94da6ef9e0",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "sourceSha": null,
+        "observedAt": "2026-11-11T02:46:05.577Z",
+        "evidenceUrl": "https://pvlab.studio/",
         "limitations": [
-          "Feature branch and draft PR are not deployed.",
-          "Production and signed-in behaviors are not verified."
+          "PR #964 merged at 766540fec6eac12f9d329508bfddcfee9d375245; canonical production commit 6fe930c is a verified descendant two commits later, preserving feature assets.",
+          "Original build ID df8e2d58-93ff-4d52-8c11-317465e80454 had stale queued metadata; canonical deployment e3ebe0b5-32d4-41f6-8255-0ed5a1300748 reports deploy success.",
+          "No authenticated customer session or paid generation executed."
         ]
       },
-      "evidence": [],
-      "reviewedSha": null
+      "evidence": [
+        {
+          "kind": "deployment",
+          "summary": "Cloudflare Pages canonical production deployment e3ebe0b5-32d4-41f6-8255-0ed5a1300748 succeeded for main commit 6fe930c143d45f3efdd5c35f1d5ddb94da6ef9e0, which descends from Chrome Desert release SHA 766540fec6eac12f9d329508bfddcfee9d375245. Domain pvlab.studio is an alias.",
+          "scope": "Cloudflare Pages production infrastructure and Git history ancestry.",
+          "observedAt": "2026-11-11T02:46:05.577Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/6fe930c143d45f3efdd5c35f1d5ddb94da6ef9e0",
+          "limitations": [
+            "Signed-in generation is not established by deployment checks."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Production homepage displays USE THIS WORLD, all 3 hero images load and 8 selected HTML/CSS/JS/JPG assets match reviewed GitHub file bytes; homepage HTML differs only by Cloudflare email-protection rewriting footer email links.",
+          "scope": "pvlab.studio public assets and 1440px/390px guest browser.",
+          "observedAt": "2026-11-11T02:46:05.577Z",
+          "source": "https://pvlab.studio/",
+          "limitations": [
+            "No real customer account/payment or provider inference was used."
+          ]
+        }
+      ],
+      "reviewedSha": "766540fec6eac12f9d329508bfddcfee9d375245"
     },
     {
       "id": "image-count-stepper-20261110",
