@@ -1,8 +1,16 @@
 /* Owner-only PV LAB Effects: a dense vertical template rail, not a second billing flow. */
 #tool-effects[hidden]{display:none!important}
 #video-effects-explore[hidden],#video-effect-active[hidden],#effect-gallery-picker[hidden]{display:none!important}
-#app.effects-explore-active>.workspace,#app.effects-explore-active>.archive,
-#app.effects-explore-active>#soul-launch{display:none!important}
+/* Effects is a routed page, not an overlay on the Video composer.
+   Hide ALL Studio siblings so nested scrollports, canvas and History cannot
+   leak underneath the standalone Effects view. Keep notice for errors. */
+#app.effects-explore-active > :not(#video-effects-explore):not(#notice){
+  display:none!important;visibility:hidden!important;
+}
+#app.effects-explore-active > #video-effects-explore{display:block!important;position:relative;margin:0}
+#app.effects-explore-active > #notice:empty{display:none!important}
+body.pv-effects-page #main{min-height:calc(100dvh - 76px)}
+
 #video-effects-explore{color:#efefed;background:#111214;min-height:calc(100dvh - 115px);padding:clamp(20px,2.8vw,45px) clamp(14px,2.8vw,48px) 60px;border-radius:13px}
 .video-effects-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin:0 0 23px;padding:0 0 22px;border-bottom:1px solid #28292c}
 .video-effects-intro{max-width:760px}

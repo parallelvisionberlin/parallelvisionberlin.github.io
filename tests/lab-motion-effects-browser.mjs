@@ -72,6 +72,20 @@ try{
     await page.click('#tool-effects');
     assert.equal(await page.locator('.video-effect-card').count(),1);
     assert.equal(await page.locator('#video-effects-explore').isVisible(),true);
+    // Effects occupies its own routed page, without any Video deck/history behind it.
+    assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('pv-effects-page')),true);
+    assert.equal(await page.title(),'Effects | PV LAB');
+    const visibleSiblings=await page.evaluate(()=>
+      [...document.querySelector('#app').children]
+        .filter(el=>el.id!=='video-effects-explore'&&el.id!=='notice')
+        .filter(el=>getComputedStyle(el).display!=='none')
+        .map(el=>el.id||el.className||el.tagName)
+    );
+    assert.deepEqual(visibleSiblings,[],'Every unrelated Studio panel is removed from the Effects layout');
+    assert.equal(await page.locator('#app>.workspace').isVisible(),false,'Video workspace is hidden');
+    await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+    assert.equal(await page.locator('#app>.workspace').isVisible(),false,'Scrolling cannot reveal the Video workspace');
+    await page.evaluate(()=>window.scrollTo(0,0));
     assert.equal(await page.locator('[data-effect="metro-blonde"]').count(),1);
     assert.equal(requests.filter(r=>r.path==='/api/quotes').length,0);
     await page.locator('.video-effect-photo-input').setInputFiles({
@@ -80,6 +94,8 @@ try{
     assert.equal(await page.locator('.video-effect-card.has-identity').count(),1);
     await page.click('[data-effect="metro-blonde"] .video-effect-card-activate');
     await page.waitForFunction(()=>document.querySelector('#video-effects-explore')?.hidden===true);
+    assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('pv-effects-page')),false);
+    assert.equal(await page.locator('#app>.workspace').isVisible(),true,'Video workspace restored on template selection');
     assert.equal(await page.locator('#video-engine').inputValue(),'seedance');
     assert.equal(await page.locator('#resolution').inputValue(),'720p');
     assert.equal(await page.locator('#audio').isChecked(),false);
