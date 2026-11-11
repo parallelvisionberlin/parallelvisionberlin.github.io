@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {seedreamWorkingDimensions,SEEDREAM_INPUT_MAX_PIXELS} from '../lab/image-tools.js';
+import {runImageTask,seedreamWorkingDimensions,SEEDREAM_INPUT_MAX_PIXELS} from '../lab/image-tools.js';
 
 const src=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
 const begin=src.indexOf('async function inspectImage(candidate){');
@@ -56,4 +56,33 @@ test('Video silently prepares an oversized working copy, while Upscaler preserve
   assert.equal(original.height,8064,'The chosen original is untouched');
   const upscale=await inspectFor('upscale')(original);
   assert.strictEqual(upscale.file,original);
+});
+
+test('Image reference preview encodes only a 320px tile while other tools retain the 1280px view',async()=>{
+  const previousBitmap=globalThis.createImageBitmap,previousCanvas=globalThis.OffscreenCanvas;
+  const encodes=[];let closed=0;
+  globalThis.createImageBitmap=async()=>({width:6048,height:8064,close(){closed++;}});
+  globalThis.OffscreenCanvas=class{
+    constructor(width,height){this.width=width;this.height=height;}
+    getContext(){return {drawImage(){},imageSmoothingEnabled:false,imageSmoothingQuality:''};}
+    async convertToBlob({type}){encodes.push([this.width,this.height]);return new Blob(['preview'],{type});}
+  };
+  try{
+    const file={name:'camera.jpg'};
+    const fast=await runImageTask('reference-preview',file);
+    assert.equal(fast.width,6048);assert.equal(fast.height,8064);
+    assert.ok(fast.thumbnail instanceof Blob);
+    assert.equal(fast.preview,undefined,'Image Deck does not encode an unneeded full preview');
+    assert.deepEqual(encodes,[[240,320]],'One thumbnail encode instead of two');
+    encodes.length=0;
+    const full=await runImageTask('preview',file);
+    assert.ok(full.preview instanceof Blob,'Video and Upscale keep the prepared view');
+    assert.deepEqual(encodes,[[240,320],[960,1280]]);
+    assert.equal(closed,2,'Both image decodes release their bitmaps');
+  }finally{
+    if(previousBitmap===undefined)delete globalThis.createImageBitmap;
+    else globalThis.createImageBitmap=previousBitmap;
+    if(previousCanvas===undefined)delete globalThis.OffscreenCanvas;
+    else globalThis.OffscreenCanvas=previousCanvas;
+  }
 });
