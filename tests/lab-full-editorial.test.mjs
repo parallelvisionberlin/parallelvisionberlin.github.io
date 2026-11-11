@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const html=read('lab/full-editorial.html');
 const js=read('lab/full-editorial.js');
@@ -218,7 +218,12 @@ test('Identity carousel retains saved character, uploading and multi-cast contro
  assert.match(html,/id="editorial-cast-prev"/);
  assert.match(html,/id="editorial-cast-next"/);
  assert.match(html,/id="editorial-clear-cast"/);
- assert.equal((html.match(/data-sample-kind="model"/g)||[]).length,5,'All five existing reference portraits remain');
+ assert.equal((html.match(/data-sample-kind="model"/g)||[]).length,10,'Five approved original and five new casting models remain selectable');
+ for(const id of ['slate','cobalt','pearl','acid','blossom']){
+  const asset='lab/visuals/character-casting/'+id+'-cast-20261111.jpg';
+  assert.match(html,new RegExp('data-sample-src="\\./visuals/character-casting/'+id+'-cast-20261111\\.jpg"'));
+  assert.ok(existsSync(new URL('../'+asset,import.meta.url)),'Selected casting photograph must exist: '+id);
+ }
  assert.match(html,/createCharacter=1/,'Create Character deep link remains genuine');
  assert.match(js,/function moveCastCarousel/);
  assert.match(js,/document\.addEventListener\('keydown'/);

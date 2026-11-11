@@ -98,7 +98,7 @@ try{
   assert.equal(await page.locator('.editorial-cast-pinned').count(),1,'One pinned Create Character and upload card');
   assert.match(await page.locator('.editorial-create-character').getAttribute('href'),/createCharacter=1/);
   const carouselState=await castTrack.evaluate(el=>({width:el.clientWidth,full:el.scrollWidth,count:el.querySelectorAll('.atelier-reference').length}));
-  assert.equal(carouselState.count,5,'All five photographic casting references remain');
+  assert.equal(carouselState.count,10,'Original five plus five approved new casting references');
   assert.ok(carouselState.full>carouselState.width+30,'The casting gallery scrolls horizontally');
   assert.equal(await page.locator('#editorial-cast-prev').isDisabled(),true);
   await page.locator('#editorial-cast-next').click();
@@ -138,6 +138,21 @@ try{
   }
 
 
+  // The five new cards must resolve to selectable model references.
+  for(const id of ['slate','cobalt','pearl','acid','blossom']){
+   const card=page.locator('#editorial-cast-track [data-sample-label="'+id[0].toUpperCase()+id.slice(1)+' portrait"]');
+   assert.equal(await card.count(),1,'New casting card present: '+id);
+   assert.ok((await card.getAttribute('data-sample-src')).endsWith(id+'-cast-20261111.jpg'));
+  }
+  const newMale=page.locator('#editorial-cast-track [data-sample-label="Slate portrait"]');
+  await newMale.click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===1);
+  assert.equal(await newMale.getAttribute('aria-pressed'),'true','New male portrait selects a real model');
+  await newMale.click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===0);
+  assert.equal(await newMale.getAttribute('aria-pressed'),'false','New portrait can be deselected');
+  await castTrack.evaluate(track=>{track.style.scrollBehavior='auto';track.scrollLeft=0;track.style.scrollBehavior='';});
+  await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<3);
   let baselineCastSizes=null;
   if(width>800){
    baselineCastSizes=await page.evaluate(()=>{
@@ -231,7 +246,7 @@ try{
    assert.equal(await page.locator('#saved-character-gallery .editorial-saved-cast:visible').count(),1,'Private saved characters still support search');
    await page.locator('#editorial-mobile-search').click();
    await page.locator('[data-source-view="casting"]').click();
-   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference:visible').count(),5);
+   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference:visible').count(),10);
    const uploadsBeforePicker=uploadCount;const picker=page.waitForEvent('filechooser');await page.locator('#model-drop').click();await picker;
    assert.equal(uploadCount,uploadsBeforePicker,'Opening the file chooser sends no upload or paid request');
    await page.screenshot({path:'test-results/editorial/390-mobile-casting.png'});
@@ -523,7 +538,7 @@ try{
   assert.deepEqual(errors,[],'No browser errors at '+width);
   await page.close();
  }
- // Full-width desktop reference: five original portraits are completely visible,
+ // Full-width desktop reference: five original portraits remain visible at rest,
  // without sacrificing genuine arrow/keyboard scrolling on narrower screens.
  {
   const page=await browser.newPage({viewport:{width:1680,height:900}});
@@ -534,7 +549,7 @@ try{
    const panel=get('.flow-main'),track=get('#editorial-cast-track'),
     cards=Array.from(document.querySelectorAll('#editorial-cast-track .atelier-reference')).map(el=>el.getBoundingClientRect());
    return {width:innerWidth,mainWidth:panel.width,heroHeight:get('#panel-model .stage-visual').height,
-    trackWidth:track.width,firstLeft:cards[0].left,lastRight:cards.at(-1).right,trackRight:track.right,
+    trackWidth:track.width,firstLeft:cards[0].left,originalFifthRight:cards[4].right,lastRight:cards.at(-1).right,trackRight:track.right,
     fullWidth:document.getElementById('editorial-cast-track').scrollWidth,
     compositionBottom:get('#editorial-composition-choices').bottom};
   });
@@ -557,7 +572,8 @@ try{
   assert.ok(Math.abs(heroCopy.left)<=3,'Identity title is left-aligned with the hero: '+JSON.stringify(heroCopy));
   assert.ok(heroCopy.top>=0&&heroCopy.top<=45,'Hero intro begins high like the approved reference: '+JSON.stringify(heroCopy));
   assert.equal(heroCopy.separated,true,'Back control stays clear of the hero title');
-  assert.ok(geometry.lastRight<=geometry.trackRight+2,'All five casting photos visible without clipping: '+JSON.stringify(geometry));
+  assert.ok(geometry.originalFifthRight<=geometry.trackRight+2,'The original five portraits remain visible on wide desktop: '+JSON.stringify(geometry));
+  assert.ok(geometry.lastRight>geometry.trackRight+80,'The new portraits extend the horizontally scrollable rail: '+JSON.stringify(geometry));
   assert.ok(geometry.firstLeft<geometry.lastRight,'Original portraits in natural order');
   await page.locator('#casting-reference-gallery .atelier-reference').first().click();
   await page.locator('#casting-reference-gallery .atelier-reference').nth(2).click();
