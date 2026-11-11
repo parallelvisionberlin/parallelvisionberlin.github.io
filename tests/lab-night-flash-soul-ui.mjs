@@ -174,10 +174,11 @@ try{
         const photo=tile.querySelector('img'),box=tile.getBoundingClientRect(),image=photo.getBoundingClientRect();
         const generate=document.getElementById('image-composer-generate').getBoundingClientRect();
         const controls=tile.closest('#image-composer').querySelector('.composer-controls').getBoundingClientRect();
-        return {width:box.width,height:box.height,imageWidth:image.width,imageHeight:image.height,fit:getComputedStyle(photo).objectFit,generateHeight:generate.height,bottom:box.bottom,generateBottom:generate.bottom,left:box.x,controlsRight:controls.right};
+        return {width:box.width,height:box.height,imageWidth:image.width,imageHeight:image.height,fit:getComputedStyle(photo).objectFit,generateHeight:generate.height,bottom:box.bottom,generateBottom:generate.bottom,left:box.x,right:box.right,generateLeft:generate.x,controlsRight:controls.right};
       });
       await page.screenshot({path:'test-results/night-flash-soul-character-selected-'+role+'-'+viewport.width+'.png'});
       if(viewport.width>=1180)assert.ok(portrait.controlsRight+6<=portrait.left,'Selected-character controls fit before the tile: '+JSON.stringify(portrait));
+      assert.ok(portrait.right+6<=portrait.generateLeft,'Portrait tile never overlaps Generate: '+JSON.stringify(portrait));
       assert.ok(Math.abs(portrait.width-portrait.height)<1,'Character box remains square');
       assert.ok(portrait.height<portrait.generateHeight&&portrait.height>=portrait.generateHeight*.85,'Character box is only slightly shorter than Generate');
       assert.ok(Math.abs(portrait.bottom-portrait.generateBottom)<1,'Tile and Generate share a bottom edge');
