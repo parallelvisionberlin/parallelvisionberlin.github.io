@@ -778,3 +778,13 @@ body.editorial-web #panel-model[data-model-mode="saved"] #casting-reference-gall
   display:none!important;
  }
 }
+
+/* PVLAB_CASTING_WHEEL_NORMAL_DELTA_20261111
+   Ordinary 30–120px desktop wheel movements must not snap back to zero.
+   Mobile touch snapping and saved character/gallery sizing remain unchanged. */
+@media (min-width:801px) {
+ body.editorial-web #panel-model #editorial-cast-track.editorial-cast-track {
+  scroll-snap-type:none!important;
+  scroll-behavior:auto!important;
+ }
+}
