@@ -47,6 +47,11 @@
   backdrop-filter:none;
 }
 
+/* Homepage's zero-credit notice is a separate sibling at z-index:79.
+   Lift only the opened account menu's header above it. Never alter the
+   normal header, notice position, balance display, or hero geometry. */
+.landing-header--home:has(#lab-account-strip[open]){z-index:80}
+
 /* Reuse the same approved bold PV LAB wordmark as the homepage and footer. */
 .pv-account-menu .pv-account-details{
   position:relative;display:flex;flex-direction:column;align-items:flex-start;
