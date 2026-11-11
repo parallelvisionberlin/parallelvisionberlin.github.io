@@ -193,7 +193,10 @@ function go(next){step=next;const panels=['model','style','mood','generate','pro
  $('step-next').hidden=next===4;
  $('step-next').textContent=({1:'Continue to styling',2:'Continue to location',3:'Continue to review'}[next]||'Next');
  if(next===1){
-  const label=document.createElement('span');label.className='editorial-next-label';label.textContent='Continue to styling';
+  const label=document.createElement('span');label.className='editorial-next-label';
+  const verb=document.createElement('span');verb.className='editorial-next-verb';verb.textContent='Continue';
+  const target=document.createElement('span');target.className='editorial-next-target';target.textContent=' to styling';
+  label.append(verb,target);
   const compact=document.createElement('span');compact.className='editorial-next-mobile';compact.textContent='Continue';compact.setAttribute('aria-hidden','true');
   $('step-next').replaceChildren(label,compact);
  }
