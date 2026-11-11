@@ -1,0 +1,123 @@
+/* Image Upscaler state lock, 2026-11-11.
+   Source upload and completed output replace ONLY stage content.
+   Empty, source, result, model expansion, Clear and History keep the
+   same established desktop inspector layout; Video Upscaler is excluded.
+   No generation, upload, pricing, or provider logic is involved. */
+#app.upscale-studio-active:not(.video-upscale-active,.assets-active,.fashion-studio-active) #pv-video-history-back{
+  display:none!important;
+}
+
+/* The older compact source-ready rules hid this editorial header and
+   shrank the model picker. Restore the same typography in all Image
+   Upscaler source/result states, without altering the empty-state styles. */
+#app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)
+.pv-upscale-workspace-intro :is(.pv-upscale-kicker,p){
+  display:block!important;
+}
+#app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)
+.pv-upscale-model-card{
+  grid-template-columns:38px minmax(0,1fr) 16px!important;
+  min-height:60px!important;
+  padding:8px 10px!important;
+}
+#app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)
+.pv-upscale-model-card>.pv-upscale-model-art{
+  width:38px!important;height:38px!important;
+}
+
+@media(min-width:781px){
+  /* This matches the approved empty workspace's grid and viewport lock.
+     The previous source-ready override changed both to auto-height. */
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace{
+    display:grid!important;
+    grid-template-rows:minmax(0,1fr)!important;
+    height:calc(100dvh - 102px)!important;
+    min-height:0!important;max-height:none!important;
+    align-items:stretch!important;overflow:hidden!important;
+  }
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.controls,
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.stage{
+    box-sizing:border-box!important;
+    display:flex!important;flex-direction:column!important;
+    height:100%!important;min-height:0!important;max-height:100%!important;
+    overflow:hidden!important;
+  }
+  /* Original left inspector: keep the size, copy and rhythm from the
+     empty page. More content scrolls *inside* it instead of shrinking it. */
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.controls>.controls-body{
+    box-sizing:border-box!important;
+    flex:1 1 auto!important;height:auto!important;min-height:0!important;
+    max-height:none!important;
+    overflow-x:hidden!important;overflow-y:auto!important;
+    padding:76px 20px 12px!important;
+    gap:18px 12px!important;
+    scrollbar-width:thin;scrollbar-color:#42434b transparent;
+  }
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)
+  .pv-upscale-workspace-intro{
+    margin:0 0 10px!important;padding:0 0 23px!important;gap:6px!important;
+  }
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)
+  .pv-upscale-workspace-intro h2{
+    font-size:clamp(48px,4.1vw,70px)!important;
+    line-height:1.07!important;font-weight:350!important;
+    letter-spacing:-.067em!important;
+  }
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)
+  .pv-upscale-workspace-intro p{
+    font-size:clamp(16px,1.45vw,23px)!important;
+    line-height:1.35!important;max-width:330px!important;
+  }
+  /* Restore empty-state model/output field arrangement. The original
+     source thumbnail remains a working Replace image control. */
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)
+  .controls-body>.parameter-grid,
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)
+  .controls-body>#format-control{
+    grid-column:1/-1!important;
+    display:flex!important;align-items:center!important;justify-content:space-between!important;
+    gap:12px!important;
+  }
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)
+  .controls-body>.parameter-grid>label:not([hidden]){
+    display:flex!important;flex-direction:row!important;
+    align-items:center!important;justify-content:space-between!important;
+  }
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)
+  .controls-body :is(.parameter-grid,#format-control)>.label,
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)
+  .controls-body>.parameter-grid label>.label{
+    flex:0 0 104px!important;margin:0!important;
+  }
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)
+  .controls-body :is(#upscale-scale,#output-format){
+    width:auto!important;flex:1 1 auto!important;
+    min-width:0!important;max-width:70%!important;
+    height:41px!important;min-height:41px!important;
+  }
+  /* The Generate footer must not jump up next to the models after upload. */
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.controls>.generate-zone{
+    box-sizing:border-box!important;position:relative!important;
+    top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;
+    flex:0 0 auto!important;width:100%!important;min-height:0!important;height:auto!important;
+    margin:auto 0 0!important;padding:12px 20px 18px!important;
+    border:0!important;border-top:1px solid #2c3239!important;
+    border-radius:0!important;background:#12161c!important;z-index:1!important;
+  }
+  /* Keep the photo in the existing stage. The result bar, if shown,
+     takes its own space beneath it instead of floating over the image. */
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.stage>#upscale-canvas{
+    box-sizing:border-box!important;
+    display:flex!important;flex:1 1 auto!important;
+    height:auto!important;min-height:0!important;max-height:none!important;
+    overflow:hidden!important;
+  }
+}
+@media(max-width:780px){
+  /* Phones keep their existing vertical order, with consistent headers
+     and controls rather than shrinking after a source appears. */
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas > #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)
+  .pv-upscale-workspace-intro h2{
+    font-size:34px!important;line-height:1.1!important;
+  }
+}
