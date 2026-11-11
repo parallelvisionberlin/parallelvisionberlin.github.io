@@ -130,7 +130,7 @@ try{
    const firstWheel=await castTrack.evaluate(el=>el.scrollLeft);
    assert.ok(firstWheel>=80&&firstWheel<=150,'An ordinary 100px wheel advances the gallery without snapping back: '+firstWheel);
    await page.mouse.wheel(0,35);
-   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft>firstWheel+18);
+   await page.waitForFunction(left=>document.getElementById('editorial-cast-track').scrollLeft>left+18,firstWheel);
    await page.mouse.wheel(0,305);
    await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft>350);
    const after=await page.evaluate(()=>({
