@@ -110,7 +110,7 @@ test('Identity casting uses the approved photographic layout rather than standal
  const identityCss=read('lab/full-editorial-identity-refresh.css');
  assert.match(identityCss,/scroll-snap-type:x mandatory/,'Casting supports a horizontal snap carousel');
  assert.match(identityCss,/position:sticky!important/,'Selection dock follows the active viewport');
- assert.match(html,/full-editorial-identity-refresh\.css\?v=20261106-typography6/);
+ assert.match(html,/full-editorial-identity-refresh\.css\?v=20261111-continue-type1/);
 
  const atelierCss=read('lab/full-editorial-atelier.css');
  assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
@@ -119,7 +119,7 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.match(html,/full-editorial\.js\?v=20261106-identity-reference4/);
+ assert.match(html,/full-editorial\.js\?v=20261111-continue-type1/);
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);setIdentitySource\('casting'\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=step!==1/,'Composition remains visible throughout Identity');
