@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-11T14:15:26.017Z",
+  "updatedAt": "2026-11-11T14:34:20.937Z",
   "handoffs": [
     {
       "id": "owner",
@@ -68,11 +68,11 @@
       "id": "editorial-casting-wheel-20261111",
       "title": "Full Editorial casting wheel with fixed Create Character card",
       "component": "PV LAB Full Editorial / Identity",
-      "status": "in_progress",
-      "summary": "Add five selected owner-supplied casting portraits (SLATE, COBALT, PEARL, ACID and BLOSSOM) to the five existing Full Editorial subjects and enable vertical mouse wheel to scroll the portrait rail horizontally, keeping Create Character / Upload fixed on the left.",
-      "nextAction": "Run scoped source, 1440px/390px browser and mobile overflow tests on the latest main merge, inspect any regressions, then merge PR #973 and verify Cloudflare production. Do not run paid generation.",
+      "status": "deployed",
+      "summary": "Full Editorial now has ten selectable casting portraits (the five originals plus SLATE, COBALT, PEARL, ACID, BLOSSOM). The Create Character / Upload tile stays pinned while a mouse wheel over portraits scrolls the gallery horizontally. The original workflows and generation pricing remain unchanged.",
+      "nextAction": "No blocking implementation work remains. Optional follow-up: review real authenticated customer generation separately if needed; no paid jobs were run to verify this public UI release.",
       "baselineSha": "cde83fad975314077769d9e780618c2dd0b6c950",
-      "reviewedSha": "75cd521af5cfc0937c0645adbe57d70c7dc0ab76",
+      "reviewedSha": "7cf3d1c63ad692b287df0468cacd05ddaf034738",
       "branch": "feat/editorial-casting-wheel-20261111",
       "files": [
         "lab/full-editorial.js",
@@ -94,31 +94,65 @@
       ],
       "tests": [
         {
-          "label": "Full Editorial focused Node and mocked desktop/mobile browser",
+          "label": "Focused Full Editorial and approved Image contract",
           "result": "passed",
-          "scope": "29 Node assertions and complete Playwright flow at 1440/390 px, including vertical-wheel horizontal scrolling, fixed card geometry, no accidental selection, and reverse scrolling. No actual paid job.",
-          "observedAt": "2026-11-11T11:22:34.648Z",
+          "scope": "30/30 Node source and UI-contract tests against latest-main integrated feature.",
+          "observedAt": "2026-11-11T14:34:20.937Z",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/973"
+        },
+        {
+          "label": "Full Editorial mocked browser flow",
+          "result": "passed",
+          "scope": "Playwright desktop and phone; original workflow, ten cards, wheel scrolling, anchored Create Character, model selection/deselection, no job submission, no overflow.",
+          "observedAt": "2026-11-11T14:34:20.937Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/973"
+        },
+        {
+          "label": "Production guest browser",
+          "result": "passed",
+          "scope": "1440/390 px live pvlab.studio, 10 asset loads and successful selection/deselection of each new card, fixed tile, horizontal track, zero paid requests.",
+          "observedAt": "2026-11-11T14:34:20.937Z",
+          "source": "https://pvlab.studio/full-editorial.html?start=1"
+        },
+        {
+          "label": "Published asset integrity",
+          "result": "passed",
+          "scope": "Five new casting JPEGs and Full Editorial HTML/JS byte-matched reviewed source at production domain.",
+          "observedAt": "2026-11-11T14:34:20.937Z",
+          "source": "https://pvlab.studio/full-editorial.html?start=1"
         }
       ],
       "deployment": {
-        "state": "not_started",
+        "state": "verified",
+        "sourceSha": "7cf3d1c63ad692b287df0468cacd05ddaf034738",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "sourceSha": null,
+        "observedAt": "2026-11-11T14:34:20.937Z",
+        "evidenceUrl": "https://pvlab.studio/full-editorial.html?start=1",
         "limitations": [
-          "Draft branch only; not merged or deployed.",
-          "New casting portraits awaiting owner selection."
+          "Canonical production deployment 29571837-b636-4d19-b246-9143fd879637 succeeded for exact merge SHA.",
+          "GitHub Actions jobs were queued at merge; 30 scoped tests and browser flows were run independently and passed.",
+          "No authenticated, paid customer provider generation was executed."
         ]
       },
       "evidence": [
         {
-          "kind": "automated_test",
-          "summary": "Mocked browser and source checks passed for portrait rail wheel movement and independent fixed pinned card.",
-          "scope": "Branch revision, not authenticated production.",
-          "observedAt": "2026-11-11T11:22:34.648Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/973",
+          "kind": "deployment",
+          "summary": "Cloudflare Pages canonical deployment 29571837-b636-4d19-b246-9143fd879637 completed successfully on merge SHA 7cf3d1c63ad692b287df0468cacd05ddaf034738 and lists https://pvlab.studio as production alias.",
+          "scope": "Production publication and exact source commit",
+          "observedAt": "2026-11-11T14:34:20.937Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/7cf3d1c63ad692b287df0468cacd05ddaf034738",
           "limitations": [
-            "New model images not yet selected or tested."
+            "Deployment alone does not prove paid customer generation."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Public live browser at 1440px and 390px shows ten responsive casting portraits; all five new identity candidates selected and deselected, pinned tile remained fixed and wheel scroll worked; source bytes match seven released assets.",
+          "scope": "Public Full Editorial browser and immutable published assets",
+          "observedAt": "2026-11-11T14:34:20.937Z",
+          "source": "https://pvlab.studio/full-editorial.html?start=1",
+          "limitations": [
+            "Authenticated customer payment and provider inference not exercised."
           ]
         }
       ],
@@ -128,7 +162,7 @@
         "Do not modify existing casting art direction, composition, paid quote/generation logic or account flow.",
         "Do not publish AI-generated rejected candidate faces as the final casting set."
       ],
-      "updatedAt": "2026-11-11T14:15:26.017Z"
+      "updatedAt": "2026-11-11T14:34:20.937Z"
     },
     {
       "id": "chrome-desert-world-handoff-20261111",
