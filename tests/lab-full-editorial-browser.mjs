@@ -109,6 +109,35 @@ try{
   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<9);
   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,'Keyboard browsing does not change selection');
 
+  if(width>800){
+   const pinned=page.locator('.editorial-cast-pinned');
+   const before=await page.evaluate(()=>({
+    left:document.getElementById('editorial-cast-track').scrollLeft,
+    pinnedX:document.querySelector('.editorial-cast-pinned').getBoundingClientRect().x,
+    pinnedY:document.querySelector('.editorial-cast-pinned').getBoundingClientRect().y,
+    pageY:scrollY
+   }));
+   await castTrack.locator('.atelier-reference').first().hover();
+   await page.mouse.wheel(0,440);
+   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft>90);
+   const after=await page.evaluate(()=>({
+    left:document.getElementById('editorial-cast-track').scrollLeft,
+    pinnedX:document.querySelector('.editorial-cast-pinned').getBoundingClientRect().x,
+    pinnedY:document.querySelector('.editorial-cast-pinned').getBoundingClientRect().y,
+    pageY:scrollY
+   }));
+   assert.ok(after.left>before.left,'Vertical wheel over portraits moves the horizontal track');
+   assert.ok(Math.abs(after.pinnedX-before.pinnedX)<1&&Math.abs(after.pinnedY-before.pinnedY)<1,
+    'Pinned Create Character and Upload card does not move: '+JSON.stringify({before,after}));
+   assert.ok(Math.abs(after.pageY-before.pageY)<1,'Gallery consumes wheel while it has room to scroll');
+   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,
+    'Wheel movement never selects or changes a casting identity');
+   await page.mouse.wheel(0,-440);
+   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<30);
+   assert.equal(await pinned.isVisible(),true);
+  }
+
+
   let baselineCastSizes=null;
   if(width>800){
    baselineCastSizes=await page.evaluate(()=>{

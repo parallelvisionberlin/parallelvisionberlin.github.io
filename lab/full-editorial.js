@@ -809,6 +809,18 @@ function moveCastCarousel(direction,source){
  const distance=(first?.getBoundingClientRect().width||220)+gap;
  track.scrollBy({left:direction*distance,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
 }
+function handleCastingWheel(event){
+ // Wheel browsing belongs only to the portrait rail, never the pinned Create Character card.
+ // Trackpad horizontal gestures, browser zoom, touch swipes and normal page scroll still work.
+ if(step!==1||$('panel-model').dataset.modelMode!=='casting'||event.ctrlKey)return;
+ if(!event.deltaY||Math.abs(event.deltaX)>=Math.abs(event.deltaY))return;
+ const track=$('editorial-cast-track'),max=track.scrollWidth-track.clientWidth;
+ if(max<=4)return;
+ const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?track.clientWidth:1);
+ if((delta>0&&track.scrollLeft>=max-2)||(delta<0&&track.scrollLeft<=2))return;
+ event.preventDefault();
+ track.scrollTo({left:Math.max(0,Math.min(max,track.scrollLeft+delta)),behavior:'instant'});
+}
 function setupCastCarousel(){
  for(const [source,trackId,prevId,nextId] of [
   ['casting','editorial-cast-track','editorial-cast-prev','editorial-cast-next'],
@@ -822,6 +834,8 @@ function setupCastCarousel(){
  }
  if('MutationObserver' in window)new MutationObserver(updateCastCarouselControls)
   .observe($('saved-character-gallery'),{childList:true});
+ // No wheel listener on the fixed upload/create card or on the page.
+ $('editorial-cast-track').addEventListener('wheel',handleCastingWheel,{passive:false});
  window.addEventListener('resize',updateCastCarouselControls);
  document.addEventListener('keydown',event=>{
   if(step!==1||!['ArrowLeft','ArrowRight'].includes(event.key))return;
