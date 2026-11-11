@@ -453,7 +453,7 @@ await page.setInputFiles('#video-references','assets/optimized/video/fashion-aft
 await page.waitForFunction(()=>document.querySelectorAll('#video-reference-list video').length===1);
 await page.fill('#prompt','Continue the slow movement through the room.');
 assert.equal(await page.locator('#generate').isEnabled(),true,'An uploaded video enables extension');
-assert.equal(await page.evaluate(()=>window.__referenceSettings().provider),'higgsfield');assert.equal(await page.locator('#preview-label').textContent(),'Video to extend');
+assert.equal(await page.evaluate(()=>window.__referenceSettings().provider),'spicy');assert.equal(await page.locator('#preview-label').textContent(),'Video to extend');
 assert.equal(await page.evaluate(()=>window.__referenceSettings().referenceVideos.length),1);
 assert.equal(await page.locator('#ratio-control').isVisible(),false,'Extension follows the input framing');
 console.log('VIDEO_EXTEND_MOBILE='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
