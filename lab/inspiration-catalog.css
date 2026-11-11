@@ -1,0 +1,57 @@
+/* Scoped to Image Inspiration; does not style the Moods chooser. */
+.inspiration-carousel-shell{position:relative}
+.inspiration-carousel-shell .pv-inspiration-view-all{
+  position:absolute;right:0;top:-38px;z-index:5;padding:8px 12px;
+  background:rgba(18,19,21,.86);border:1px solid rgba(255,255,255,.23);
+  border-radius:7px;color:#e9e8e5;font:600 12px/1.2 "DM Sans",Arial,sans-serif;
+  white-space:nowrap;cursor:pointer;letter-spacing:0;
+}
+.inspiration-carousel-shell .pv-inspiration-view-all:hover{background:#303033;border-color:#bbb}
+.inspiration-carousel-shell .pv-inspiration-view-all:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@media(max-width:680px){
+  .inspiration-carousel-shell .pv-inspiration-view-all{top:-35px;font-size:11px;padding:7px 9px}
+}
+.pv-inspiration-catalog{
+  position:fixed;inset:4vh 3vw;box-sizing:border-box;margin:auto;
+  width:min(1440px,94vw);height:min(92vh,980px);max-width:none;max-height:none;
+  padding:0;background:#0b0b0d;color:#f5f4f1;border:1px solid #353538;
+  border-radius:13px;box-shadow:0 26px 80px #000b;overflow:hidden;
+  font-family:"DM Sans",Arial,sans-serif;z-index:99999;
+}
+.pv-inspiration-catalog::backdrop{background:rgba(0,0,0,.88)}
+.pv-inspiration-catalog[open]{display:flex;flex-direction:column}
+.pv-inspiration-catalog-header{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:25px 30px 14px}
+.pv-inspiration-catalog-header h2{font-size:clamp(21px,3vw,32px);font-weight:650;letter-spacing:-.04em;margin:0}
+.pv-inspiration-catalog-header p{margin:5px 0 0;color:#aaa9aa;font-size:12px}
+.pv-inspiration-catalog-close{
+  color:#eee;background:#222326;border:1px solid #424246;
+  padding:10px 14px;border-radius:8px;font:600 12px "DM Sans",Arial,sans-serif;cursor:pointer;
+}
+.pv-inspiration-catalog-filters{display:flex;flex-wrap:nowrap;gap:7px;overflow-x:auto;padding:7px 30px 21px;scrollbar-width:thin;flex:none}
+.pv-inspiration-catalog-filters button{
+  border:1px solid #333438;background:#1b1b1e;color:#ddd;
+  border-radius:7px;padding:9px 12px;white-space:nowrap;cursor:pointer;font:600 12px "DM Sans",Arial,sans-serif;
+}
+.pv-inspiration-catalog-filters button[aria-pressed="true"]{background:#eee;color:#111;border-color:#eee}
+.pv-inspiration-catalog-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:13px;padding:0 30px 30px;overflow-y:auto;overscroll-behavior:contain}
+.pv-inspiration-catalog-card{
+  display:flex;min-width:0;flex-direction:column;text-align:left;padding:0 0 12px;
+  border:1px solid #333438;border-radius:9px;overflow:hidden;background:#171719;color:#eee;cursor:pointer;
+  font-family:"DM Sans",Arial,sans-serif;
+}
+.pv-inspiration-catalog-card img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;object-position:center;background:#252527}
+.pv-inspiration-catalog-card strong{display:block;font-size:13px;font-weight:600;padding:11px 11px 0;line-height:1.3}
+.pv-inspiration-catalog-card small{display:block;font-size:10px;color:#aaa;padding:5px 11px 0}
+.pv-inspiration-catalog-card:hover{border-color:#b9b9b9}
+.pv-inspiration-catalog-card:focus-visible,.pv-inspiration-catalog-close:focus-visible,
+.pv-inspiration-catalog-filters button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@media(max-width:1150px){.pv-inspiration-catalog-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:680px){
+ .pv-inspiration-catalog{inset:1vh 1vw;width:98vw;height:98vh;border-radius:9px}
+ .pv-inspiration-catalog-header{padding:18px 15px 10px}
+ .pv-inspiration-catalog-header p{font-size:11px}
+ .pv-inspiration-catalog-filters{padding:7px 15px 14px}
+ .pv-inspiration-catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:0 15px 20px}
+ .pv-inspiration-catalog-card strong{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){.pv-inspiration-catalog *{scroll-behavior:auto!important}}

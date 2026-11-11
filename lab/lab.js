@@ -1874,6 +1874,30 @@ function useWelcomeMood(id){
 document.querySelectorAll('[data-welcome-mood]').forEach(button=>{
   button.addEventListener('click',()=>useWelcomeMood(button.dataset.welcomeMood));
 });
+window.addEventListener('pv-inspiration-concept',event=>{
+  const scene=event.detail;
+  if(!scene||typeof scene.prompt!=='string'||!scene.prompt.trim()||!owner
+    ||tool!=='image'||busy||imageSubmissionPending||$('lab-welcome-start')?.hidden)return;
+  const text=scene.prompt.slice(0,5000);
+  // These cinematic concepts are editable prompts, not server Mood IDs.
+  // Clear any previously selected Mood, leaving user media and model settings intact.
+  moodUI.clear(true);
+  inspirationMoodId=null;
+  $('prompt').value=text;
+  $('prompt').dispatchEvent(new Event('input',{bubbles:true}));
+  const visible=$('image-composer-prompt');
+  if(visible){
+    visible.value=text;
+    visible.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  document.querySelectorAll('[data-welcome-mood]').forEach(button=>button.setAttribute('aria-pressed','false'));
+  syncImageComposer();
+  update();
+  customerImagePricing?.prime();
+  scene.applied=true;
+  if(window.matchMedia('(max-width:680px)').matches && document.activeElement===visible)visible.blur();
+});
+
 // Empty-gallery shortcuts dispatch the same existing composer actions.
 // They never bypass review, price checks, or explicit Generate.
 $('image-empty-add')?.addEventListener('click',()=>{

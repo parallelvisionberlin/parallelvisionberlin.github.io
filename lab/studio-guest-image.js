@@ -54,6 +54,15 @@ cards.forEach(button=>button.addEventListener('click',()=>{
   // Desktop also keeps focus on the chosen card. Editing starts only after
   // the user intentionally clicks the prompt deck.
 }));
+window.addEventListener('pv-inspiration-concept',event=>{
+  const scene=event.detail;
+  if(!scene||typeof scene.prompt!=='string'||!scene.prompt.trim()||!gate||gate.hidden)return;
+  selected='';
+  prompt.value=scene.prompt.slice(0,5000);
+  showSelection();storeDraft();
+  scene.applied=true;
+  if(window.matchMedia('(max-width:680px)').matches&&document.activeElement===prompt)prompt.blur();
+});
 prompt.addEventListener('input',storeDraft);
 
 // Guest photos are previews held as File objects in this tab. They are never
