@@ -63,6 +63,38 @@ async function openViewport(width,height){
 }
 try{
   mkdirSync('test-results',{recursive:true});
+  // Run the exact reported no-keyboard catalog selection *before* older
+  // unrelated public/signed-in deck parity tests, which can fail independently.
+  for(const [phoneWidth,phoneHeight] of [[390,600],[390,844]]){
+    const selected=await openViewport(phoneWidth,phoneHeight);
+    try{
+      const applied=await selected.page.evaluate(()=>{
+        const scene={
+          id:'berlin-club',
+          prompt:'Two adult clubgoers leave an underground Berlin basement party at 6 AM, wet hair, black coats, chipped concrete and documentary 35mm film grain at dawn.'
+        };
+        window.dispatchEvent(new CustomEvent('pv-inspiration-concept',{detail:scene}));
+        return scene.applied===true;
+      });
+      assert.equal(applied,true,'New catalog Inspiration prompt must be applied');
+      await selected.page.waitForFunction(()=>document.getElementById('pv-guest-composer').classList.contains('pv-deck-expanded'));
+      const actual=await selected.page.evaluate(()=>{
+        const card=document.querySelector('#pv-guest-cards .pv-guest-card').getBoundingClientRect();
+        const deck=document.getElementById('pv-guest-composer').getBoundingClientRect();
+        const header=document.getElementById('studio-header').getBoundingClientRect();
+        return {cardBottom:card.bottom,deckTop:deck.top,headerBottom:header.bottom,
+          active:document.activeElement?.id,scrollY:window.scrollY,
+          lift:document.querySelector('#gate .pv-guest-content').classList.contains('pv-phone-inspiration-lift')};
+      });
+      assert.notEqual(actual.active,'pv-guest-prompt','Concept selection does not open the keyboard');
+      assert.equal(actual.scrollY,0,'Concept selection does not scroll the page behind the dock');
+      assert.equal(actual.lift,true,'Card clearance is recomputed for a catalog concept');
+      assert.ok(actual.cardBottom<=actual.deckTop+2,
+        'Expanded no-keyboard Inspiration cards clear fixed dock on '+phoneWidth+'x'+phoneHeight+': '+JSON.stringify(actual));
+      assert.deepEqual(selected.errors,[]);
+      console.log('MOBILE_INSPIRATION_SELECTION_CLEAR=1 '+phoneWidth+'x'+phoneHeight+' '+JSON.stringify(actual));
+    }finally{await selected.context.close();}
+  }
   for(const [width,height] of [[320,740],[390,844],[430,932],[390,600]]){
     const {page,context,errors}=await openViewport(width,height);
     try{
