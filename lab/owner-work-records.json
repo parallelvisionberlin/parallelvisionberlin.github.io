@@ -3613,8 +3613,8 @@
       "title": "Seedance Extend and Reference verification after PR 1009",
       "component": "Video / Seedance 2.5 / SpicyAPI",
       "status": "needs_verification",
-      "summary": "PR 1009 frontend publication remains verified. Corrected hidden-Save browser interactions, the obsolete public quote-guard smoke assertion, six unit fixture failures and the old Clerk deadline contract. Scoped Seedance checks pass for owners/customers at 390px and 1440px, with exact media IDs/settings and quote/job safeguards. Added bounded diagnostics for the separate still-blocked purchase browser test. No application code, pricing, provider route, migration or production configuration changes.",
-      "nextAction": "Complete the authenticated production upload/quote check after explicit accounts.google.com authorization, without confirming generation. Separately resolve the pre-existing 54px/64px layout contract disagreement, 20 catalog/design unit failures and purchase browser preparation blocker.",
+      "summary": "PR 1011 repaired the verification harness. Authenticated production OWNER preflight is now verified: video-only Extend quoted successfully, two synthetic photos disabled Generate/Save with an explicit new-shot warning, the explicit Reference switch preserved the clip, both photos, prompt and output controls, and Reference quoted successfully. Both quote dialogs were cancelled; no generation was confirmed and no test job appeared in History.",
+      "nextAction": "Keep paid provider generation untested as requested. Separately resolve the 20 known broad unit failures, the 54px/64px layout expectation and the purchase browser fixture timeout. Customer production wallet behavior remains distinct from owner preflight and the passing simulated-customer ledger regression.",
       "baselineSha": "3bf9617f26cf9377804012daf47391892631b731",
       "reviewedSha": "0179032fb7871931ae3a41474b768945f900b9af",
       "branch": "fix/seedance-verification-20261112",
@@ -3691,6 +3691,13 @@
           "result": "documented",
           "scope": "General video job remains red: expected 64px Generate track, actual 54px. Preserve approved UI pending reconciliation. Purchase browser test did not complete during this verification; its waits now have timeouts and failure diagnostics. These are not authenticated production failures.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43203113748"
+        },
+        {
+          "label": "Authenticated production owner Extend and Reference preflight",
+          "result": "passed",
+          "observedAt": "2026-11-12",
+          "scope": "Real signed-in owner session, synthetic neutral 3s MP4 plus two 320x400 PNGs. Extend and Reference each returned a bound 5s/720p maximum of USD 5.8065. Mixed Extend blocked Generate/Save; explicit switch retained media, prompt, duration, resolution, aspect ratio and audio. Cancelled both quotes, zero test-prompt entries in History, editor cleared. No paid confirmation.",
+          "source": "https://pvlab.studio/studio?tool=video"
         }
       ],
       "deployment": {
@@ -3719,11 +3726,24 @@
           "scope": "Compared GitHub Actions job logs before changing tests.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43146344061",
           "limitations": []
+        },
+        {
+          "kind": "signed_in_production",
+          "observedAt": "2026-11-12",
+          "summary": "Real owner session completed both quote-only paths. Incompatible Extend disabled both actions and explained that Reference creates a new shot. Explicit switch preserved the three attachments and all observed settings. Both quotes cancelled.",
+          "scope": "Authenticated owner preflight only, no provider job or customer-wallet transaction.",
+          "source": "https://pvlab.studio/studio?tool=video",
+          "limitations": [
+            "No real paid generation was run.",
+            "This owner session does not independently verify a real customer credit ledger.",
+            "The existing generic quote notice mentions Higgsfield even on the bound SpicyAPI route; route rejection guards and automated backend route checks remain separate evidence."
+          ]
         }
       ],
       "blockers": [
-        "Automatic review blocked observation of accounts.google.com after the user selected Google. Explicit destination-specific authorization is required before continuing. No authenticated production session was observed.",
-        "Broad CI retains 20 pre-existing catalog/design unit failures and a 54px/64px Generate layout disagreement. The purchase browser fixture remains unverified. Do not change approved production behavior merely to clear these tests."
+        "Broad CI retains 20 pre-existing catalog/design unit failures and a 54px/64px Generate layout expectation.",
+        "The separate purchase browser fixture reached its workflow timeout. It is not a verified production payment failure.",
+        "Real customer-wallet production behavior and paid provider output were not tested; owner preflight and mocked customer ledger tests must remain distinct."
       ],
       "doNotRepeat": [
         "Keep the intentional hidden Video Save control and approved layout. Do not show it to satisfy a stale test.",
