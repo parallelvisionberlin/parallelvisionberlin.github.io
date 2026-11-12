@@ -72,7 +72,7 @@ const HYPER_POP_REFERENCES=Object.freeze([
 // invisible, automatic curated references, not customer-uploaded photos.
 const FALLEN_ANGEL_REFERENCES=Object.freeze([
   {file:'01-apocalyptic-rooftop.png',url:'https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/b259ac39-d73c-4853-b591-f82809e699ea.png',type:'image/png',
-    note:'SCENE AND LIGHT ONLY: build the monumental rooftop, enormous orange sunset, dark industrial city and smoky sky. Use the user's person, NOT the red-haired reference woman; never copy her face, hair or body.'},
+    note:'SCENE AND LIGHT ONLY: build the monumental rooftop, enormous orange sunset, dark industrial city and smoky sky. Use the uploaded person, NOT the red-haired reference woman; never copy her face, hair or body.'},
   {file:'02-physical-feather-wings.png',url:'https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/c6409acb-695d-40d2-ab1b-05a17e077340.png',type:'image/png',
     note:'WINGS ONLY: transfer the scale and believable layered white feather structure, attach a single natural pair behind the uploaded subject shoulders. Do NOT copy the red-haired woman, her face, pose, dress or black background.'}
 ].map(ref=>Object.freeze({...ref,label:Object.freeze({name:'Fallen Angel style - '+ref.file,role:'style',note:ref.note})})));
