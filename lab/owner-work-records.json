@@ -3637,24 +3637,23 @@
     },
     {
       "id": "seedance-extend-reference-verification",
-      "title": "Seedance Extend and Reference verification after PR 1009",
-      "component": "Video / Seedance 2.5 / SpicyAPI",
-      "status": "needs_verification",
-      "summary": "PR 1011 repaired the verification harness. Authenticated production OWNER preflight is now verified: video-only Extend quoted successfully, two synthetic photos disabled Generate/Save with an explicit new-shot warning, the explicit Reference switch preserved the clip, both photos, prompt and output controls, and Reference quoted successfully. Both quote dialogs were cancelled; no generation was confirmed and no test job appeared in History.",
-      "nextAction": "Keep paid provider generation untested as requested. Separately resolve the 20 known broad unit failures, the 54px/64px layout expectation and the purchase browser fixture timeout. Customer production wallet behavior remains distinct from owner preflight and the passing simulated-customer ledger regression.",
-      "baselineSha": "3bf9617f26cf9377804012daf47391892631b731",
+      "title": "Seedance Extend with original video and character references",
+      "component": "Video / Seedance 2.5 / Extend",
+      "status": "in_progress",
+      "summary": "Owner authorized true Extend with a source video and image/character references. Source-only Extend remains on SpicyAPI; mixed Extend now uses the already-integrated Higgsfield video-extend API, with an explicit provider estimate and no automatic Reference substitution. Local focused backend, wallet, price and approved Image checks pass; browser CI and Worker publication remain pending.",
+      "nextAction": "Run owner/customer phone/desktop browser matrix, merge reviewed changes, publish Worker preserving existing bindings, verify exact frontend bytes and authenticated quote-only flow. No paid generation.",
+      "baselineSha": "970588da815ade0ae53bffc5026fe2885a049a00",
       "reviewedSha": "0179032fb7871931ae3a41474b768945f900b9af",
-      "branch": "fix/seedance-verification-20261112",
+      "branch": "fix/seedance-extend-references",
       "files": [
-        "tests/lab-extend-character-ui.mjs",
+        "lab-worker/worker.mjs",
+        "lab-worker/higgsfield-video.mjs",
+        "lab/lab.js",
+        "lab/studio.html",
         "tests/lab-seedance.test.mjs",
+        "tests/lab-extend-character-ui.mjs",
         ".github/workflows/lab-seedance-tests.yml",
-        ".github/workflows/pvlab-video-reference-live-smoke.yml",
-        "tests/lab-credit-purchase-flow.test.mjs",
-        "tests/lab-meta-capi.test.mjs",
-        "tests/lab-customer-image-quotes.test.mjs",
-        "tests/lab-studio-layout-ui.mjs",
-        "tests/lab-credit-purchase-ui.mjs"
+        ".github/workflows/pvlab-video-reference-live-smoke.yml"
       ],
       "links": [
         {
@@ -3725,6 +3724,12 @@
           "observedAt": "2026-11-12",
           "scope": "Real signed-in owner session, synthetic neutral 3s MP4 plus two 320x400 PNGs. Extend and Reference each returned a bound 5s/720p maximum of USD 5.8065. Mixed Extend blocked Generate/Save; explicit switch retained media, prompt, duration, resolution, aspect ratio and audio. Cancelled both quotes, zero test-prompt entries in History, editor cleared. No paid confirmation.",
           "source": "https://pvlab.studio/studio?tool=video"
+        },
+        {
+          "label": "True Extend reference routing and customer wallet safeguards",
+          "result": "passed",
+          "scope": "42 focused local tests: video-only Spicy route preserved, mixed Extend exact private assets and prompt/settings, no debit on estimates, customer gate rechecked on confirmation, atomic duplicate confirmation, exact credit debit/refund, expiry, insufficient funds, uncertain submission lock, malformed or over-ceiling estimate. All generation calls mocked.",
+          "source": "tests/lab-seedance.test.mjs"
         }
       ],
       "deployment": {
@@ -3768,14 +3773,15 @@
         }
       ],
       "blockers": [
-        "Broad CI retains 20 pre-existing catalog/design unit failures and a 54px/64px Generate layout expectation.",
-        "The separate purchase browser fixture reached its workflow timeout. It is not a verified production payment failure.",
-        "Real customer-wallet production behavior and paid provider output were not tested; owner preflight and mocked customer ledger tests must remain distinct."
+        "Worker production deployment requires authenticated Cloudflare access; GitHub automatic Worker deploy is paused because its token is unavailable.",
+        "Browser regression and exact publication still pending.",
+        "No paid output quality or continuity has been tested."
       ],
       "doNotRepeat": [
-        "Keep the intentional hidden Video Save control and approved layout. Do not show it to satisfy a stale test.",
-        "Do not change catalog assets, Image UI, pricing, provider routes or moderation to fix unrelated CI expectations.",
-        "No paid generations, credit issuance, migrations or production settings are needed for this test correction."
+        "Keep the approved hidden Video Save and Image UI.",
+        "Never label Reference new-shot output as Extend.",
+        "No paid generations or credit issuance.",
+        "Preserve existing Worker bindings, flags, schedules and unrelated source."
       ],
       "updatedAt": "2026-11-12"
     }

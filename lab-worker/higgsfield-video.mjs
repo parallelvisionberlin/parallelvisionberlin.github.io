@@ -8,28 +8,36 @@ export async function prepareVideoExtension(env,owner,data,p,{fail,source,source
   if(data.sourceId&&data.sourceId!==ids[0])fail(400,'The source must match the video to extend.');
   const video=await source(env,owner,ids[0]);if(!['video/mp4','video/quicktime'].includes(video.mime))fail(400,'Choose an MP4 or MOV video.');
   const imageIds=data.referenceSourceIds||[];
-  if(!Array.isArray(imageIds))fail(400,'Choose image references from your saved character or uploads.');
+  if(data.transferSourceIds?.length)fail(400,'Extend uses the original reference photographs. Remove mismatched working copies.');
+  if(!Array.isArray(imageIds)||imageIds.length>30||new Set(imageIds).size!==imageIds.length)fail(400,'Choose image references from your saved character or uploads.');
   const images=imageIds.length?await sources(env,owner,imageIds,30):[];
   if(images.some(a=>!['image/png','image/jpeg','image/webp'].includes(a.mime)))fail(400,'Image references must contain images.');
   if(p.referenceRoles.length&&p.referenceRoles.length!==images.length)fail(400,'Reference roles must match the selected images in order.');
   p.provider='higgsfield';p.referenceVideoIds=[video.id];p.referenceAudioIds=[];p.referenceSourceIds=images.map(a=>a.id);p.lastSourceId=null;p.seed=null;p.aspectRatio='source';
   return {primary:video,images,input:{}};
 }
+async function requireExtensionAccess(env,owner,{fail,isLabCustomer}){
+  if(!env.HF_CREDENTIALS)fail(503,'Seedance Extend with references is not connected. Nothing generated or charged.');
+  if(isLabCustomer&&await isLabCustomer(env,owner)&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED!=='true')
+    fail(403,'Extend with references is not enabled for customer billing. Nothing generated or charged.');
+}
 export async function quoteVideoExtension(env,owner,data,p,url,d){
   const {fail,signedInput,assembledPrompt,run,now}=d;
-  if(!env.HF_CREDENTIALS)fail(503,'Higgsfield API is not configured.');
+  await requireExtensionAccess(env,owner,d);
   const {primary:video,images}=await prepareVideoExtension(env,owner,data,p,d);
   const input={video_url:await signedInput(env,url,video.id,3600),prompt:assembledPrompt(p),duration:p.duration,resolution:p.resolution,generate_audio:p.audio,output_format:'mp4'};
   if(images.length)input.image_urls=await Promise.all(images.map(a=>signedInput(env,url,a.id,3600)));
   const quote=await hfRequest(env,'/estimate/'+EXTEND_MODEL,{input});
   if(!/^\d{1,6}(\.\d{1,6})?$/.test(String(quote.usd))||Number(quote.usd)<=0)fail(502,'Higgsfield did not return a valid estimate. Nothing generated.');
-  const estimate=Math.ceil(Number(quote.usd)*1000000),creditCost=creditsForJobMicros(estimate,p),id=crypto.randomUUID(),expires=now()+290000;
+  const estimate=Math.ceil(Number(quote.usd)*1000000);
+  if(!Number.isSafeInteger(estimate)||estimate>20000000)fail(409,'Extend estimate exceeds the $20 provider safety limit. Nothing generated or charged.');
+  const creditCost=creditsForJobMicros(estimate,p),id=crypto.randomUUID(),expires=now()+290000;
   await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,video.id,JSON.stringify({...p,customerChargeCredits:creditCost}),estimate,expires,'higgsfield-video-extend',String(quote.usd),JSON.stringify({model:EXTEND_MODEL,input}));
-  return {id,settings:p,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,creditCost,expiresAt:expires,provider:'Higgsfield',priceIsEstimate:true,notice:'Higgsfield account estimate. Input and generated video may both be billed. Final provider billing applies. Nothing generated yet.'};
+  return {id,settings:p,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,creditCost,expiresAt:expires,provider:'Higgsfield',priceIsEstimate:true,notice:'Seedance Extend via Higgsfield: continues the original video using all attached image references. This is an estimated provider price, not a bound maximum. Input and generated video may both be billed. Provider content rules apply. Nothing generated yet.'};
 }
 export async function submitVideoExtension(env,owner,q,p,payload,d){
   const {fail,first,source,run,now,config}=d;
-  if(!env.HF_CREDENTIALS)fail(503,'Higgsfield API is not configured.');
+  await requireExtensionAccess(env,owner,d);
   if(q.vendor_quote_id!=='higgsfield-video-extend'||p.model!==EXTEND_MODEL||payload.model!==EXTEND_MODEL||p.mode!=='extend')fail(409,'Review a new extension estimate.');
   await source(env,owner,q.source_id);
   for(const id of p.referenceSourceIds||[])await source(env,owner,id);

@@ -60,7 +60,7 @@ jobs:
               check studio 'videoRefReadyGate=20261112v1' 'fresh Studio JavaScript'
               check script 'function videoReferenceUploadsPending()' 'upload readiness check'
               check script 'applyVideoUploadReadyGate();' 'Generate upload gate'
-              check script "if(seedanceExtendHasExtraPhotos()||videoReferenceUploadsPending())return null;" 'quote waits for uploads'
+              check script "if(seedanceExtendReferencesBlocked()||videoReferenceUploadsPending())return null;" 'quote waits for uploads'
             fi
             check styles 'font-weight:350!important;opacity:.68!important' 'thin credit label'
             check styles 'content:none!important;display:none!important;mask:none!important' 'hidden diamond icon'
