@@ -1,6 +1,6 @@
 // Image Studio Inspiration expansion. Deliberately separate from Moods.
 // No automatic generation, credit changes, uploads or model/provider changes.
-import {INSPIRATION_SCENES} from './inspiration-catalog-data.js?v=20261111-eros1';
+import {INSPIRATION_SCENES} from './inspiration-catalog-data.js?v=20261112-card-covers1';
 const categories=['All','Original','Cinema','After Hours','Fashion','Analog','Street','Future','Intimacy','Atmospheres'];
 const priority=['eros-lingerie','hotel-intimacy','post-human','desert-sculptures','chrome-skin','berlin-club','italian-1963','tokyo-4am','red-room'];
 const rank=new Map(priority.map((id,index)=>[id,index]));
