@@ -93,7 +93,7 @@ try{
   const request=x.requests.filter(r=>r.path==='/api/quotes').at(-1).data;
   assert.equal(request.settings.mode,'reference');
   assert.deepEqual(request.referenceSourceIds,character.refs.map(r=>r.id));
-  assert.equal(request.referenceVideoIds.length,1);assert.equal(request.sourceId,request.referenceVideoIds[0]);
+  assert.equal(request.referenceVideoIds.length,1);assert.equal(request.sourceId,character.refs[0].id,'Reference set uses the first image as its primary source, while retaining the video as motion guidance');
   assert.ok(request.settings.referenceRoles.every(r=>r.role==='identity'&&r.elementName==='Alma'));
   assert.equal(count(x,'/api/jobs'),0,'Review never submits automatically');
   await page.click('#confirm-generation');await ready(page);
