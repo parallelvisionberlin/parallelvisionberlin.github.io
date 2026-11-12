@@ -103,8 +103,8 @@ test('explicit Inspiration card clicks replace a previous preset or custom promp
     'Non-click callers retain the original custom-text protection');
   const auth=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   const guest=readFileSync(new URL('../lab/studio-guest-image.js',import.meta.url),'utf8');
-  assert.match(auth,/inspirationRotation\\.select\\(id,\\$\\('prompt'\\)\\.value,\\{replace:true\\}\\)/);
-  assert.match(guest,/inspirationRotation\\.select\\(button\\.dataset\\.guestMood,prompt\\.value,\\{replace:true\\}\\)/);
+  assert.match(auth,/inspirationRotation\.select\(id,\$\('prompt'\)\.value,\{replace:true\}\)/);
+  assert.match(guest,/inspirationRotation\.select\(button\.dataset\.guestMood,prompt\.value,\{replace:true\}\)/);
 });
 
 test('guest and signed-in studio can share rotation through session storage',()=>{
