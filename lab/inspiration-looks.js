@@ -136,12 +136,12 @@ export function createInspirationRotation(storage=null){
         if(Number.isSafeInteger(stored[id])&&stored[id]>=0&&(id!=='chrome-couture'||stored.chromeCoutureRecipeVersion===2)&&(id!=='80s-film'||stored.sunFadeRecipeVersion===2))positions[id]=stored[id]%variants.length;
   }catch{/* Private browsing or disabled session storage must never block Inspiration. */}
   return Object.freeze({
-    select(id,currentPrompt=''){
+    select(id,currentPrompt='',{replace=false}={}){
       const variants=INSPIRATION_VARIATIONS[id];
       if(!variants)return null;
       const existing=String(currentPrompt||'').trim();
       // A modified example is now a user's own direction. Never overwrite it.
-      if(existing&&!isInspirationExample(existing))
+      if(existing&&!replace&&!isInspirationExample(existing))
         return {prompt:existing,preserved:true};
       const index=positions[id]||0;
       positions[id]=(index+1)%variants.length;
