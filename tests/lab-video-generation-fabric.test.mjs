@@ -46,3 +46,13 @@ test('new stylesheet touches only the existing Video job stage',()=>{
   assert.match(css,/\.video-job-stage\.pv-video-fabric-ready/);
   assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
 });
+
+test('editorial registration marks and micro-signature remain active-only and decorative',()=>{
+  assert.match(css,/border-top:1px solid #c7c7c3/);
+  assert.match(css,/border-bottom:1px solid #c7c7c3/);
+  assert.match(css,/content:"PV LAB \/ MOTION"/);
+  assert.match(css,/pointer-events:none/);
+  assert.match(css,/\.video-job-stage\.pv-video-fabric-ready:is\(\[data-phase="submitting"\],\[data-phase="queued"\],\[data-phase="running"\],\[data-phase="saving"\],\[data-phase="loading"\]\)::before/);
+  assert.doesNotMatch(css,/data-phase="failed"/);
+  assert.match(html,/video-generation-fabric\.css\?v=20261112-editorial2/);
+});
