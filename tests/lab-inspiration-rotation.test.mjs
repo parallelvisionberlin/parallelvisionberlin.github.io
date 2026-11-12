@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {shouldOmitAutomaticMoodReferencesForInspiration,moodReferencePlan} from '../lab/mood-references.js';
 import {prepareMoodPrompt} from '../lab/moods.js';
+import {INSPIRATION_SCENES} from '../lab/inspiration-catalog-data.js';
 import {
   INSPIRATION_VARIATIONS,LEGACY_INSPIRATION_PROMPTS,CHROME_COUTURE_DEFAULTS,
   createInspirationRotation,isInspirationExample
@@ -88,6 +89,25 @@ test('user-written and manually altered prompts are never replaced',()=>{
   assert.equal(rotation.select('fashion-editorial',custom).prompt,custom);
 });
 
+test('explicit Inspiration card clicks replace a previous preset or custom prompt',()=>{
+  const storage=memoryStorage(),rotation=createInspirationRotation(storage);
+  const catalogPrompt=INSPIRATION_SCENES.find(scene=>scene.id==='desert-sculptures').prompt;
+  const first=rotation.select('90s-cinema',catalogPrompt,{replace:true});
+  assert.equal(first.prompt,INSPIRATION_VARIATIONS['90s-cinema'][0]);
+  assert.equal(first.preserved,false,'A previously chosen catalog scene must not stick');
+  const second=rotation.select('fashion-editorial','My manually edited draft',{replace:true});
+  assert.equal(second.prompt,INSPIRATION_VARIATIONS['fashion-editorial'][0]);
+  assert.equal(second.preserved,false,'Clicking another card is an explicit replacement request');
+  assert.equal(rotation.select('fashion-editorial',second.prompt,{replace:true}).index,1,
+    'Repeated clicks still rotate to the next prompt');
+  assert.equal(rotation.select('dream-blur','My manually edited draft').preserved,true,
+    'Non-click callers retain the original custom-text protection');
+  const auth=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  const guest=readFileSync(new URL('../lab/studio-guest-image.js',import.meta.url),'utf8');
+  assert.match(auth,/inspirationRotation\.select\(id,\$\('prompt'\)\.value,\{replace:true\}\)/);
+  assert.match(guest,/inspirationRotation\.select\(button\.dataset\.guestMood,prompt\.value,\{replace:true\}\)/);
+});
+
 test('guest and signed-in studio can share rotation through session storage',()=>{
   const storage=memoryStorage();
   const guest=createInspirationRotation(storage);
@@ -121,7 +141,7 @@ test('authenticated Inspiration skips other invisible Mood photos but includes D
   const lab=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   const guest=readFileSync(new URL('../lab/studio-guest-image.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.match(lab,/const choice=inspirationRotation\.select\(id,\$\('prompt'\)\.value\)/);
+  assert.match(lab,/const choice=inspirationRotation\.select\(id,\$\('prompt'\)\.value,\{replace:true\}\)/);
   assert.match(lab,/const preserveWorkspace=choice\.preserved\|\|references\.length>0\|\|!!file/);
   assert.match(lab,/inspirationMoodId=underlyingMood/);
   assert.match(lab,/disableAutoMoodReferences:shouldOmitAutomaticMoodReferencesForInspiration\(inspirationMoodId,selected\.moodId\)/);
