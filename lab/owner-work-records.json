@@ -1646,12 +1646,12 @@
       "id": "alter-tabbed-editor",
       "title": "ALTER Studio: 20 photographic looks, four-card exhibition gallery",
       "component": "ALTER Studio",
-      "status": "deployed",
-      "summary": "LIVE: Beauty and Window Study now use the refined editorial portrait direction after owner rejected the muted/ungroomed images. Healthy natural skin, groomed hair, restrained black fashion styling, engaged expression and stronger sculptural window light. Full-face Beauty remains distinct from macro Skin Study; supplied Windblown preserved.",
-      "nextAction": "No refined portrait publication work pending.",
-      "baselineSha": "9a9d8a011693e057d547f9649c36c8ecb12f6741",
-      "reviewedSha": "69d2dc9e19c95d0b0d5c5e878e411405cf8768c6",
-      "branch": "fix/alter-refined-portraits-20261112",
+      "status": "needs_verification",
+      "summary": "Owner-supplied HF final selection: Beauty uses second displayed casting portrait (31aebb33); Window Study uses first displayed soft side-lit portrait (0de4f4b1). Original photographic texture retained, native portrait dimensions plus 18% focal point fit existing cards. No generation or retouching. Other gallery images and all behavior preserved.",
+      "nextAction": "Wait for relevant CI, merge and verify production references, crops and card selection.",
+      "baselineSha": "970588da815ade0ae53bffc5026fe2885a049a00",
+      "reviewedSha": null,
+      "branch": "fix/alter-owner-hf-casting-20261112",
       "files": [
         "lab/beauty.html",
         "lab/beauty.js",
@@ -1687,7 +1687,9 @@
         "lab/visuals/beauty/atelier/archive-beauty-portrait-20261112.webp",
         "lab/visuals/beauty/atelier/archive-windowstudy-glass-20261112.webp",
         "lab/visuals/beauty/atelier/archive-beauty-refined-20261112.webp",
-        "lab/visuals/beauty/atelier/archive-windowstudy-refined-20261112.webp"
+        "lab/visuals/beauty/atelier/archive-windowstudy-refined-20261112.webp",
+        "lab/visuals/beauty/atelier/archive-beauty-hf-casting-20261112.webp",
+        "lab/visuals/beauty/atelier/archive-windowstudy-hf-casting-20261112.webp"
       ],
       "links": [
         {
@@ -1920,15 +1922,11 @@
         }
       ],
       "deployment": {
-        "state": "verified",
-        "sourceSha": "0235394711326dd7803f86583da19c67a94f7542",
+        "state": "pending",
+        "sourceSha": null,
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-12",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1015",
         "limitations": [
-          "Public production rendering and card selection checked; mobile is synthetic browser CI. No real signed-in customer journey or live PV LAB generation run.",
-          "Preview browser navigation returned ERR_BLOCKED_BY_CLIENT for both Cloudflare preview URLs; final custom-domain inspection succeeded.",
-          "Direct byte fetch was previously unavailable (403); no production byte-hash equality claimed."
+          "New owner-supplied final covers not yet deployed; prior evidence below is historical."
         ]
       },
       "evidence": [
@@ -2040,7 +2038,8 @@
       "doNotRepeat": [
         "Do not rebuild the initial tabbed editor or change the mixed-case title, approved hero or PV LAB favicon.",
         "No paid generations, automatic submissions or provider/pricing changes were made.",
-        "Do not represent illustrative thumbnails or mocked tests as verified provider result quality."
+        "Do not represent illustrative thumbnails or mocked tests as verified provider result quality.",
+        "Use the selected owner-supplied HF Beauty and Window Study images; do not revert to rejected generated portraits."
       ],
       "updatedAt": "2026-11-12"
     },

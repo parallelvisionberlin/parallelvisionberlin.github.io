@@ -1,6 +1,17 @@
 # Beauty Studio and Studios navigation
 
 
+## 2026-11-12 | Final owner-supplied HF casting photographs
+
+- Owner supplied three HF casting portraits and delegated final selection/publication after rejecting generated alternatives. Use these actual supplied photographs; no further generation, retouching or synthetic skin/style edits.
+- **Beauty:** second displayed photo, `hf_20261112_124335_31aebb33-9fd9-415b-ad77-5504a485ee62.png`, Library `libfile_5fed3785825881919e12989004ef7af5`. Frontal face/neck, cooler film tone, candid expression. Asset `archive-beauty-hf-casting-20261112.webp`.
+- **Window Study:** first displayed photo, `hf_20261112_124335_0de4f4b1-285b-4514-b702-1bbe98afa2dc.png`, Library `libfile_68e5a934a1088191817f9423e84b715a`. Three-quarter portrait with soft lateral daylight, warm skin and window-frame edge. Asset `archive-windowstudy-hf-casting-20261112.webp`.
+- Third supplied image is not used: similar framing, less distinction between cards. Existing generation prompts/presets remain illustrative light/finish controls.
+- Both originals preserved in Library; proportionally downsampled to 1200x1600 WebP, each <180 kB. Per-image `object-position:center 18%` keeps the full face and some neck visible in both wide and square existing card frames. Only these two references/native dimensions/focal positions and existing gallery fixture change.
+- Skin Study macro, approved supplied Windblown, other looks, captions, layout, hero, uploads, providers and billing unchanged. Do not revert to the rejected generated Beauty/Window Study covers. Current production evidence: structured `alter-tabbed-editor` record.
+
+
+
 ## 2026-11-12 | Refined Beauty and Window Study direction
 
 - Owner rejected the prior muted/ungroomed portrait direction. Corrected with deliberate grooming, minimal black fashion styling, healthy natural skin, stronger light and a composed editorial presence. Full-face Beauty and window-light Window Study remain distinct from macro Skin Study.
