@@ -1646,11 +1646,11 @@
       "id": "alter-tabbed-editor",
       "title": "ALTER Studio: 20 photographic looks, four-card exhibition gallery",
       "component": "ALTER Studio",
-      "status": "needs_verification",
-      "summary": "Refined Beauty/Window Study follow-up after owner rejected prior muted/ungroomed look: healthy natural skin, groomed hair, restrained black fashion styling, confident editorial presence and stronger window light. Full-face Beauty and window-light Window Study preserved; Skin Study and supplied Windblown unchanged.",
-      "nextAction": "Check relevant CI, merge two cover replacements and verify Cloudflare/live rendered cards.",
+      "status": "deployed",
+      "summary": "LIVE: Beauty and Window Study now use the refined editorial portrait direction after owner rejected the muted/ungroomed images. Healthy natural skin, groomed hair, restrained black fashion styling, engaged expression and stronger sculptural window light. Full-face Beauty remains distinct from macro Skin Study; supplied Windblown preserved.",
+      "nextAction": "No refined portrait publication work pending.",
       "baselineSha": "9a9d8a011693e057d547f9649c36c8ecb12f6741",
-      "reviewedSha": null,
+      "reviewedSha": "69d2dc9e19c95d0b0d5c5e878e411405cf8768c6",
       "branch": "fix/alter-refined-portraits-20261112",
       "files": [
         "lab/beauty.html",
@@ -1911,14 +1911,24 @@
           "result": "passed",
           "scope": "Approved Image contract, source validation and full Beauty desktop/mobile role/billing/navigation browser checks passed. Full structured work-state validation passes after restoring the previously missing Owner sidebar release evidence field.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43206667100/job/131143434606"
+        },
+        {
+          "label": "Refined portrait cover release",
+          "result": "passed",
+          "scope": "11 local approved Image/archive/gallery checks, full work-state validation, source validation and complete Beauty desktop/mobile role/billing/navigation browser checks passed.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43208723359/job/131150431525"
         }
       ],
       "deployment": {
-        "state": "pending",
-        "sourceSha": null,
+        "state": "verified",
+        "sourceSha": "0235394711326dd7803f86583da19c67a94f7542",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-12",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1015",
         "limitations": [
-          "Refined follow-up covers have not yet deployed; previous evidence below remains historical."
+          "Public production rendering and card selection checked; mobile is synthetic browser CI. No real signed-in customer journey or live PV LAB generation run.",
+          "Preview browser navigation returned ERR_BLOCKED_BY_CLIENT for both Cloudflare preview URLs; final custom-domain inspection succeeded.",
+          "Direct byte fetch was previously unavailable (403); no production byte-hash equality claimed."
         ]
       },
       "evidence": [
@@ -2004,6 +2014,24 @@
           "summary": "Exact merge aba2667bcd6ec5bfb957e58937b81c180feee628 succeeded in Cloudflare Pages pvlab-studio app check 131145414134, deployment ba5f198b-557e-429a-8f79-240080351b9e.",
           "scope": "Production publication of wider Beauty and candid Window Study covers.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1014",
+          "observedAt": "2026-11-12",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Real production /beauty loaded archive-beauty-refined-20261112.webp and archive-windowstudy-refined-20261112.webp at 1536x1024. Both actual rendered card crops inspected; no page overflow. Skin Study and supplied HF Windblown are unchanged by the reviewed diff.",
+          "scope": "Two refined portrait cover replacements.",
+          "source": "https://pvlab.studio/beauty",
+          "observedAt": "2026-11-12",
+          "limitations": [
+            "Public desktop observation; mobile covered by synthetic CI. No byte-hash comparison."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "Exact source 0235394711326dd7803f86583da19c67a94f7542 succeeded in Cloudflare Pages pvlab-studio app check 131152441024, deployment f2211331-5315-4775-94e6-887b2822c3d8.",
+          "scope": "Production publication of refined Beauty and Window Study.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1015",
           "observedAt": "2026-11-12",
           "limitations": []
         }
