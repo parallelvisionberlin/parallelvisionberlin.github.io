@@ -1,6 +1,16 @@
 # Beauty Studio and Studios navigation
 
 
+## 2026-11-12 | Refined Beauty and Window Study direction
+
+- Owner rejected the prior muted/ungroomed portrait direction. Corrected with deliberate grooming, minimal black fashion styling, healthy natural skin, stronger light and a composed editorial presence. Full-face Beauty and window-light Window Study remain distinct from macro Skin Study.
+- `archive-beauty-refined-20261112.webp`: complete face/neck, swept-back groomed hair, refined subtle makeup, black high-neck top and sculptural soft window light. Original generated file `exec-13c4ddf6-5b9b-42de-991e-3e69530b664f.png`.
+- `archive-windowstudy-refined-20261112.webp`: long brushed hair, tailored black coat, engaged expression and architectural window light in a clean modern Berlin interior. Original `exec-3a8826cf-8b4f-4e32-8ede-c6a40c8a5368.png`.
+- Both 1536x1024 optimized WebPs, each <180 kB. Previous photographs retained for history. Only two image references and existing gallery fixture change; no geometry, captions, presets or user workflow change.
+- Skin Study macro, selected supplied HF Windblown, other looks, hero, models, uploads and billing remain unchanged. See structured `alter-tabbed-editor` record for final release evidence.
+
+
+
 ## 2026-11-12 | Beauty wide portrait and Window Study follow-up
 
 - Owner approved separating the two visual purposes: Beauty shows the entire face plus neck; Skin Study stays the extreme macro. Added request: replace plastic-looking Window Study with a more candid, materially interesting window-light photograph.
