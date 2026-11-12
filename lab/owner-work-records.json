@@ -3489,10 +3489,10 @@
       "title": "Seedance Extend and Reference verification after PR 1009",
       "component": "Video / Seedance 2.5 / SpicyAPI",
       "status": "needs_verification",
-      "summary": "PR 1009 production frontend was verified byte-for-byte. Corrected the mock browser flow that clicked the intentionally hidden Video Save control and the public smoke assertion invalidated by the additional mixed-Extend guard. Added actual customer-wallet backend coverage and owner/customer phone/desktop assertions. No app, provider, wallet policy or production configuration changes.",
-      "nextAction": "Finish CI for the layout deadline and credit-preparation fixture corrections, merge the test-only repair, and verify authenticated production quotes after explicit authorization for Google sign-in. Never confirm a real generation.",
+      "summary": "PR 1009 frontend publication remains verified. Corrected hidden-Save browser interactions, the obsolete public quote-guard smoke assertion, six unit fixture failures and the old Clerk deadline contract. Scoped Seedance checks pass for owners/customers at 390px and 1440px, with exact media IDs/settings and quote/job safeguards. Added bounded diagnostics for the separate still-blocked purchase browser test. No application code, pricing, provider route, migration or production configuration changes.",
+      "nextAction": "Complete the authenticated production upload/quote check after explicit accounts.google.com authorization, without confirming generation. Separately resolve the pre-existing 54px/64px layout contract disagreement, 20 catalog/design unit failures and purchase browser preparation blocker.",
       "baselineSha": "3bf9617f26cf9377804012daf47391892631b731",
-      "reviewedSha": "f7fd9b27c13dcd8b0c954ec4e0188a6d5033911e",
+      "reviewedSha": "0179032fb7871931ae3a41474b768945f900b9af",
       "branch": "fix/seedance-verification-20261112",
       "files": [
         "tests/lab-extend-character-ui.mjs",
@@ -3535,8 +3535,8 @@
         {
           "label": "Owner/customer phone/desktop browser regression",
           "result": "passed",
-          "scope": "GitHub Actions step passed at f7fd9b2 for owner/customer at 390px/1440px: compatible Extend quote, mixed-input quote suppression, exact clip/character IDs, output controls/prompt, new-shot explanation, Reference quote and mocked confirmation/History/Reuse. No real paid calls.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43200690205/job/131123016280"
+          "scope": "Final tested code 0179032: all four owner/customer 390px/1440px cases pass. Exact clip IDs, both character photos, prompt, output settings, mixed quote suppression, Reference quote and mocked confirmation/History/Reuse verified.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43203113810/job/131131346423"
         },
         {
           "label": "Corrected public Video source smoke",
@@ -3553,8 +3553,20 @@
         {
           "label": "Clerk bootstrap",
           "result": "passed",
-          "scope": "Ten local functional tests retain SDK/UI/session deadlines. Updated the old layout source assertion for the existing independently bounded SDK/UI loads. Browser rerun pending.",
+          "scope": "Ten local functional tests pass. The corrected browser assertion accepts independently bounded SDK/UI loads; the suite proceeds to the separate existing 54px/64px layout disagreement.",
           "source": "tests/lab-clerk-bootstrap.test.mjs"
+        },
+        {
+          "label": "Final public smoke and approved Image contract",
+          "result": "passed",
+          "scope": "Both required scoped checks pass on the final tested code. Cloudflare preview is successful; app source is unchanged.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1011"
+        },
+        {
+          "label": "General browser layout and purchase fixture",
+          "result": "documented",
+          "scope": "General video job remains red: expected 64px Generate track, actual 54px. Preserve approved UI pending reconciliation. Purchase browser test did not complete during this verification; its waits now have timeouts and failure diagnostics. These are not authenticated production failures.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43203113748"
         }
       ],
       "deployment": {
@@ -3586,8 +3598,8 @@
         }
       ],
       "blockers": [
-        "Production browser sign-in reached Google selection, then automatic review blocked accounts.google.com because it requires explicit destination-specific authorization. No authenticated production session observed.",
-        "The general CI suites remain red for separate pre-existing catalog/design expectations; do not revert approved product changes to satisfy them."
+        "Automatic review blocked observation of accounts.google.com after the user selected Google. Explicit destination-specific authorization is required before continuing. No authenticated production session was observed.",
+        "Broad CI retains 20 pre-existing catalog/design unit failures and a 54px/64px Generate layout disagreement. The purchase browser fixture remains unverified. Do not change approved production behavior merely to clear these tests."
       ],
       "doNotRepeat": [
         "Keep the intentional hidden Video Save control and approved layout. Do not show it to satisfy a stale test.",
