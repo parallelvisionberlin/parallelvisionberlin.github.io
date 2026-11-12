@@ -3671,11 +3671,11 @@
       "id": "seedance-extend-reference-verification",
       "title": "Seedance Extend with original video and character references",
       "component": "Video / Seedance 2.5 / Extend",
-      "status": "in_progress",
-      "summary": "Owner authorized true Extend with a source video and image/character references. Source-only Extend remains on SpicyAPI; mixed Extend now uses the already-integrated Higgsfield video-extend API, with an explicit provider estimate and no automatic Reference substitution. Local focused backend, wallet, price and approved Image checks pass; browser CI and Worker publication remain pending.",
-      "nextAction": "Run owner/customer phone/desktop browser matrix, merge reviewed changes, publish Worker preserving existing bindings, verify exact frontend bytes and authenticated quote-only flow. No paid generation.",
+      "status": "needs_verification",
+      "summary": "PR 1017 is merged. True Seedance Extend with source video plus character/image references is implemented through the existing Higgsfield video-extend API; source-only Extend stays on SpicyAPI. All four owner/customer phone/desktop Extend browser cases and 205 focused local checks passed. Cloudflare Pages production lab.js matches the merged source exactly. Worker rollout is blocked: GitHub automatic deployment is paused, no deploy credential is configured here, and the secure Cloudflare/GitHub sign-in was interrupted. Mixed Extend remains safely disabled until the Worker advertises its new capability.",
+      "nextAction": "Complete authenticated Cloudflare access, publish the reviewed Worker modules while preserving existing bindings, flags and schedules, then verify health seedanceExtendReferences=20261112-extend-refs1, session capability and a real signed-in video-plus-two-photos price review. Do not confirm any paid generation. Resolve the independent 54px/64px browser layout expectation separately.",
       "baselineSha": "970588da815ade0ae53bffc5026fe2885a049a00",
-      "reviewedSha": "0179032fb7871931ae3a41474b768945f900b9af",
+      "reviewedSha": "a8e98c2f8fe56f5afee1b93f75cdcd2825bf92b3",
       "branch": "fix/seedance-extend-references",
       "files": [
         "lab-worker/worker.mjs",
@@ -3699,79 +3699,67 @@
         {
           "label": "Scoped browser results",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43200690205"
+        },
+        {
+          "label": "True Extend with references PR 1017",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1017"
         }
       ],
       "tests": [
         {
-          "label": "Seedance, wallet and approved Image contract",
+          "label": "True Extend backend, wallet, provider and pricing safeguards",
           "result": "passed",
-          "scope": "18 local assertions, including mixed Extend HTTP 400, no provider quote/create, no customer wallet/ledger/spend change, valid Extend/Reference quotes and free Reference draft. All provider calls mocked.",
+          "scope": "42 focused local tests. Quotes do not debit or generate; exact clip and photos go to the Extend endpoint; permission recheck, invalid inputs/prices, duplicate confirmation, debit/refund parity, expiry, insufficient balance and uncertain-job lock verified with mocked provider calls.",
           "source": "tests/lab-seedance.test.mjs"
         },
         {
-          "label": "Existing purchase, consent and image quote fixtures",
+          "label": "Additional authentication, lifecycle, Worker and billing checks",
           "result": "passed",
-          "scope": "29 assertions pass after restoring missing ownerAccount fixture state, the fs import and the exact approved Inspiration replacement argument. No production behavior was changed.",
-          "source": "tests/lab-credit-purchase-flow.test.mjs"
+          "scope": "152 auth/customer lifecycle/Worker/live-pilot/model-pricing/owner-provider checks plus 11 sandbox billing checks passed locally. The initial sandbox import failure was the sparse local checkout and disappeared when its existing files were included.",
+          "source": "tests/lab-sandbox-billing.test.mjs"
         },
         {
-          "label": "Owner/customer phone/desktop browser regression",
+          "label": "True Extend owner/customer phone and desktop browser regression",
           "result": "passed",
-          "scope": "Final tested code 0179032: all four owner/customer 390px/1440px cases pass. Exact clip IDs, both character photos, prompt, output settings, mixed quote suppression, Reference quote and mocked confirmation/History/Reuse verified.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43203113810/job/131131346423"
+          "scope": "All four owner/customer 390px/1440px cases passed on reviewed head a8e98c2f. Exact clip and both saved-character photos, prompt/output controls, quote without generation, one explicit mocked submission, History/Reuse and disabled-backend fallback with explicit new-shot warning verified.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43228212957/job/131216844472"
         },
         {
-          "label": "Corrected public Video source smoke",
+          "label": "Existing Transform, history and tool-routing browser regressions",
           "result": "passed",
-          "scope": "Read-only custom-domain source check passes locally and in GitHub Actions.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43200690195"
+          "scope": "Transform job passed; video job also passed History pagination, customer video selection and guest/signed-in routing before the separate layout assertion failed.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43228212957"
         },
         {
-          "label": "Broad unit suite",
+          "label": "Approved Image contract",
+          "result": "passed",
+          "scope": "Local checks and GitHub Actions passed on reviewed runtime source.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43228213096"
+        },
+        {
+          "label": "Video CI runner",
+          "result": "passed",
+          "scope": "Corrected ubuntu-latest/Ubuntu 26.04 incompatibility with Playwright 1.57 by pinning both video jobs to supported Ubuntu 24.04. Dependency install and relevant browser regressions then passed.",
+          "source": ".github/workflows/lab-seedance-tests.yml"
+        },
+        {
+          "label": "General video layout CI",
           "result": "documented",
-          "scope": "1228/1248 passed after the six fixture corrections. The remaining 20 named failures match the pre-existing catalog/design failures, with no new unit failures.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43200690264/job/131123016990"
-        },
-        {
-          "label": "Clerk bootstrap",
-          "result": "passed",
-          "scope": "Ten local functional tests pass. The corrected browser assertion accepts independently bounded SDK/UI loads; the suite proceeds to the separate existing 54px/64px layout disagreement.",
-          "source": "tests/lab-clerk-bootstrap.test.mjs"
-        },
-        {
-          "label": "Final public smoke and approved Image contract",
-          "result": "passed",
-          "scope": "Both required scoped checks pass on the final tested code. Cloudflare preview is successful; app source is unchanged.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1011"
-        },
-        {
-          "label": "General browser layout and purchase fixture",
-          "result": "documented",
-          "scope": "General video job remains red: expected 64px Generate track, actual 54px. Preserve approved UI pending reconciliation. Purchase browser test did not complete during this verification; its waits now have timeouts and failure diagnostics. These are not authenticated production failures.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43203113748"
-        },
-        {
-          "label": "Authenticated production owner Extend and Reference preflight",
-          "result": "passed",
-          "observedAt": "2026-11-12",
-          "scope": "Real signed-in owner session, synthetic neutral 3s MP4 plus two 320x400 PNGs. Extend and Reference each returned a bound 5s/720p maximum of USD 5.8065. Mixed Extend blocked Generate/Save; explicit switch retained media, prompt, duration, resolution, aspect ratio and audio. Cancelled both quotes, zero test-prompt entries in History, editor cleared. No paid confirmation.",
-          "source": "https://pvlab.studio/studio?tool=video"
-        },
-        {
-          "label": "True Extend reference routing and customer wallet safeguards",
-          "result": "passed",
-          "scope": "42 focused local tests: video-only Spicy route preserved, mixed Extend exact private assets and prompt/settings, no debit on estimates, customer gate rechecked on confirmation, atomic duplicate confirmation, exact credit debit/refund, expiry, insufficient funds, uncertain submission lock, malformed or over-ceiling estimate. All generation calls mocked.",
-          "source": "tests/lab-seedance.test.mjs"
+          "scope": "The pre-existing Generate dock expectation still fails: expected 64px, observed 54px. No approved UI changed to satisfy it. Broader catalog/design fixture failures remain outside this runtime change.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43228212957/job/131216844472"
         }
       ],
       "deployment": {
-        "state": "verified",
-        "environment": "Cloudflare Pages pvlab-studio, original PR 1009 app assets",
-        "sourceSha": "68362f71894df147e54856b02cf5ace4e5181c1d",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/runs/130945346770",
+        "state": "blocked",
+        "environment": "Cloudflare Pages pvlab-studio frontend verified; parallel-vision-lab Worker pending",
+        "sourceSha": "a6fcdb6fa013190528269fd7c73c96a6763b6b26",
+        "observedAt": "2026-11-12",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/runs/131400193436",
         "limitations": [
-          "This record verifies original application publication, not deployment of these test-only corrections.",
-          "No authenticated production session or paid generation has been verified. Worker health does not expose its exact source SHA."
+          "Cloudflare Pages succeeded for the exact merge; the served versioned lab.js SHA256 matches merged source: 707178742dba13fe84d8282782c6f15e6adaed140bc47107a666a453e5bdf3da.",
+          "Worker /health still lacks seedanceExtendReferences. No Worker production change was made.",
+          "The authenticated production observations recorded earlier concern PR 1009, not the new mixed Extend path.",
+          "No real paid output or continuation quality verified."
         ]
       },
       "evidence": [
@@ -3802,12 +3790,22 @@
             "This owner session does not independently verify a real customer credit ledger.",
             "The existing generic quote notice mentions Higgsfield even on the bound SpicyAPI route; route rejection guards and automated backend route checks remain separate evidence."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "observedAt": "2026-11-12",
+          "summary": "Cloudflare Pages exact-merge check 131400193436 succeeded. Custom-domain Studio HTML references v=20261112-seedance-extend-refs1; the versioned production lab.js and raw merged source have identical SHA256 707178742dba13fe84d8282782c6f15e6adaed140bc47107a666a453e5bdf3da.",
+          "scope": "Read-only frontend publication verification, separate from Worker and authenticated generation.",
+          "source": "https://pvlab.studio/studio?tool=video",
+          "limitations": [
+            "Worker not deployed; mixed Extend intentionally fails closed until its session capability is present."
+          ]
         }
       ],
       "blockers": [
-        "Worker production deployment requires authenticated Cloudflare access; GitHub automatic Worker deploy is paused because its token is unavailable.",
-        "Browser regression and exact publication still pending.",
-        "No paid output quality or continuity has been tested."
+        "Worker publication requires authenticated Cloudflare access. Automatic GitHub Worker deployment is paused because its token is unavailable; secure login was interrupted and no alternative credential is configured.",
+        "Real authenticated mixed Extend price review and paid output remain unverified. No paid generation was run.",
+        "The independent 54px/64px Generate dock assertion and older catalog/design fixtures remain red."
       ],
       "doNotRepeat": [
         "Keep the approved hidden Video Save and Image UI.",
