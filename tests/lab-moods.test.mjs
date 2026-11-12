@@ -167,8 +167,8 @@ test('Moods category filters have readable touch targets and preserve thumbnail 
 });
 
 test('seventeen unique curated moods with imagery',()=>{
-  assert.equal(MOODS.length,17);
-  assert.equal(new Set(MOODS.map(m=>m.id)).size,17);
+  assert.equal(MOODS.length,18);
+  assert.equal(new Set(MOODS.map(m=>m.id)).size,18);
   for(const mood of MOODS)for(const field of ['name','category','preview','direction','subtle','intense','avoid'])assert.ok(mood[field]);
 });
 test('only explicitly compatible image engines receive moods',()=>{
@@ -431,7 +431,7 @@ test('Seventeen moods are available, ten initially visible and Sumi-e last',()=>
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.equal(MOODS.length,17);
+  assert.equal(MOODS.length,18);
   assert.equal(MOODS.at(-1).id,'sumi-ink');
   assert.match(css,/\.moods-grid\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(css,/scrollbar-gutter:stable/);
@@ -560,7 +560,7 @@ test('Preview-first Moods deck enlarges photos while keeping original slider and
   assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:48px/);
   assert.match(css,/max-height:min\(720px,var\(--moods-available-height/);
   assert.match(html,/moods\.css\?v=20261011-header-align2/);
-  assert.equal(MOODS.length,17);
+  assert.equal(MOODS.length,18);
 });
 
 
