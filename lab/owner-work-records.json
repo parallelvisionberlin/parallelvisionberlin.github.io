@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-11T14:34:20.937Z",
+  "updatedAt": "2026-11-12",
   "handoffs": [
     {
       "id": "owner",
@@ -1583,12 +1583,12 @@
       "id": "alter-tabbed-editor",
       "title": "ALTER Studio: 20 photographic looks, four-card exhibition gallery",
       "component": "ALTER Studio",
-      "status": "deployed",
-      "summary": "Production verified: twenty distinct functional editorial presets. Original thirteen remain in order; seven new cropped existing photographs (Golden Hour, Skin Study, Window Study, Soft Focus, Velvet, Silver Halo, Windblown) added. On >=1350px four full image cards plus a peek of card five, generous gallery spacing/captions, native inertia and keyboard. Existing upper ALTER, hero.webp and crop/fade, widened 3x3 Edit Look with 45 option photos, uploads, account/credit validation, Generate and result comparison unchanged.",
-      "nextAction": "No ALTER publication work pending. Test actual signed-in model result fidelity only if authorized; do not modify locked photographic hero, editor or billing.",
-      "baselineSha": "fd9774e8bf4ff20752d064a7cf9e5b84ebd53159",
-      "reviewedSha": "d730bbf93a933df75ba4e031cf9e6dba4bb07d8f",
-      "branch": "feature/alter-twenty-looks-four-card-gallery-20261107",
+      "status": "needs_verification",
+      "summary": "Four requested archive covers prepared: Beauty rebuilt from the 246x137 source as 1536x1024; Night Tape reuses current Hong Kong Nights Mood cover; Skin Study new macro pores and vellus detail; Windblown new pastel Riviera vintage convertible photograph. Windblown uses daylight and soft-film with existing source-preservation rules. Other gallery/editor/hero unchanged.",
+      "nextAction": "Run Beauty CI, merge this scoped image update and verify exact Cloudflare production image and module bytes. No paid model fidelity test requested.",
+      "baselineSha": "68362f71894df147e54856b02cf5ace4e5181c1d",
+      "reviewedSha": null,
+      "branch": "fix/alter-card-photography-20261112",
       "files": [
         "lab/beauty.html",
         "lab/beauty.js",
@@ -1615,7 +1615,11 @@
         "lab/visuals/beauty/atelier/archive-softfocus-20261107.webp",
         "lab/visuals/beauty/atelier/archive-velvet-20261107.webp",
         "lab/visuals/beauty/atelier/archive-silverhalo-20261107.webp",
-        "lab/visuals/beauty/atelier/archive-windblown-20261107.webp"
+        "lab/visuals/beauty/atelier/archive-windblown-20261107.webp",
+        "lab/visuals/beauty/atelier/archive-beauty-hd-20261112.webp",
+        "lab/visuals/beauty/atelier/archive-nighttape-mood-20261112.webp",
+        "lab/visuals/beauty/atelier/archive-skinstudy-macro-20261112.webp",
+        "lab/visuals/beauty/atelier/archive-windblown-riviera-20261112.webp"
       ],
       "links": [
         {
@@ -1801,18 +1805,19 @@
           "scope": "Exact Cloudflare commit successful; live CSS and hero image hashes unchanged, all seven new image bytes and twenty active card IDs verified. Guest browser 1727,1440,1366,1024,390, Golden Hour selection native Hair/Light/Color fields, no billing/paid requests.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42424984168",
           "observedAt": "2026-11-07T23:26:00.000Z"
+        },
+        {
+          "label": "2026-11-12 four cover replacements",
+          "result": "passed",
+          "scope": "29 focused Image/Beauty/category/archive/gallery contracts pass locally. All four WebPs are 1536x1024 and under 180 kB."
         }
       ],
       "deployment": {
-        "state": "verified",
-        "sourceSha": "92ee7dea6589ec52934e076ca89206645a649de2",
+        "state": "pending",
+        "sourceSha": null,
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-07T23:26:00.000Z",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42424984168",
         "limitations": [
-          "Guest layout and asset publication verified; no signed-in real paid generation was run.",
-          "Thumbnails show visual direction and do not guarantee generated results.",
-          "No customer credits or payments accessed."
+          "New four-card update is not yet deployed. Prior gallery live evidence remains historical."
         ]
       },
       "evidence": [
@@ -1853,7 +1858,7 @@
         "No paid generations, automatic submissions or provider/pricing changes were made.",
         "Do not represent illustrative thumbnails or mocked tests as verified provider result quality."
       ],
-      "updatedAt": "2026-11-07T23:26:00.000Z"
+      "updatedAt": "2026-11-12"
     },
     {
       "id": "shared-image-soul-deck",
