@@ -35,6 +35,7 @@ try{
  for(const width of [390,1440])for(const scenario of ['low-balance','server-rejection','quote-rejection','network','checkout']){
   let walletBalance=scenario==='low-balance'||scenario==='checkout'?19:100;bootBalance=walletBalance;
   const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
+  page.setDefaultTimeout(15000);
   const requests=[],quotes=new Map(),errors=[];let jobs=0,checkouts=0,uploads=0;
   page.on('pageerror',error=>errors.push(error.message));
   await context.route('https://**/*',async route=>{
