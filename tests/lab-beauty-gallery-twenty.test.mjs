@@ -22,7 +22,7 @@ test('Twenty native archive cards retain the original thirteen first, then seven
  for(const [i,id] of ids.entries()){
   const look=beautyLookPresets[id];
   assert.ok(section.includes(`<strong>${names[i]}</strong>`));
-  const dest='./visuals/beauty/atelier/'+({skinstudy:'archive-skinstudy-macro-20261112.webp',windblown:'archive-windblown-riviera-20261112.webp'}[id]||'archive-'+id+'-20261107.webp');
+  const dest='./visuals/beauty/atelier/'+({skinstudy:'archive-skinstudy-macro-20261112.webp',windblown:'archive-windblown-hf-20261112.webp'}[id]||'archive-'+id+'-20261107.webp');
   assert.ok(section.includes(dest));
   const p=path.join(root,'lab',dest.slice(2));
   assert.ok(fs.existsSync(p));assert.ok(fs.statSync(p).size<180000);

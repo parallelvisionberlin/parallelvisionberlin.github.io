@@ -1,6 +1,15 @@
 # Beauty Studio and Studios navigation
 
 
+## 2026-11-12 | Windblown supplied-photo follow-up
+
+- Owner requested selection of the best of four newly supplied HF images and immediate website update. Chosen: `hf_20261112_104120_1075d235-c171-426d-9307-5850b600c2bb.png`, the fourth image in the message, woman catching her windblown hair with one hand.
+- Reused the exact supplied photograph, with only proportional downsampling and WebP compression. New `lab/visuals/beauty/atelier/archive-windblown-hf-20261112.webp` is 1200x1600; browser retains the existing object-fit card crop. Original source Library ID: `libfile_80d73c6f261c81919801ecc5e926e4d3`.
+- Only Windblown image reference/dimensions and existing gallery image-path fixture change. Captions, presets, hero, other nineteen looks, models, uploads and billing unchanged.
+- Existing Image/archive/gallery contracts passed locally. See `alter-tabbed-editor` in `lab/owner-work-records.json` for current CI and production evidence, superseding the prior Windblown image below.
+
+
+
 ## 2026-11-12 | Four archive covers: LIVE VERIFIED
 
 - Scoped request: repair blurry Beauty; replace Pinterest-origin Night Tape; increase Skin Study macro detail; replace Windblown with retro Riviera convertible / soft pastel film.

@@ -1583,12 +1583,12 @@
       "id": "alter-tabbed-editor",
       "title": "ALTER Studio: 20 photographic looks, four-card exhibition gallery",
       "component": "ALTER Studio",
-      "status": "deployed",
-      "summary": "LIVE: Beauty, Night Tape, Skin Study and Windblown now use the four requested 1536x1024 covers. Beauty replaces the 246x137 thumbnail; Night Tape reuses the current Hong Kong Nights Mood; Skin Study shows macro skin detail; Windblown shows a pastel Riviera vintage convertible and uses existing daylight/soft-film settings. Rest of ALTER unchanged.",
-      "nextAction": "No publication work pending. Only perform actual signed-in/paid generation fidelity checks if requested.",
-      "baselineSha": "68362f71894df147e54856b02cf5ace4e5181c1d",
-      "reviewedSha": "0366806be4a4807718bdb67b82bc9e6f9d3ec59d",
-      "branch": "fix/alter-card-photography-20261112",
+      "status": "needs_verification",
+      "summary": "Windblown follow-up: selected fourth supplied Higgsfield image (woman catching windblown hair with her hand) replaces the posed Riviera cover. New 1200x1600 WebP, native portrait crop within unchanged card. Prior Beauty, Night Tape and Skin Study remain unchanged.",
+      "nextAction": "Wait for relevant CI, merge the image-only change, confirm Cloudflare production and actual rendered Windblown cover.",
+      "baselineSha": "3bf9617f26cf9377804012daf47391892631b731",
+      "reviewedSha": null,
+      "branch": "fix/alter-windblown-hf-20261112",
       "files": [
         "lab/beauty.html",
         "lab/beauty.js",
@@ -1619,7 +1619,8 @@
         "lab/visuals/beauty/atelier/archive-beauty-hd-20261112.webp",
         "lab/visuals/beauty/atelier/archive-nighttape-mood-20261112.webp",
         "lab/visuals/beauty/atelier/archive-skinstudy-macro-20261112.webp",
-        "lab/visuals/beauty/atelier/archive-windblown-riviera-20261112.webp"
+        "lab/visuals/beauty/atelier/archive-windblown-riviera-20261112.webp",
+        "lab/visuals/beauty/atelier/archive-windblown-hf-20261112.webp"
       ],
       "links": [
         {
@@ -1821,17 +1822,19 @@
           "label": "Broader suite baseline comparison",
           "result": "documented",
           "scope": "Candidate and baseline each have the identical 26 private-lab failure names; zero new failures. Test job's existing source-change assertion also remains outside this scope."
+        },
+        {
+          "label": "Higgsfield Windblown card replacement",
+          "result": "passed",
+          "scope": "11 existing approved Image/archive/gallery checks passed; optimized 1200x1600 photo below 180 kB; no layout or behavior change."
         }
       ],
       "deployment": {
-        "state": "verified",
-        "sourceSha": "94a370540bd5f53d3cad0d28e567330ca3b9eb95",
+        "state": "pending",
+        "sourceSha": null,
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-12",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1010",
         "limitations": [
-          "Public guest image rendering and card selection verified; no signed-in or paid generation run.",
-          "Direct custom-domain byte fetch returned HTTP 403; fallback verification used exact Cloudflare merge/project app evidence and real production browser DOM/rendered covers. No live byte-hash match claimed."
+          "Latest replacement is not yet deployed. Prior live evidence below is historical."
         ]
       },
       "evidence": [
