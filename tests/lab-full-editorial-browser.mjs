@@ -438,14 +438,26 @@ try{
     cardCount:cards.length,viewportHeight:innerHeight,footerPosition:getComputedStyle(document.querySelector('#step-footer')).position,
     footerBelowCards:footer.top>=first.bottom};
   });
-  assert.equal(stylingLayout.cardCount,6,'Styling keeps six original photographic wardrobe cards');
+  assert.equal(stylingLayout.cardCount,30,'Styling uses thirty distinct garment photographs');
   assert.equal(stylingLayout.footerBelowCards,true,'Action footer cannot hide wardrobe photographs');
   assert.notEqual(stylingLayout.footerPosition,'sticky','Styling action rail follows its content');
   if(width>800){
    assert.ok(stylingLayout.heroHeight<=267,'Styling has the same compact stage hero as Identity');
    assert.ok(stylingLayout.firstCardTop<stylingLayout.viewportHeight-100,'Wardrobe cards begin inside the first desktop viewport');
-   assert.ok(stylingLayout.firstCardHeight>=290,'Wardrobe cards retain a taller portrait format');
+   assert.ok(stylingLayout.firstCardHeight>=245,'Full-body wardrobe cards retain portrait proportions');
   }
+  assert.equal(await page.locator('#wardrobe-filters .wardrobe-filter').count(),6,'All plus five garment families');
+  await page.locator('[data-wardrobe-filter="night"]').click();
+  assert.equal(await page.locator('#outfit-gallery .atelier-look:visible').count(),6,'After-Dark filter shows six separate outfits');
+  await page.locator('[data-wardrobe-filter="all"]').click();
+  assert.equal(await page.locator('#outfit-gallery .atelier-look:visible').count(),30);
+  const look=page.locator('#outfit-gallery [data-wardrobe-id="orbital-gold"]');
+  await look.click();
+  await page.waitForFunction(()=>document.querySelectorAll('#outfit-thumbs .thumb').length===1);
+  assert.equal(await look.getAttribute('aria-pressed'),'true','Reference outfit is selectable');
+  await look.click();
+  await page.waitForFunction(()=>document.querySelectorAll('#outfit-thumbs .thumb').length===0);
+  assert.equal(await look.getAttribute('aria-pressed'),'false','Outfit can be deselected');
   await page.locator('#styling-direction').fill('Architectural black leather and natural tailoring.');
   await page.locator('#outfit-files').setInputFiles('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
   await page.locator('.stage-visual--style img').evaluate(img=>img.decode().catch(()=>{}));

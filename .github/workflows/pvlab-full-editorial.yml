@@ -13,6 +13,9 @@ on:
       - 'lab/studio.html'
       - 'lab/visuals/editorial-directions/**'
       - 'lab/visuals/featured-worlds/chrome-desert/**'
+      - 'lab/visuals/editorial-wardrobe/**'
+      - 'lab/editorial-wardrobe-catalog.js'
+      - 'lab/full-editorial-wardrobe.css'
       - 'tests/lab-full-editorial*'
       - '.github/workflows/pvlab-full-editorial.yml'
   workflow_dispatch:
@@ -37,6 +40,7 @@ jobs:
             /lab/visuals/character-casting/
             /lab/visuals/editorial-directions/
             /lab/visuals/featured-worlds/chrome-desert/
+            /lab/visuals/editorial-wardrobe/
             /lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg
             /tests/lab-full-editorial*
             /tests/lab-approved-image-ui-contract.test.mjs

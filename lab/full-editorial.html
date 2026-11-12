@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="./full-editorial-mobile-casting.css?v=20261103-casting2">
 <link rel="stylesheet" href="./full-editorial-identity-refresh.css?v=20261111-normal-wheel2">
 <link rel="stylesheet" href="./full-editorial-world-preset.css?v=20261111-chrome-desert-world1">
+<link rel="stylesheet" href="./full-editorial-wardrobe.css?v=20261112-wardrobe30-1">
 <link rel="stylesheet" href="./studios-menu.css?v=20261101-unified-reveal1">
 </head>
 <body>
@@ -130,15 +131,10 @@
      <div class="atelier-workspace">
        <div class="atelier-section-top editorial-styling-top"><div><h3>What are they wearing?</h3><p>Choose a reference look, upload garments, or describe your styling. Your model's identity stays unchanged.</p></div></div>
        <div class="atelier-source-tabs" aria-label="Styling source"><button type="button" class="atelier-tab is-selected" data-style-view="reference" aria-pressed="true">Reference looks</button><button type="button" class="atelier-tab" data-style-view="upload" aria-pressed="false">My uploads</button><button type="button" class="atelier-tab" data-style-view="describe" aria-pressed="false">Describe</button><button type="button" class="atelier-tab" id="saved-outfit">Saved outfits</button></div>
-       <div id="outfit-gallery" class="atelier-outfit-gallery" aria-label="PV LAB styling reference looks">
-         <button type="button" class="atelier-look" data-sample-kind="outfit" data-sample-src="./visuals/character-casting/chrome-cast03.webp" data-sample-label="Reflective couture"><img src="./visuals/character-casting/chrome-cast03.webp" alt="Sculptural reflective couture silhouette" loading="lazy"><span>CHROME</span></button>
-         <button type="button" class="atelier-look" data-sample-kind="outfit" data-sample-src="./visuals/character-casting/bronze-cast03.webp" data-sample-label="Hammered bronze"><img src="./visuals/character-casting/bronze-cast03.webp" alt="Hammered bronze headpiece and collar" loading="lazy"><span>BRONZE</span></button>
-         <button type="button" class="atelier-look" data-sample-kind="outfit" data-sample-src="./visuals/character-casting/copper-inertia.webp" data-sample-label="Olive drapery"><img src="./visuals/character-casting/copper-inertia.webp" alt="Gathered olive green couture" loading="lazy"><span>DRAPED</span></button>
-         <button type="button" class="atelier-look" data-sample-kind="outfit" data-sample-src="./visuals/character-casting/ivory-cast03.webp" data-sample-label="Sculptural ivory"><img src="./visuals/character-casting/ivory-cast03.webp" alt="Architectural ivory couture" loading="lazy"><span>IVORY</span></button>
-         <button type="button" class="atelier-look" data-sample-kind="outfit" data-sample-src="./visuals/fashion-replace/hero-model-oct24.jpg" data-sample-label="Industrial black tailoring"><img src="./visuals/fashion-replace/hero-model-oct24.jpg" alt="Dark industrial tailoring" loading="lazy"><span>TAILORING</span></button>
-         <button type="button" class="atelier-look" data-sample-kind="outfit" data-sample-src="./visuals/studio-tools/image-ivory-suit.webp" data-sample-label="Contemporary suit"><img src="./visuals/studio-tools/image-ivory-suit.webp" alt="Clean editorial suit reference" loading="lazy"><span>SUIT</span></button>
-       </div>
-       <p class="atelier-reference-note">Select up to three garment references. Each defines wardrobe, not the person or their original location.</p>
+       <div id="wardrobe-filters" class="wardrobe-filter-strip" role="group" aria-label="Wardrobe collections"></div>
+       <div id="outfit-gallery" class="atelier-outfit-gallery" aria-label="30 PV LAB curated full-outfit references"></div>
+       <p class="wardrobe-count" id="wardrobe-gallery-count" aria-live="polite">30 outfit looks · Visual clothing references, not casting identities</p>
+       <p class="atelier-reference-note">Choose up to three outfits. They guide the wardrobe across your editorial, not the model's face or the reference photograph's location.</p>
        <div class="thumb-row outfit-row" id="outfit-thumbs" aria-label="Your selected garments"></div>
        <div class="atelier-inline-actions"><button class="upload-compact" type="button" id="add-outfits"><span>+</span> Add garment photographs</button></div>
        <input type="file" id="outfit-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
@@ -218,6 +214,6 @@
 </main>
 <dialog id="saved-elements-dialog" aria-labelledby="saved-elements-heading"><div class="confirm-inner"><span class="eyebrow">PV LAB / ELEMENTS</span><h2 id="saved-elements-heading">Saved Elements</h2><p>Use existing private reference images from your Elements library.</p><div id="saved-elements-list" class="saved-elements-list"></div><button type="button" class="secondary" id="saved-elements-close">Close</button></div></dialog>
 <script src="./studios-menu.js?v=20261101-unified-reveal1" defer></script>
-<script type="module" src="./full-editorial.js?v=20261111-normal-wheel2"></script>
+<script type="module" src="./full-editorial.js?v=20261112-wardrobe30-1"></script>
 </body>
 </html>

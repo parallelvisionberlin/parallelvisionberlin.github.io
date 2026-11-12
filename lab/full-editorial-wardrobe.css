@@ -1,0 +1,69 @@
+/* PV LAB / 30-look wardrobe 2026-11-12
+   Distinct garment references, independent from casting identity. The gallery
+   remains a normal vertical page grid, not a second casting carousel. */
+#panel-style .wardrobe-filter-strip{
+ display:flex;align-items:center;gap:clamp(18px,1.8vw,28px);
+ min-height:40px;margin:0 0 15px;padding:0 0 7px;
+ overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;
+ border-bottom:1px solid #353638;
+}
+#panel-style .wardrobe-filter-strip::-webkit-scrollbar{display:none}
+#panel-style .wardrobe-filter{
+ display:inline-flex;align-items:center;flex:none;gap:7px;
+ min-height:30px;padding:4px 0 6px;margin:0;
+ border:0;border-bottom:1px solid transparent;background:transparent;
+ color:#a4a6a8;font:550 11px/1.3 inherit;
+ font-family:inherit;font-size:11px;font-weight:620;letter-spacing:.045em;
+ text-transform:uppercase;white-space:nowrap;cursor:pointer;
+}
+#panel-style .wardrobe-filter .wardrobe-filter-count{
+ color:#75787b;font-size:9px;font-weight:500;letter-spacing:0;
+}
+#panel-style .wardrobe-filter:hover{color:#eeeae3}
+#panel-style .wardrobe-filter[aria-pressed="true"]{color:#f5f2ed;border-bottom-color:#f5f2ed}
+#panel-style .wardrobe-filter:focus-visible{outline:2px solid #fff;outline-offset:3px}
+#panel-style[data-style-mode="upload"] .wardrobe-filter-strip,
+#panel-style[data-style-mode="describe"] .wardrobe-filter-strip,
+#panel-style[data-style-mode="saved"] .wardrobe-filter-strip{display:none}
+#panel-style .atelier-outfit-gallery{
+ display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;
+ gap:13px!important;max-width:none!important;align-items:stretch;
+}
+#panel-style .atelier-look{
+ position:relative;height:auto!important;aspect-ratio:3/4!important;
+ width:100%;min-width:0;min-height:0;max-height:none!important;
+ border:1px solid #313334;border-radius:1px!important;
+ overflow:hidden;transform:none!important;background:#1a1a1a;
+}
+#panel-style .atelier-look[hidden]{display:none!important}
+#panel-style .atelier-look img{
+ width:100%;height:100%;object-fit:cover;object-position:center center;
+ filter:saturate(.9) contrast(1.02);transition:filter .2s ease;
+}
+#panel-style .atelier-look:hover img{filter:saturate(1) contrast(1.04)}
+#panel-style .atelier-look span.wardrobe-look-label{
+ position:absolute;bottom:0;left:0;right:0;display:flex;align-items:flex-end;
+ justify-content:space-between;gap:4px;
+ min-height:65px;padding:28px 10px 11px!important;
+ background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.65) 70%,rgba(0,0,0,.87) 100%)!important;
+ color:#f7f5f1;text-transform:uppercase;letter-spacing:.035em!important;font-size:10px!important;
+ pointer-events:none;
+}
+#panel-style .atelier-look .wardrobe-look-label strong{font:650 11px/1.2 inherit;font-family:inherit;font-size:11px;font-weight:650}
+#panel-style .atelier-look .wardrobe-look-label small{color:#b8b9b6;font-size:9px;letter-spacing:.05em;white-space:nowrap}
+#panel-style .atelier-look.is-selected{border-color:#f0eee7;box-shadow:inset 0 0 0 1px #eeeae3}
+#panel-style .atelier-reference-note{max-width:900px;line-height:1.45}
+#panel-style .wardrobe-count{display:block;color:#8f9494;font-size:10px;letter-spacing:.04em;margin:7px 0 0}
+@media(max-width:1180px){#panel-style .atelier-outfit-gallery{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+@media(max-width:800px){
+ #panel-style .atelier-outfit-gallery{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important}
+ #panel-style .wardrobe-filter-strip{gap:22px;margin-bottom:13px}
+ #panel-style .atelier-look span.wardrobe-look-label{padding:24px 8px 9px!important;min-height:60px}
+}
+@media(max-width:520px){
+ #panel-style .atelier-outfit-gallery{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+ #panel-style .atelier-look span.wardrobe-look-label strong{font-size:10px}
+ #panel-style .wardrobe-filter-strip{margin-bottom:10px;gap:18px}
+ #panel-style .wardrobe-filter{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){#panel-style .atelier-look img{transition:none}}

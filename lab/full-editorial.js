@@ -1,6 +1,7 @@
 // Browser-only casting presentation; native app keeps its existing layout.
 if(!window.__PV_LAB_NATIVE__)document.body.classList.add('editorial-web');
 import {takeModelPhotos} from './editorial-model-handoff.js?v=20261102-eight-photos1';
+import {wardrobeCollections,wardrobeLooks} from './editorial-wardrobe-catalog.js?v=20261112-wardrobe30-1';
 import {resolveEditorialWorld,nextEditorialStep,previousEditorialStep,needsStylingChoice} from './editorial-world-presets.js?v=20261111-chrome-desert1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1';
 import {createSessionRequest} from './session-request.js?v=20261015-canonical-studio1';
@@ -419,6 +420,12 @@ function getSettings(){
  const atmosphere={cinematic:'Cinematic contrast without artificial oversharpening.',analogue:'Analogue photographic texture, subtle organic grain.',soft:'Soft diffused contrast and restrained halation.',contrast:'Strong directional contrast, preserved shadow detail.'}[$('editorial-atmosphere').value]||'';
  const palette={natural:'Natural desaturated tonal palette.',mono:'Monochrome photographic palette.',warm:'Warm earthy color relationships.',cool:'Cool mineral color relationships.'}[$('editorial-palette').value]||'';
  const identity=80,emphasis=Number($('garment-guide').value),mood=Number($('mood-guide').value);
+ const selectedWardrobe=[...sampleFiles].filter(([button,file])=>button.dataset.sampleKind==='outfit'&&files.outfit.includes(file))
+   .map(([button])=>button.dataset.wardrobeDirection).filter(Boolean).slice(0,3);
+ const wardrobeText=selectedWardrobe.length?
+  'CURATED WARDROBE DESIGN: '+selectedWardrobe.join(' / ')+
+  ' Transfer garments and material construction only; NEVER reproduce faces, body identity or locations of the garment fit models. If multiple looks are selected, distribute coherent individual outfits across the cast or campaign, not an impossible hybrid of all outfits.':'';
+
  const parts=[
   'PV LAB Full Editorial series. Photorealistic high-fashion campaign photography, grounded natural skin texture, convincing fabric and plausible anatomy. Cohesive visual direction across the series, realistic lighting, non-plastic skin and restrained retouching.',
   'Preserve the recognizable facial identity from identity reference photographs as faithfully as the model can; use them for facial features, not the original pose or background. Identity importance '+identity+' percent as creative guidance.',
@@ -426,7 +433,7 @@ function getSettings(){
    ?"Keep the chosen subject's own clothing where possible. Do not copy any clothing, face or pose from curated-world scenery photographs."
    :'Translate garment references onto the selected person or cast without copying the original reference wearer. Prioritize believable cloth fit and material detail. Garment importance '+emphasis+' percent as creative guidance.',
   'Editorial art direction: '+(curatedWorld?curatedWorld.prompt+' ':'')+moodText+' '+lighting+' '+atmosphere+' '+palette+' Mood importance '+mood+' percent as creative guidance.',
-  $('styling-direction').value.trim(),$('location-direction').value.trim(),$('editorial-prompt').value.trim(),
+  wardrobeText,$('styling-direction').value.trim(),$('location-direction').value.trim(),$('editorial-prompt').value.trim(),
   'Frame one standalone photograph with a considered editorial pose. Maintain the same selected identity or cast, palette, materials and location language across the series; vary framing and body posture naturally between distinct images.'
  ];
  const prompt=parts.filter(Boolean).join('\n');
@@ -795,6 +802,7 @@ $('editorial-top-back').addEventListener('click',()=>{if(!submitting){go(previou
 $('step-next').addEventListener('click',()=>{if(submitting)return;if(step===4)return;if(validateStep()){go(nextEditorialStep(step,Boolean(curatedWorld)));status('')}});
 $('editorial-generate').addEventListener('click',()=>void generateEditorial().catch(error=>status(error.message,true)));
 $('editorial-reset').addEventListener('click',()=>{if(submitting){status('A paid generation is running. Open History before starting another.',true);return}resetAll()});
+buildWardrobeGallery();
 for(const b of document.querySelectorAll('[data-sample-kind]'))b.addEventListener('click',()=>void toggleSample(b));
 for(const b of document.querySelectorAll('[data-source-view]'))b.addEventListener('click',()=>setIdentitySource(b.dataset.sourceView));
 for(const b of document.querySelectorAll('[data-style-view]'))b.addEventListener('click',()=>{
@@ -804,6 +812,48 @@ for(const b of document.querySelectorAll('[data-style-view]'))b.addEventListener
  if(b.dataset.styleView==='describe')$('styling-direction').focus();
 });
 for(const b of document.querySelectorAll('[data-edit-step]'))b.addEventListener('click',()=>{if(!submitting)go(Number(b.dataset.editStep))});
+
+function buildWardrobeGallery(){
+ // Outfit references are not Identity references. Each photo gets the existing secure
+ // wardrobe-role upload and quote only when the user actively chooses it.
+ const gallery=$('outfit-gallery'),filters=$('wardrobe-filters'),counter=$('wardrobe-gallery-count');
+ gallery.replaceChildren();filters.replaceChildren();
+ const filterChoices=[{id:'all',name:'ALL LOOKS'},...wardrobeCollections];
+ const buttons=[];
+ for(const look of wardrobeLooks){
+  const card=document.createElement('button');card.type='button';
+  card.className='atelier-look';card.dataset.sampleKind='outfit';
+  card.dataset.sampleSrc=look.image;card.dataset.sampleLabel=look.title;
+  card.dataset.wardrobeFamily=look.family;card.dataset.wardrobeDirection=look.wardrobe;
+  card.dataset.wardrobeId=look.id;card.setAttribute('aria-pressed','false');
+  card.setAttribute('aria-label','Select '+look.title+' outfit styling reference');
+  const photo=document.createElement('img');photo.src=look.image;photo.loading='lazy';photo.decoding='async';
+  photo.alt=look.title+' fashion outfit, shown head-to-toe on a fit model';card.append(photo);
+  const label=document.createElement('span');label.className='wardrobe-look-label';
+  const name=document.createElement('strong');name.textContent=look.title;
+  const number=document.createElement('small');number.textContent=String(look.index).padStart(2,'0');
+  label.append(name,number);card.append(label);gallery.append(card);
+ }
+ const setFilter=family=>{
+  for(const card of gallery.children)card.hidden=family!=='all'&&card.dataset.wardrobeFamily!==family;
+  for(const button of buttons){
+   const active=button.dataset.wardrobeFilter===family;
+   button.setAttribute('aria-pressed',String(active));
+  }
+  const count=family==='all'?wardrobeLooks.length:wardrobeLooks.filter(x=>x.family===family).length;
+  counter.textContent=count+' outfit '+(count===1?'look':'looks')+' · Visual clothing references, not casting identities';
+ };
+ for(const item of filterChoices){
+  const button=document.createElement('button');button.type='button';button.className='wardrobe-filter';
+  button.dataset.wardrobeFilter=item.id;button.setAttribute('aria-pressed','false');
+  const name=document.createElement('span');name.textContent=item.name;button.append(name);
+  const count=document.createElement('small');count.className='wardrobe-filter-count';
+  count.textContent=String(item.id==='all'?wardrobeLooks.length:wardrobeLooks.filter(x=>x.family===item.id).length);
+  button.append(count);button.addEventListener('click',()=>setFilter(item.id));
+  buttons.push(button);filters.append(button);
+ }
+ setFilter('all');
+}
 
 function updateCastCarouselControls(){
  for(const [trackId,prevId,nextId] of [

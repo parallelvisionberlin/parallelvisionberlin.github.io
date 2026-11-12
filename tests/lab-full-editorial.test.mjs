@@ -63,7 +63,7 @@ test('Upload inputs, confirmed pricing and private exports remain bounded',()=>{
 });
 
 test('Atelier references remain real and the creative steps feed real generation settings',()=>{
- for(const token of ['data-sample-kind="model"','data-sample-kind="outfit"','id="model-thumbs"','id="outfit-thumbs"','id="review-model-thumb"','id="review-outfit-thumb"','id="review-location-thumb"'])assert.ok(html.includes(token),token);
+ for(const token of ['data-sample-kind="model"','id="wardrobe-filters"','id="model-thumbs"','id="outfit-thumbs"','id="review-model-thumb"','id="review-outfit-thumb"','id="review-location-thumb"'])assert.ok(html.includes(token),token);
  for(const token of ['id="editorial-time"','id="editorial-atmosphere"','id="editorial-palette"','id="direction-summary"'])assert.ok(html.includes(token),token);
  assert.match(js,/async function toggleSample/);
  assert.match(js,/new File\(/);
@@ -132,7 +132,7 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.ok(html.includes('full-editorial.js?v=20261111-normal-wheel2'),'Full Editorial loads the current casting gallery');
+ assert.ok(html.includes('full-editorial.js?v=20261112-wardrobe30-1'),'Full Editorial loads the current casting gallery');
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);setIdentitySource\('casting'\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=step!==1/,'Composition remains visible throughout Identity');
@@ -166,7 +166,8 @@ test('Styling matches Identity rhythm while keeping real wardrobe references and
  assert.match(stage,/id="outfit-files"/);
  assert.match(stage,/id="styling-direction"/);
  assert.match(stage,/id="garment-guide"/);
- assert.equal((stage.match(/data-sample-kind="outfit"/g)||[]).length,6,'Original six real wardrobe cards are preserved');
+ assert.match(stage,/id="wardrobe-filters"/,'Wardrobe collection filters exist');
+ assert.doesNotMatch(stage,/data-sample-src="\.\/visuals\/character-casting\//,'Identity casting photographs are not wardrobe cards');
  assert.match(styleCss,/PVLAB_STYLING_IDENTITY_PARITY_20261101/);
  assert.match(styleCss,/#panel-style \.stage-visual\{height:clamp\(220px,26svh,266px\)\}/);
  assert.match(styleCss,/#panel-style \.atelier-look\{[\s\S]*?height:clamp\(300px,36svh,350px\)/);
@@ -311,4 +312,26 @@ test('Casting wheel is scoped to the whole fixed gallery and normal desktop delt
  assert.match(styles,/@media \(min-width:801px\)[\s\S]*?#editorial-cast-track\.editorial-cast-track\s*\{\s*scroll-snap-type:none!important/);
  assert.match(js,/\$\('casting-reference-gallery'\)\.addEventListener\('wheel',handleCastingWheel,\{passive:false\}\)/);
  assert.doesNotMatch(js,/\$\('editorial-cast-track'\)\.addEventListener\('wheel',handleCastingWheel/);
+});
+
+test('30 distinct outfits and five collections replace reused character cards',async()=>{
+ const source=read('lab/editorial-wardrobe-catalog.js');
+ const {wardrobeLooks,wardrobeCollections}=await import('data:text/javascript,'+encodeURIComponent(source));
+ assert.equal(wardrobeLooks.length,30);
+ assert.equal(wardrobeCollections.length,5);
+ assert.equal(new Set(wardrobeLooks.map(x=>x.id)).size,30);
+ assert.equal(new Set(wardrobeLooks.map(x=>x.image)).size,30);
+ for(const group of wardrobeCollections)assert.equal(wardrobeLooks.filter(x=>x.family===group.id).length,6);
+ for(const look of wardrobeLooks){
+  assert.match(look.image,/^\.\/visuals\/editorial-wardrobe\/\d\d-[a-z-]+\.jpg$/);
+  assert.ok(existsSync(new URL('../lab/'+look.image.slice(2),import.meta.url)),'Dedicated wardrobe image exists: '+look.id);
+  assert.ok(look.wardrobe.length>40);
+ }
+ assert.match(js,/function buildWardrobeGallery\(\)/);
+ assert.match(js,/buildWardrobeGallery\(\);\s*for\(const b of document\.querySelectorAll\('\[data-sample-kind\]'\)\)/);
+ assert.match(js,/const selectedWardrobe=\[\.\.\.sampleFiles\]/);
+ assert.match(js,/CURATED WARDROBE DESIGN:/);
+ assert.match(js,/NEVER reproduce faces, body identity or locations/);
+ assert.match(html,/full-editorial-wardrobe\.css\?v=20261112-wardrobe30-1/);
+ assert.match(html,/full-editorial\.js\?v=20261112-wardrobe30-1/);
 });
