@@ -15,8 +15,8 @@ const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'u
 const direction='Keep the same recognizable person, expression, viewpoint and framing.';
 
 test('Photobooth uses 1K for both web and native mobile, with one bound paid submission',()=>{
-  assert.equal(MOODS.length,17,'Expected the entire PV LAB curated Mood catalogue');
-  assert.equal(new Set(MOODS.map(m=>m.id)).size,17,'Every Mood ID must be unique');
+  assert.equal(MOODS.length,18,'Expected the entire PV LAB curated Mood catalogue');
+  assert.equal(new Set(MOODS.map(m=>m.id)).size,18,'Every Mood ID must be unique');
   assert.match(client,/resolution:'1k',aspectRatio:imageAutoRatio/);
   assert.doesNotMatch(client,/resolution:'2k',aspectRatio:imageAutoRatio/);
   assert.match(explore,/import\('\.\/app-mood-generation\.js\?/);
