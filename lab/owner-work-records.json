@@ -1583,11 +1583,11 @@
       "id": "alter-tabbed-editor",
       "title": "ALTER Studio: 20 photographic looks, four-card exhibition gallery",
       "component": "ALTER Studio",
-      "status": "needs_verification",
-      "summary": "Four requested archive covers prepared: Beauty rebuilt from the 246x137 source as 1536x1024; Night Tape reuses current Hong Kong Nights Mood cover; Skin Study new macro pores and vellus detail; Windblown new pastel Riviera vintage convertible photograph. Windblown uses daylight and soft-film with existing source-preservation rules. Other gallery/editor/hero unchanged.",
-      "nextAction": "Run Beauty CI, merge this scoped image update and verify exact Cloudflare production image and module bytes. No paid model fidelity test requested.",
+      "status": "deployed",
+      "summary": "LIVE: Beauty, Night Tape, Skin Study and Windblown now use the four requested 1536x1024 covers. Beauty replaces the 246x137 thumbnail; Night Tape reuses the current Hong Kong Nights Mood; Skin Study shows macro skin detail; Windblown shows a pastel Riviera vintage convertible and uses existing daylight/soft-film settings. Rest of ALTER unchanged.",
+      "nextAction": "No publication work pending. Only perform actual signed-in/paid generation fidelity checks if requested.",
       "baselineSha": "68362f71894df147e54856b02cf5ace4e5181c1d",
-      "reviewedSha": null,
+      "reviewedSha": "0366806be4a4807718bdb67b82bc9e6f9d3ec59d",
       "branch": "fix/alter-card-photography-20261112",
       "files": [
         "lab/beauty.html",
@@ -1810,14 +1810,28 @@
           "label": "2026-11-12 four cover replacements",
           "result": "passed",
           "scope": "29 focused Image/Beauty/category/archive/gallery contracts pass locally. All four WebPs are 1536x1024 and under 180 kB."
+        },
+        {
+          "label": "2026-11-12 Beauty desktop/mobile CI",
+          "result": "passed",
+          "scope": "Full Beauty role/billing/quote/navigation and responsive browser checks, Studios phone fit, approved Image UI and source validation passed.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43198785769"
+        },
+        {
+          "label": "Broader suite baseline comparison",
+          "result": "documented",
+          "scope": "Candidate and baseline each have the identical 26 private-lab failure names; zero new failures. Test job's existing source-change assertion also remains outside this scope."
         }
       ],
       "deployment": {
-        "state": "pending",
-        "sourceSha": null,
+        "state": "verified",
+        "sourceSha": "94a370540bd5f53d3cad0d28e567330ca3b9eb95",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-12",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1010",
         "limitations": [
-          "New four-card update is not yet deployed. Prior gallery live evidence remains historical."
+          "Public guest image rendering and card selection verified; no signed-in or paid generation run.",
+          "Direct custom-domain byte fetch returned HTTP 403; fallback verification used exact Cloudflare merge/project app evidence and real production browser DOM/rendered covers. No live byte-hash match claimed."
         ]
       },
       "evidence": [
@@ -1850,6 +1864,25 @@
             "Mocked role/billing/history tests are recorded separately.",
             "No paid provider output generated; thumbnails are illustrative, not guaranteed output previews."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "All four versioned card image references loaded at 1536x1024 on https://pvlab.studio/beauty. Beauty and Riviera covers visually inspected live. Windblown selected daylight and soft-film; no page overflow at 1363px. Versioned beauty.js and approved module 20261112-archive-photo1 present.",
+          "scope": "Four requested public ALTER archive covers and Windblown preset.",
+          "observedAt": "2026-11-12",
+          "source": "https://pvlab.studio/beauty",
+          "limitations": [
+            "Phone/responsive behavior is synthetic CI, not an actual signed-in phone observation.",
+            "No custom-domain byte hash comparison due to direct HTTP 403."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "Exact merge 94a370540bd5f53d3cad0d28e567330ca3b9eb95 completed successfully in Cloudflare Pages app check 131118756756, project pvlab-studio, deployment b103a766-050e-4ec1-aea9-7e6250ac6fbd.",
+          "scope": "Production publication.",
+          "observedAt": "2026-11-12",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/94a370540bd5f53d3cad0d28e567330ca3b9eb95",
+          "limitations": []
         }
       ],
       "blockers": [],

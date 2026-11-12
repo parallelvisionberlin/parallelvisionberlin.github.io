@@ -1,15 +1,17 @@
 # Beauty Studio and Studios navigation
 
 
-## 2026-11-12 | Four archive covers: source ready, production pending
+## 2026-11-12 | Four archive covers: LIVE VERIFIED
 
 - Scoped request: repair blurry Beauty; replace Pinterest-origin Night Tape; increase Skin Study macro detail; replace Windblown with retro Riviera convertible / soft pastel film.
 - Beauty source was only 246x137 px. Built-in image generation recreated the same eye/dewy-skin composition at 1536x1024. New Skin Study resolves pores, freckles and fine vellus hair; new Windblown shows wind in hair from a vintage cream convertible on the French coast. Three generated originals are represented by optimized 1536x1024 WebPs in the repository.
 - Night Tape reuses the current public Hong Kong Nights Mood preview from `lab/moods.js`: `https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/e06ac253-47c4-47b4-80e0-b90df2949f45.png`, downloaded and optimized locally. No new Night Tape generation.
 - Assets: `archive-beauty-hd-20261112.webp`, `archive-nighttape-mood-20261112.webp`, `archive-skinstudy-macro-20261112.webp`, `archive-windblown-riviera-20261112.webp`, all under `lab/visuals/beauty/atelier/`, each <180 kB.
 - Only these four card references and two captions change. Windblown uses existing daylight + soft-film native settings and refined wind/pastel prompt while preserving the source person, clothing and environment. Module imports are versioned `20261112-archive-photo1`; no layout, hero, provider, billing or upload change.
-- Local validation: 29 relevant Image, Beauty, category, archive and gallery tests passed. Desktop/mobile browser CI and Cloudflare exact-byte verification pending. Local preview slot belongs to another session and was not interrupted.
-- Baseline: `68362f71894df147e54856b02cf5ace4e5181c1d`; branch `fix/alter-card-photography-20261112`. Follow the structured `alter-tabbed-editor` record for final publication evidence.
+- Local validation: 29 relevant Image, Beauty, category, archive and gallery tests passed. Full Beauty desktop/mobile CI, quote/idempotency, Studios phone fit and approved Image UI passed (run 43198785769). All 26 broad private-lab failures match baseline; no new failures. Local preview slot belonged to another session and was not interrupted.
+- PR #1010 reviewed head `0366806be4a4807718bdb67b82bc9e6f9d3ec59d`, production merge `94a370540bd5f53d3cad0d28e567330ca3b9eb95`. Exact Cloudflare app check 131118756756 succeeded for project pvlab-studio, deployment b103a766-050e-4ec1-aea9-7e6250ac6fbd.
+- Public production browser verified all four versioned covers load at 1536x1024, the module version is 20261112-archive-photo1, Windblown selects daylight/soft-film, and no horizontal page overflow at 1363px. No paid generation or real signed-in account tested. Direct byte fetch returned HTTP 403, so no production byte-hash equality is claimed. Actual rendering and deployment were verified independently.
+- No publication work pending. See structured `alter-tabbed-editor` record for evidence.
 
 
 ## 2026-11-08 | Twenty curated looks and four-plus-peek editorial archive: LIVE VERIFIED
