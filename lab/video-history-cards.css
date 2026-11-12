@@ -59,3 +59,60 @@
 @media(prefers-reduced-motion:reduce){
   #app.video-studio-active .video-feed-center #history .pv-video-history-state .pv-video-history-indicator{animation:none}
 }
+
+
+/* Live History mini-stage. Presentation only: no artificial progress, no duplicate canvas.
+   Keep the already approved failed/detail state and completed media unchanged. */
+#app.video-studio-active .video-feed-center #history .card.pv-video-history>.pv-video-history-state:not(.is-failed){
+  position:relative;isolation:isolate;box-sizing:border-box;overflow:hidden;
+  align-items:flex-start;justify-content:flex-end;text-align:left;
+  min-height:200px;padding:20px 21px 22px;gap:6px;background:#050505;
+}
+#app.video-studio-active .video-feed-center #history .card.pv-video-history>.pv-video-history-state:not(.is-failed)::before,
+#app.video-studio-active .video-feed-center #history .card.pv-video-history>.pv-video-history-state:not(.is-failed)::after{
+  content:"";position:absolute;inset:-48%;z-index:0;pointer-events:none;
+}
+#app.video-studio-active .video-feed-center #history .card.pv-video-history>.pv-video-history-state:not(.is-failed)::before{
+  background:repeating-radial-gradient(ellipse 80% 43% at 49% 53%,transparent 0 3px,rgba(227,236,239,.28) 3.3px 3.65px,transparent 4px 7px);
+  -webkit-mask-image:linear-gradient(135deg,transparent 18%,#000 43% 61%,transparent 82%);
+  mask-image:linear-gradient(135deg,transparent 18%,#000 43% 61%,transparent 82%);
+  transform:rotate(-25deg) scale(1.12,.7) translate(2%,-8%);
+  animation:pv-video-history-thread-a 9s ease-in-out infinite alternate;
+}
+#app.video-studio-active .video-feed-center #history .card.pv-video-history>.pv-video-history-state:not(.is-failed)::after{
+  background:repeating-radial-gradient(ellipse 72% 31% at 64% 52%,transparent 0 3.2px,rgba(238,223,207,.28) 3.5px 3.85px,transparent 4.2px 7.5px);
+  -webkit-mask-image:linear-gradient(20deg,transparent 22%,#000 44% 60%,transparent 80%);
+  mask-image:linear-gradient(20deg,transparent 22%,#000 44% 60%,transparent 80%);
+  transform:rotate(10deg) scale(.98,.58) translate(10%,-12%);
+  animation:pv-video-history-thread-b 12s ease-in-out infinite alternate;
+}
+#app.video-studio-active .video-feed-center #history .card.pv-video-history>.pv-video-history-state:not(.is-failed)>.pv-video-history-indicator{
+  box-sizing:border-box;position:relative;z-index:1;display:block;flex:none;
+  width:22px;height:2px;margin:0 0 8px;border:0;border-radius:0;
+  background:linear-gradient(90deg,#f2f0e9,#7b848a 60%,transparent);
+  box-shadow:0 0 9px #d4d9dd33;
+  animation:pv-video-history-signal 2.2s ease-in-out infinite alternate;
+}
+#app.video-studio-active .video-feed-center #history .card.pv-video-history>.pv-video-history-state:not(.is-failed)>.pv-video-history-title{
+  position:relative;z-index:1;margin:0;color:#f3f1ed;
+  font:500 15px/1.2 'DM Sans',Arial,sans-serif;
+  letter-spacing:.17em;text-transform:uppercase;
+}
+#app.video-studio-active .video-feed-center #history .card.pv-video-history>.pv-video-history-state:not(.is-failed)>.pv-video-history-copy{
+  position:relative;z-index:1;max-width:220px;margin:0;color:#a2a3a4;
+  font:400 11px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:0;
+}
+@keyframes pv-video-history-thread-a{
+  to{transform:rotate(-21deg) scale(1.14,.76) translate(4%,-10%)}
+}
+@keyframes pv-video-history-thread-b{
+  to{transform:rotate(15deg) scale(1.08,.62) translate(7%,-10%)}
+}
+@keyframes pv-video-history-signal{
+  to{opacity:.3;transform:scaleX(.7)}
+}
+@media(prefers-reduced-motion:reduce){
+  #app.video-studio-active .video-feed-center #history .card.pv-video-history>.pv-video-history-state:not(.is-failed)::before,
+  #app.video-studio-active .video-feed-center #history .card.pv-video-history>.pv-video-history-state:not(.is-failed)::after,
+  #app.video-studio-active .video-feed-center #history .card.pv-video-history>.pv-video-history-state:not(.is-failed)>.pv-video-history-indicator{animation:none}
+}
