@@ -1646,11 +1646,11 @@
       "id": "alter-tabbed-editor",
       "title": "ALTER Studio: 20 photographic looks, four-card exhibition gallery",
       "component": "ALTER Studio",
-      "status": "needs_verification",
-      "summary": "Owner-supplied HF final selection: Beauty uses second displayed casting portrait (31aebb33); Window Study uses first displayed soft side-lit portrait (0de4f4b1). Original photographic texture retained, native portrait dimensions plus 18% focal point fit existing cards. No generation or retouching. Other gallery images and all behavior preserved.",
-      "nextAction": "Wait for relevant CI, merge and verify production references, crops and card selection.",
+      "status": "deployed",
+      "summary": "LIVE FINAL: Beauty uses the owner's second displayed HF casting portrait (31aebb33); Window Study uses the first soft side-lit portrait (0de4f4b1). Original photo colour/texture retained, 1200x1600 WebPs with 18% focal positions keep face/neck visible. Rejected generated portraits replaced. Skin Study, supplied Windblown, other looks and all generation behavior preserved.",
+      "nextAction": "No final portrait publication work remains. Reuse these selected supplied photos; do not regenerate or revert them without a new request.",
       "baselineSha": "970588da815ade0ae53bffc5026fe2885a049a00",
-      "reviewedSha": null,
+      "reviewedSha": "b68ee81a33d6602015c46fc2fa0a0ef8c43d27f6",
       "branch": "fix/alter-owner-hf-casting-20261112",
       "files": [
         "lab/beauty.html",
@@ -1922,16 +1922,26 @@
         },
         {
           "label": "Beauty browser runner compatibility",
-          "result": "documented",
-          "scope": "Initial candidate browser installation failed before tests because ubuntu-latest used Ubuntu 26.04, unsupported by pinned Playwright 1.57.0. Only the Beauty runner is pinned to Ubuntu 24.04, confirmed in prior passing job 131150431525. Browser assertions unchanged; new run pending."
+          "result": "passed",
+          "scope": "Initial attempt stopped before browser tests because Ubuntu 26.04 is unsupported by pinned Playwright 1.57.0. Pinning only the Beauty runner to Ubuntu 24.04 resolved installation; the full browser suite then passed without changing assertions.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43222460092/job/131197135169"
+        },
+        {
+          "label": "Owner HF final portrait release",
+          "result": "passed",
+          "scope": "11 existing local Image/archive/gallery checks and full work-state validation pass. Required source validation, approved Image contract and full Beauty desktop/mobile role/billing/navigation/browser checks passed on the final candidate.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43222460092/job/131197135169"
         }
       ],
       "deployment": {
-        "state": "pending",
-        "sourceSha": null,
+        "state": "verified",
+        "sourceSha": "ac4aa351c299c6ec4475a01bb552902ce69a10b0",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-12",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1016",
         "limitations": [
-          "New owner-supplied final covers not yet deployed; prior evidence below is historical."
+          "Public production rendering/selection inspected; mobile checked through synthetic CI. No real signed-in customer journey or live PV LAB generation run.",
+          "No production byte-hash equality performed; exact Cloudflare commit/project and actual production loaded photo content/dimensions/focal positions verified."
         ]
       },
       "evidence": [
@@ -2035,6 +2045,24 @@
           "summary": "Exact source 0235394711326dd7803f86583da19c67a94f7542 succeeded in Cloudflare Pages pvlab-studio app check 131152441024, deployment f2211331-5315-4775-94e6-887b2822c3d8.",
           "scope": "Production publication of refined Beauty and Window Study.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1015",
+          "observedAt": "2026-11-12",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Live /beauty loaded archive-beauty-hf-casting-20261112.webp and archive-windowstudy-hf-casting-20261112.webp at 1200x1600 with computed object-position 50% 18%. Both actual card crops visually inspected; Window Study selection aria-pressed=true, no horizontal page overflow.",
+          "scope": "Two owner-supplied final portrait covers.",
+          "source": "https://pvlab.studio/beauty",
+          "observedAt": "2026-11-12",
+          "limitations": [
+            "Public desktop observation; mobile is synthetic CI. No byte-hash comparison."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "Exact merge ac4aa351c299c6ec4475a01bb552902ce69a10b0 succeeded in Cloudflare Pages pvlab-studio app check 131198887386, deployment e82b366d-2f3e-4851-af8d-787d69a8ea64.",
+          "scope": "Production publication of final selected supplied photos and compatible Beauty CI runner.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1016",
           "observedAt": "2026-11-12",
           "limitations": []
         }
