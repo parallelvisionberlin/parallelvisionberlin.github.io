@@ -309,13 +309,29 @@ const ALL_MOODS=Object.freeze([
     "subtle": "Light photographic and sumi-e fusion with fine paper grain and gentle ink edges; original clothing, person, background and framing remain readily recognizable.",
     "intense": "At full expressive strength make a confidently executed Japanese ink-wash painting with black dry-brush gestures and ivory negative space while retaining the recognizable person, clothing identity, pose and essential scene geometry.",
     "avoid": "anime, manga, ink cartoon outlines, digital grayscale filters, generic watercolor, geisha or samurai costumes, forced kimonos, random kanji or seals, pasted paint splatters, invented faces or limbs, changed crop, relocated streets, glossy artificial skin"
+  },
+  {
+    "id": "fallen-angel",
+    "name": "Fallen Angel",
+    "category": "Cinema",
+    "preview": "https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/b259ac39-d73c-4853-b591-f82809e699ea.png",
+    "previewFull": "https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/b259ac39-d73c-4853-b591-f82809e699ea.png",
+    "mobilePreview": false,
+    "description": "Become a colossal-winged angel beneath an apocalyptic sun",
+    "defaultIntensity": 85,
+    "direction": "FALLEN ANGEL / CINEMATIC TRANSFORMATION. Turn the supplied person into the protagonist of a vast apocalyptic angel photograph. Two gigantic, believable ivory feathered wings grow from the correct anatomical point behind the shoulders, each feather tactile, irregular and physically attached. Place the person on a real brutalist rooftop high over a distant city, with an immense red-orange setting sun, smoke-dark sky, deep natural shadows and wind. A weathered ivory silk garment drapes naturally around the subject, unless the customer explicitly locks their wardrobe. The subject must retain their own face, age, natural skin tone, hair color, hairstyle, physique and unmistakable identity; NEVER copy the red-haired model in the reference pictures. Monumental high-fashion cinematography, analog film texture, natural pores, real fabric and realistic atmospheric scale. Scene and wardrobe transformation are intentional, NOT a color filter.",
+    "subtle": "1–34: authentic full-sized feathered wings and sunset rooftop world still appear. Restrain smoke, distress and infernal fire.",
+    "moderate": "35–69: sweeping architectural rooftop, vast sunset, tactile white wings and flowing ivory fabrics, restrained fire at feather tips.",
+    "intense": "70–89: colossal wings dominate the frame, enormous apocalyptic orange sun, dramatic wind and storm haze, monumental cinematic architecture.",
+    "climax": "90–100: the most spectacular physical wings and vast infernal sky, subtly burning feather edges and deep black atmospheric scale, while preserving the uploaded person's identity and single coherent anatomy.",
+    "avoid": "the red-haired reference woman's identity or hairstyle, altered facial features, changed skin tone, extra people, duplicate heads or wings, wings detached from shoulders, plastic skin, artificial symmetry, digital fantasy painting, CGI render, game character aesthetics, fake feather stickers, text or watermark"
   }
 ]);
 // Keep the public catalogue shared by Studio, My Moods and Mood Creator.
 export const MOODS=ALL_MOODS;
 export const OWNER_MOODS=Object.freeze([WON_KAR_NIGHT]);
 export function moodPreviewURL(mood,{detail=false}={}){
-  if(!mood.ownerOnly&&typeof window!=='undefined'&&window.__PV_LAB_NATIVE__===1&&mood.id!=='fisheye-2000')
+  if(!mood.ownerOnly&&typeof window!=='undefined'&&window.__PV_LAB_NATIVE__===1&&mood.id!=='fisheye-2000'&&mood.mobilePreview!==false)
     return '/lab/mood-previews/mobile/v1/'+mood.id+(detail?'-detail':'')+'.jpg';
   return detail?(mood.previewFull||mood.preview):mood.preview;
 }
@@ -364,6 +380,24 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   }
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Krea 3, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
   // Maximum optical reinterpretation is isolated to an actual Base photograph.
+  if(mood.id==='fallen-angel'){
+    if(engine==='zspicy')return {prompt:original,metadata:{},error:'Fallen Angel needs a model with curated image references. Choose Seedream, Nano Banana, Qwen Image or Krea.'};
+    const hasBase=referenceCount>0&&referenceMode!=='references';
+    const strength=intensity<=34?mood.subtle:intensity<=69?mood.moderate:intensity<=89?mood.intense:mood.climax;
+    // This Mood intentionally rebuilds scene and garment but never changes the
+    // source person's identity. Backend-curated Style images are NOT identity.
+    const identity=hasBase
+      ?'REFERENCE 1 IS THE REAL PERSON: keep their recognizable face, eyes, age, natural skin tone, hair color and hairstyle, body shape and subject count. The angel photographed in curated references is NOT the customer. Rebuild rooftop environment and optional clothing, add wings, but do not face-swap, recolor hair or reconstruct a different person. Re-stage pose and camera to match the cinematic angel scene when needed. The original photo defines the subject's identity, not the original background, outfit or crop.'
+      :'If an Identity or Base image is provided, preserve that person above all curated references; otherwise create only the described subject.';
+    const compact=engine==='seedreamlite';
+    const core=compact
+      ?'FALLEN ANGEL: Transform the uploaded person into an angel on an immense dark brutalist rooftop, enormous orange-red sun, smoky skyline and monumental white feathered wings attached behind the shoulders. Weathered ivory fabric if outfit not locked. Realistic skin, original identity and hair, 35mm movie-grain, strong wind, physically real wings, deep cinematic shadows. Curated scene and feather images are not identity sources.'
+      :mood.direction;
+    const prompt=[original,'PV LAB MOOD / Fallen Angel: '+core+' '+identity+' '+strength+' Avoid: '+mood.avoid+'.'].filter(Boolean).join('\n\n');
+    const budget=compact?3000:5000,over=prompt.length-budget;
+    return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original},
+      error:over>0?'Direction and Fallen Angel Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. Shorten your direction.':(!original&&!referenceCount?'Add a person photograph or describe a subject to create the angel.':'')};
+  }
   // All lower strengths and text/References Only recipes remain unchanged.
   if(mood.id==='dream-blur'&&intensity===100&&referenceCount>0&&referenceMode!=='references'){
     const prompt=prepareDreamBlurBasePrompt(original,{engine});
@@ -706,6 +740,7 @@ export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,ch
     'soft-pastel-film':'Quiet creamy daylight',
     '80s-film':'Burned light, saturated color',
     'synthetic-romance':'Black chrome, human longing',
+    'fallen-angel':'Colossal wings, apocalyptic light',
     'kodak-gold':'Golden color, organic grain',
     'frutiger-aero':'Translucent Y2K optimism',
     'hyper-pop':'Chrome-cloud couture',

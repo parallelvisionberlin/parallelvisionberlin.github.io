@@ -81,7 +81,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobil
  await page.goto(base+'/lab/moods');
  if(scenario.startsWith('catalogue-')){
   const ids=await page.locator('#mc-look-grid [data-mood-id]').evaluateAll(els=>els.map(el=>el.dataset.moodId));
-  assert.equal(ids.length,17);
+  assert.equal(ids.length,18);
   assert.ok(await page.locator('.mc-photobooth-header img').evaluate(el=>el.complete&&el.naturalWidth>0),'Official PV LAB wordmark loads');
   for(const id of ids){
    await page.locator('[data-mood-id="'+id+'"]').click();
@@ -102,7 +102,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobil
    assert.ok(layout.drop.height>=150,id+': large separate upload box');
    assert.ok(Math.abs((layout.plus.left+layout.plus.width/2)-(layout.drop.left+layout.drop.width/2))<2,id+': centered plus');
    if(scenario==='catalogue-phone'){
-    // Exercise the same mobile processing state for all 17 Moods without
+    // Exercise the same mobile processing state for all 18 Moods without
     // uploading, requesting a price or submitting an image generation.
     const processing=await page.evaluate(()=>{
      const dialog=document.getElementById('mc-look-dialog');
