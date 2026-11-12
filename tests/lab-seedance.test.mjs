@@ -151,3 +151,49 @@ test('Seedance Extend uses the SpicyAPI bound quote and preserves one source vid
  const history=(await(await req(env,'/api/jobs')).json()).jobs.find(x=>x.id===j.id);
  assert.ok(history);assert.equal(history.outputId,completed.outputId);
 });
+
+
+test('Customer mixed Extend cannot create a draft, quote, job or credit reservation; Reference preserves all inputs',async()=>{
+ const {env}=fixture(),db=env.LAB_DB.db,customer='user_ExtendReferenceQA';
+ for(const migration of ['0006-customers-billing','0007-lab-referrals','0008-soul-id-launch-credits','0011-customer-lifecycle','0015-lab-promotional-credits','0023-welcome-guard','0025-promo-generation-holds','0029-pause-welcome-promotion','0033-owner-voucher-generation'])
+  db.exec(readFileSync(new URL('../lab-worker/migrations/'+migration+'.sql',import.meta.url),'utf8'));
+ Object.assign(env,{LAB_CUSTOMER_SIGNUPS_ENABLED:'true',LAB_WELCOME_CREDITS_ENABLED:'false',LAB_CHECKOUT_ENABLED:'true',LAB_PUBLIC_GENERATION_ENABLED:'true',LAB_CUSTOMER_SPICY_API_KEY:KEY,LAB_STRIPE_SECRET_KEY:'sk_test_synthetic',LAB_STRIPE_WEBHOOK_SECRET:'whsec_synthetic'});
+ const authToken=await token(customer);
+ const session=await req(env,'/api/session',{authToken});assert.equal(session.status,200,await session.clone().text());
+ db.prepare('INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES(?,?,?,?,?,?)')
+  .run('funding:'+customer,customer,10000,'purchase','test-funding:'+customer,Date.now());
+ const upload=await req(env,'/api/uploads',{method:'POST',authToken,raw:new Uint8Array([137,80,78,71,13,10,26,10,0]),headers:{'Content-Type':'image/png','X-Filename':'identity.png'}});
+ assert.equal(upload.status,201,await upload.clone().text());const image=(await upload.json()).id;
+ const video=await reference(env,'video',authToken);
+ const settings={...sd('extend'),prompt:'The sculpture turns slowly.',duration:7,resolution:'1080p',audio:false,referenceVideos:[{name:'camera.mp4',seconds:3,note:'Keep camera movement.'}]};
+ const data={sourceId:video,referenceVideoIds:[video],referenceSourceIds:[image],settings};
+ const snapshot=()=>({balance:db.prepare('SELECT balance_credits AS n FROM lab_customers WHERE id=?').get(customer).n,
+  ledger:db.prepare('SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=?').get(customer).n,
+  quotes:db.prepare('SELECT COUNT(*) AS n FROM quotes WHERE owner_id=?').get(customer).n,
+  jobs:db.prepare('SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?').get(customer).n,
+  spend:db.prepare('SELECT COUNT(*) AS n FROM spend WHERE owner_id=?').get(customer).n});
+ const initial=snapshot(),beforeProviderQuotes=calls.filter(c=>c.url.endsWith('/jobs/quote')).length;createCount=0;
+ for(const path of ['/api/drafts','/api/quotes']){
+  const r=await req(env,path,{method:'POST',authToken,data});assert.equal(r.status,400,await r.clone().text());
+  assert.match((await r.json()).error,/not extra identity photos/);
+ }
+ const unbound=await req(env,'/api/jobs',{method:'POST',authToken,data:{...data,quoteId:crypto.randomUUID(),confirm:true}});
+ assert.equal(unbound.status,409);assert.deepEqual(snapshot(),initial);
+ assert.equal(calls.filter(c=>c.url.endsWith('/jobs/quote')).length,beforeProviderQuotes);assert.equal(createCount,0);
+ const referenceData={...data,sourceId:image,settings:{...settings,mode:'reference',referenceRoles:[{name:'identity.png',role:'identity',elementName:'Sculpture'}]}};
+ const draft=await req(env,'/api/drafts',{method:'POST',authToken,data:referenceData});assert.equal(draft.status,201,await draft.clone().text());
+ const saved=(await draft.json()).job;
+ assert.deepEqual(saved.settings.referenceSourceIds,[image]);assert.deepEqual(saved.settings.referenceVideoIds,[video]);
+ for(const requestData of [{...data,referenceSourceIds:[]},referenceData]){
+  const response=await req(env,'/api/quotes',{method:'POST',authToken,data:requestData});assert.equal(response.status,200,await response.clone().text());
+  const q=await response.json();
+  assert.equal(q.settings.duration,7);assert.equal(q.settings.resolution,'1080p');assert.equal(q.settings.audio,false);assert.equal(q.settings.prompt,settings.prompt);
+  assert.deepEqual(q.settings.referenceVideoIds,[video]);assert.equal(quotedRequest.input.duration_seconds,7);assert.equal(quotedRequest.input.generate_audio,false);
+  if(requestData.settings.mode==='reference'){
+   assert.equal(quotedRequest.model,'bytedance/seedance-2.5/reference-to-video');
+   assert.deepEqual(q.settings.referenceSourceIds,[image]);assert.equal(quotedRequest.input.reference_image_urls.length,1);assert.equal(quotedRequest.input.reference_video_urls.length,1);
+  }else assert.equal(quotedRequest.model,'bytedance/seedance-2.5/video-extend');
+ }
+ const final=snapshot();assert.equal(final.balance,initial.balance);assert.equal(final.ledger,initial.ledger);assert.equal(final.spend,0);
+ assert.equal(final.jobs,1,'Only the free Reference draft exists');assert.equal(saved.status,'draft');assert.equal(createCount,0,'Neither valid quote starts generation');
+});

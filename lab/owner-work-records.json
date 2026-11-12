@@ -3483,6 +3483,89 @@
         "Never give PV Still or any other Image model a separate outer deck width. Use the one shared signed-in desktop frame and keep Generate anchored."
       ],
       "updatedAt": "2026-11-11"
+    },
+    {
+      "id": "seedance-extend-reference-verification",
+      "title": "Seedance Extend and Reference verification after PR 1009",
+      "component": "Video / Seedance 2.5 / SpicyAPI",
+      "status": "needs_verification",
+      "summary": "PR 1009 production frontend was verified byte-for-byte. Corrected the mock browser flow that clicked the intentionally hidden Video Save control and the public smoke assertion invalidated by the additional mixed-Extend guard. Added actual customer-wallet backend coverage and owner/customer phone/desktop assertions. No app, provider, wallet policy or production configuration changes.",
+      "nextAction": "Observe the corrected browser tests in GitHub Actions, then verify authenticated production Extend and Reference quotes without confirming any generation.",
+      "baselineSha": "3bf9617f26cf9377804012daf47391892631b731",
+      "reviewedSha": null,
+      "branch": "fix/seedance-verification-20261112",
+      "files": [
+        "tests/lab-extend-character-ui.mjs",
+        "tests/lab-seedance.test.mjs",
+        ".github/workflows/lab-seedance-tests.yml",
+        ".github/workflows/pvlab-video-reference-live-smoke.yml",
+        "tests/lab-credit-purchase-flow.test.mjs",
+        "tests/lab-meta-capi.test.mjs",
+        "tests/lab-customer-image-quotes.test.mjs"
+      ],
+      "links": [
+        {
+          "label": "Original merged PR 1009",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1009"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Seedance, wallet and approved Image contract",
+          "result": "passed",
+          "scope": "18 local assertions, including mixed Extend HTTP 400, no provider quote/create, no customer wallet/ledger/spend change, valid Extend/Reference quotes and free Reference draft. All provider calls mocked.",
+          "source": "tests/lab-seedance.test.mjs"
+        },
+        {
+          "label": "Existing purchase, consent and image quote fixtures",
+          "result": "passed",
+          "scope": "29 assertions pass after restoring missing ownerAccount fixture state, the fs import and the exact approved Inspiration replacement argument. No production behavior was changed.",
+          "source": "tests/lab-credit-purchase-flow.test.mjs"
+        },
+        {
+          "label": "Owner/customer phone/desktop browser regression",
+          "result": "not_run",
+          "scope": "Local browser launch is blocked by the execution environment. Run the unchanged application against synthetic accounts/media in GitHub Actions.",
+          "source": "tests/lab-extend-character-ui.mjs"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "environment": "Cloudflare Pages pvlab-studio, original PR 1009 app assets",
+        "sourceSha": "68362f71894df147e54856b02cf5ace4e5181c1d",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/runs/130945346770",
+        "limitations": [
+          "This record verifies original application publication, not deployment of these test-only corrections.",
+          "No authenticated production session or paid generation has been verified. Worker health does not expose its exact source SHA."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "production_asset",
+          "summary": "Live lab.js SHA256 b8ecf2d4419fe70a69593b0f8c5553a09595f0717e4036b5140a1f0c0d96e9ed matches PR 1009. moods.js, video-reference-upload.js and video-extend-reference-row.css also match.",
+          "scope": "Read-only custom-domain asset comparison on 2026-11-12.",
+          "source": "https://pvlab.studio/studio?tool=video",
+          "limitations": [
+            "Browser was signed out."
+          ]
+        },
+        {
+          "kind": "documented",
+          "summary": "The broad suite had the same 26 failing test names on PR 1009 and its parent. Six failures were isolated to repairable test fixtures and corrected here; catalog/design failures remain separate.",
+          "scope": "Compared GitHub Actions job logs before changing tests.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43146344061",
+          "limitations": []
+        }
+      ],
+      "blockers": [
+        "A real authenticated browser session is required for live quote/upload/saldo observations. Never confirm a provider generation as a verification shortcut."
+      ],
+      "doNotRepeat": [
+        "Keep the intentional hidden Video Save control and approved layout. Do not show it to satisfy a stale test.",
+        "Do not change catalog assets, Image UI, pricing, provider routes or moderation to fix unrelated CI expectations.",
+        "No paid generations, credit issuance, migrations or production settings are needed for this test correction."
+      ],
+      "updatedAt": "2026-11-12"
     }
   ]
 }
