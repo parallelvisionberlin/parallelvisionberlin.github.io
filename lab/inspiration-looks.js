@@ -140,7 +140,7 @@ export function createInspirationRotation(storage=null){
       const variants=INSPIRATION_VARIATIONS[id];
       if(!variants)return null;
       const existing=String(currentPrompt||'').trim();
-      // A modified example is now a user's own direction. Never overwrite it.
+      // Preserve drafts for non-click callers; an explicit card click overrides the old prompt.
       if(existing&&!replace&&!isInspirationExample(existing))
         return {prompt:existing,preserved:true};
       const index=positions[id]||0;
