@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-12",
+  "updatedAt": "2026-11-12T10:51:51.633Z",
   "handoffs": [
     {
       "id": "owner",
@@ -64,6 +64,46 @@
     }
   ],
   "records": [
+    {
+      "id": "owner-release-health-console-link",
+      "title": "Owner navigation: Estado de PV LAB",
+      "component": "Owner dashboard / navigation",
+      "status": "needs_verification",
+      "summary": "Desktop sidebar and mobile section menu have a direct private release-health console link, labelled Estado de PV LAB with Incidencias y verificaciones subtitle on desktop. The tooltip explains manual evidence and ChatGPT sign-in; no automatic monitoring is implied.",
+      "nextAction": "Confirm Cloudflare Pages publication and exact owner.html bytes on pvlab.studio for the merged PR. Signed-in owner click-through remains separate.",
+      "reviewedSha": "50e08cbaba7218620e6d5f83e4ea013472a352bd",
+      "branch": "fix/owner-release-health-link-20261112",
+      "files": [
+        "lab/owner.html"
+      ],
+      "links": [
+        {
+          "label": "PR #1013",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1013"
+        },
+        {
+          "label": "Private release health console",
+          "url": "https://pvlab-release-health.alejandro-molinari-c.chatgpt.site"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI contract",
+          "result": "passed",
+          "scope": "6 assertions; Image source unchanged."
+        },
+        {
+          "label": "Owner workspace navigation",
+          "result": "passed",
+          "scope": "6 assertions against isolated updated Owner HTML and unchanged router."
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not embed the private console in an iframe, remove its owner-only gate, or present the manually updated console as automatic live monitoring."
+      ],
+      "updatedAt": "2026-11-12T10:51:51.632Z"
+    },
     {
       "id": "editorial-casting-wheel-20261111",
       "title": "Full Editorial casting wheel with fixed Create Character card",
