@@ -8,6 +8,7 @@
 - **Window Study:** first displayed photo, `hf_20261112_124335_0de4f4b1-285b-4514-b702-1bbe98afa2dc.png`, Library `libfile_68e5a934a1088191817f9423e84b715a`. Three-quarter portrait with soft lateral daylight, warm skin and window-frame edge. Asset `archive-windowstudy-hf-casting-20261112.webp`.
 - Third supplied image is not used: similar framing, less distinction between cards. Existing generation prompts/presets remain illustrative light/finish controls.
 - Both originals preserved in Library; proportionally downsampled to 1200x1600 WebP, each <180 kB. Per-image `object-position:center 18%` keeps the full face and some neck visible in both wide and square existing card frames. Only these two references/native dimensions/focal positions and existing gallery fixture change.
+- Release check repair: `ubuntu-latest` moved this Beauty run to Ubuntu 26.04, unsupported by pinned Playwright 1.57.0. Pinned only the Beauty workflow runner to Ubuntu 24.04, matching previously successful job 131150431525. Browser assertions and runtime version unchanged.
 - Skin Study macro, approved supplied Windblown, other looks, captions, layout, hero, uploads, providers and billing unchanged. Do not revert to the rejected generated Beauty/Window Study covers. Current production evidence: structured `alter-tabbed-editor` record.
 
 

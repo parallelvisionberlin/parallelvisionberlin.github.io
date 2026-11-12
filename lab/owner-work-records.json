@@ -1919,6 +1919,11 @@
           "result": "passed",
           "scope": "11 local approved Image/archive/gallery checks, full work-state validation, source validation and complete Beauty desktop/mobile role/billing/navigation browser checks passed.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43208723359/job/131150431525"
+        },
+        {
+          "label": "Beauty browser runner compatibility",
+          "result": "documented",
+          "scope": "Initial candidate browser installation failed before tests because ubuntu-latest used Ubuntu 26.04, unsupported by pinned Playwright 1.57.0. Only the Beauty runner is pinned to Ubuntu 24.04, confirmed in prior passing job 131150431525. Browser assertions unchanged; new run pending."
         }
       ],
       "deployment": {
