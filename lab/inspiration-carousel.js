@@ -1,4 +1,4 @@
-import './inspiration-catalog.js?v=20261112-card-covers1';
+import './inspiration-catalog.js?v=20261112-road1';
 // Visual browsing only. No automatic Mood changes, uploads, credits or API calls.
 for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   const track=shell.querySelector('.pv-guest-cards,.lab-welcome-presets');

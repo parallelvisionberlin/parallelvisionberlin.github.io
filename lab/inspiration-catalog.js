@@ -1,8 +1,8 @@
 // Image Studio Inspiration expansion. Deliberately separate from Moods.
 // No automatic generation, credit changes, uploads or model/provider changes.
-import {INSPIRATION_SCENES} from './inspiration-catalog-data.js?v=20261112-card-covers1';
+import {INSPIRATION_SCENES} from './inspiration-catalog-data.js?v=20261112-road1';
 const categories=['All','Original','Cinema','After Hours','Fashion','Analog','Street','Future','Intimacy','Atmospheres'];
-const priority=['eros-lingerie','hotel-intimacy','post-human','desert-sculptures','chrome-skin','berlin-club','italian-1963','tokyo-4am','red-room'];
+const priority=['lost-highway','desert-stop','eros-lingerie','hotel-intimacy','post-human','desert-sculptures','chrome-skin','berlin-club','italian-1963','tokyo-4am','red-room'];
 const rank=new Map(priority.map((id,index)=>[id,index]));
 const sorted=[...INSPIRATION_SCENES].sort((a,b)=>(rank.get(a.id)??100)-(rank.get(b.id)??100));
 const originals=[...document.querySelectorAll('#pv-guest-cards > [data-guest-mood]')].map(button=>({
@@ -19,12 +19,21 @@ function photo(item){
   img.src=item.cover;img.alt='';img.loading='lazy';img.decoding='async';
   return img;
 }
+const selectedExamples=new Map();
 function select(item){
-  const accepted={id:item.id,prompt:item.prompt,applied:false};
+  const index=item.examples?((selectedExamples.get(item.id)??-1)+1)%item.examples.length:0;
+  const example=item.examples?.[index]||item;
+  const accepted={id:item.id,prompt:example.prompt,applied:false};
   window.dispatchEvent(new CustomEvent('pv-inspiration-concept',{detail:accepted}));
   if(!accepted.applied)return false;
-  for(const button of document.querySelectorAll('[data-inspiration-concept]'))
+  if(item.examples)selectedExamples.set(item.id,index);
+  for(const button of document.querySelectorAll('[data-inspiration-concept]')){
     button.setAttribute('aria-pressed',String(button.dataset.inspirationConcept===item.id));
+    if(item.examples&&button.dataset.inspirationConcept===item.id){
+      button.querySelector('img').src=example.cover;
+      button.title=item.title+' · '+(index+1)+' / '+item.examples.length+' · Select again for another frame';
+    }
+  }
   for(const button of document.querySelectorAll('[data-welcome-mood],[data-guest-mood]'))
     button.setAttribute('aria-pressed','false');
   return true;
@@ -35,7 +44,7 @@ function carouselCard(item,guest){
   button.className=guest?'pv-guest-card':'lab-welcome-preset';
   button.setAttribute('aria-pressed','false');
   button.setAttribute('aria-label','Select '+item.title+' Inspiration');
-  button.title=item.title+' · '+item.category;
+  button.title=item.title+' · '+item.category+(item.examples?' · Select again for another frame':'');
   button.append(photo(item));
   if(guest){
     const caption=document.createElement('span');
@@ -74,6 +83,8 @@ function openAll(){
         if(category!=='All'&&item.category!==category)continue;
         const button=document.createElement('button');button.type='button';
         button.className='pv-inspiration-catalog-card';button.setAttribute('aria-label','Select '+item.title);
+        if(!item.original){button.dataset.inspirationConcept=item.id;button.setAttribute('aria-pressed','false');}
+        if(item.examples)button.title=item.title+' · '+item.examples.length+' frames · Select again for another frame';
         button.append(photo(item));
         const name=document.createElement('strong');name.textContent=item.title;
         const sub=document.createElement('small');sub.textContent=item.category;

@@ -63,7 +63,7 @@ test('both Inspiration rows support mouse-wheel browsing without trapping page s
   assert.match(js,/event\.preventDefault\(\)/);
   assert.match(js,/move\(direction\)/);
   assert.match(js,/\},\{passive:false\}\)/);
-  assert.match(html,/inspiration-carousel\.js\?v=20261019-keyboard2&inspirationCatalog=20261112-card-covers1&wheelScroll=20261112v1/);
+  assert.match(html,/inspiration-carousel\.js\?v=20261019-keyboard2&inspirationCatalog=20261112-road1&wheelScroll=20261112v1/);
 });
 test('carousel navigation cannot invoke paid jobs or rewrite the current prompt',()=>{
   const code=read('inspiration-carousel.js'),looks=read('inspiration-looks.js');
