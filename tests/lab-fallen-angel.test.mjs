@@ -72,7 +72,8 @@ test('duplicate curated references are not reattached; low-limit model rejects e
   assert.equal(again.references.length,0);
   assert.throws(()=>moodReferencePlan(settingsFor('qwen3',[base,
     {name:'extra.jpg',role:'identity',note:''}])),/Fallen Angel includes 2 curated references/);
-  assert.equal(moodReferencePlan(settingsFor('zspicy')).references.length,0);
+  const unsupported=prepareMoodPrompt('Keep the subject recognizable.','fallen-angel',85,{engine:'zspicy',referenceCount:1});
+  assert.match(unsupported.error,/needs a model with curated image references/);
 });
 
 test('Worker accepts the new Mood id; internal references remain filtered',()=>{
