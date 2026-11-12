@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for attempt in 1 2 3; do
+          for attempt in $(seq 1 12); do
             ready=1
             fetch(){
               local name="$1" path="$2"
@@ -56,6 +56,12 @@ jobs:
             check script 'startVideoReferenceUpload(item)' 'early reference upload'
             check script 'await startVideoReferenceUpload(r)' 'Generate reuses reference upload'
             check helper 'Select Retry on the photo before generating' 'explicit retry contract'
+            if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+              check studio 'videoRefReadyGate=20261112v1' 'fresh Studio JavaScript'
+              check script 'function videoReferenceUploadsPending()' 'upload readiness check'
+              check script 'applyVideoUploadReadyGate();' 'Generate upload gate'
+              check script "if(videoReferenceUploadsPending())return null;" 'quote waits for uploads'
+            fi
             check styles 'font-weight:350!important;opacity:.68!important' 'thin credit label'
             check styles 'content:none!important;display:none!important;mask:none!important' 'hidden diamond icon'
             if [[ "$ready" == 1 ]]; then
@@ -63,7 +69,7 @@ jobs:
               echo 'NOTE: this read-only check does not verify a signed-in private upload or charge credits.'
               exit 0
             fi
-            sleep 6
+            sleep 8
           done
           echo 'FAIL: production Video source does not match merged implementation.'
           exit 1
