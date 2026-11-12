@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-12T12:57:29Z",
+  "updatedAt": "2026-11-12T13:07:01.356Z",
   "handoffs": [
     {
       "id": "owner",
@@ -3815,11 +3815,11 @@
       "id": "road-campaign-inspiration-20261112",
       "title": "Lost Highway and Desert Stop Inspiration cards",
       "component": "Image Studio / Inspiration",
-      "status": "needs_verification",
-      "summary": "Five owner-approved road-campaign photographs are grouped into two cards: three dusk/flash window encounters in Lost Highway and two sunlit open-trunk photographs in Desert Stop. Card selection injects a matching editable prompt; repeat selection advances the image and prompt together.",
-      "nextAction": "Publish the reviewed feature after relevant checks, verify Cloudflare production assets and the guest interaction. Real signed-in paid generation remains untested.",
+      "status": "deployed",
+      "summary": "Published two Inspiration cards from five approved photographs: Lost Highway (three flash/dusk encounters) and Desert Stop (two sunlit open-trunk scenes). Repeated selection advances the matching preview and editable prompt. All five production photographs byte-match the reviewed originals and all five prompts match the recipe in a real signed-in owner session.",
+      "nextAction": "Use Image > Inspiration, or Explore all, and select again for another frame. No implementation blocker remains. Proposed later families: improve the existing Night Drive card with night interiors/mirrors; Asphalt for road-level and monochrome poses; Convertible for daylight cabin scenes. Full-resolution originals for those follow-ups were not attached.",
       "baselineSha": "970588da815ade0ae53bffc5026fe2885a049a00",
-      "reviewedSha": null,
+      "reviewedSha": "5182a3d1d937b7475c56df7439c582b6baf8189a",
       "branch": "feat/highway-inspiration-20261112",
       "files": [
         "lab/inspiration-road-scenes.js",
@@ -3831,7 +3831,12 @@
         "tests/lab-inspiration-catalog.test.mjs",
         "tests/lab-inspiration-carousel.test.mjs"
       ],
-      "links": [],
+      "links": [
+        {
+          "label": "Released PR #1018",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1018"
+        }
+      ],
       "tests": [
         {
           "label": "Scoped Node checks",
@@ -3852,14 +3857,32 @@
           "label": "390px responsive preview",
           "result": "passed",
           "scope": "Guest card selection, Explore all dialog selection and second-shot prompt injection passed inside a 390x844 CSS viewport. Document scrollWidth=clientWidth=390; no mobile overflow. This is a desktop-browser responsive fixture, not a physical phone."
+        },
+        {
+          "label": "Real signed-in production Image Inspiration",
+          "result": "passed",
+          "observedAt": "2026-11-12T13:07:01.356Z",
+          "scope": "Actual owner session: five matching editable prompt selections, five preview switches, zero attached example identity references and no desktop overflow. Explicit Generate was never pressed.",
+          "source": "https://pvlab.studio/studio?tool=image"
+        },
+        {
+          "label": "Published image integrity and recipe equality",
+          "result": "passed",
+          "observedAt": "2026-11-12T13:07:01.356Z",
+          "scope": "All five browser-downloaded production WebP files SHA-256 match the reviewed local source; all five visible production prompts exactly match inspiration-road-scenes.js.",
+          "source": "https://pvlab.studio/studio?tool=image"
         }
       ],
       "deployment": {
-        "state": "not_started",
+        "state": "verified",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "sourceSha": "0fc75251badd912b64906c03c746e65f93b22384",
+        "observedAt": "2026-11-12T13:07:01.356Z",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=image",
         "limitations": [
-          "Local preview checked. No production deployment yet.",
-          "No real signed-in account or paid provider generation used."
+          "Cloudflare app check 131200988414 succeeded for production deployment 42f969f9-8c73-4ed0-8d0c-3f14cbd94bac.",
+          "Real signed-in owner card selection was verified. No paid provider generation or physical-phone test was performed.",
+          "Direct executor production HTTP was denied; browser-loaded photos were downloaded and SHA-256 compared instead."
         ]
       },
       "evidence": [
@@ -3871,6 +3894,32 @@
           "limitations": [
             "Examples are visual previews and prompt recipes, not hidden provider reference photos."
           ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "PR #1018 merged at 0fc75251badd912b64906c03c746e65f93b22384; matching Cloudflare Pages production check succeeded.",
+          "scope": "Production publication; relevant PR approved-image-ui and static validation checks passed.",
+          "observedAt": "2026-11-12T13:07:01.356Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1018",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "All five published road photographs byte-match reviewed WebP files; Studio loads inspirationCatalog=20261112-road1. All five production prompt texts match the reviewed recipes.",
+          "scope": "Actual production bytes and user-visible editable text.",
+          "observedAt": "2026-11-12T13:07:01.356Z",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": []
+        },
+        {
+          "kind": "signed_in_production",
+          "summary": "Real signed-in owner opened Inspiration from History and selected all five frames. Image and prompt advanced together; example photos did not become attached identity references.",
+          "scope": "Authenticated owner Image Studio card selection, not model output quality.",
+          "observedAt": "2026-11-12T13:07:01.356Z",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": [
+            "No paid generation or payment executed."
+          ]
         }
       ],
       "blockers": [],
@@ -3880,7 +3929,7 @@
         "Do not upload example people as a customer identity or automatically run a paid job.",
         "The remaining screenshot-only groups Night Drive, Asphalt and Convertible are proposed follow-ups; original full-resolution files were not attached."
       ],
-      "updatedAt": "2026-11-12T12:57:29Z"
+      "updatedAt": "2026-11-12T13:07:01.356Z"
     }
   ]
 }
