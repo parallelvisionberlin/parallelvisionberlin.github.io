@@ -34,7 +34,7 @@ test('all active statuses keep their phase and have no retry or refund action',(
   for(const [status,title] of Object.entries({submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving'})){
     const f=fixture(status);styleVideoHistoryCard(f.card,f.job,{});
     assert.equal(f.empty.children[1].textContent,title);
-    assert.equal(f.empty.children[2].textContent,'Your video will appear here.');
+    assert.equal(f.empty.children[2].textContent,({submitting:'Sending your request.',queued:'Waiting for processing.',running:'Processing your scene.',saving:'Preparing your video.'})[status]);
     assert.equal(f.empty.children.length,3);
   }
 });
