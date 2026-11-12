@@ -381,6 +381,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Krea 3, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
   // Maximum optical reinterpretation is isolated to an actual Base photograph.
   if(mood.id==='fallen-angel'){
+    if(engine==='zspicy')return {prompt:original,metadata:{},error:'Fallen Angel needs a model with curated image references. Choose Seedream, Nano Banana, Qwen Image or Krea.'};
     const hasBase=referenceCount>0&&referenceMode!=='references';
     const strength=intensity<=34?mood.subtle:intensity<=69?mood.moderate:intensity<=89?mood.intense:mood.climax;
     // This Mood intentionally rebuilds scene and garment but never changes the
