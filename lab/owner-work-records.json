@@ -1634,11 +1634,11 @@
       "id": "alter-tabbed-editor",
       "title": "ALTER Studio: 20 photographic looks, four-card exhibition gallery",
       "component": "ALTER Studio",
-      "status": "needs_verification",
-      "summary": "Windblown follow-up: selected fourth supplied Higgsfield image (woman catching windblown hair with her hand) replaces the posed Riviera cover. New 1200x1600 WebP, native portrait crop within unchanged card. Prior Beauty, Night Tape and Skin Study remain unchanged.",
-      "nextAction": "Wait for relevant CI, merge the image-only change, confirm Cloudflare production and actual rendered Windblown cover.",
+      "status": "deployed",
+      "summary": "LIVE: Windblown uses the selected fourth supplied Higgsfield photo, woman catching windblown hair with her hand, optimized to 1200x1600. Replaces prior posed Riviera cover. Beauty, Night Tape, Skin Study, other looks and all existing presets/layout remain unchanged.",
+      "nextAction": "No Windblown publication work pending.",
       "baselineSha": "3bf9617f26cf9377804012daf47391892631b731",
-      "reviewedSha": null,
+      "reviewedSha": "2e628de0739cc0002644d5707ac5abc366d9bbbf",
       "branch": "fix/alter-windblown-hf-20261112",
       "files": [
         "lab/beauty.html",
@@ -1878,14 +1878,23 @@
           "label": "Higgsfield Windblown card replacement",
           "result": "passed",
           "scope": "11 existing approved Image/archive/gallery checks passed; optimized 1200x1600 photo below 180 kB; no layout or behavior change."
+        },
+        {
+          "label": "Selected HF Windblown CI",
+          "result": "passed",
+          "scope": "Approved Image contract, source validation and full Beauty desktop/mobile role/billing/navigation browser checks passed.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43203759292"
         }
       ],
       "deployment": {
-        "state": "pending",
-        "sourceSha": null,
+        "state": "verified",
+        "sourceSha": "700448245142a206c523a32d02f28cfd307a60a1",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-12",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1012",
         "limitations": [
-          "Latest replacement is not yet deployed. Prior live evidence below is historical."
+          "Guest production cover and selection inspected; no paid generation or real signed-in customer journey run.",
+          "Direct custom-domain byte fetch is previously unavailable (403); exact Cloudflare commit/project plus live browser rendering and image source/dimensions were verified. No byte-hash match claimed."
         ]
       },
       "evidence": [
@@ -1936,6 +1945,24 @@
           "scope": "Production publication.",
           "observedAt": "2026-11-12",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/94a370540bd5f53d3cad0d28e567330ca3b9eb95",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Production /beauty references archive-windblown-hf-20261112.webp; live image fully loaded at 1200x1600, visually matches selected source, selected card aria-pressed=true, no horizontal overflow.",
+          "scope": "Requested Windblown image replacement only.",
+          "source": "https://pvlab.studio/beauty",
+          "observedAt": "2026-11-12",
+          "limitations": [
+            "Public desktop observation; mobile covered by synthetic CI. No byte-hash comparison."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "Cloudflare Pages app check 131136952853 completed successfully for exact merge 700448245142a206c523a32d02f28cfd307a60a1 in pvlab-studio.",
+          "scope": "Production publication of selected HF photo.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1012",
+          "observedAt": "2026-11-12",
           "limitations": []
         }
       ],
