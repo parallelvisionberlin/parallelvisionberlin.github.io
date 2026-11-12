@@ -71,3 +71,11 @@ html body #app.video-studio-active .video-job-stage.pv-video-fabric-ready:is([da
     right:18px;bottom:40px;
   }
 }
+
+
+/* One restrained material-study signature, not another progress indicator. */
+html body #app.video-studio-active .video-job-stage.pv-video-fabric-ready:is([data-phase="submitting"],[data-phase="queued"],[data-phase="running"],[data-phase="saving"],[data-phase="loading"]) #video-job-stage-title::before{
+  content:"PV LAB / MOTION";display:block;margin:0 0 19px;
+  font:500 9px/1.2 'DM Sans',Arial,sans-serif;
+  letter-spacing:.27em;color:#c9c6c0;text-transform:uppercase;
+}
