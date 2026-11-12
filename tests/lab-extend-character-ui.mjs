@@ -79,24 +79,32 @@ try{
   assert.equal(await page.locator('#mode-extend').getAttribute('aria-selected'),'true','Character attachment preserves Extend');
   assert.equal(await page.locator('#reference-list .reference-element-item').isVisible(),true);
   await page.fill('#prompt','Alma continues toward the café door. Preserve her face and tattoos.');
+  assert.equal(await page.locator('#extend-reference-switch').isVisible(),true,'Mixed inputs offer an explicit alternative');
+  assert.equal(await page.locator('#generate').isDisabled(),true,'Incompatible Extend cannot create a quote or paid job');
+  assert.equal(await page.locator('#save').isDisabled(),true,'Incompatible draft cannot be saved');
+  await page.click('#extend-reference-switch');
+  assert.equal(await page.locator('#mode-reference').getAttribute('aria-selected'),'true','Switches into supported Reference set');
+  assert.equal(await page.locator('#video-reference-list video').count(),1,'Source video survives route change');
+  assert.equal(await page.locator('#reference-list .reference-element-item').count(),1,'Grouped character survives route change');
+  assert.match(await page.locator('#prompt').inputValue(),/Alma continues/,'Prompt survives route change');
   await page.click('#save');await ready(page);
   const draft=x.requests.find(r=>r.path==='/api/drafts').data;assert.deepEqual(draft.referenceSourceIds,character.refs.map(r=>r.id));
   await page.click('#generate');await page.locator('#quote-dialog').waitFor({state:'visible'});
   const request=x.requests.filter(r=>r.path==='/api/quotes').at(-1).data;
-  assert.equal(request.settings.mode,'extend');
+  assert.equal(request.settings.mode,'reference');
   assert.deepEqual(request.referenceSourceIds,character.refs.map(r=>r.id));
-  assert.equal(request.referenceVideoIds.length,1);assert.equal(request.sourceId,request.referenceVideoIds[0]);
+  assert.equal(request.referenceVideoIds.length,1);assert.equal(request.sourceId,character.refs[0].id,'Reference set uses the first image as its primary source, while retaining the video as motion guidance');
   assert.ok(request.settings.referenceRoles.every(r=>r.role==='identity'&&r.elementName==='Alma'));
   assert.equal(count(x,'/api/jobs'),0,'Review never submits automatically');
   await page.click('#confirm-generation');await ready(page);
   await page.locator('#history .card').first().click();await page.click('#video-detail-reuse');await ready(page);
   await page.waitForFunction(()=>document.querySelector('#reference-list .reference-element-item')?.textContent.includes('Alma'));
-  assert.equal(await page.locator('#mode-extend').getAttribute('aria-selected'),'true');
+  assert.equal(await page.locator('#mode-reference').getAttribute('aria-selected'),'true');
   assert.equal(await page.locator('#video-reference-list video').count(),1,'Reuse restores original video');
   assert.equal(await page.locator('#reference-list .reference-element-item').count(),1,'Reuse restores grouped identity');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   await page.screenshot({path:`test-results/extend-character-${width}.png`,fullPage:true});
-  assert.deepEqual(x.errors,[]);console.log(`PASS Extend saved Alma, quote payload, History/Reuse and layout at ${width}px`);
+  assert.deepEqual(x.errors,[]);console.log(`PASS Extend→Reference retains Alma, clip, prompt, quote, History/Reuse and layout at ${width}px`);
   await x.context.close();
  }
 }finally{await browser.close();await new Promise(r=>server.close(r));}
