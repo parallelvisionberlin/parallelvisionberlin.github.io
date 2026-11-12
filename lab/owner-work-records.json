@@ -3490,9 +3490,9 @@
       "component": "Video / Seedance 2.5 / SpicyAPI",
       "status": "needs_verification",
       "summary": "PR 1009 production frontend was verified byte-for-byte. Corrected the mock browser flow that clicked the intentionally hidden Video Save control and the public smoke assertion invalidated by the additional mixed-Extend guard. Added actual customer-wallet backend coverage and owner/customer phone/desktop assertions. No app, provider, wallet policy or production configuration changes.",
-      "nextAction": "Observe the corrected browser tests in GitHub Actions, then verify authenticated production Extend and Reference quotes without confirming any generation.",
+      "nextAction": "Finish CI for the layout deadline and credit-preparation fixture corrections, merge the test-only repair, and verify authenticated production quotes after explicit authorization for Google sign-in. Never confirm a real generation.",
       "baselineSha": "3bf9617f26cf9377804012daf47391892631b731",
-      "reviewedSha": null,
+      "reviewedSha": "f7fd9b27c13dcd8b0c954ec4e0188a6d5033911e",
       "branch": "fix/seedance-verification-20261112",
       "files": [
         "tests/lab-extend-character-ui.mjs",
@@ -3501,12 +3501,22 @@
         ".github/workflows/pvlab-video-reference-live-smoke.yml",
         "tests/lab-credit-purchase-flow.test.mjs",
         "tests/lab-meta-capi.test.mjs",
-        "tests/lab-customer-image-quotes.test.mjs"
+        "tests/lab-customer-image-quotes.test.mjs",
+        "tests/lab-studio-layout-ui.mjs",
+        "tests/lab-credit-purchase-ui.mjs"
       ],
       "links": [
         {
           "label": "Original merged PR 1009",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1009"
+        },
+        {
+          "label": "Verification repair PR 1011",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1011"
+        },
+        {
+          "label": "Scoped browser results",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43200690205"
         }
       ],
       "tests": [
@@ -3524,9 +3534,27 @@
         },
         {
           "label": "Owner/customer phone/desktop browser regression",
-          "result": "not_run",
-          "scope": "Local browser launch is blocked by the execution environment. Run the unchanged application against synthetic accounts/media in GitHub Actions.",
-          "source": "tests/lab-extend-character-ui.mjs"
+          "result": "passed",
+          "scope": "GitHub Actions step passed at f7fd9b2 for owner/customer at 390px/1440px: compatible Extend quote, mixed-input quote suppression, exact clip/character IDs, output controls/prompt, new-shot explanation, Reference quote and mocked confirmation/History/Reuse. No real paid calls.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43200690205/job/131123016280"
+        },
+        {
+          "label": "Corrected public Video source smoke",
+          "result": "passed",
+          "scope": "Read-only custom-domain source check passes locally and in GitHub Actions.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43200690195"
+        },
+        {
+          "label": "Broad unit suite",
+          "result": "documented",
+          "scope": "1228/1248 passed after the six fixture corrections. The remaining 20 named failures match the pre-existing catalog/design failures, with no new unit failures.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43200690264/job/131123016990"
+        },
+        {
+          "label": "Clerk bootstrap",
+          "result": "passed",
+          "scope": "Ten local functional tests retain SDK/UI/session deadlines. Updated the old layout source assertion for the existing independently bounded SDK/UI loads. Browser rerun pending.",
+          "source": "tests/lab-clerk-bootstrap.test.mjs"
         }
       ],
       "deployment": {
@@ -3558,7 +3586,8 @@
         }
       ],
       "blockers": [
-        "A real authenticated browser session is required for live quote/upload/saldo observations. Never confirm a provider generation as a verification shortcut."
+        "Production browser sign-in reached Google selection, then automatic review blocked accounts.google.com because it requires explicit destination-specific authorization. No authenticated production session observed.",
+        "The general CI suites remain red for separate pre-existing catalog/design expectations; do not revert approved product changes to satisfy them."
       ],
       "doNotRepeat": [
         "Keep the intentional hidden Video Save control and approved layout. Do not show it to satisfy a stale test.",

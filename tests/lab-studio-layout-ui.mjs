@@ -25,7 +25,9 @@ assert.ok(source.includes("document.documentElement.classList.remove('pv-studio-
 assert.ok(source.includes("document.documentElement.classList.add('pv-studio-boot-lock')"),'In-place sign-in reactivates the loading scrollbar lock');
 const studioHtml=readFileSync('lab/studio.html','utf8');
 const accountSdk=readFileSync('lab/native-account.js','utf8');
-assert.match(accountSdk,/boundedSetup\(Promise\.all\(\[sdk,ui\]\),12000/,'Clerk resources cannot load indefinitely');
+assert.match(accountSdk,/boundedSetup\(loadClerkBrowserSdk\(\{frontendApi,publishableKey\}\),12000/,'Clerk SDK has its own deadline');
+assert.ok(accountSdk.includes("}),12000,'Clerk UI timed out.','AUTH_UI');"),'Clerk UI has its own deadline');
+assert.match(accountSdk,/await Promise\.all\(\[sdk,ui\]\)/,'Both bounded Clerk resources must finish before session setup');
 assert.match(accountSdk,/boundedSetup\(clerk\.load\(/,'Signed-in Clerk initialization has a deadline');
 assert.match(studioHtml,/window\.__pvLabBootRecover=/,'Early loader provides an independent recovery action');
 assert.match(studioHtml,/window\.setTimeout\(window\.__pvLabBootRecover,22000\)/,'A stalled Studio cannot hide behind the splash indefinitely');
