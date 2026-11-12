@@ -23,7 +23,7 @@ export function styleVideoHistoryCard(card,job,{modelLabel,creditNotice='',openD
   const icon=element('span','pv-video-history-indicator',failed?'!':'');
   icon.setAttribute('aria-hidden','true');
   const title=element('strong','pv-video-history-title',failed?'Generation failed':({submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving'}[job.status]));
-  const description=failed?(/reject|block|declin|content|policy|moderation/i.test(job.error||'')?'The provider rejected this request.':'No video was returned.'): 'Your video will appear here.';
+  const description=failed?(/reject|block|declin|content|policy|moderation/i.test(job.error||'')?'The provider rejected this request.':'No video was returned.'):({submitting:'Sending your request.',queued:'Waiting for processing.',running:'Processing your scene.',saving:'Preparing your video.'}[job.status]);
   const detail=element('span','pv-video-history-copy',description);
   empty.replaceChildren(icon,title,detail);
   // Only show the existing account-aware credit notice; never infer a refund.
