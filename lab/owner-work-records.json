@@ -1646,12 +1646,12 @@
       "id": "alter-tabbed-editor",
       "title": "ALTER Studio: 20 photographic looks, four-card exhibition gallery",
       "component": "ALTER Studio",
-      "status": "deployed",
-      "summary": "LIVE: Beauty now shows a full face, hairline, chin and neck; Window Study now shows a candid portrait through old glass with street reflections and natural texture. Both covers are 1536x1024. Skin Study remains the macro; approved HF Windblown and all other looks/layout/settings remain unchanged.",
-      "nextAction": "No Beauty or Window Study publication work pending.",
-      "baselineSha": "b8dbf9e79e8fbcd12f208c604bca37912068f0dd",
-      "reviewedSha": "a47aed714855a4f01d5639a898044a7511022e52",
-      "branch": "fix/alter-beauty-wide-portrait-20261112",
+      "status": "needs_verification",
+      "summary": "Refined Beauty/Window Study follow-up after owner rejected prior muted/ungroomed look: healthy natural skin, groomed hair, restrained black fashion styling, confident editorial presence and stronger window light. Full-face Beauty and window-light Window Study preserved; Skin Study and supplied Windblown unchanged.",
+      "nextAction": "Check relevant CI, merge two cover replacements and verify Cloudflare/live rendered cards.",
+      "baselineSha": "9a9d8a011693e057d547f9649c36c8ecb12f6741",
+      "reviewedSha": null,
+      "branch": "fix/alter-refined-portraits-20261112",
       "files": [
         "lab/beauty.html",
         "lab/beauty.js",
@@ -1685,7 +1685,9 @@
         "lab/visuals/beauty/atelier/archive-windblown-riviera-20261112.webp",
         "lab/visuals/beauty/atelier/archive-windblown-hf-20261112.webp",
         "lab/visuals/beauty/atelier/archive-beauty-portrait-20261112.webp",
-        "lab/visuals/beauty/atelier/archive-windowstudy-glass-20261112.webp"
+        "lab/visuals/beauty/atelier/archive-windowstudy-glass-20261112.webp",
+        "lab/visuals/beauty/atelier/archive-beauty-refined-20261112.webp",
+        "lab/visuals/beauty/atelier/archive-windowstudy-refined-20261112.webp"
       ],
       "links": [
         {
@@ -1912,14 +1914,11 @@
         }
       ],
       "deployment": {
-        "state": "verified",
-        "sourceSha": "aba2667bcd6ec5bfb957e58937b81c180feee628",
+        "state": "pending",
+        "sourceSha": null,
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-12",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1014",
         "limitations": [
-          "Guest production cover rendering and selection inspected; no real signed-in customer journey or live PV LAB generation run.",
-          "Direct custom-domain byte fetching was previously unavailable (403); exact Cloudflare commit/project, production DOM and rendered image dimensions/content were verified. No byte-hash match claimed."
+          "Refined follow-up covers have not yet deployed; previous evidence below remains historical."
         ]
       },
       "evidence": [
