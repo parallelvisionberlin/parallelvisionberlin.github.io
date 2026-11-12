@@ -3483,6 +3483,130 @@
         "Never give PV Still or any other Image model a separate outer deck width. Use the one shared signed-in desktop frame and keep Generate anchored."
       ],
       "updatedAt": "2026-11-11"
+    },
+    {
+      "id": "seedance-extend-reference-verification",
+      "title": "Seedance Extend and Reference verification after PR 1009",
+      "component": "Video / Seedance 2.5 / SpicyAPI",
+      "status": "needs_verification",
+      "summary": "PR 1009 frontend publication remains verified. Corrected hidden-Save browser interactions, the obsolete public quote-guard smoke assertion, six unit fixture failures and the old Clerk deadline contract. Scoped Seedance checks pass for owners/customers at 390px and 1440px, with exact media IDs/settings and quote/job safeguards. Added bounded diagnostics for the separate still-blocked purchase browser test. No application code, pricing, provider route, migration or production configuration changes.",
+      "nextAction": "Complete the authenticated production upload/quote check after explicit accounts.google.com authorization, without confirming generation. Separately resolve the pre-existing 54px/64px layout contract disagreement, 20 catalog/design unit failures and purchase browser preparation blocker.",
+      "baselineSha": "3bf9617f26cf9377804012daf47391892631b731",
+      "reviewedSha": "0179032fb7871931ae3a41474b768945f900b9af",
+      "branch": "fix/seedance-verification-20261112",
+      "files": [
+        "tests/lab-extend-character-ui.mjs",
+        "tests/lab-seedance.test.mjs",
+        ".github/workflows/lab-seedance-tests.yml",
+        ".github/workflows/pvlab-video-reference-live-smoke.yml",
+        "tests/lab-credit-purchase-flow.test.mjs",
+        "tests/lab-meta-capi.test.mjs",
+        "tests/lab-customer-image-quotes.test.mjs",
+        "tests/lab-studio-layout-ui.mjs",
+        "tests/lab-credit-purchase-ui.mjs"
+      ],
+      "links": [
+        {
+          "label": "Original merged PR 1009",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1009"
+        },
+        {
+          "label": "Verification repair PR 1011",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1011"
+        },
+        {
+          "label": "Scoped browser results",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43200690205"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Seedance, wallet and approved Image contract",
+          "result": "passed",
+          "scope": "18 local assertions, including mixed Extend HTTP 400, no provider quote/create, no customer wallet/ledger/spend change, valid Extend/Reference quotes and free Reference draft. All provider calls mocked.",
+          "source": "tests/lab-seedance.test.mjs"
+        },
+        {
+          "label": "Existing purchase, consent and image quote fixtures",
+          "result": "passed",
+          "scope": "29 assertions pass after restoring missing ownerAccount fixture state, the fs import and the exact approved Inspiration replacement argument. No production behavior was changed.",
+          "source": "tests/lab-credit-purchase-flow.test.mjs"
+        },
+        {
+          "label": "Owner/customer phone/desktop browser regression",
+          "result": "passed",
+          "scope": "Final tested code 0179032: all four owner/customer 390px/1440px cases pass. Exact clip IDs, both character photos, prompt, output settings, mixed quote suppression, Reference quote and mocked confirmation/History/Reuse verified.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43203113810/job/131131346423"
+        },
+        {
+          "label": "Corrected public Video source smoke",
+          "result": "passed",
+          "scope": "Read-only custom-domain source check passes locally and in GitHub Actions.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43200690195"
+        },
+        {
+          "label": "Broad unit suite",
+          "result": "documented",
+          "scope": "1228/1248 passed after the six fixture corrections. The remaining 20 named failures match the pre-existing catalog/design failures, with no new unit failures.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43200690264/job/131123016990"
+        },
+        {
+          "label": "Clerk bootstrap",
+          "result": "passed",
+          "scope": "Ten local functional tests pass. The corrected browser assertion accepts independently bounded SDK/UI loads; the suite proceeds to the separate existing 54px/64px layout disagreement.",
+          "source": "tests/lab-clerk-bootstrap.test.mjs"
+        },
+        {
+          "label": "Final public smoke and approved Image contract",
+          "result": "passed",
+          "scope": "Both required scoped checks pass on the final tested code. Cloudflare preview is successful; app source is unchanged.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1011"
+        },
+        {
+          "label": "General browser layout and purchase fixture",
+          "result": "documented",
+          "scope": "General video job remains red: expected 64px Generate track, actual 54px. Preserve approved UI pending reconciliation. Purchase browser test did not complete during this verification; its waits now have timeouts and failure diagnostics. These are not authenticated production failures.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43203113748"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "environment": "Cloudflare Pages pvlab-studio, original PR 1009 app assets",
+        "sourceSha": "68362f71894df147e54856b02cf5ace4e5181c1d",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/runs/130945346770",
+        "limitations": [
+          "This record verifies original application publication, not deployment of these test-only corrections.",
+          "No authenticated production session or paid generation has been verified. Worker health does not expose its exact source SHA."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "production_asset",
+          "summary": "Live lab.js SHA256 b8ecf2d4419fe70a69593b0f8c5553a09595f0717e4036b5140a1f0c0d96e9ed matches PR 1009. moods.js, video-reference-upload.js and video-extend-reference-row.css also match.",
+          "scope": "Read-only custom-domain asset comparison on 2026-11-12.",
+          "source": "https://pvlab.studio/studio?tool=video",
+          "limitations": [
+            "Browser was signed out."
+          ]
+        },
+        {
+          "kind": "documented",
+          "summary": "The broad suite had the same 26 failing test names on PR 1009 and its parent. Six failures were isolated to repairable test fixtures and corrected here; catalog/design failures remain separate.",
+          "scope": "Compared GitHub Actions job logs before changing tests.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43146344061",
+          "limitations": []
+        }
+      ],
+      "blockers": [
+        "Automatic review blocked observation of accounts.google.com after the user selected Google. Explicit destination-specific authorization is required before continuing. No authenticated production session was observed.",
+        "Broad CI retains 20 pre-existing catalog/design unit failures and a 54px/64px Generate layout disagreement. The purchase browser fixture remains unverified. Do not change approved production behavior merely to clear these tests."
+      ],
+      "doNotRepeat": [
+        "Keep the intentional hidden Video Save control and approved layout. Do not show it to satisfy a stale test.",
+        "Do not change catalog assets, Image UI, pricing, provider routes or moderation to fix unrelated CI expectations.",
+        "No paid generations, credit issuance, migrations or production settings are needed for this test correction."
+      ],
+      "updatedAt": "2026-11-12"
     }
   ]
 }

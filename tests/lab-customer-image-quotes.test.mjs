@@ -162,7 +162,7 @@ test('signed-in first-image page has one boot reveal and a selected-only Mood hi
   const sharedPrompts=readFileSync(new URL('../lab/inspiration-looks.js',import.meta.url),'utf8');
   assert.match(lab,/const welcomePrompts=INSPIRATION_VARIATIONS/);
   assert.match(guestPrompt,/createInspirationRotation\(sessionStorage\)/);
-  assert.match(lab,/inspirationRotation\.select\(id,\$\('prompt'\)\.value\)/);
+  assert.match(lab,/inspirationRotation\.select\(id,\$\('prompt'\)\.value,\{replace:true\}\)/);
   assert.match(sharedPrompts,/jade-green-lit corner shop/);
   assert.match(sharedPrompts,/older dark sedan/);
   assert.match(lab,/disableAutoMoodReferences/);
