@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {shouldOmitAutomaticMoodReferencesForInspiration,moodReferencePlan} from '../lab/mood-references.js';
 import {prepareMoodPrompt} from '../lab/moods.js';
+import {INSPIRATION_SCENES} from '../lab/inspiration-catalog-data.js';
 import {
   INSPIRATION_VARIATIONS,LEGACY_INSPIRATION_PROMPTS,CHROME_COUTURE_DEFAULTS,
   createInspirationRotation,isInspirationExample
@@ -90,7 +91,7 @@ test('user-written and manually altered prompts are never replaced',()=>{
 
 test('explicit Inspiration card clicks replace a previous preset or custom prompt',()=>{
   const storage=memoryStorage(),rotation=createInspirationRotation(storage);
-  const catalogPrompt='An adult woman in huge sculptural black couture stands beside an enormous twisted brushed-metal installation in an ochre desert.';
+  const catalogPrompt=INSPIRATION_SCENES.find(scene=>scene.id==='desert-sculptures').prompt;
   const first=rotation.select('90s-cinema',catalogPrompt,{replace:true});
   assert.equal(first.prompt,INSPIRATION_VARIATIONS['90s-cinema'][0]);
   assert.equal(first.preserved,false,'A previously chosen catalog scene must not stick');
