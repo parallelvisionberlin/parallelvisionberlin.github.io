@@ -117,7 +117,7 @@ export function moodReferencePlan(settings){
   const preservedHistoricStyle=isHongKong&&labels.some(label=>label.role==='style'&&HONG_KONG_REFERENCE_LABELS.has(label.name));
   const references=preservedHistoricStyle?[]:source.filter(ref=>!labels.some(label=>label.role==='style'&&label.name===ref.label.name));
   const maxReferences=isFallenAngel?(settings.engine==='qwen3'?3:settings.engine==='krea3'?4:10):10;
-  if(labels.length+references.length>maxReferences)throw Error(moodLabel+' includes '+source.length+' curated references. Keep at most '+(maxReferences-source.length)+' of your own images for this model, or choose another Mood.');
+  if(labels.length+references.length>maxReferences)throw Error(isFallenAngel?moodLabel+' includes '+source.length+' curated references. Keep at most '+(maxReferences-source.length)+' of your own images for this model, or choose another Mood.':moodLabel+' includes '+source.length+' Style references. Keep at most '+(isEighties?'nine':isFisheye||isHyperPop?'8':'six')+' of your own images, or choose another Mood.');
   const referenceRoles=[...labels,...references.map(ref=>({...ref.label}))];
   // Add the four canonical Style photos without rewriting the selected Mood.
   // Check the full provider prompt, including the full/compact role map.
