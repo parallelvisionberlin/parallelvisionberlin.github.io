@@ -1,6 +1,16 @@
 # Beauty Studio and Studios navigation
 
 
+## 2026-11-12 | Beauty wide portrait and Window Study follow-up
+
+- Owner approved separating the two visual purposes: Beauty shows the entire face plus neck; Skin Study stays the extreme macro. Added request: replace plastic-looking Window Study with a more candid, materially interesting window-light photograph.
+- New `lab/visuals/beauty/atelier/archive-beauty-portrait-20261112.webp`, 1536x1024, generated from the previous Beauty eye image as a skin/colour reference. Natural freckles, pores and subtle dewy highlights retained, with complete hairline, chin, neck and upper shoulders in a wider composition suitable for the existing card crop.
+- Source original: `exec-d92f88d6-7d74-45d5-a0c9-706236dcb6a2.png`. Previous macro source `archive-beauty-hd-20261112.webp` retained for history. Single image-generation edit, no variants.
+- Window Study uses new `archive-windowstudy-glass-20261112.webp`: candid upper-body view through old glass with restrained street reflections and directional daylight, rather than the prior glossy portrait. Original image and published selection behavior remain preserved. Generated original: `exec-eff1a062-2eec-41ba-bade-3b164142aa06.png`.
+- No changes to Skin Study, supplied HF Windblown, Night Tape, presets, hero, layout, captions, providers, upload or billing. Current publication evidence is in structured `alter-tabbed-editor` record.
+
+
+
 ## 2026-11-12 | Windblown supplied-photo follow-up
 
 - Owner requested selection of the best of four newly supplied HF images and immediate website update. Chosen: `hf_20261112_104120_1075d235-c171-426d-9307-5850b600c2bb.png`, the fourth image in the message, woman catching her windblown hair with one hand.
