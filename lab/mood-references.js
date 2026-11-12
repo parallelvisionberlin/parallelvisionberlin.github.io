@@ -67,8 +67,18 @@ const HYPER_POP_REFERENCES=Object.freeze([
   label:Object.freeze({name:'Hyper Pop style - '+ref.file,role:'style',note:ref.note})
 })));
 
+// The approved owner's Fallen Angel photographs define the scene and physical
+// wings, NEVER the identity of the red-haired reference model. These are
+// invisible, automatic curated references, not customer-uploaded photos.
+const FALLEN_ANGEL_REFERENCES=Object.freeze([
+  {file:'01-apocalyptic-rooftop.png',url:'https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/b259ac39-d73c-4853-b591-f82809e699ea.png',type:'image/png',
+    note:'SCENE AND LIGHT ONLY: build the monumental rooftop, enormous orange sunset, dark industrial city and smoky sky. Use the user's person, NOT the red-haired reference woman; never copy her face, hair or body.'},
+  {file:'02-physical-feather-wings.png',url:'https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/c6409acb-695d-40d2-ab1b-05a17e077340.png',type:'image/png',
+    note:'WINGS ONLY: transfer the scale and believable layered white feather structure, attach a single natural pair behind the uploaded subject shoulders. Do NOT copy the red-haired woman, her face, pose, dress or black background.'}
+].map(ref=>Object.freeze({...ref,label:Object.freeze({name:'Fallen Angel style - '+ref.file,role:'style',note:ref.note})})));
+
 export function isMoodStyleReference(label){
-  return label?.role==='style'&&(DREAM_BLUR_REFERENCES.some(ref=>ref.label.name===label.name)||FISHEYE_2000_REFERENCES.some(ref=>ref.label.name===label.name)||EIGHTIES_FILM_REFERENCES.some(ref=>ref.label.name===label.name)||HYPER_POP_REFERENCES.some(ref=>ref.label.name===label.name)||HONG_KONG_REFERENCE_LABELS.has(label.name));
+  return label?.role==='style'&&(DREAM_BLUR_REFERENCES.some(ref=>ref.label.name===label.name)||FISHEYE_2000_REFERENCES.some(ref=>ref.label.name===label.name)||EIGHTIES_FILM_REFERENCES.some(ref=>ref.label.name===label.name)||HYPER_POP_REFERENCES.some(ref=>ref.label.name===label.name)||HONG_KONG_REFERENCE_LABELS.has(label.name)||FALLEN_ANGEL_REFERENCES.some(ref=>ref.label.name===label.name));
 }
 
 // Inspiration previews normally omit invisible Style photographs. Dream Blur is
@@ -78,7 +88,7 @@ export function shouldOmitAutomaticMoodReferencesForInspiration(inspirationMoodI
 }
 
 export function moodReferencePlan(settings){
-  if(settings?.type!=='image'||settings.mode!=='image'||!['hong-kong-nights','dream-blur','fisheye-2000','hyper-pop','80s-film'].includes(settings.moodId)||!['seedream','seedreamlite','gemini','gemini21'].includes(settings.engine))
+  if(settings?.type!=='image'||settings.mode!=='image'||!['hong-kong-nights','dream-blur','fisheye-2000','hyper-pop','80s-film','fallen-angel'].includes(settings.moodId)||!(['seedream','seedreamlite','gemini','gemini21'].includes(settings.engine)||(settings.moodId==='fallen-angel'&&['qwen3','krea3'].includes(settings.engine))))
     return {settings,references:[]};
   const labels=(settings.referenceRoles||[]).map(normalizeReferenceLabel);
   const isHongKong=settings.moodId==='hong-kong-nights';
@@ -98,15 +108,16 @@ export function moodReferencePlan(settings){
     if(over>0)throw Error('Direction, Mood and reference instructions exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction or optional reference notes.');
     return {settings,references:[]};
   }
-  const isFisheye=settings.moodId==='fisheye-2000',isHyperPop=settings.moodId==='hyper-pop';
+  const isFisheye=settings.moodId==='fisheye-2000',isHyperPop=settings.moodId==='hyper-pop',isFallenAngel=settings.moodId==='fallen-angel';
   // At low strength, omit the visual pack to avoid overriding source wardrobe.
-  const source=isEighties?EIGHTIES_FILM_REFERENCES:isHyperPop?(Number(settings.moodIntensity??75)>34?HYPER_POP_REFERENCES:[]):isHongKong?HONG_KONG_REFERENCES[hongKongVariant(settings.moodVariant)]:isFisheye?FISHEYE_2000_REFERENCES:DREAM_BLUR_REFERENCES;
-  const moodLabel=isEighties?'80s Film':isHyperPop?'Hyper Pop':isHongKong?'Hong Kong Nights':isFisheye?'Fisheye 2000':'Dream Blur';
+  const source=isFallenAngel?FALLEN_ANGEL_REFERENCES:isEighties?EIGHTIES_FILM_REFERENCES:isHyperPop?(Number(settings.moodIntensity??75)>34?HYPER_POP_REFERENCES:[]):isHongKong?HONG_KONG_REFERENCES[hongKongVariant(settings.moodVariant)]:isFisheye?FISHEYE_2000_REFERENCES:DREAM_BLUR_REFERENCES;
+  const moodLabel=isFallenAngel?'Fallen Angel':isEighties?'80s Film':isHyperPop?'Hyper Pop':isHongKong?'Hong Kong Nights':isFisheye?'Fisheye 2000':'Dream Blur';
   // Saved older jobs retain their original four Style sources. Never silently
   // append another pack of four to a reused result or duplicate user uploads.
   const preservedHistoricStyle=isHongKong&&labels.some(label=>label.role==='style'&&HONG_KONG_REFERENCE_LABELS.has(label.name));
   const references=preservedHistoricStyle?[]:source.filter(ref=>!labels.some(label=>label.role==='style'&&label.name===ref.label.name));
-  if(labels.length+references.length>10)throw Error(moodLabel+' includes '+source.length+' Style references. Keep at most '+(isEighties?'nine':isFisheye||isHyperPop?'8':'six')+' of your own images, or choose another Mood.');
+  const maxReferences=isFallenAngel?(settings.engine==='qwen3'?3:settings.engine==='krea3'?4:10):10;
+  if(labels.length+references.length>maxReferences)throw Error(moodLabel+' includes '+source.length+' curated references. Keep at most '+(maxReferences-source.length)+' of your own images for this model, or choose another Mood.');
   const referenceRoles=[...labels,...references.map(ref=>({...ref.label}))];
   // Add the four canonical Style photos without rewriting the selected Mood.
   // Check the full provider prompt, including the full/compact role map.
@@ -137,9 +148,9 @@ export function createMoodReferenceLoader({upload,fetchFile=fetch}){
         check();
         if(cache.has(ref.url))return null;
         const response=await fetchFile(ref.url,{credentials:'omit',signal:AbortSignal.timeout(30000)});
-        if(!response.ok)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':ref.label.name.startsWith('80s Film')?'80s Film':'Hong Kong Nights')+' Style reference could not load. Please try again.');
+        if(!response.ok)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':ref.label.name.startsWith('80s Film')?'80s Film':ref.label.name.startsWith('Fallen Angel')?'Fallen Angel':'Hong Kong Nights')+' Style reference could not load. Please try again.');
         const blob=await response.blob();
-        if(!blob.size)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':ref.label.name.startsWith('80s Film')?'80s Film':'Hong Kong Nights')+' Style reference is empty. Please try again.');
+        if(!blob.size)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':ref.label.name.startsWith('80s Film')?'80s Film':ref.label.name.startsWith('Fallen Angel')?'Fallen Angel':'Hong Kong Nights')+' Style reference is empty. Please try again.');
         check();
         return new File([blob],ref.label.name,{type:ref.type});
       }));
@@ -153,7 +164,7 @@ export function createMoodReferenceLoader({upload,fetchFile=fetch}){
           pending=(async()=>{
             const file=staged[i],result=await upload(file);
             const id=typeof result==='string'?result:result?.id;
-            if(!id)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':ref.label.name.startsWith('80s Film')?'80s Film':'Hong Kong Nights')+' Style reference could not upload. Please try again.');
+            if(!id)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':ref.label.name.startsWith('80s Film')?'80s Film':ref.label.name.startsWith('Fallen Angel')?'Fallen Angel':'Hong Kong Nights')+' Style reference could not upload. Please try again.');
             return {id,file};
           })();
           cache.set(ref.url,pending);
