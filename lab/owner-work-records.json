@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-12T10:56:12.676Z",
+  "updatedAt": "2026-11-12T12:57:29Z",
   "handoffs": [
     {
       "id": "owner",
@@ -3778,6 +3778,77 @@
         "No paid generations, credit issuance, migrations or production settings are needed for this test correction."
       ],
       "updatedAt": "2026-11-12"
+    },
+    {
+      "id": "road-campaign-inspiration-20261112",
+      "title": "Lost Highway and Desert Stop Inspiration cards",
+      "component": "Image Studio / Inspiration",
+      "status": "needs_verification",
+      "summary": "Five owner-approved road-campaign photographs are grouped into two cards: three dusk/flash window encounters in Lost Highway and two sunlit open-trunk photographs in Desert Stop. Card selection injects a matching editable prompt; repeat selection advances the image and prompt together.",
+      "nextAction": "Publish the reviewed feature after relevant checks, verify Cloudflare production assets and the guest interaction. Real signed-in paid generation remains untested.",
+      "baselineSha": "970588da815ade0ae53bffc5026fe2885a049a00",
+      "reviewedSha": null,
+      "branch": "feat/highway-inspiration-20261112",
+      "files": [
+        "lab/inspiration-road-scenes.js",
+        "lab/inspiration-catalog-data.js",
+        "lab/inspiration-catalog.js",
+        "lab/inspiration-carousel.js",
+        "lab/studio.html",
+        "lab/visuals/inspiration-road/",
+        "tests/lab-inspiration-catalog.test.mjs",
+        "tests/lab-inspiration-carousel.test.mjs"
+      ],
+      "links": [],
+      "tests": [
+        {
+          "label": "Scoped Node checks",
+          "result": "passed",
+          "scope": "23 approved Image UI, catalog, grouping and rotation checks; 4 selected carousel layout/navigation checks. Syntax and diff checks passed."
+        },
+        {
+          "label": "Existing carousel source-comment assertion",
+          "result": "documented",
+          "scope": "Unchanged baseline inspiration-looks.js no longer contains the old comment expected by one carousel test. The existing 13 behavioral rotation tests pass. Assertion was not weakened."
+        },
+        {
+          "label": "Preview guest interaction",
+          "result": "passed",
+          "scope": "Actual local guest browser: all five images load, all five matching prompts injected, repeat selections advance the matching image and desktop has no horizontal overflow. No Generate click."
+        },
+        {
+          "label": "390px responsive preview",
+          "result": "passed",
+          "scope": "Guest card selection, Explore all dialog selection and second-shot prompt injection passed inside a 390x844 CSS viewport. Document scrollWidth=clientWidth=390; no mobile overflow. This is a desktop-browser responsive fixture, not a physical phone."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "Local preview checked. No production deployment yet.",
+          "No real signed-in account or paid provider generation used."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Approved source assets: 3b72ea6b (Lost Highway cover), a21bd839 and f997688d; 51ae999a (Desert Stop cover), 7c31e9c8. Full photographs retained as optimized WebP.",
+          "scope": "Owner supplied images from 2026-11-12; two distinct day/night treatments.",
+          "source": "lab/inspiration-road-scenes.js",
+          "limitations": [
+            "Examples are visual previews and prompt recipes, not hidden provider reference photos."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Preserve the two groups and chosen covers; do not merge day and night into one treatment.",
+        "Do not generate new alternatives or replace approved photographs.",
+        "Do not upload example people as a customer identity or automatically run a paid job.",
+        "The remaining screenshot-only groups Night Drive, Asphalt and Convertible are proposed follow-ups; original full-resolution files were not attached."
+      ],
+      "updatedAt": "2026-11-12T12:57:29Z"
     }
   ]
 }
