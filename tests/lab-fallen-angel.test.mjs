@@ -56,7 +56,7 @@ test('automatic reference plan adds two internal scene and feather sources after
     for(const ref of plan.references){
       assert.ok(isMoodStyleReference(ref.label));
       assert.ok(ref.url.startsWith('https://'));
-      assert.doesNotMatch(ref.label.note,/copy her face/i);
+      assert.match(ref.label.note,/NOT|never/i);
     }
     const compiled=compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings);
     assert.match(compiled,/SCENE AND LIGHT ONLY/);
