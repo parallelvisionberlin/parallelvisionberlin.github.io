@@ -113,7 +113,19 @@
           "Production guest browser shows the new sidebar link and exact console href; no sign-in or customer operations performed.",
           "Production deployment 18f151ad-6d4e-47a4-af1d-b255a125932a succeeded; newer main 7004482 preserves identical Owner HTML blob 6f8833e4f26842c8646ac5753640e6350d4df1ae."
         ]
-      }
+      },
+      "evidence": [
+        {
+          "kind": "deployment",
+          "summary": "Existing recorded release independently confirmed by Cloudflare Pages app check 131136423492: source 9f5eb5e25e49f3db1b7d3193abcc7ea0bc2639d3 succeeded in pvlab-studio, deployment 18f151ad-6d4e-47a4-af1d-b255a125932a. This restores the missing required evidence field without changing its recorded feature or publication state.",
+          "scope": "Existing Owner sidebar release evidence schema repair.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/9f5eb5e25e49f3db1b7d3193abcc7ea0bc2639d3",
+          "observedAt": "2026-11-12",
+          "limitations": [
+            "No additional owner sign-in or customer interaction performed."
+          ]
+        }
+      ]
     },
     {
       "id": "editorial-casting-wheel-20261111",
@@ -1634,12 +1646,12 @@
       "id": "alter-tabbed-editor",
       "title": "ALTER Studio: 20 photographic looks, four-card exhibition gallery",
       "component": "ALTER Studio",
-      "status": "deployed",
-      "summary": "LIVE: Windblown uses the selected fourth supplied Higgsfield photo, woman catching windblown hair with her hand, optimized to 1200x1600. Replaces prior posed Riviera cover. Beauty, Night Tape, Skin Study, other looks and all existing presets/layout remain unchanged.",
-      "nextAction": "No Windblown publication work pending.",
-      "baselineSha": "3bf9617f26cf9377804012daf47391892631b731",
-      "reviewedSha": "2e628de0739cc0002644d5707ac5abc366d9bbbf",
-      "branch": "fix/alter-windblown-hf-20261112",
+      "status": "needs_verification",
+      "summary": "Beauty wider-portrait and Window Study follow-up: Beauty shows full face and neck; Window Study becomes a candid portrait through old glass with street reflections and uneven directional daylight. Skin Study remains the macro; approved supplied Windblown and all other imagery/settings remain unchanged.",
+      "nextAction": "Check relevant CI, merge both cover replacements, verify Cloudflare production and rendered Beauty/Window Study cards.",
+      "baselineSha": "b8dbf9e79e8fbcd12f208c604bca37912068f0dd",
+      "reviewedSha": null,
+      "branch": "fix/alter-beauty-wide-portrait-20261112",
       "files": [
         "lab/beauty.html",
         "lab/beauty.js",
@@ -1671,7 +1683,9 @@
         "lab/visuals/beauty/atelier/archive-nighttape-mood-20261112.webp",
         "lab/visuals/beauty/atelier/archive-skinstudy-macro-20261112.webp",
         "lab/visuals/beauty/atelier/archive-windblown-riviera-20261112.webp",
-        "lab/visuals/beauty/atelier/archive-windblown-hf-20261112.webp"
+        "lab/visuals/beauty/atelier/archive-windblown-hf-20261112.webp",
+        "lab/visuals/beauty/atelier/archive-beauty-portrait-20261112.webp",
+        "lab/visuals/beauty/atelier/archive-windowstudy-glass-20261112.webp"
       ],
       "links": [
         {
@@ -1884,17 +1898,19 @@
           "result": "passed",
           "scope": "Approved Image contract, source validation and full Beauty desktop/mobile role/billing/navigation browser checks passed.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43203759292"
+        },
+        {
+          "label": "Beauty and Window Study cover checks",
+          "result": "passed",
+          "scope": "11 existing approved Image/archive/gallery checks passed for two distinct 1536x1024 WebPs, each under 180 kB. Restored missing required evidence field on existing owner-release-health-console-link using its recorded release and independently confirmed exact Cloudflare success; all other record content preserved."
         }
       ],
       "deployment": {
-        "state": "verified",
-        "sourceSha": "700448245142a206c523a32d02f28cfd307a60a1",
+        "state": "pending",
+        "sourceSha": null,
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-12",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1012",
         "limitations": [
-          "Guest production cover and selection inspected; no paid generation or real signed-in customer journey run.",
-          "Direct custom-domain byte fetch is previously unavailable (403); exact Cloudflare commit/project plus live browser rendering and image source/dimensions were verified. No byte-hash match claimed."
+          "Latest Beauty and Window Study covers are not yet deployed; previous production evidence below is historical."
         ]
       },
       "evidence": [
