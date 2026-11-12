@@ -386,7 +386,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     // This Mood intentionally rebuilds scene and garment but never changes the
     // source person's identity. Backend-curated Style images are NOT identity.
     const identity=hasBase
-      ?'REFERENCE 1 IS THE REAL PERSON: keep their recognizable face, eyes, age, natural skin tone, hair color and hairstyle, body shape and subject count. The angel photographed in curated references is NOT the customer. Rebuild rooftop environment and optional clothing, add wings, but do not face-swap, recolor hair or reconstruct a different person. Preserve the original major body orientation when physically possible.'
+      ?'REFERENCE 1 IS THE REAL PERSON: keep their recognizable face, eyes, age, natural skin tone, hair color and hairstyle, body shape and subject count. The angel photographed in curated references is NOT the customer. Rebuild rooftop environment and optional clothing, add wings, but do not face-swap, recolor hair or reconstruct a different person. Re-stage pose and camera to match the cinematic angel scene when needed. The original photo defines the subject's identity, not the original background, outfit or crop.'
       :'If an Identity or Base image is provided, preserve that person above all curated references; otherwise create only the described subject.';
     const compact=engine==='seedreamlite';
     const core=compact
