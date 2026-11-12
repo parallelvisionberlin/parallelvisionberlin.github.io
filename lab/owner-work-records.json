@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-12T10:51:51.633Z",
+  "updatedAt": "2026-11-12T10:56:12.676Z",
   "handoffs": [
     {
       "id": "owner",
@@ -68,9 +68,9 @@
       "id": "owner-release-health-console-link",
       "title": "Owner navigation: Estado de PV LAB",
       "component": "Owner dashboard / navigation",
-      "status": "needs_verification",
-      "summary": "Desktop sidebar and mobile section menu have a direct private release-health console link, labelled Estado de PV LAB with Incidencias y verificaciones subtitle on desktop. The tooltip explains manual evidence and ChatGPT sign-in; no automatic monitoring is implied.",
-      "nextAction": "Confirm Cloudflare Pages publication and exact owner.html bytes on pvlab.studio for the merged PR. Signed-in owner click-through remains separate.",
+      "status": "deployed",
+      "summary": "Published and verified on pvlab.studio/owner: Estado de PV LAB appears under Promotions in the desktop sidebar, with Incidencias y verificaciones subtitle. The same destination is included in the authenticated mobile menu source.",
+      "nextAction": "No sidebar implementation work remains. The console is manual evidence, not automatic monitoring. Actual owner-authenticated mobile click-through was not exercised.",
       "reviewedSha": "50e08cbaba7218620e6d5f83e4ea013472a352bd",
       "branch": "fix/owner-release-health-link-20261112",
       "files": [
@@ -102,7 +102,18 @@
       "doNotRepeat": [
         "Do not embed the private console in an iframe, remove its owner-only gate, or present the manually updated console as automatic live monitoring."
       ],
-      "updatedAt": "2026-11-12T10:51:51.632Z"
+      "updatedAt": "2026-11-12T10:56:12.676Z",
+      "deployment": {
+        "state": "verified",
+        "sourceSha": "9f5eb5e25e49f3db1b7d3193abcc7ea0bc2639d3",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-12T10:56:12.676Z",
+        "evidenceUrl": "https://pvlab.studio/owner",
+        "limitations": [
+          "Production guest browser shows the new sidebar link and exact console href; no sign-in or customer operations performed.",
+          "Production deployment 18f151ad-6d4e-47a4-af1d-b255a125932a succeeded; newer main 7004482 preserves identical Owner HTML blob 6f8833e4f26842c8646ac5753640e6350d4df1ae."
+        ]
+      }
     },
     {
       "id": "editorial-casting-wheel-20261111",
