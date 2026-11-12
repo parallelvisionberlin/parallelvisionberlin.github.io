@@ -1,4 +1,4 @@
-import {beautyChoiceMap} from './beauty-look-catalog.js?v=20261108-makeup2';
+import {beautyChoiceMap} from './beauty-look-catalog.js?v=20261112-archive-photo1';
 // Auto follows the uploaded photo's shape using the nearest supported provider aspect ratio.
 export function beautyAutoRatio(sourceWidth,sourceHeight){
  const width=Number(sourceWidth),height=Number(sourceHeight);

@@ -1,5 +1,17 @@
 # Beauty Studio and Studios navigation
 
+
+## 2026-11-12 | Four archive covers: source ready, production pending
+
+- Scoped request: repair blurry Beauty; replace Pinterest-origin Night Tape; increase Skin Study macro detail; replace Windblown with retro Riviera convertible / soft pastel film.
+- Beauty source was only 246x137 px. Built-in image generation recreated the same eye/dewy-skin composition at 1536x1024. New Skin Study resolves pores, freckles and fine vellus hair; new Windblown shows wind in hair from a vintage cream convertible on the French coast. Three generated originals are represented by optimized 1536x1024 WebPs in the repository.
+- Night Tape reuses the current public Hong Kong Nights Mood preview from `lab/moods.js`: `https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/e06ac253-47c4-47b4-80e0-b90df2949f45.png`, downloaded and optimized locally. No new Night Tape generation.
+- Assets: `archive-beauty-hd-20261112.webp`, `archive-nighttape-mood-20261112.webp`, `archive-skinstudy-macro-20261112.webp`, `archive-windblown-riviera-20261112.webp`, all under `lab/visuals/beauty/atelier/`, each <180 kB.
+- Only these four card references and two captions change. Windblown uses existing daylight + soft-film native settings and refined wind/pastel prompt while preserving the source person, clothing and environment. Module imports are versioned `20261112-archive-photo1`; no layout, hero, provider, billing or upload change.
+- Local validation: 29 relevant Image, Beauty, category, archive and gallery tests passed. Desktop/mobile browser CI and Cloudflare exact-byte verification pending. Local preview slot belongs to another session and was not interrupted.
+- Baseline: `68362f71894df147e54856b02cf5ace4e5181c1d`; branch `fix/alter-card-photography-20261112`. Follow the structured `alter-tabbed-editor` record for final publication evidence.
+
+
 ## 2026-11-08 | Twenty curated looks and four-plus-peek editorial archive: LIVE VERIFIED
 
 - Owner approved the fashion-exhibition direction for **Editorial Looks & Moods**: four complete photographic cards on large desktop (>=1350px) plus a visible sliver of the fifth to imply continuous horizontal browsing. Cards have greater height, breathing room, restrained captions, and no decorative arrows. Responsive gallery on smaller screens retains existing wheel, inertia, trackpad, native swipe, focus and keyboard selection behavior.
