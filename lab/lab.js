@@ -4,7 +4,7 @@ import {soulNightFlashQuoteMatches} from './night-flash-soul.js?v=20261106v1&won
 import {replacementIntent,replacementIntentIssue} from './image-replacement-intent.js?v=20261106-replacement1';
 import {createImageReplacement} from './image-replacement.js?v=20261106-replacement1';
 import {videoInputAction} from './video-input-action.js?v=20261030-1';
-import {styleVideoHistoryCard} from './video-history-cards.js?v=20261104-refined1';
+import {styleVideoHistoryCard} from './video-history-cards.js?v=20261112-thread1';
 import {createStudioPublicPreview} from './studio-public-preview.js?v=20261023-1&upscaleModelCards=pr486final1';
 import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
 import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261027-compact-f1&characterAllViews=20261103v1&extendCharacter=20261031-1&deckReturn=20261018v1&aboutElements=20261018v1&draftNavigation=20261018v1&geminiRepair=20261020v1&characterEditor=20261108-v1';
