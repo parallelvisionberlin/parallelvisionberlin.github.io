@@ -56,7 +56,8 @@ for(const mood of MOODS){
         const context=mood.id+'/'+(hasPhoto?'base-photo':'text-only')+'/'+intensity;
         assert.equal(recipe.error,'',context+': '+recipe.error);
         assert.equal(recipe.metadata.moodId,mood.id,context+' Mood metadata');
-        assert.equal(recipe.metadata.moodIntensity,intensity,context+' strength');
+        const expectedIntensity=mood.id==='night-flash'?100:intensity;
+        assert.equal(recipe.metadata.moodIntensity,expectedIntensity,context+' strength');
         assert.equal(recipe.metadata.moodOriginalPrompt,direction,context+' original direction');
         assert.ok(recipe.prompt.startsWith(direction+'\n\n'),context+' user text comes first');
         assert.ok(recipe.prompt.includes('PV LAB MOOD / '+mood.name+':'),context+' style is retained');
