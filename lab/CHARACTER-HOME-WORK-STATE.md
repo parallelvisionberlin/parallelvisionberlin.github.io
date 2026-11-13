@@ -1,3 +1,10 @@
+## 2026-11-13 / curated twelve-character homepage selection
+- Added four existing Full Editorial portraits: Slate, Cobalt, Pearl and Acid, after the eight originals.
+- Homepage-only HTML additions; existing card size, layout, typography, creation upload and carousel JS/CSS preserved.
+- Assets: `lab/visuals/character-casting/{slate,cobalt,pearl,acid}-cast-20261111.jpg`, all 1125×2000.
+- 20 existing approved Image / character / carousel tests passed. Diff contains four added figures only.
+- Publication and rendered candidate QA pending; track `home-character-selection-20261113` in owner-work-records.json.
+
 ## 2026-11-02 / homepage drag-and-drop 1–8 identity photographs
 - Owner requested the whole ivory + card accept dropped images, individually or in batches, up to eight.
 - Isolated branch: `feat/character-drop-eight-photos-20261102`, baseline main at branch creation. Initial implementation commit `f422b5c9d8bf6618fb6f6ef8576580d00939f543`.

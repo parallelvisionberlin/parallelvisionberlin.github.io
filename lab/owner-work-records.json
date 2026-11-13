@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-12T13:07:01.356Z",
+  "updatedAt": "2026-11-13T22:55:00Z",
   "handoffs": [
     {
       "id": "owner",
@@ -3934,6 +3934,55 @@
         "The remaining screenshot-only groups Night Drive, Asphalt and Convertible are proposed follow-ups; original full-resolution files were not attached."
       ],
       "updatedAt": "2026-11-12T13:07:01.356Z"
+    },
+    {
+      "id": "home-character-selection-20261113",
+      "title": "Homepage curated twelve-character selection",
+      "component": "PV LAB homepage / Characters",
+      "status": "needs_verification",
+      "summary": "Added Slate, Cobalt, Pearl and Acid from the existing Full Editorial casting section after the eight original homepage portraits. Existing card dimensions, copy, upload CTA and carousel logic are unchanged.",
+      "nextAction": "Review Cloudflare preview phone/desktop and relevant CI; merge then verify exact production HTML and carousel.",
+      "updatedAt": "2026-11-13T22:55:00Z",
+      "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
+      "reviewedSha": null,
+      "branch": "feat/home-character-selection-20261113",
+      "files": [
+        "lab/index.html",
+        "lab/CHARACTER-HOME-WORK-STATE.md"
+      ],
+      "links": [],
+      "tests": [
+        {
+          "label": "Approved Image, character invitation and carousel",
+          "result": "passed",
+          "scope": "20 existing Node tests; asset dimensions confirmed 1125x2000.",
+          "observedAt": "2026-11-13"
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio",
+        "sourceSha": null,
+        "limitations": [
+          "Rendered candidate and production pending."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Only four lazy-loaded figure cards added to homepage, using existing casting JPEGs and sequential numbers 09–12.",
+          "scope": "Homepage character selection only.",
+          "source": "lab/index.html",
+          "limitations": [
+            "No signed-in workflow or paid generation exercised."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Preserve all eight original cards, upload tile, typography, card size and carousel behavior.",
+        "Reuse existing casting assets; no generation required."
+      ]
     }
   ]
 }
