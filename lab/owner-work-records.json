@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-12T13:07:01.356Z",
+  "updatedAt": "2026-11-13T13:22:29.613Z",
   "handoffs": [
     {
       "id": "owner",
@@ -3819,12 +3819,12 @@
       "id": "road-campaign-inspiration-20261112",
       "title": "Lost Highway and Desert Stop Inspiration cards",
       "component": "Image Studio / Inspiration",
-      "status": "deployed",
-      "summary": "Published two Inspiration cards from five approved photographs: Lost Highway (three flash/dusk encounters) and Desert Stop (two sunlit open-trunk scenes). Repeated selection advances the matching preview and editable prompt. All five production photographs byte-match the reviewed originals and all five prompts match the recipe in a real signed-in owner session.",
-      "nextAction": "Use Image > Inspiration, or Explore all, and select again for another frame. No implementation blocker remains. Proposed later families: improve the existing Night Drive card with night interiors/mirrors; Asphalt for road-level and monochrome poses; Convertible for daylight cabin scenes. Full-resolution originals for those follow-ups were not attached.",
-      "baselineSha": "970588da815ade0ae53bffc5026fe2885a049a00",
-      "reviewedSha": "5182a3d1d937b7475c56df7439c582b6baf8189a",
-      "branch": "feat/highway-inspiration-20261112",
+      "status": "needs_verification",
+      "summary": "Two existing Inspiration pairs now swap positions in guest and signed-in rows: Desert Stop / Vinyl Heat and Lost Highway / Green Haze. All 14 cards retain their DOM nodes, selection handlers, imagery and prompts. Prior road-card production verification remains historical evidence below.",
+      "nextAction": "Review the scoped PR, relevant CI and deployment; verify published card order separately.",
+      "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
+      "reviewedSha": null,
+      "branch": "fix/inspiration-road-order-20261113",
       "files": [
         "lab/inspiration-road-scenes.js",
         "lab/inspiration-catalog-data.js",
@@ -3875,18 +3875,24 @@
           "observedAt": "2026-11-12T13:07:01.356Z",
           "scope": "All five browser-downloaded production WebP files SHA-256 match the reviewed local source; all five visible production prompts exactly match inspiration-road-scenes.js.",
           "source": "https://pvlab.studio/studio?tool=image"
+        },
+        {
+          "label": "2026-11-13 order swap checks",
+          "result": "passed",
+          "scope": "6 approved Image contract checks and 4 affected carousel checks passed. Actual swap block evaluated for guest and signed-in rows: expected 14-card order and original nodes/handlers preserved."
+        },
+        {
+          "label": "Unchanged carousel comment assertion",
+          "result": "documented",
+          "scope": "Existing test still expects a removed comment in inspiration-looks.js; previously documented in this record, unchanged by this reorder."
         }
       ],
       "deployment": {
-        "state": "verified",
+        "state": "not_started",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "sourceSha": "0fc75251badd912b64906c03c746e65f93b22384",
-        "observedAt": "2026-11-12T13:07:01.356Z",
-        "evidenceUrl": "https://pvlab.studio/studio?tool=image",
+        "sourceSha": null,
         "limitations": [
-          "Cloudflare app check 131200988414 succeeded for production deployment 42f969f9-8c73-4ed0-8d0c-3f14cbd94bac.",
-          "Real signed-in owner card selection was verified. No paid provider generation or physical-phone test was performed.",
-          "Direct executor production HTTP was denied; browser-loaded photos were downloaded and SHA-256 compared instead."
+          "New order has not been deployed or observed in a real signed-in production session."
         ]
       },
       "evidence": [
@@ -3933,7 +3939,7 @@
         "Do not upload example people as a customer identity or automatically run a paid job.",
         "The remaining screenshot-only groups Night Drive, Asphalt and Convertible are proposed follow-ups; original full-resolution files were not attached."
       ],
-      "updatedAt": "2026-11-12T13:07:01.356Z"
+      "updatedAt": "2026-11-13T13:22:29.613Z"
     }
   ]
 }

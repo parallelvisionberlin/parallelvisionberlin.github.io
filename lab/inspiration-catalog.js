@@ -122,6 +122,15 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   const inTrack=new Set([...track.querySelectorAll(':scope > button')].map(button=>
     (button.querySelector('span,strong')?.firstChild?.textContent||'').trim().toLowerCase()));
   for(const item of sorted.slice(0,6))if(!inTrack.has(item.title.toLowerCase()))track.append(carouselCard(item,guest));
+  // Swap existing nodes so every card keeps its original selection behavior.
+  for(const [mood,concept] of [['90s-cinema','desert-stop'],['hong-kong-nights','lost-highway']]){
+    const original=track.querySelector('[data-'+(guest?'guest':'welcome')+'-mood="'+mood+'"]');
+    const featured=track.querySelector('[data-inspiration-concept="'+concept+'"]');
+    if(!original||!featured)continue;
+    const following=featured.nextSibling;
+    original.before(featured);
+    track.insertBefore(original,following);
+  }
   const viewAll=document.createElement('button');
   viewAll.type='button';viewAll.className='pv-inspiration-view-all';
   viewAll.textContent='Explore all';viewAll.setAttribute('aria-label','Explore all Inspiration looks');
@@ -130,3 +139,4 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
 const stylesheet=document.createElement('link');
 stylesheet.rel='stylesheet';stylesheet.href='./inspiration-catalog.css?v=20261111-full-portrait1';
 document.head.append(stylesheet);
+
