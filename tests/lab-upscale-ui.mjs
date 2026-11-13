@@ -615,6 +615,17 @@ try{
   assert.ok(existsSync(photographicFixture),'Approved Upscaler photographic fixture exists');
   for(const [width,height] of [[1920,910],[1440,740],[1024,520],[390,844]]){
    x=await workspace([],width,{height});await x.page.click('#tool-upscale');
+   const inspectorStyle=()=>x.page.evaluate(()=>{
+    const origin=document.querySelector('#app>.workspace>.controls').getBoundingClientRect();
+    const rect=selector=>{const el=document.querySelector(selector),r=el.getBoundingClientRect();return {x:r.x-origin.x,y:r.y-origin.y,width:r.width,height:r.height,font:getComputedStyle(el).fontSize};};
+    const body=document.querySelector('#app>.workspace>.controls>.controls-body');
+    return {title:rect('.pv-upscale-workspace-intro h2'),model:rect('#upscale-model-trigger'),scale:rect('#upscale-scale'),format:rect('#output-format'),action:rect('#generate'),overflow:getComputedStyle(body).overflowY,bodyHeight:body.clientHeight,scrollHeight:body.scrollHeight};
+   });
+   const emptyInspector=await inspectorStyle();
+   if(width>=781){
+    assert.equal(emptyInspector.overflow,'visible','Empty inspector uses page scroll too');
+    assert.ok(emptyInspector.scrollHeight<=emptyInspector.bodyHeight+1,'Empty controls need no nested scroll');
+   }
    const chooser=x.page.waitForEvent('filechooser');
    await x.page.getByRole('button',{name:'Upload an image to upscale',exact:true}).click();
    await (await chooser).setFiles({
@@ -624,6 +635,10 @@ try{
      const img=document.getElementById('preview');
      return img&&!img.hidden&&img.naturalWidth>0&&document.getElementById('app').classList.contains('pv-upscale-source-ready');
    });
+   const loadedInspector=await inspectorStyle();
+   for(const key of ['title','model','scale','format','action']){
+    assert.deepEqual(loadedInspector[key],emptyInspector[key],'Upload preserves '+key+' geometry and type at '+width+'px');
+   }
    await selectModel(x.page,/Topaz Standard V2/);
    for(const quality of ['Standard V2','High Fidelity V3']){
     await selectQuality(x.page,quality,{touch:width===390});
