@@ -3291,7 +3291,7 @@
       "component": "PV LAB Image Upscaler",
       "status": "needs_verification",
       "summary": "Use the existing compact loaded-photo inspector before upload too. Keep heading, model cards, source slot, output fields and action stable; use page scrolling instead of a nested settings scrollbar.",
-      "nextAction": "Inspect completed run 43516528503 logs, resolve the Image/Video comparison, then verify upload/Clear geometry and affected behavior before release.",
+      "nextAction": "Resolve the approved compact Image design against the existing cross-mode parity contract, diagnose the browser hang after desktop reference isolation, then complete focused geometry validation before release.",
       "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
       "reviewedSha": "372ec59fb0234d8311bf02afa52fd9f53db8ff34",
       "branch": "fix/upscaler-consistent-compact-panel-20261113",
@@ -3323,11 +3323,6 @@
           "scope": "All six local assertions."
         },
         {
-          "label": "Browser verification",
-          "result": "not_run",
-          "scope": "Local Chromium cannot launch because the runtime blocks its process socket. Existing Actions browser matrix must verify the candidate."
-        },
-        {
           "label": "Actions static validation and Video Upscaler",
           "result": "passed",
           "scope": "Both static validation checks, approved Image UI and Video Upscaler pass on 372ec59."
@@ -3335,8 +3330,19 @@
         {
           "label": "Image/Video layout browser comparison",
           "result": "failed",
-          "scope": "Parity step failed on candidate. Full job/logs remain in progress; diagnose exact assertion before release.",
+          "scope": "Failed at lab-video-upscale-layout.mjs:73: desktop Image/Video model cards differ in vertical position. The new compact Image direction conflicts with the previous empty-state cross-mode parity expectation.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43516528503"
+        },
+        {
+          "label": "Upload, processing, Clear and Queue browser checks",
+          "result": "passed",
+          "scope": "Six completed smoke groups: Queue at 1440/390px; footer through upload, processing and Clear at 1920/1440/390px; Image/Video reference isolation at 1440px.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43516528503"
+        },
+        {
+          "label": "Remaining browser matrix",
+          "result": "not_run",
+          "scope": "Job timed out in the subsequent reference-isolation portion. Full model matrix and new real-photo geometry assertions did not execute."
         }
       ],
       "deployment": {
@@ -3367,8 +3373,8 @@
         }
       ],
       "blockers": [
-        "Image/Video parity assertion failed; obtain completed job logs and resolve before merge.",
-        "Full Upscaler browser job is still running."
+        "Cross-mode model-card position assertion fails at tests/lab-video-upscale-layout.mjs:73.",
+        "Browser job timed out after six passing smoke groups; full model/real-photo matrix remains unverified."
       ],
       "doNotRepeat": [
         "No paid generation is required to validate layout.",
