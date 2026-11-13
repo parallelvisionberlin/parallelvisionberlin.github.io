@@ -286,32 +286,26 @@
 }
 
 
-/* Keep the viewport-sized workspace for the empty editor. With a photo, let
-   the settings define the minimum row height so short windows use page scroll. */
+/* Image controls use the same natural-height inspector in both states.
+   Short windows scroll the page, never a second settings panel. */
 @media(min-width:781px){
- #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #empty:not([hidden])),
- #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #preview:not([hidden])){
-   box-sizing:border-box!important;
-   height:calc(100dvh - 102px)!important;
-   min-height:0!important;max-height:none!important;overflow:hidden!important;
- }
- #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace{
+ #app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active)>.workspace{
    grid-template-rows:minmax(calc(100dvh - 102px),auto)!important;
    height:auto!important;overflow:visible!important;
  }
- #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.stage{
+ #app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{
    /* The original photo's pixel dimensions must not size the grid row. */
    contain:size;
  }
- #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.controls{
+ #app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
    height:auto!important;min-height:0!important;max-height:none!important;
    overflow:visible!important;
  }
- #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.controls>.controls-body{
+ #app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
    flex:1 0 auto!important;height:auto!important;overflow:visible!important;
    padding:64px 20px 12px!important;
  }
- #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.video-upscale-active,.assets-active,.fashion-studio-active)>.workspace>.controls>.generate-zone{
+ #app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
    box-sizing:border-box!important;position:relative!important;
    top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;
    flex:0 0 auto!important;width:100%!important;height:auto!important;min-height:0!important;

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-12T13:07:01.356Z",
+  "updatedAt": "2026-11-13",
   "handoffs": [
     {
       "id": "owner",
@@ -3287,16 +3287,17 @@
     },
     {
       "id": "upscaler-compact-loaded-deck",
-      "title": "Compact loaded Image Upscaler controls",
+      "title": "Consistent compact Image Upscaler controls",
       "component": "PV LAB Image Upscaler",
-      "status": "deployed",
-      "summary": "After upload, the Image Upscaler uses a short heading, compact source and model controls, and adjacent 38px Enlargement and Image format fields. The desktop deck grows with its settings and uses page scroll in short windows. The original photo remains contained in the existing preview.",
-      "nextAction": "Refresh the Upscaler to load the new styles.",
-      "baselineSha": "663dce86308cf9fa64d6d0d798b529f0766fc851",
-      "reviewedSha": "be0c76da20a122676d0707fa930c711e5b518f70",
-      "branch": "fix/upscaler-compact-loaded-deck-20261110",
+      "status": "needs_verification",
+      "summary": "Use the existing compact loaded-photo inspector before upload too. Keep heading, model cards, source slot, output fields and action stable; use page scrolling instead of a nested settings scrollbar.",
+      "nextAction": "Run photographic source geometry, Image/Video parity and Assets browser checks; review the preview before release.",
+      "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
+      "reviewedSha": null,
+      "branch": "fix/upscaler-consistent-compact-panel-20261113",
       "files": [
         "lab/upscale-loaded-workspace.css",
+        "lab/upscale-studio-v5.css",
         "lab/video-upscale.css",
         "lab/studio.html",
         "tests/lab-upscale-ui.mjs"
@@ -3315,54 +3316,39 @@
         {
           "label": "Approved Image UI contract",
           "result": "passed",
-          "scope": "All six local and CI assertions.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895934790"
+          "scope": "All six local assertions."
         },
         {
-          "label": "Loaded Upscaler deck",
-          "result": "passed",
-          "scope": "Both Precision versions at 1920×910, 1440×740, 1024×520 and 390×844. Real photo, no nested scroll, two adjacent settings, accessible Upscale action. Mocked upload, processing, Clear, Assets and Image/Video parity passed.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895934892"
-        },
-        {
-          "label": "Video Upscaler",
-          "result": "passed",
-          "scope": "Provider and frontend validation on the same commit.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895935213"
+          "label": "Browser verification",
+          "result": "not_run",
+          "scope": "Local Chromium cannot launch because the runtime blocks its process socket. Existing Actions browser matrix must verify the candidate."
         }
       ],
       "deployment": {
-        "state": "verified",
+        "state": "not_started",
         "environment": "Cloudflare Pages pvlab-studio",
-        "sourceSha": "8811c4155d598aab72bfb151c1a53ebc5bcd2b39",
-        "evidenceUrl": "https://pvlab.studio/studio?tool=upscale",
+        "sourceSha": null,
         "limitations": [
-          "The public browser verified versioned CSS and parsed rules. The loaded and processing states were exercised in Chromium with mocked provider responses."
+          "Candidate not published. Previous compact loaded-only release is documented in PR #956."
         ]
       },
       "evidence": [
         {
           "kind": "source",
-          "summary": "The later desktop layout in video-upscale.css reintroduced the loaded Image deck's overflow-y:auto rule. The loaded settings now set the minimum row height.",
-          "scope": "Image Upscaler loaded photo layout",
-          "source": "lab/video-upscale.css",
+          "summary": "Source-ready CSS intentionally changed title, card dimensions, output layout and scroll containment. Apply the existing compact inspector to both Image states.",
+          "scope": "Image Upscaler presentation",
+          "source": "lab/upscale-loaded-workspace.css",
           "limitations": []
-        },
-        {
-          "kind": "production_asset",
-          "summary": "Cloudflare production check 130112018535 succeeded for the exact merge. Both production versioned stylesheet rule hashes match the reviewed Pages preview.",
-          "scope": "upscale-loaded-workspace.css v20261110-compact-photo-deck2 and video-upscale.css v20261110-compact-photo-deck1",
-          "source": "https://pvlab.studio/studio?tool=upscale",
-          "limitations": [
-            "Browser comparison used parsed CSS rules, with exact source blobs checked against the reviewed commit."
-          ]
         }
       ],
-      "blockers": [],
-      "doNotRepeat": [
-        "Use page scroll in short desktop windows. Keep both output fields accessible and preserve the 38px desktop and 44px phone minimums for Precision versions."
+      "blockers": [
+        "Candidate browser checks pending."
       ],
-      "updatedAt": "2026-11-10"
+      "doNotRepeat": [
+        "No paid generation is required to validate layout.",
+        "Keep draft #982 separate; it preserves the opposite large inspector direction."
+      ],
+      "updatedAt": "2026-11-13"
     },
     {
       "id": "image-base-mode-popover",
