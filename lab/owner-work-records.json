@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-12T13:07:01.356Z",
+  "updatedAt": "2026-11-13T13:15:55Z",
   "handoffs": [
     {
       "id": "owner",
@@ -3934,6 +3934,69 @@
         "The remaining screenshot-only groups Night Drive, Asphalt and Convertible are proposed follow-ups; original full-resolution files were not attached."
       ],
       "updatedAt": "2026-11-12T13:07:01.356Z"
+    },
+    {
+      "id": "image-seedream-55",
+      "title": "Seedream 5.5 primary model; retain 5 Pro below Qwen",
+      "component": "PV LAB Image / model routing",
+      "status": "needs_verification",
+      "updatedAt": "2026-11-13T13:15:55Z",
+      "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
+      "reviewedSha": null,
+      "branch": "feat/seedream-55",
+      "summary": "Implemented separate SpicyAPI Seedream 5.5 engine as first Image model and default. Existing Seedream 5 Pro remains immediately below Qwen. Exact text/edit routing, eight-reference bound pricing, model labels, compatible Mood/reference handling and 1K/1.5K/2K controls are implemented. Existing history keeps its original model. A session capability gates 5.5 until the updated Worker is deployed.",
+      "nextAction": "Publish reviewed backend through authenticated Cloudflare access, then merge/publish frontend and verify exact live bytes plus owner/customer model switch and quote-only behavior. No paid generation needed.",
+      "files": [
+        "lab-worker/image-replacement.mjs",
+        "lab-worker/worker.mjs",
+        "lab/film-finish.js",
+        "lab/hong-kong-reference-policy.js",
+        "lab/lab.js",
+        "lab/model-labels.js",
+        "lab/mood-references.js",
+        "lab/moods.js",
+        "lab/prompt-quality.js",
+        "lab/reference-guidance.js",
+        "lab/studio.html",
+        "tests/lab-model-labels.test.mjs",
+        "tests/lab-seedream-input-pixels.test.mjs",
+        "tests/lab-worker.test.mjs"
+      ],
+      "links": [],
+      "tests": [
+        {
+          "label": "Focused Image, Worker, quote, credit, finance, Mood and history regressions",
+          "scope": "159 tests including exact 5.5 text/edit models, all eight private references, no unsupported thinking flag, invalid settings rejected before provider access, 40-credit quote and exactly one mocked confirmed submission.",
+          "result": "passed"
+        },
+        {
+          "label": "Replacement, account lifecycle and reference prewarm",
+          "scope": "22 focused tests passed; no real generation or wallet mutations.",
+          "result": "passed"
+        },
+        {
+          "label": "Legacy pixel-preparation source assertion",
+          "scope": "One pre-existing cacheKey regex assumes the pre-Qwen implementation. Existing baseline code already uses the Qwen branch. No production logic or assertion was relaxed.",
+          "result": "documented"
+        }
+      ],
+      "deployment": {
+        "state": "blocked",
+        "environment": "Cloudflare Worker parallel-vision-lab and Pages pvlab-studio",
+        "sourceSha": null,
+        "limitations": [
+          "Worker auto-deploy is paused because its Cloudflare token is unavailable. Dashboard currently requires login. Source is not deployed."
+        ]
+      },
+      "evidence": [],
+      "blockers": [
+        "Authenticated Cloudflare publishing access is required before enabling the new model in production."
+      ],
+      "doNotRepeat": [
+        "Do not relabel historical Seedream 5 Pro jobs or remove that model.",
+        "Do not hardcode estimated retail credits; keep exact live bound provider quote and existing wallet rules.",
+        "Do not run paid generations, grant credits or run migrations for verification."
+      ]
     }
   ]
 }
