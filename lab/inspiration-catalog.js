@@ -139,4 +139,3 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
 const stylesheet=document.createElement('link');
 stylesheet.rel='stylesheet';stylesheet.href='./inspiration-catalog.css?v=20261111-full-portrait1';
 document.head.append(stylesheet);
-

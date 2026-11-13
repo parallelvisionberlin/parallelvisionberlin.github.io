@@ -60,4 +60,3 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   else window.addEventListener('resize',queue,{passive:true});
   queue();
 }
-

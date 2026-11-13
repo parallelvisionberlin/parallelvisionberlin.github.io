@@ -3823,7 +3823,7 @@
       "summary": "Two existing Inspiration pairs now swap positions in guest and signed-in rows: Desert Stop / Vinyl Heat and Lost Highway / Green Haze. All 14 cards retain their DOM nodes, selection handlers, imagery and prompts. Prior road-card production verification remains historical evidence below.",
       "nextAction": "Review the scoped PR, relevant CI and deployment; verify published card order separately.",
       "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
-      "reviewedSha": null,
+      "reviewedSha": "f5dc2fa313428cf730e3cd0a04c2fb070109dd1b",
       "branch": "fix/inspiration-road-order-20261113",
       "files": [
         "lab/inspiration-road-scenes.js",
@@ -3839,6 +3839,10 @@
         {
           "label": "Released PR #1018",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1018"
+        },
+        {
+          "label": "Position swap PR #1020",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1020"
         }
       ],
       "tests": [
@@ -3879,7 +3883,7 @@
         {
           "label": "2026-11-13 order swap checks",
           "result": "passed",
-          "scope": "6 approved Image contract checks and 4 affected carousel checks passed. Actual swap block evaluated for guest and signed-in rows: expected 14-card order and original nodes/handlers preserved."
+          "scope": "23 approved Image contract, catalog and rotation checks plus 4 affected carousel checks passed. Static site validation passed. Actual swap block evaluated for both rows: expected 14-card order, original nodes and handlers preserved."
         },
         {
           "label": "Unchanged carousel comment assertion",

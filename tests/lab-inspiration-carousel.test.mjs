@@ -89,4 +89,3 @@ test('Image welcome and reopened Inspiration fit the viewport, but real History 
   assert.doesNotMatch(rules,/\.image-studio #history\s*\{/,
     'History image grid and paid jobs remain unaffected');
 });
-
