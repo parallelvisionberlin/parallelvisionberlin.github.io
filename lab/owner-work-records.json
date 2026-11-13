@@ -3291,9 +3291,9 @@
       "component": "PV LAB Image Upscaler",
       "status": "needs_verification",
       "summary": "Use the existing compact loaded-photo inspector before upload too. Keep heading, model cards, source slot, output fields and action stable; use page scrolling instead of a nested settings scrollbar.",
-      "nextAction": "Run photographic source geometry, Image/Video parity and Assets browser checks; review the preview before release.",
+      "nextAction": "Inspect completed run 43516528503 logs, resolve the Image/Video comparison, then verify upload/Clear geometry and affected behavior before release.",
       "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
-      "reviewedSha": null,
+      "reviewedSha": "372ec59fb0234d8311bf02afa52fd9f53db8ff34",
       "branch": "fix/upscaler-consistent-compact-panel-20261113",
       "files": [
         "lab/upscale-loaded-workspace.css",
@@ -3310,6 +3310,10 @@
         {
           "label": "Upscaler handoff",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
+        },
+        {
+          "label": "Consistent compact panel draft PR",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1022"
         }
       ],
       "tests": [
@@ -3322,14 +3326,26 @@
           "label": "Browser verification",
           "result": "not_run",
           "scope": "Local Chromium cannot launch because the runtime blocks its process socket. Existing Actions browser matrix must verify the candidate."
+        },
+        {
+          "label": "Actions static validation and Video Upscaler",
+          "result": "passed",
+          "scope": "Both static validation checks, approved Image UI and Video Upscaler pass on 372ec59."
+        },
+        {
+          "label": "Image/Video layout browser comparison",
+          "result": "failed",
+          "scope": "Parity step failed on candidate. Full job/logs remain in progress; diagnose exact assertion before release.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43516528503"
         }
       ],
       "deployment": {
-        "state": "not_started",
-        "environment": "Cloudflare Pages pvlab-studio",
-        "sourceSha": null,
+        "state": "blocked",
+        "environment": "Cloudflare Pages branch preview only",
+        "sourceSha": "372ec59fb0234d8311bf02afa52fd9f53db8ff34",
+        "evidenceUrl": "https://945507db.pvlab-studio.pages.dev/studio?tool=upscale",
         "limitations": [
-          "Candidate not published. Previous compact loaded-only release is documented in PR #956."
+          "Branch preview succeeded; production is unchanged. Image/Video layout comparison failed."
         ]
       },
       "evidence": [
@@ -3339,10 +3355,20 @@
           "scope": "Image Upscaler presentation",
           "source": "lab/upscale-loaded-workspace.css",
           "limitations": []
+        },
+        {
+          "kind": "fixture",
+          "summary": "Cloud browser inspected the empty preview: 26px title, compact controls, source slot and side-by-side output fields. Settings overflow-y is visible; clientHeight and scrollHeight are both 752px.",
+          "scope": "Public empty Image Upscaler preview; not loaded or paid behavior",
+          "source": "https://945507db.pvlab-studio.pages.dev/studio?tool=upscale",
+          "limitations": [
+            "No real account or generation was used."
+          ]
         }
       ],
       "blockers": [
-        "Candidate browser checks pending."
+        "Image/Video parity assertion failed; obtain completed job logs and resolve before merge.",
+        "Full Upscaler browser job is still running."
       ],
       "doNotRepeat": [
         "No paid generation is required to validate layout.",
