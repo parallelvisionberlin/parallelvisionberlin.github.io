@@ -74,6 +74,9 @@ const ORIGINS = BROWSER_ORIGINS; // CORS preflight only; JWTs are checked agains
 const VENDOR = 'https://api.spicyapi.ai/api/v1';
 const MODEL_IMAGE = 'alibaba/wan-3.0/image-to-video';
 const MODEL_REFERENCE = 'alibaba/wan-3.0/reference-to-video';
+const SEEDREAM55_TEXT='bytedance/seedream-5.5/text-to-image';
+const SEEDREAM55_EDIT='bytedance/seedream-5.5/edit';
+const SEEDREAM55_RATIOS=['1:1','4:3','3:4','16:9','9:16','3:2','2:3','21:9'];
 const STILL_TEXT = 'bytedance/seedream-5.0-pro/text-to-image';
 const STILL_EDIT = 'bytedance/seedream-5.0-pro/edit';
 const GEMINI_MODEL = 'gemini-3-pro-image';
@@ -210,7 +213,7 @@ async function config(env,owner) {
   }
   return first(env,'SELECT * FROM settings WHERE owner_id=?',owner);
 }
-function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,imageReplacementEnabled:true,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:c?.customer_no_daily_cap?null:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance','seedance15','seedance4k','kling3',...(falEnabled?['h3maxfal','omni']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Kling 3.0 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
+function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,seedream55Enabled:true,imageReplacementEnabled:true,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:c?.customer_no_daily_cap?null:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance','seedance15','seedance4k','kling3',...(falEnabled?['h3maxfal','omni']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Kling 3.0 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
 async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET') {
   let r;
   try {
@@ -302,7 +305,7 @@ function parseParameters(value) {
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceMode=value.referenceMode==='references'?'references':'base';
   const referenceRoles=referenceLabels(value.referenceRoles,10);
-  if(value.type==='image'&&['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3','krea3'].includes(value.engine)&&referenceMode==='references'){
+  if(value.type==='image'&&['seedream55','seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3','krea3'].includes(value.engine)&&referenceMode==='references'){
     for(const r of referenceRoles)if(r.role==='base')r.role='none';
     if(!value.aspectRatio||value.aspectRatio==='auto')value={...value,aspectRatio:'16:9'};
   }
@@ -330,6 +333,12 @@ function parseParameters(value) {
     if(is21&&processing==='batch')fail(400,'Nano Banana 2.1 uses immediate generation, not Batch.');
     if(prompt.length>5000||!['1k','2k','4k'].includes(value.resolution)||!GEMINI_RATIOS.includes(ratio))fail(400,'Nano Banana supports 1K, 2K or 4K and the listed image ratios. Maximum prompt length is 5,000.');
     return {type:'image',provider:'gemini',engine:value.engine,processing,referenceMode,model:is21?NANO21_MODEL:GEMINI_MODEL,mode:'image',prompt,resolution:value.resolution,aspectRatio:ratio,outputFormat:'auto',referenceRoles,...imageMoodMetadata(value)};
+  }
+  if(value.type==='image'&&value.engine==='seedream55'){
+    const ratio=value.aspectRatio||'1:1';
+    if(prompt.length>5000||!['1k','1.5k','2k'].includes(value.resolution)||!SEEDREAM55_RATIOS.includes(ratio))fail(400,'Seedream 5.5 supports 1K, 1.5K or 2K and the listed image ratios. Maximum prompt length is 5,000.');
+    if(!['png','jpeg'].includes(value.outputFormat||'png'))fail(400,'Choose PNG or JPEG.');
+    return {type:'image',provider:'spicy',engine:'seedream55',referenceMode,model:SEEDREAM55_TEXT,mode:'image',prompt,resolution:value.resolution,aspectRatio:ratio,outputFormat:value.outputFormat||'png',referenceRoles,...imageMoodMetadata(value)};
   }
   if(value.type==='image'){
     if(prompt.length>5000||!['1k','2k'].includes(value.resolution)||!RATIOS.includes(value.aspectRatio||'1:1'))fail(400,'Choose 1K or 2K and a supported image ratio. Maximum prompt length is 5,000.');
@@ -523,7 +532,7 @@ async function prepareInput(env,owner,data,p,url) {
     if(refs.length&&url)input.image_urls=await Promise.all(refs.map(ref=>signedInput(env,url,ref.id)));
   }else if(p.type==='image'){
     const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds):[];
-    primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;p.model=refs.length||builtInMoodReferenceCount(p)?STILL_EDIT:STILL_TEXT;
+    primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;p.model=p.engine==='seedream55'?(refs.length||builtInMoodReferenceCount(p)?SEEDREAM55_EDIT:SEEDREAM55_TEXT):(refs.length||builtInMoodReferenceCount(p)?STILL_EDIT:STILL_TEXT);
     input={resolution:p.resolution,aspect_ratio:p.aspectRatio==='auto'&&!refs.length?'1:1':p.aspectRatio,output_format:p.outputFormat,...(p.engine==='seedream'&&p.model===STILL_EDIT&&p.moodId!=='hong-kong-nights'?{enable_thinking:true}:{})};
     if(refs.length&&url)input.image_urls=await Promise.all(refs.map(a=>signedInput(env,url,a.id)));
   }else if(['h3','h3max','h3spicy'].includes(p.engine)){
@@ -1395,7 +1404,7 @@ async function route(request,env,ctx) {
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range,X-PV-Lab-Client,X-Replacement-Job-Id','Access-Control-Max-Age':'600'}});
   if(url.pathname==='/api/public/local-currency'&&request.method==='GET')return localCurrency(request);
-  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1',seedanceExtendReferences:'20261112-extend-refs1'});
+  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1',seedanceExtendReferences:'20261112-extend-refs1',seedream55:'20261113-seedream55-1'});
   if(url.pathname.startsWith('/api/music/public/'))return musicPublicRoute(request,env);
   // PV LAB anonymous traffic uses its own origin-checked, bounded payload.
   if(url.pathname==='/api/public/traffic'&&request.method==='POST')return recordLabTraffic(request,env);
@@ -1941,7 +1950,7 @@ async function route(request,env,ctx) {
     const data=await body(request),p=parameters(data.settings);
     const quoteCount=data.count===undefined?1:Number(data.count);
     if(!Number.isInteger(quoteCount)||quoteCount<1||quoteCount>4)fail(400,'Choose 1 to 4 images for one price check.');
-    if(quoteCount>1&&!(p.type==='image'&&['seedream','seedreamlite','flash','qwen3','zspicy'].includes(p.engine)&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for SpicyAPI image generation.');
+    if(quoteCount>1&&!(p.type==='image'&&['seedream55','seedream','seedreamlite','flash','qwen3','zspicy'].includes(p.engine)&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for SpicyAPI image generation.');
     if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0))fail(400,'Add a prompt or at least one reference photograph.');
     if(p.engine==='seedance'&&p.mode==='extend'&&data.referenceSourceIds?.length)return json(await quoteVideoExtension(env,owner,data,p,url,hfDeps()));
     if(p.provider==='higgsfield'&&p.mode==='transform')return json(await quoteCharacterTransform(env,owner,data,p,url,hfDeps()));
@@ -2002,7 +2011,7 @@ async function route(request,env,ctx) {
         p.transferNotes=transfers.map((a,i)=>a.id===originals[i]?'':originalsData[i].filename+': original '+(originalsData[i].bytes/1048576).toFixed(2)+' MiB; provider working copy '+(a.bytes/1048576).toFixed(2)+' MiB.').filter(Boolean);
       }
       if(originals.length||builtIn.length){
-        const uris=await stageImageReferences(env,owner,p.transferSourceIds||[],key,10,['seedream','seedreamlite','flash'].includes(p.engine)?36000000:0,builtIn);
+        const uris=await stageImageReferences(env,owner,p.transferSourceIds||[],key,10,['seedream55','seedream','seedreamlite','flash'].includes(p.engine)?36000000:0,builtIn);
         if(['upscale','reinterpret'].includes(p.mode))input.image_url=uris[0];else input.image_urls=uris;
       }
     }
@@ -2122,7 +2131,7 @@ async function route(request,env,ctx) {
     const {c,key}=await requireConfigured(env,owner);
     if(params.type==='image'&&params.moodId==='hong-kong-nights'&&(params.moodReferenceVersion!==HONG_KONG_REFERENCE_VERSION||params.moodReferenceCount!==HONG_KONG_REFERENCES.length||savedPayload.input?.image_urls?.length!==(params.referenceSourceIds?.length||0)+HONG_KONG_REFERENCES.length))
       fail(409,'Hong Kong Nights reference pack changed. Refresh the generation price to attach both original Style photos. Nothing was submitted.');
-    if([STILL_EDIT,QWEN3_EDIT,SEEDREAM_LITE_EDIT,FLASH_EDIT].includes(savedPayload.model)&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
+    if([SEEDREAM55_EDIT,STILL_EDIT,QWEN3_EDIT,SEEDREAM_LITE_EDIT,FLASH_EDIT].includes(savedPayload.model)&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
       fail(409,'This image quote uses the old reference transfer. Review a fresh price to verify your images before generating. Nothing was submitted.');
     if(savedPayload.model===UPSCALER&&!FILE_URI.test(savedPayload.input?.image_url||''))fail(409,'Review a fresh upscale quote to verify the input file. Nothing was submitted.');
     for(const assetId of linkedSourceIds(q))await source(env,owner,assetId);

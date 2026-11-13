@@ -7,6 +7,8 @@ import {imageModelLabel} from '../lab/model-labels.js';
 // The label must describe the model that generated the saved result,
 // not the current Studio selection and never a blanket Seedream Pro fallback.
 const cases=[
+  [{engine:'seedream55',model:'bytedance/seedream-5.5/edit'},'Seedream 5.5'],
+  [{engine:'seedream55',model:'bytedance/seedream-5.0-pro/edit'},'Seedream 5 Pro'],
   [{engine:'seedream',model:'bytedance/seedream-5.0-pro/edit'},'Seedream 5 Pro'],
   [{model:'bytedance/seedream-5.0-pro/edit'},'Seedream 5 Pro'], // early owner jobs
   [{engine:'seedreamlite',model:'bytedance/seedream-5.0-lite/text-to-image'},'Seedream 5 Lite'],

@@ -1,6 +1,6 @@
 // Shared by the image UI and Worker so the preview matches the submitted prompt.
-import {imageQualityGuidance,referenceRoleAdvisories} from './prompt-quality.js?photoOnlyAnatomy=20261022v1';
-import {hongKongReferenceCount,hongKongReferenceError,hongKongReferenceGuidance} from './hong-kong-reference-policy.js?hkBalanced=20261023v1&hkCinema=20261025v1';
+import {imageQualityGuidance,referenceRoleAdvisories} from './prompt-quality.js?photoOnlyAnatomy=20261022v1&seedream55=1';
+import {hongKongReferenceCount,hongKongReferenceError,hongKongReferenceGuidance} from './hong-kong-reference-policy.js?hkBalanced=20261023v1&hkCinema=20261025v1&seedream55=1';
 import {compactReviewedReplacementPrompt} from './viewer-replacement-prompt.js?v=20261108-compact1';
 export {referenceRoleAdvisories};
 // No-direction Base only: protect identity, pose and visible anatomy before any subtle refinement.
@@ -42,7 +42,7 @@ const compactDescriptions = Object.freeze({
   none:'General visual reference: optional cues only; never override the Base, specified roles or requested edit.'
 });
 export function supportsReferenceGuidance(p){
-  return p?.type==='image' && p.mode==='image' && (!p.engine || ['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3','krea3'].includes(p.engine));
+  return p?.type==='image' && p.mode==='image' && (!p.engine || ['seedream55','seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3','krea3'].includes(p.engine));
 }
 export function normalizeReferenceLabel(x){
   const role=REFERENCE_ROLES.some(([id])=>id===x?.role)?x.role:'none';
@@ -63,7 +63,7 @@ export function normalizeReferenceLabel(x){
 }
 export function builtInMoodReferenceCount(settings={}){
   if(settings.moodId==='hong-kong-nights')return hongKongReferenceCount(settings);
-  return settings.type==='image'&&settings.mode==='image'&&['berlin-rave','dreamcore','synthetic-romance'].includes(settings.moodId)&&['seedream','seedreamlite','gemini','gemini21'].includes(settings.engine)?3:0;
+  return settings.type==='image'&&settings.mode==='image'&&['berlin-rave','dreamcore','synthetic-romance'].includes(settings.moodId)&&['seedream55','seedream','seedreamlite','gemini','gemini21'].includes(settings.engine)?3:0;
 }
 export function referenceGuidanceError(labels,settings={}){
   const hkError=hongKongReferenceError(settings,labels.length);if(hkError)return hkError;

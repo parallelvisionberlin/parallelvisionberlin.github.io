@@ -2,7 +2,7 @@ import {WON_KAR_NIGHT,prepareWonKarNight} from './won-kar-night.js?v=20261106v1'
 import {prepareSoulNightFlash} from './night-flash-soul.js?v=20261106v1';
 import {EIGHTIES_TAPE_RECIPE} from './80s-film-recipe.js?v=20261024v3';
 import {prepareDreamBlurBasePrompt} from './dream-blur-base.js?v=20261024v1&dreamBlurExposure=20261102v2';
-import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10&hkCinema=20261025v1';
+import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10&hkCinema=20261025v1&seedream55=1';
 import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2&hkCinema=20261025v1';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const NIGHT_FLASH_HEADER='NIGHT FLASH / AUTHENTIC PAPARAZZI-EDITORIAL PHOTOGRAPHY. ';
@@ -336,7 +336,7 @@ export function moodPreviewURL(mood,{detail=false}={}){
   return detail?(mood.previewFull||mood.preview):mood.preview;
 }
 
-export const MOOD_MODELS=Object.freeze(['seedream','seedreamlite','krea3','gemini','gemini21','qwen3','zspicy']);
+export const MOOD_MODELS=Object.freeze(['seedream55','seedream','seedreamlite','krea3','gemini','gemini21','qwen3','zspicy']);
 export const moodById=id=>ALL_MOODS.find(m=>m.id===id)||OWNER_MOODS.find(m=>m.id===id)||null;
 // This is intentionally presentation-only. Jobs retain the full provider prompt for
 // reproduction, but the viewer and History show only user-authored text.
@@ -543,7 +543,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     'SELECTED MORPHOLOGY: restrained facial modification with radical torso and arm reconstruction, layered smoked-metal plates and routed cables.'
   ];
   const syntheticMorphology=syntheticRomance&&intensity>=35?syntheticMorphologies[Math.floor((intensity-35)/13)%syntheticMorphologies.length]:'';
-  const ownerRelight=ownerNightFlashBase&&mood.id==='night-flash'&&engine==='seedream'&&referenceMode==='base'&&referenceCount===1;
+  const ownerRelight=ownerNightFlashBase&&mood.id==='night-flash'&&['seedream','seedream55'].includes(engine)&&referenceMode==='base'&&referenceCount===1;
   const style=ownerRelight
     ?NIGHT_FLASH_HEADER+'Edit this exact Base photograph. Change only its lighting, color and film grain. Preserve every face with the original facial geometry, exact head angle, eye direction and expression. Preserve the pose, camera perspective, framing and crop. Relight the existing scene '+NIGHT_FLASH_LIGHT+', '+NIGHT_FLASH_FINISH+' '+mood.intense
     :hyperPop
@@ -993,7 +993,7 @@ export function createMoodSelector({panel,button,getEngine,getOwner=()=>false,ch
       }
     }
   });
-  switcher.onclick=()=>{chooseEngine(moodById(selected)?.ownerOnly?'soul2':'seedream');render();onChange({selectedMood:true});};
+  switcher.onclick=()=>{chooseEngine(moodById(selected)?.ownerOnly?'soul2':'seedream55');render();onChange({selectedMood:true});};
   grid.setAttribute('aria-label','Available moods; scroll down to explore more looks');
   function refreshViewport(){
     if(panel.hidden||document.documentElement.classList.contains('pv-native-lab'))return;
