@@ -1,9 +1,11 @@
 ## 2026-11-13 / curated twelve-character homepage selection
-- Added four existing Full Editorial portraits: Slate, Cobalt, Pearl and Acid, after the eight originals.
-- Homepage-only HTML additions; existing card size, layout, typography, creation upload and carousel JS/CSS preserved.
-- Assets: `lab/visuals/character-casting/{slate,cobalt,pearl,acid}-cast-20261111.jpg`, all 1125×2000.
-- 20 existing approved Image / character / carousel tests passed. Diff contains four added figures only.
-- Publication and rendered candidate QA pending; track `home-character-selection-20261113` in owner-work-records.json.
+- Complete: PR #1021 merged as `97449acd7e2462a4364a81a3b2078123fb898271`; reviewed source `4b70c08313b68436aabb370bb24f7309afab004e`.
+- Added Slate, Cobalt, Pearl and Acid from existing Full Editorial casting, retaining all eight originals and existing styling/creation/carousel code.
+- 20 focused Image/character/carousel tests and static build pass; required remote Image/validation and Owner checks pass.
+- Cloudflare Pages production check `132202166978` succeeded. Exact live character HTML section matches reviewed source (SHA256 `9dc47d2d6122b1d4a41508c17f9079aa4b5e57a784d885d8c7aa1ff447a5ad95`).
+- Preview: all 12 images loaded. Live 1363px desktop: four new portraits rendered, 12 cards, End reaches exact 1783px rail boundary, no document overflow.
+- Phone rendering and real signed-in creation not observed. No paid job, wallet, Worker or billing changes. Existing unrelated CI failures were inspected and not weakened.
+- Structured publication evidence: `home-character-selection-20261113` in owner-work-records.json. No implementation action pending.
 
 ## 2026-11-02 / homepage drag-and-drop 1–8 identity photographs
 - Owner requested the whole ivory + card accept dropped images, individually or in batches, up to eight.

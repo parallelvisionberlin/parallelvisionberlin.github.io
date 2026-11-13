@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-13T22:55:00Z",
+  "updatedAt": "2026-11-13T22:13:04Z",
   "handoffs": [
     {
       "id": "owner",
@@ -3939,32 +3939,45 @@
       "id": "home-character-selection-20261113",
       "title": "Homepage curated twelve-character selection",
       "component": "PV LAB homepage / Characters",
-      "status": "needs_verification",
+      "status": "deployed",
       "summary": "Added Slate, Cobalt, Pearl and Acid from the existing Full Editorial casting section after the eight original homepage portraits. Existing card dimensions, copy, upload CTA and carousel logic are unchanged.",
-      "nextAction": "Review Cloudflare preview phone/desktop and relevant CI; merge then verify exact production HTML and carousel.",
-      "updatedAt": "2026-11-13T22:55:00Z",
+      "nextAction": "Complete. Phone rendering and real signed-in character creation were not observed; no generation or billing changes.",
+      "updatedAt": "2026-11-13T22:13:04Z",
       "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
-      "reviewedSha": null,
+      "reviewedSha": "4b70c08313b68436aabb370bb24f7309afab004e",
       "branch": "feat/home-character-selection-20261113",
       "files": [
         "lab/index.html",
         "lab/CHARACTER-HOME-WORK-STATE.md"
       ],
-      "links": [],
+      "links": [
+        {
+          "label": "Merged PR #1021",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1021"
+        }
+      ],
       "tests": [
         {
           "label": "Approved Image, character invitation and carousel",
           "result": "passed",
           "scope": "20 existing Node tests; asset dimensions confirmed 1125x2000.",
           "observedAt": "2026-11-13"
+        },
+        {
+          "label": "Static build and required remote checks",
+          "result": "passed",
+          "scope": "npm run build; approved-image-ui, validate and owner CI passed.",
+          "observedAt": "2026-11-13"
         }
       ],
       "deployment": {
-        "state": "not_started",
-        "environment": "Cloudflare Pages pvlab-studio",
-        "sourceSha": null,
+        "state": "verified",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "sourceSha": "97449acd7e2462a4364a81a3b2078123fb898271",
+        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/9d7aa698-5cc0-4e72-abeb-1f5b4f409db5",
+        "observedAt": "2026-11-13",
         "limitations": [
-          "Rendered candidate and production pending."
+          "Desktop public gallery observed; physical phone and signed-in creation not exercised."
         ]
       },
       "evidence": [
@@ -3975,6 +3988,17 @@
           "source": "lab/index.html",
           "limitations": [
             "No signed-in workflow or paid generation exercised."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Exact live character section matches reviewed HTML, SHA256 9dc47d2d6122b1d4a41508c17f9079aa4b5e57a784d885d8c7aa1ff447a5ad95. Live desktop browser shows 12 cards, four new portraits rendered, End reaches 1783px boundary and no page overflow. Cloudflare check 132202166978 succeeded for merge 97449acd7e2462a4364a81a3b2078123fb898271.",
+          "scope": "Public homepage character gallery at 1363px viewport.",
+          "source": "https://pvlab.studio/#create-your-character",
+          "observedAt": "2026-11-13",
+          "limitations": [
+            "Offscreen original lazy-loaded images were not all loaded in the final End-position snapshot; preview had all twelve loaded.",
+            "Existing broad CI failures remain: landing fails unchanged guest Inspiration looks assertion; core test run flags PR fixture assertion; not weakened."
           ]
         }
       ],
