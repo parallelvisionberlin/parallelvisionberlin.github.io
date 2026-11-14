@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-14T18:24:27.651Z",
+  "updatedAt": "2026-11-14T18:33:54.690Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4003,6 +4003,103 @@
         "Preserve all eight original cards, upload tile, typography, card size and carousel behavior.",
         "Reuse existing casting assets; no generation required."
       ]
+    },
+    {
+      "id": "customer-risk-ci-coverage-20261114",
+      "title": "Restore blocked PV LAB browser verification",
+      "component": "CI / customer-risk regression coverage",
+      "status": "needs_verification",
+      "summary": "Prepared supported Ubuntu 24.04 runners for ten browser jobs pinned to Playwright 1.55/1.57. Fixed a diagnostic precondition that wrongly required image-tools.js to differ from current main, preventing unchanged and main runs from reaching reference-deck checks. Production application, billing, Worker, schema and assertions on preview dimensions/nonempty files are unchanged.",
+      "nextAction": "Run exact candidate CI in a draft PR; inspect actual browser failures after installation. Keep existing fixture repair PR #934 and active feature PRs separate. Do not merge or deploy from this monitoring task.",
+      "baselineSha": "ecac340065516290d9b933eed84ab7f899e89ad6",
+      "reviewedSha": null,
+      "branch": "fix/customer-risk-ci-20261114",
+      "files": [
+        ".github/workflows/lab-first-image-trial.yml",
+        ".github/workflows/lab-gallery-layout.yml",
+        ".github/workflows/lab-public-studio-tests.yml",
+        ".github/workflows/pv-lab-fashion-browser.yml",
+        ".github/workflows/pv-lab-fastqueue-browser.yml",
+        ".github/workflows/pv-lab-image-paste.yml",
+        ".github/workflows/pv-lab-mobile.yml",
+        ".github/workflows/pv-lab-mood-creator.yml",
+        ".github/workflows/pv-lab-precision-edit-ui.yml",
+        "tests/lab-image-preview-benchmark.mjs"
+      ],
+      "links": [
+        {
+          "label": "Runner installation failure, job 132203005285",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43517474986/job/132203005285"
+        },
+        {
+          "label": "Reference benchmark precondition, job 132203005151",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43517475203/job/132203005151"
+        },
+        {
+          "label": "Existing fixture repair PR #934",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/934"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Workflow semantic comparison",
+          "result": "passed",
+          "scope": "Parsed all nine changed workflow files; only ten runs-on values changed. Steps, permissions, triggers, checks and dependencies retained."
+        },
+        {
+          "label": "Pre-change broad Lab baseline",
+          "result": "failed",
+          "scope": "Exact base ecac340: 1250 tests, 1230 passed, 20 failed on local Node 24.22.1. Nineteen existing catalog/design assertions plus Dream Blur asynchronous scheduling assertion; no application change in this candidate."
+        },
+        {
+          "label": "Local browser runtime",
+          "result": "not_run",
+          "scope": "Chromium cannot start in this execution environment: process singleton socket returns Operation not permitted. No browser behavior or hosted runner success claimed."
+        },
+        {
+          "label": "Focused customer safety regressions",
+          "result": "passed",
+          "scope": "179/179 isolated tests: approved Image UI, Clerk/auth, signed checkout and webhook-to-credit delivery, debit/refund/idempotency, image quotes, video credit handling, Worker job lifecycle and reference preparation. No real payments or paid provider requests."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "sourceSha": null,
+        "environment": "Draft branch only",
+        "limitations": [
+          "No merge, production publication, Worker deployment, migration, payment, credit change or paid generation performed.",
+          "Existing Worker and authenticated production verification gaps remain unchanged."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Ubuntu-latest installation error explicitly says Playwright does not support chromium on ubuntu26.04-x64; existing Seedance workflows use ubuntu-24.04 successfully.",
+          "scope": "Browser test installation compatibility",
+          "source": ".github/workflows/lab-seedance-tests.yml",
+          "limitations": [
+            "The candidate hosted runs are not yet verified."
+          ]
+        },
+        {
+          "kind": "automated_test",
+          "summary": "Reference job fails at assert.notEqual on identical image-tools source before its browser starts.",
+          "scope": "Diagnostic precondition only",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43517475203/job/132203005151",
+          "limitations": [
+            "No production reference-upload failure inferred from this check."
+          ]
+        }
+      ],
+      "blockers": [
+        "Hosted browser validation pending; local Chromium startup is denied.",
+        "Main retains known red catalog/design and account browser checks; these are not evidence of lost credits or payment harm by themselves."
+      ],
+      "doNotRepeat": [
+        "Do not rewrite approved catalog/design to silence assertions. Reuse existing PR #934 for its test-fixture files.",
+        "Do not overlap current Upscaler, Inspiration ordering, Seedream or Chrome Desert feature branches."
+      ],
+      "updatedAt": "2026-11-14T18:33:54.690Z"
     }
   ]
 }
