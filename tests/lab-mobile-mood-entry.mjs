@@ -245,6 +245,12 @@ try{
         document.getElementById('image-studio').hidden=false;
         document.getElementById('image-composer').hidden=false;
         document.getElementById('image-composer').classList.add('is-seedream');
+        // This fixture blocks the account module; mirror the real first-image
+        // welcome state rather than comparing guest entry with private History.
+        document.getElementById('lab-welcome-start').hidden=false;
+        document.getElementById('image-gallery-empty').hidden=false;
+        document.getElementById('lab-image-empty-intro').hidden=true;
+        document.getElementById('image-composer').dataset.mobileSettings='closed';
         document.getElementById('image-composer-references').hidden=true;
       });
       await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));

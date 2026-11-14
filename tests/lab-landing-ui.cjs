@@ -71,7 +71,7 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('.pv-studios-retouch-artwork').count(),1,'Retouch presents high resolution editorial portrait');
   assert.match(await page.locator('.pv-studios-retouch-artwork').getAttribute('src'),/1904c918-0012-4c9c-9784-f2f14adc2b5a\.png$/);
   assert.equal(await page.locator('.pv-studios-tile').first().evaluate(el=>parseFloat(getComputedStyle(el).borderRadius)),0,'Approved Studios cards retain square editorial corners');
-  assert.match(await page.locator('.pv-studios-meta strong').first().evaluate(el=>getComputedStyle(el).fontFamily),/DM Sans|Arial|sans-serif/);
+  assert.match(await page.locator('.pv-studios-meta strong').first().evaluate(el=>getComputedStyle(el).fontFamily),/Bodoni MT|Didot|Times New Roman/);
   assert.equal(await page.locator('.pv-studios-fashion-artwork').evaluate(async img=>{await img.decode();return img.naturalHeight>=1000}),true,'Fashion hero uses an actual HD source instead of 247px legacy sprite');
   assert.equal(await page.locator('.pv-studios-kicker').innerText(),'STUDIOS');
   assert.equal(await page.locator('.pv-studios-editorial-go').count(),0,'No old circular navigation controls');

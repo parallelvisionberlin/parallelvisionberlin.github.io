@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-14T19:12:17.537Z",
+  "updatedAt": "2026-11-14T19:16:57.222Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4080,11 +4080,11 @@
       "id": "customer-risk-ci-coverage-20261114",
       "title": "Stop phone Mood selection freezing and restore regression coverage",
       "component": "CI / customer-risk regression coverage",
-      "status": "in_progress",
-      "summary": "Exact foundation and fixture repairs pass all 1256 local source/work-state checks. Hosted Chromium and WebKit diagnose a real phone UI starvation loop: lab-welcome-start.class repeatedly triggers the deck MutationObserver. The candidate makes the observed phone-lift class addition idempotent and refreshes its asset URL. A separate measured 7.5px guest/authenticated desktop deck shift is addressed by reserving the same desktop scrollbar gutter on guest Image. Existing checkout, wallet, provider, Worker and schema behavior is unchanged. Browser validation of these final changes remains required.",
+      "status": "needs_verification",
+      "summary": "The phone Mood observer fix is independently confirmed in mocked Chromium and WebKit account suites on 1a00b276: guarded checkout, credit notices, balances, account switching and sign-out complete without starvation at desktop/phone widths. All 1256 local source/work-state tests also pass on that exact commit. Remaining required layout fixtures are being reconciled with real boot and settled-animation states. Corrected an assistant-authored wrong menu-font expectation back to the original approved Bodoni/Didot serif; no product font changed.",
       "nextAction": "Hold the final candidate fixed. Run Chromium and WebKit account flows plus the mandatory Image paste, first-image, Studio layout and Soul parity browser suites. Inspect newly exposed fixture or visual failures against documented approved behavior. Do not merge or deploy without the required user decision.",
       "baselineSha": "ecac340065516290d9b933eed84ab7f899e89ad6",
-      "reviewedSha": "ce2b0b74a0c42db70706f418e09079d35efc538e",
+      "reviewedSha": "1a00b276468fe4ab32839b24cd4df17a74478668",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
         ".github/workflows/lab-tests.yml",
@@ -4184,6 +4184,23 @@
           "label": "Phone-fix focused source contracts",
           "result": "passed",
           "scope": "58 approved Image, Video and Mood contract checks pass after the idempotent phone-lift and shared desktop gutter changes. Browser verification of the final commit is still required."
+        },
+        {
+          "label": "Exact phone-fix source regression",
+          "result": "passed",
+          "scope": "1a00b276: 1256/1256 local Lab and work-state checks."
+        },
+        {
+          "label": "Phone fix Chromium account browser",
+          "result": "passed",
+          "scope": "1a00b276: zero-credit Mood selection, guarded checkout, balance refresh, pilot readiness, duplicate/session safeguards, private-state isolation and sign-out at 1440/768/390/320px.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43630872749/job/132556941636"
+        },
+        {
+          "label": "Phone fix WebKit account browser",
+          "result": "passed",
+          "scope": "1a00b276: same intercepted account and billing cases; no observer-starvation error. Actual customer Safari/Stripe production behavior remains separate.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43630872749/job/132556941800"
         }
       ],
       "deployment": {
@@ -4253,14 +4270,14 @@
         }
       ],
       "blockers": [
-        "Final phone-fix Chromium/WebKit and mandatory Image browser validation pending.",
-        "Some previously blocked visual suites expose old baseline/fixture mismatches; do not silently bypass them or change approved design merely to clear checks."
+        "Required layout/visual browser checks still need final-candidate validation.",
+        "A wrong menu font expectation introduced in test maintenance was caught in CI and reverted; candidate readiness remains blocked until revalidated."
       ],
       "doNotRepeat": [
         "Do not rewrite approved catalog/design to silence assertions. Reuse existing PR #934 for its test-fixture files.",
         "Do not overlap current Upscaler, Inspiration ordering, Seedream or Chrome Desert feature branches."
       ],
-      "updatedAt": "2026-11-14T19:12:17.537Z"
+      "updatedAt": "2026-11-14T19:16:57.222Z"
     }
   ]
 }

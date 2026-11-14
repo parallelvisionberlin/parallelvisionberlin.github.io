@@ -399,7 +399,7 @@ try{
    assert.ok(compositionImages.every(src=>src===remainingCover),'Removed model is not retained in disabled Composition photos');
    // Swapping source tabs keeps the approved Identity frame, pinned card and
    // Composition shelf in precisely the same positions.
-  await page.evaluate(async()=>{await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
+  await page.evaluate(async()=>{await document.fonts.ready;await Promise.allSettled(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished));await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
   const beforeSaved=await page.evaluate(()=>{
    const box=id=>{const r=document.querySelector(id).getBoundingClientRect();return {top:r.top,left:r.left,width:r.width,height:r.height}};
    return {gallery:box('#casting-reference-gallery'),pinned:box('.editorial-cast-pinned'),footer:box('#step-footer'),composition:box('#editorial-casting-controls')};
@@ -415,6 +415,7 @@ try{
    assert.equal(await page.locator('#panel-model .editorial-casting-top h3').isVisible(),false,'No second Choose your cast heading');
    assert.equal(await page.locator('#editorial-cast-search').isVisible(),true,'Saved character search remains available');
   }
+  await page.evaluate(async()=>{await Promise.allSettled(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished));});
   const afterSaved=await page.evaluate(()=>{
    const box=id=>{const r=document.querySelector(id).getBoundingClientRect();return {top:r.top,left:r.left,width:r.width,height:r.height}};
    return {gallery:box('#casting-reference-gallery'),pinned:box('.editorial-cast-pinned'),footer:box('#step-footer'),composition:box('#editorial-casting-controls')};
