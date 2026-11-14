@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-14T18:28:34.983Z",
+  "updatedAt": "2026-11-14T18:30:05.886Z",
   "handoffs": [
     {
       "id": "owner",
@@ -231,11 +231,11 @@
       "id": "chrome-desert-world-handoff-20261111",
       "title": "Chrome Desert featured world to Full Editorial",
       "component": "PV LAB homepage / Full Editorial",
-      "status": "needs_verification",
-      "summary": "Chrome Desert crop fix top-aligns the original main photograph so the model’s head stays visible inside the wide homepage frame.",
-      "nextAction": "Verify preview and relevant CI, merge approved framing fix, verify Cloudflare production.",
+      "status": "deployed",
+      "summary": "Chrome Desert homepage crop now keeps the model’s entire head visible. Original photo, supporting cards, layout and CTA preserved.",
+      "nextAction": "No crop implementation pending. Mobile rendering was not freshly browser-tested in this release.",
       "baselineSha": "739b9b3fde2092b259997b7a98e8be83b950ba1d",
-      "branch": "fix/chrome-desert-head-framing",
+      "branch": "fix/chrome-desert-head-framing-20261114",
       "files": [
         "lab/index.html",
         "lab/home-featured-photo-pack.css",
@@ -258,6 +258,10 @@
         {
           "label": "Draft feature PR #964",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/964"
+        },
+        {
+          "label": "Head framing fix PR #1023",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1023"
         }
       ],
       "tests": [
@@ -288,6 +292,19 @@
           "scope": "Relevant PR #964 GitHub Actions checks passed; unrelated pre-existing repository-wide failures were not changed or masked.",
           "observedAt": "2026-11-11T02:46:05.577Z",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/964"
+        },
+        {
+          "label": "Crop fix focused Node checks",
+          "result": "passed",
+          "scope": "13/13 homepage, world and approved Image UI contract tests passed on integrated current main.",
+          "observedAt": "2026-11-14T18:30:05.886Z"
+        },
+        {
+          "label": "Live desktop framing",
+          "result": "passed",
+          "scope": "Preview and pvlab.studio visually show entire head; hero loaded and computed object-position is 50% 0%.",
+          "observedAt": "2026-11-14T18:30:05.886Z",
+          "source": "https://pvlab.studio/"
         }
       ],
       "blockers": [],
@@ -297,13 +314,15 @@
         "Do not give preset images to customer private Photo Packs automatically.",
         "Do not publish on a failed or unverified release."
       ],
-      "updatedAt": "2026-11-14T18:23:50.959Z",
+      "updatedAt": "2026-11-14T18:30:05.886Z",
       "deployment": {
-        "state": "pending",
-        "sourceSha": null,
+        "state": "verified",
+        "sourceSha": "ecac340065516290d9b933eed84ab7f899e89ad6",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-14T18:30:05.886Z",
+        "evidenceUrl": "https://pvlab.studio/",
         "limitations": [
-          "Owner authorized push and deployment on 2026-11-14. Crop fix not yet deployed."
+          "Fresh mobile browser rendering not performed. Existing unrelated CI failures include stale Moods label assertion, video preload assertion and Playwright runner incompatibility. No paid jobs or account actions."
         ]
       },
       "evidence": [
@@ -326,9 +345,16 @@
           "limitations": [
             "No real customer account/payment or provider inference was used."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Cloudflare deployment f70da8a8-abcd-4ee4-8706-93610e2c3093 succeeded. Homepage and CSS HTTP 200, correct stylesheet version, exact CSS byte match SHA256 03ce0ad1662d73b8fe12bb991e437d9501d4fac5ef294094ac7649a4b1a50883; live desktop screenshot shows full head.",
+          "scope": "Chrome Desert homepage crop only",
+          "observedAt": "2026-11-14T18:30:05.886Z",
+          "source": "https://pvlab.studio/"
         }
       ],
-      "reviewedSha": "766540fec6eac12f9d329508bfddcfee9d375245"
+      "reviewedSha": "aa7042d6b5cc49ccc3e9faa690d98b21769961d2"
     },
     {
       "id": "image-count-stepper-20261110",
