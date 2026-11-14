@@ -163,7 +163,7 @@ async function verifyPhotographicLayout(){
    });
    await x.page.waitForFunction(()=>{
      const img=document.getElementById('preview');
-     return img&&!img.hidden&&img.naturalWidth>0&&document.getElementById('app').classList.contains('pv-upscale-source-ready');
+     return img&&!img.hidden&&img.naturalWidth>0&&document.getElementById('app').classList.contains('pv-upscale-source-ready')&&window.__labTest.settled();
    });
    const loadedInspector=await inspectorStyle();
    for(const key of ['title','model','scale','format','action']){
@@ -224,6 +224,11 @@ async function verifyPhotographicLayout(){
    assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),beforeToggleQuality,'Reopen restores the selected quality');
    assert.equal(quoteRequests(x).length,0,'Opening and closing never fetches a paid quote');
    assert.equal(countPaid(x),0,'Opening and closing never submits generation');
+   const beforeClear=await inspectorStyle();
+   await x.page.getByRole('button',{name:'Clear',exact:true}).click();
+   await x.page.waitForFunction(()=>!document.getElementById('app').classList.contains('pv-upscale-source-ready')&&window.__labTest.settled());
+   const afterClear=await inspectorStyle();
+   for(const key of ['title','model','scale','format','action'])assert.deepEqual(afterClear[key],beforeClear[key],'Clear preserves '+key+' geometry at '+width+'px');
    assert.deepEqual(x.errors,[]);
    await x.context.close();
   }
