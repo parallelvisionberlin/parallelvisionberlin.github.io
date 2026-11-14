@@ -1,9 +1,6 @@
-Warning: truncated output (original token count: 55658)
-Total output lines: 4027
-
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-14T18:24:48.062Z",
+  "updatedAt": "2026-11-14T18:28:34.983Z",
   "handoffs": [
     {
       "id": "owner",
@@ -234,11 +231,11 @@ Total output lines: 4027
       "id": "chrome-desert-world-handoff-20261111",
       "title": "Chrome Desert featured world to Full Editorial",
       "component": "PV LAB homepage / Full Editorial",
-      "status": "deployed",
-      "summary": "Chrome Desert is now a published 3-photo featured world; USE THIS WORLD opens Full Editorial with two model-free scenery references, optional styling/location, and direct Identity-to-priced-review for the visitor's subject.",
-      "nextAction": "Public feature complete. Optional signed-in customer quote and paid generation verification remains separate; no paid job was submitted during this release. Track real usage and conversion separately.",
+      "status": "needs_verification",
+      "summary": "Chrome Desert crop fix top-aligns the original main photograph so the model’s head stays visible inside the wide homepage frame.",
+      "nextAction": "Verify preview and relevant CI, merge approved framing fix, verify Cloudflare production.",
       "baselineSha": "739b9b3fde2092b259997b7a98e8be83b950ba1d",
-      "branch": "feat/chrome-desert-featured-world-20261111",
+      "branch": "fix/chrome-desert-head-framing",
       "files": [
         "lab/index.html",
         "lab/home-featured-photo-pack.css",
@@ -300,17 +297,13 @@ Total output lines: 4027
         "Do not give preset images to customer private Photo Packs automatically.",
         "Do not publish on a failed or unverified release."
       ],
-      "updatedAt": "2026-11-11T02:46:05.577Z",
+      "updatedAt": "2026-11-14T18:23:50.959Z",
       "deployment": {
-        "state": "verified",
-        "sourceSha": "6fe930c143d45f3efdd5c35f1d5ddb94da6ef9e0",
+        "state": "pending",
+        "sourceSha": null,
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-11T02:46:05.577Z",
-        "evidenceUrl": "https://pvlab.studio/",
         "limitations": [
-          "PR #964 merged at 766540fec6eac12f9d329508bfddcfee9d375245; canonical production commit 6fe930c is a verified descendant two commits later, preserving feature assets.",
-          "Original build ID df8e2d58-93ff-4d52-8c11-317465e80454 had stale queued metadata; canonical deployment e3ebe0b5-32d4-41f6-8255-0ed5a1300748 reports deploy success.",
-          "No authenticated customer session or paid generation executed."
+          "Owner authorized push and deployment on 2026-11-14. Crop fix not yet deployed."
         ]
       },
       "evidence": [
@@ -1992,7 +1985,50 @@ Total output lines: 4027
         {
           "kind": "deployment",
           "summary": "Exact merge 94a370540bd5f53d3cad0d28e567330ca3b9eb95 completed successfully in Cloudflare Pages app check 131118756756, project pvlab-studio, deployment b103a766-050e-4ec1-aea9-7e6250ac6fbd.",
-          "scope": "Production public…658 tokens truncated…verflow. Skin Study and supplied HF Windblown are unchanged by the reviewed diff.",
+          "scope": "Production publication.",
+          "observedAt": "2026-11-12",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/94a370540bd5f53d3cad0d28e567330ca3b9eb95",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Production /beauty references archive-windblown-hf-20261112.webp; live image fully loaded at 1200x1600, visually matches selected source, selected card aria-pressed=true, no horizontal overflow.",
+          "scope": "Requested Windblown image replacement only.",
+          "source": "https://pvlab.studio/beauty",
+          "observedAt": "2026-11-12",
+          "limitations": [
+            "Public desktop observation; mobile covered by synthetic CI. No byte-hash comparison."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "Cloudflare Pages app check 131136952853 completed successfully for exact merge 700448245142a206c523a32d02f28cfd307a60a1 in pvlab-studio.",
+          "scope": "Production publication of selected HF photo.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1012",
+          "observedAt": "2026-11-12",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Production /beauty loaded archive-beauty-portrait-20261112.webp and archive-windowstudy-glass-20261112.webp at 1536x1024; rendered crops and card selection visually checked. Skin Study and approved HF Windblown paths unchanged, no horizontal page overflow.",
+          "scope": "Two requested ALTER cover replacements.",
+          "source": "https://pvlab.studio/beauty",
+          "observedAt": "2026-11-12",
+          "limitations": [
+            "Public desktop observation; mobile is synthetic CI. No byte-hash comparison."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "Exact merge aba2667bcd6ec5bfb957e58937b81c180feee628 succeeded in Cloudflare Pages pvlab-studio app check 131145414134, deployment ba5f198b-557e-429a-8f79-240080351b9e.",
+          "scope": "Production publication of wider Beauty and candid Window Study covers.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1014",
+          "observedAt": "2026-11-12",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Real production /beauty loaded archive-beauty-refined-20261112.webp and archive-windowstudy-refined-20261112.webp at 1536x1024. Both actual rendered card crops inspected; no page overflow. Skin Study and supplied HF Windblown are unchanged by the reviewed diff.",
           "scope": "Two refined portrait cover replacements.",
           "source": "https://pvlab.studio/beauty",
           "observedAt": "2026-11-12",
@@ -3908,7 +3944,7 @@ Total output lines: 4027
         "Do not upload example people as a customer identity or automatically run a paid job.",
         "The remaining screenshot-only groups Night Drive, Asphalt and Convertible are proposed follow-ups; original full-resolution files were not attached."
       ],
-      "updatedAt": "2026-11-14T18:24:48.062Z"
+      "updatedAt": "2026-11-14T18:28:34.983Z"
     },
     {
       "id": "home-character-selection-20261113",

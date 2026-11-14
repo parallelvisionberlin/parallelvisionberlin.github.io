@@ -26,7 +26,7 @@ test('all three original visual references are present, without decorative arrow
  }
  assert.doesNotMatch(section,/→|&rarr;|<svg/);
  assert.doesNotMatch(section,/mood=chrome-couture/);
- assert.match(home,/home-featured-photo-pack\.css\?v=20261111-chrome-desert-world1/);
+ assert.match(home,/home-featured-photo-pack\.css\?v=20261113-chrome-desert-framing1/);
 });
 test('existing Full Editorial below remains the original separate feature',()=>{
  assert.match(home,/id="featured-editorial"/);
