@@ -1,6 +1,9 @@
+Warning: truncated output (original token count: 55658)
+Total output lines: 4027
+
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-13T13:22:29.613Z",
+  "updatedAt": "2026-11-14T18:24:48.062Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1989,50 +1992,7 @@
         {
           "kind": "deployment",
           "summary": "Exact merge 94a370540bd5f53d3cad0d28e567330ca3b9eb95 completed successfully in Cloudflare Pages app check 131118756756, project pvlab-studio, deployment b103a766-050e-4ec1-aea9-7e6250ac6fbd.",
-          "scope": "Production publication.",
-          "observedAt": "2026-11-12",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/94a370540bd5f53d3cad0d28e567330ca3b9eb95",
-          "limitations": []
-        },
-        {
-          "kind": "production_asset",
-          "summary": "Production /beauty references archive-windblown-hf-20261112.webp; live image fully loaded at 1200x1600, visually matches selected source, selected card aria-pressed=true, no horizontal overflow.",
-          "scope": "Requested Windblown image replacement only.",
-          "source": "https://pvlab.studio/beauty",
-          "observedAt": "2026-11-12",
-          "limitations": [
-            "Public desktop observation; mobile covered by synthetic CI. No byte-hash comparison."
-          ]
-        },
-        {
-          "kind": "deployment",
-          "summary": "Cloudflare Pages app check 131136952853 completed successfully for exact merge 700448245142a206c523a32d02f28cfd307a60a1 in pvlab-studio.",
-          "scope": "Production publication of selected HF photo.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1012",
-          "observedAt": "2026-11-12",
-          "limitations": []
-        },
-        {
-          "kind": "production_asset",
-          "summary": "Production /beauty loaded archive-beauty-portrait-20261112.webp and archive-windowstudy-glass-20261112.webp at 1536x1024; rendered crops and card selection visually checked. Skin Study and approved HF Windblown paths unchanged, no horizontal page overflow.",
-          "scope": "Two requested ALTER cover replacements.",
-          "source": "https://pvlab.studio/beauty",
-          "observedAt": "2026-11-12",
-          "limitations": [
-            "Public desktop observation; mobile is synthetic CI. No byte-hash comparison."
-          ]
-        },
-        {
-          "kind": "deployment",
-          "summary": "Exact merge aba2667bcd6ec5bfb957e58937b81c180feee628 succeeded in Cloudflare Pages pvlab-studio app check 131145414134, deployment ba5f198b-557e-429a-8f79-240080351b9e.",
-          "scope": "Production publication of wider Beauty and candid Window Study covers.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1014",
-          "observedAt": "2026-11-12",
-          "limitations": []
-        },
-        {
-          "kind": "production_asset",
-          "summary": "Real production /beauty loaded archive-beauty-refined-20261112.webp and archive-windowstudy-refined-20261112.webp at 1536x1024. Both actual rendered card crops inspected; no page overflow. Skin Study and supplied HF Windblown are unchanged by the reviewed diff.",
+          "scope": "Production public…658 tokens truncated…verflow. Skin Study and supplied HF Windblown are unchanged by the reviewed diff.",
           "scope": "Two refined portrait cover replacements.",
           "source": "https://pvlab.studio/beauty",
           "observedAt": "2026-11-12",
@@ -3821,9 +3781,9 @@
       "component": "Image Studio / Inspiration",
       "status": "needs_verification",
       "summary": "Two existing Inspiration pairs now swap positions in guest and signed-in rows: Desert Stop / Vinyl Heat and Lost Highway / Green Haze. All 14 cards retain their DOM nodes, selection handlers, imagery and prompts. Prior road-card production verification remains historical evidence below.",
-      "nextAction": "Review the scoped PR, relevant CI and deployment; verify published card order separately.",
+      "nextAction": "Merge reconciled PR #1020 after scoped checks, then verify the Cloudflare production release and published order.",
       "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
-      "reviewedSha": "f5dc2fa313428cf730e3cd0a04c2fb070109dd1b",
+      "reviewedSha": "073bde953d964c00f31219865cc6d449459f3f03",
       "branch": "fix/inspiration-road-order-20261113",
       "files": [
         "lab/inspiration-road-scenes.js",
@@ -3889,6 +3849,11 @@
           "label": "Unchanged carousel comment assertion",
           "result": "documented",
           "scope": "Existing test still expects a removed comment in inspiration-looks.js; previously documented in this record, unchanged by this reorder."
+        },
+        {
+          "label": "2026-11-14 release reconciliation",
+          "result": "passed",
+          "scope": "Resolved work-record conflict while preserving the newer homepage character release. 23 approved Image, catalog and rotation tests plus static build and diff checks pass. Prior first-image CI failure concerns existing public/signed compact deck height, unrelated to node reordering."
         }
       ],
       "deployment": {
@@ -3943,7 +3908,80 @@
         "Do not upload example people as a customer identity or automatically run a paid job.",
         "The remaining screenshot-only groups Night Drive, Asphalt and Convertible are proposed follow-ups; original full-resolution files were not attached."
       ],
-      "updatedAt": "2026-11-13T13:22:29.613Z"
+      "updatedAt": "2026-11-14T18:24:48.062Z"
+    },
+    {
+      "id": "home-character-selection-20261113",
+      "title": "Homepage curated twelve-character selection",
+      "component": "PV LAB homepage / Characters",
+      "status": "deployed",
+      "summary": "Added Slate, Cobalt, Pearl and Acid from the existing Full Editorial casting section after the eight original homepage portraits. Existing card dimensions, copy, upload CTA and carousel logic are unchanged.",
+      "nextAction": "Complete. Phone rendering and real signed-in character creation were not observed; no generation or billing changes.",
+      "updatedAt": "2026-11-13T22:13:04Z",
+      "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
+      "reviewedSha": "4b70c08313b68436aabb370bb24f7309afab004e",
+      "branch": "feat/home-character-selection-20261113",
+      "files": [
+        "lab/index.html",
+        "lab/CHARACTER-HOME-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Merged PR #1021",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1021"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image, character invitation and carousel",
+          "result": "passed",
+          "scope": "20 existing Node tests; asset dimensions confirmed 1125x2000.",
+          "observedAt": "2026-11-13"
+        },
+        {
+          "label": "Static build and required remote checks",
+          "result": "passed",
+          "scope": "npm run build; approved-image-ui, validate and owner CI passed.",
+          "observedAt": "2026-11-13"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "sourceSha": "97449acd7e2462a4364a81a3b2078123fb898271",
+        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/9d7aa698-5cc0-4e72-abeb-1f5b4f409db5",
+        "observedAt": "2026-11-13",
+        "limitations": [
+          "Desktop public gallery observed; physical phone and signed-in creation not exercised."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Only four lazy-loaded figure cards added to homepage, using existing casting JPEGs and sequential numbers 09–12.",
+          "scope": "Homepage character selection only.",
+          "source": "lab/index.html",
+          "limitations": [
+            "No signed-in workflow or paid generation exercised."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Exact live character section matches reviewed HTML, SHA256 9dc47d2d6122b1d4a41508c17f9079aa4b5e57a784d885d8c7aa1ff447a5ad95. Live desktop browser shows 12 cards, four new portraits rendered, End reaches 1783px boundary and no page overflow. Cloudflare check 132202166978 succeeded for merge 97449acd7e2462a4364a81a3b2078123fb898271.",
+          "scope": "Public homepage character gallery at 1363px viewport.",
+          "source": "https://pvlab.studio/#create-your-character",
+          "observedAt": "2026-11-13",
+          "limitations": [
+            "Offscreen original lazy-loaded images were not all loaded in the final End-position snapshot; preview had all twelve loaded.",
+            "Existing broad CI failures remain: landing fails unchanged guest Inspiration looks assertion; core test run flags PR fixture assertion; not weakened."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Preserve all eight original cards, upload tile, typography, card size and carousel behavior.",
+        "Reuse existing casting assets; no generation required."
+      ]
     }
   ]
 }
