@@ -292,12 +292,13 @@ try{
    await fashion.locator('.wardrobe-empty-hero').waitFor({state:'visible'});
    assert.equal(await fashion.locator('.wardrobe-item').count(),0,'Zero saved Outfits never becomes fake collections');
    assert.equal(await fashion.locator('.wardrobe-empty-example img').count(),4,'Approved empty composition shows four reference photos');
-   const emptyDesktop=await fashion.locator('#fashion-wardrobe').evaluate(dialog=>{
+   const emptyDesktop=await fashion.locator('#fashion-wardrobe').evaluate(async dialog=>{
      const shadow=dialog.getRootNode();
      const header=shadow.querySelector('.wardrobe-dialog-head');
      const title=shadow.querySelector('#fashion-wardrobe-title');
      const story=shadow.querySelector('.wardrobe-empty-story');
      const images=[...shadow.querySelectorAll('.wardrobe-empty-example img')];
+     await Promise.all(images.map(img=>img.decode()));
      const disclos=shadow.querySelector('.wardrobe-empty-disclosure');
      return {headerHeight:header.getBoundingClientRect().height,
        titleSize:parseFloat(getComputedStyle(title).fontSize),

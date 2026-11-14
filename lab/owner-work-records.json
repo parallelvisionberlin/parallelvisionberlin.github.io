@@ -4112,10 +4112,10 @@
       "title": "Stop phone Mood freezing, stabilize saved-character frame and restore regression coverage",
       "component": "Customer generation / regression coverage",
       "status": "needs_verification",
-      "summary": "Exact eec3496f passes all 1256 local source/work-state tests; phone observer guard and finance/account regression behavior remain validated. Full Editorial phone source switching exposes a separate reproducible 14.3125px layout shift: saved search increases a 29.6875px header to 44px and an obsolete saved-only upload action duplicates the now-persistent pinned picker. Reserve a common 44px header, keep small-phone search in the first row, and retain the original pinned upload. Strict gallery/frame checks now also exercise 320/390/600px source switching. Integrated current main ac4b4186, preserving the independently merged compact Upscaler changes and all other work records. The coherent visual baseline is now that exact pre-integration main, not the repair candidate.",
-      "nextAction": "Validate the exact next combined candidate including current main dependencies, source/header correction and faithful controller/interaction fixtures. Keep failures explicit; do not merge or deploy without the user decision.",
+      "summary": "Both product fixes pass on exact integrated c2c2dd81: Chromium/WebKit account, guarded checkout, balances and Mood cases; full Full Editorial including 320/390/600px stable source-switch frames, private search, pinned upload and mocked submission boundaries. All 1256 local source/work-state tests and the complete public Studio visual/privacy suite also pass. Remaining fixture-only corrections wait for actual mocked responses/image decoding, include the catalog’s transitive road-scenes dependency, and retain approved current card ordering/28px Upscaler artwork/5px Video download inset without changing product design.",
+      "nextAction": "Hold the next exact candidate for final required browser results. Full Editorial and phone observer product behavior already pass on c2c2dd81; application bytes stay identical. No merge or production publication without a user decision.",
       "baselineSha": "ecac340065516290d9b933eed84ab7f899e89ad6",
-      "reviewedSha": "eec3496f5eb6f85f8a599dd41b84ac641c89261c",
+      "reviewedSha": "c2c2dd81b97d7de45b9dec9693e04ceaed5fff8d",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
         ".github/workflows/lab-public-studio-tests.yml",
@@ -4131,7 +4131,9 @@
         "tests/lab-assets-ui.cjs",
         "tests/lab-beauty-five-preview-fixes.test.mjs",
         "tests/lab-berlin-rave-signup-browser.mjs",
+        "tests/lab-customer-image-ui.mjs",
         "tests/lab-elements-smart-browser.mjs",
+        "tests/lab-fashion-reference-layout-ui.mjs",
         "tests/lab-first-image-instant-browser.mjs",
         "tests/lab-fisheye-2000.test.mjs",
         "tests/lab-full-editorial-browser.mjs",
@@ -4155,6 +4157,7 @@
         "tests/lab-seedream-input-pixels.test.mjs",
         "tests/lab-studio-layout-ui.mjs",
         "tests/lab-sumi-e.test.mjs",
+        "tests/lab-upscale-ui.mjs",
         "tests/lab-video-ergonomics.test.mjs",
         "tests/lab-won-kar-night.test.mjs"
       ],
@@ -4257,6 +4260,12 @@
           "label": "Full Editorial/header focused source regression",
           "result": "passed",
           "scope": "38 approved Image, Full Editorial and Video source contracts pass after the scoped header edit. Exact hosted mobile search/upload, source switching and generation-boundary tests remain required."
+        },
+        {
+          "label": "Exact integrated phone and Full Editorial browser fixes",
+          "result": "passed",
+          "scope": "c2c2dd81: 1256/1256 local tests; both account engines, full Full Editorial including source-frame stability at 320/390/600px, private search/pinned upload and guarded requests; complete public Studio visual and privacy suite.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43633931989/job/132566467526"
         }
       ],
       "deployment": {
@@ -4377,11 +4386,20 @@
           "limitations": [
             "Source integration is not independently observed production behavior."
           ]
+        },
+        {
+          "kind": "source",
+          "summary": "Current main compact Upscaler CSS uses exactly 28px artwork; Video thumbnail action is globally positioned at top -49px with a 44px button, including phones. Assertions retain square artwork decoding/shape, 5px boundary inset and no overlap. Fashion reference checks now await every actual photograph decode, without swallowing errors. A mocked submission response must complete before asserting its handler counter.",
+          "scope": "Supported fixture corrections and test-only timing race correction",
+          "source": "tests/lab-assets-ui.cjs",
+          "limitations": [
+            "The final exact test-only candidate still requires hosted validation."
+          ]
         }
       ],
       "blockers": [
-        "Exact next-candidate hosted checks are required after the Full Editorial source correction and faithful fixture setup changes.",
-        "Production redirect/direct-entry smoke verification remains unavailable; unchanged failure is not proof of payment or credit loss."
+        "Remaining fixture-only corrections require the final exact hosted browser run.",
+        "Unchanged production redirect/direct-entry smoke check cannot establish production readiness or customer harm."
       ],
       "doNotRepeat": [
         "Do not rewrite approved catalog/design to silence assertions. Reuse existing PR #934 for its test-fixture files.",

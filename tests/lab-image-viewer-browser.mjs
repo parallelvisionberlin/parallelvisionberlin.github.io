@@ -296,7 +296,7 @@ try{
     assert.equal(await tiles.first().locator('.asset-video-badge').isVisible(),false,'Video History keeps one Play marker at every width; Assets classification is separate');
     if(width<=640){
       assert.ok(cardControls.heart.bottom<cardControls.download.top,'Favorite and Download do not overlap');
-      assert.ok(Math.abs(cardControls.download.bottom-cardControls.media.bottom)<3,'Download sits at the image/text boundary, not the bottom of the whole card');
+      assert.ok(Math.abs(cardControls.media.bottom-cardControls.download.bottom-5)<2,'Phone Download retains the approved 5px inset at the thumbnail boundary');
     }else{
       assert.ok(Math.abs(cardControls.media.bottom-cardControls.download.bottom-5)<2,'Desktop Download retains the approved 5px inset at the thumbnail boundary');
     }
