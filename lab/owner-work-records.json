@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-14T18:27:39Z",
+  "updatedAt": "2026-11-14T18:54:35.596Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4013,12 +4013,12 @@
       "title": "Seedream 5.5 primary model; retain 5 Pro below Qwen",
       "component": "PV LAB Image / model routing",
       "status": "needs_verification",
-      "updatedAt": "2026-11-14T18:27:39Z",
+      "updatedAt": "2026-11-14T18:54:35.596Z",
       "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
-      "reviewedSha": "2c543c2f66719e47d584fee8c8426a03c607fbf5",
+      "reviewedSha": "1d87b8881cd7611485860283d138f73a3b3a533c",
       "branch": "feat/seedream-55",
       "summary": "Seedream 5.5 first/default and retained 5 Pro below Qwen implemented in PR 1019. Reconciled current main without dropping homepage work; only conflict was shared work index. Updated four scoped source assertions to require the new engine/default while retaining prior safeguards. Added an exact picker-order regression. Production health still lacks the 5.5 marker; Worker deployment remains blocked on Cloudflare authentication.",
-      "nextAction": "Publish reviewed backend through authenticated Cloudflare access, then merge/publish frontend and verify exact live bytes plus owner/customer model switch and quote-only behavior. No paid generation needed.",
+      "nextAction": "Use a successful Cloudflare authentication method or restore the approved deploy credential, publish the reviewed Worker preserving bindings, verify the 5.5 health/session capability, then reconcile/merge frontend and verify exact production bytes and a real quote-only flow. Do not confirm paid generation.",
       "files": [
         "lab-worker/image-replacement.mjs",
         "lab-worker/worker.mjs",
@@ -4072,12 +4072,14 @@
         "environment": "Cloudflare Worker parallel-vision-lab and Pages pvlab-studio",
         "sourceSha": null,
         "limitations": [
-          "Worker auto-deploy is paused because its Cloudflare token is unavailable. Dashboard currently requires login. Source is not deployed."
+          "Production health still lacks seedream55. No Worker or frontend publication for this feature has occurred.",
+          "Cloudflare GitHub sign-in reached device verification but returned 'Unable to sign in. Try again or use your email and password.' Automatic login attempts stopped."
         ]
       },
       "evidence": [],
       "blockers": [
-        "Cloudflare Worker token unavailable and previous browser authentication stopped at GitHub device verification. No paid generation or production change."
+        "Successful authenticated Cloudflare deployment access is required. The automatic Worker workflow remains paused because its token is unavailable.",
+        "PR remains unmerged. Four amended test suites pass all 26 checks; unrelated existing CI failures remain. Recheck current main before final merge."
       ],
       "doNotRepeat": [
         "Do not relabel historical Seedream 5 Pro jobs or remove that model.",
