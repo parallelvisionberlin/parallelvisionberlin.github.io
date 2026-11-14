@@ -606,7 +606,7 @@
       "title": "Selected Image Mood label clarity",
       "component": "Image Mood control",
       "status": "needs_verification",
-      "summary": "Desktop 104px selected Mood pill reserves room for clear ×; Night Flash lettering is bounded and cannot cover the clear button. Rest of Image toolbar untouched.",
+      "summary": "Desktop 104px selected Mood pill reserves room for clear \u00d7; Night Flash lettering is bounded and cannot cover the clear button. Rest of Image toolbar untouched.",
       "nextAction": "Run Night Flash geometry and Image UI checks, merge reviewed PR, confirm Cloudflare and production asset.",
       "baselineSha": "a73fc4242a76802458facee8379d713654af9c15",
       "reviewedSha": null,
@@ -735,7 +735,7 @@
       "title": "Group partner dashboards",
       "component": "Owner navigation",
       "status": "deployed",
-      "summary": "Robin / König Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
+      "summary": "Robin / K\u00f6nig Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
       "nextAction": "No additional menu work is pending. Recheck only if navigation code, routes or role behavior change.",
       "baselineSha": "e400ff36ca7e6d541dfeb8d8748fc0357a0b6730",
       "reviewedSha": "9fc17771dd75bd3eeb4cd5bbdc77812945f98e1c",
@@ -882,7 +882,7 @@
       "component": "Owner workspace",
       "status": "deployed",
       "summary": "Published: clear View activity access to existing generated-content review, restored manual Customers Refresh and improved Recent purchases spacing. Approved simplified navigation and existing functions retained.",
-      "nextAction": "Use Customers → View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
+      "nextAction": "Use Customers \u2192 View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
       "baselineSha": "e2cd02bce742b157d12308b76908cbacea34b604",
       "reviewedSha": "01362b3073f7d997d98d7ebd2830ad586d244d77",
       "branch": "fix/owner-activity-access-20261106",
@@ -1308,7 +1308,7 @@
         },
         {
           "kind": "fixture",
-          "summary": "Rendered a local scene-specific exposure/color proof preserving original pixel coordinates and 1343×767 geometry. Both faces, expressions and composition remain source-derived. Original frontal lighting remains evident.",
+          "summary": "Rendered a local scene-specific exposure/color proof preserving original pixel coordinates and 1343\u00d7767 geometry. Both faces, expressions and composition remain source-derived. Original frontal lighting remains evident.",
           "scope": "User-supplied storefront Base capture, local deterministic render and visual inspection.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/HONG-KONG-IMAGE3-WORK-STATE.md",
           "observedAt": "2026-11-07T09:15:51Z",
@@ -1441,7 +1441,7 @@
         },
         {
           "kind": "production_asset",
-          "summary": "Actual public Chrome Couture selection at 1363×936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
+          "summary": "Actual public Chrome Couture selection at 1363\u00d7936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
           "scope": "Rendered public production layout after reload; no Generate click.",
           "source": "https://pvlab.studio/studio?tool=image",
           "observedAt": "2026-11-06T20:55:35.186Z",
@@ -2214,7 +2214,7 @@
       "title": "Smaller Image reference removal controls",
       "component": "Image prompt deck",
       "status": "deployed",
-      "summary": "Published: Image thumbnail × controls are 16px and appear on hover or visible keyboard focus on mouse-equipped web devices. Existing touch/native visibility and sizing remain.",
+      "summary": "Published: Image thumbnail \u00d7 controls are 16px and appear on hover or visible keyboard focus on mouse-equipped web devices. Existing touch/native visibility and sizing remain.",
       "nextAction": "No further work pending for this request. Real signed-in hover/removal observation remains separate from asset publication and synthetic-session browser checks.",
       "baselineSha": "c714d7ec533da9807bb3f0f03e5c571463d2a4e4",
       "reviewedSha": "dd1aab176c7cadbfe987955c14cdf055188c3a31",
@@ -3309,16 +3309,17 @@
     },
     {
       "id": "upscaler-compact-loaded-deck",
-      "title": "Compact loaded Image Upscaler controls",
+      "title": "Consistent compact Image Upscaler controls",
       "component": "PV LAB Image Upscaler",
-      "status": "deployed",
-      "summary": "After upload, the Image Upscaler uses a short heading, compact source and model controls, and adjacent 38px Enlargement and Image format fields. The desktop deck grows with its settings and uses page scroll in short windows. The original photo remains contained in the existing preview.",
-      "nextAction": "Refresh the Upscaler to load the new styles.",
-      "baselineSha": "663dce86308cf9fa64d6d0d798b529f0766fc851",
-      "reviewedSha": "be0c76da20a122676d0707fa930c711e5b518f70",
-      "branch": "fix/upscaler-compact-loaded-deck-20261110",
+      "status": "needs_verification",
+      "summary": "Use the existing compact loaded-photo inspector before upload too. Keep heading, model cards, source slot, output fields and action stable; use page scrolling instead of a nested settings scrollbar.",
+      "nextAction": "Resolve the approved compact Image design against the existing cross-mode parity contract, diagnose the browser hang after desktop reference isolation, then complete focused geometry validation before release.",
+      "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
+      "reviewedSha": "372ec59fb0234d8311bf02afa52fd9f53db8ff34",
+      "branch": "fix/upscaler-consistent-compact-panel-20261113",
       "files": [
         "lab/upscale-loaded-workspace.css",
+        "lab/upscale-studio-v5.css",
         "lab/video-upscale.css",
         "lab/studio.html",
         "tests/lab-upscale-ui.mjs"
@@ -3331,60 +3332,77 @@
         {
           "label": "Upscaler handoff",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
+        },
+        {
+          "label": "Consistent compact panel draft PR",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1022"
         }
       ],
       "tests": [
         {
           "label": "Approved Image UI contract",
           "result": "passed",
-          "scope": "All six local and CI assertions.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895934790"
+          "scope": "All six local assertions."
         },
         {
-          "label": "Loaded Upscaler deck",
+          "label": "Actions static validation and Video Upscaler",
           "result": "passed",
-          "scope": "Both Precision versions at 1920×910, 1440×740, 1024×520 and 390×844. Real photo, no nested scroll, two adjacent settings, accessible Upscale action. Mocked upload, processing, Clear, Assets and Image/Video parity passed.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895934892"
+          "scope": "Both static validation checks, approved Image UI and Video Upscaler pass on 372ec59."
         },
         {
-          "label": "Video Upscaler",
+          "label": "Image/Video layout browser comparison",
+          "result": "failed",
+          "scope": "Failed at lab-video-upscale-layout.mjs:73: desktop Image/Video model cards differ in vertical position. The new compact Image direction conflicts with the previous empty-state cross-mode parity expectation.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43516528503"
+        },
+        {
+          "label": "Upload, processing, Clear and Queue browser checks",
           "result": "passed",
-          "scope": "Provider and frontend validation on the same commit.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895935213"
+          "scope": "Six completed smoke groups: Queue at 1440/390px; footer through upload, processing and Clear at 1920/1440/390px; Image/Video reference isolation at 1440px.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43516528503"
+        },
+        {
+          "label": "Remaining browser matrix",
+          "result": "not_run",
+          "scope": "Job timed out in the subsequent reference-isolation portion. Full model matrix and new real-photo geometry assertions did not execute."
         }
       ],
       "deployment": {
-        "state": "verified",
-        "environment": "Cloudflare Pages pvlab-studio",
-        "sourceSha": "8811c4155d598aab72bfb151c1a53ebc5bcd2b39",
-        "evidenceUrl": "https://pvlab.studio/studio?tool=upscale",
+        "state": "blocked",
+        "environment": "Cloudflare Pages branch preview only",
+        "sourceSha": "372ec59fb0234d8311bf02afa52fd9f53db8ff34",
+        "evidenceUrl": "https://945507db.pvlab-studio.pages.dev/studio?tool=upscale",
         "limitations": [
-          "The public browser verified versioned CSS and parsed rules. The loaded and processing states were exercised in Chromium with mocked provider responses."
+          "Branch preview succeeded; production is unchanged. Image/Video layout comparison failed."
         ]
       },
       "evidence": [
         {
           "kind": "source",
-          "summary": "The later desktop layout in video-upscale.css reintroduced the loaded Image deck's overflow-y:auto rule. The loaded settings now set the minimum row height.",
-          "scope": "Image Upscaler loaded photo layout",
-          "source": "lab/video-upscale.css",
+          "summary": "Source-ready CSS intentionally changed title, card dimensions, output layout and scroll containment. Apply the existing compact inspector to both Image states.",
+          "scope": "Image Upscaler presentation",
+          "source": "lab/upscale-loaded-workspace.css",
           "limitations": []
         },
         {
-          "kind": "production_asset",
-          "summary": "Cloudflare production check 130112018535 succeeded for the exact merge. Both production versioned stylesheet rule hashes match the reviewed Pages preview.",
-          "scope": "upscale-loaded-workspace.css v20261110-compact-photo-deck2 and video-upscale.css v20261110-compact-photo-deck1",
-          "source": "https://pvlab.studio/studio?tool=upscale",
+          "kind": "fixture",
+          "summary": "Cloud browser inspected the empty preview: 26px title, compact controls, source slot and side-by-side output fields. Settings overflow-y is visible; clientHeight and scrollHeight are both 752px.",
+          "scope": "Public empty Image Upscaler preview; not loaded or paid behavior",
+          "source": "https://945507db.pvlab-studio.pages.dev/studio?tool=upscale",
           "limitations": [
-            "Browser comparison used parsed CSS rules, with exact source blobs checked against the reviewed commit."
+            "No real account or generation was used."
           ]
         }
       ],
-      "blockers": [],
-      "doNotRepeat": [
-        "Use page scroll in short desktop windows. Keep both output fields accessible and preserve the 38px desktop and 44px phone minimums for Precision versions."
+      "blockers": [
+        "Cross-mode model-card position assertion fails at tests/lab-video-upscale-layout.mjs:73.",
+        "Browser job timed out after six passing smoke groups; full model/real-photo matrix remains unverified."
       ],
-      "updatedAt": "2026-11-10"
+      "doNotRepeat": [
+        "No paid generation is required to validate layout.",
+        "Keep draft #982 separate; it preserves the opposite large inspector direction."
+      ],
+      "updatedAt": "2026-11-13"
     },
     {
       "id": "image-base-mode-popover",
@@ -3425,7 +3443,7 @@
         {
           "label": "Picker geometry and shared toolbar",
           "result": "passed",
-          "scope": "Anchored menu, viewport fit, compact choices and stable deck at 1440×900, 1100×700, 390×844 and 390×600. Desktop and phone screenshots inspected.",
+          "scope": "Anchored menu, viewport fit, compact choices and stable deck at 1440\u00d7900, 1100\u00d7700, 390\u00d7844 and 390\u00d7600. Desktop and phone screenshots inspected.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42905720524"
         },
         {
@@ -3479,7 +3497,7 @@
       "title": "PV Still image quantity counter",
       "component": "Image / PV Still",
       "status": "deployed",
-      "summary": "Added the shared 1–2 image counter for PV Still. Each image uses its own live quote and job; customer confirmation shows the total. Complete quote validation, two-slot availability checks and stop-on-uncertain handling protect partial batches.",
+      "summary": "Added the shared 1\u20132 image counter for PV Still. Each image uses its own live quote and job; customer confirmation shows the total. Complete quote validation, two-slot availability checks and stop-on-uncertain handling protect partial batches.",
       "nextAction": "No implementation work remains. If the owner reports a real provider issue, inspect the returned job and quote before retrying.",
       "baselineSha": "1255c78b396c00bef6caf8df3bb9a6f004cf6b25",
       "reviewedSha": "1ab7d0211094c058c428a74db309cf4d34bf12b0",
@@ -4048,7 +4066,7 @@
       "evidence": [
         {
           "kind": "source",
-          "summary": "Only four lazy-loaded figure cards added to homepage, using existing casting JPEGs and sequential numbers 09–12.",
+          "summary": "Only four lazy-loaded figure cards added to homepage, using existing casting JPEGs and sequential numbers 09\u201312.",
           "scope": "Homepage character selection only.",
           "source": "lab/index.html",
           "limitations": [

@@ -18,6 +18,35 @@ on:
 permissions:
   contents: read
 jobs:
+  compact-layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install mocked Chromium browser
+        timeout-minutes: 3
+        run: |
+          npm install --prefix /tmp/pv-upscale-layout --no-save playwright@1.62.1
+          node /tmp/pv-upscale-layout/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify compact inspector before and after photographic upload
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-layout/node_modules/playwright/index.mjs
+          PV_UPSCALE_LAYOUT_ONLY: '1'
+        run: node tests/lab-upscale-ui.mjs
+      - name: Verify Assets navigation with compact controls
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-layout/node_modules/playwright/index.mjs
+        run: node tests/lab-upscale-assets-visibility.mjs
+      - name: Keep compact inspector screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upscaler-compact-layout
+          path: test-results/upscaler-photo-*.png
+          retention-days: 2
   upscale-assets:
     runs-on: ubuntu-latest
     timeout-minutes: 9
