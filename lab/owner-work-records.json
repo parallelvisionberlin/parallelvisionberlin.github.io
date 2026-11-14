@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-13T13:15:55Z",
+  "updatedAt": "2026-11-14T18:27:39Z",
   "handoffs": [
     {
       "id": "owner",
@@ -3936,15 +3936,88 @@
       "updatedAt": "2026-11-12T13:07:01.356Z"
     },
     {
+      "id": "home-character-selection-20261113",
+      "title": "Homepage curated twelve-character selection",
+      "component": "PV LAB homepage / Characters",
+      "status": "deployed",
+      "summary": "Added Slate, Cobalt, Pearl and Acid from the existing Full Editorial casting section after the eight original homepage portraits. Existing card dimensions, copy, upload CTA and carousel logic are unchanged.",
+      "nextAction": "Complete. Phone rendering and real signed-in character creation were not observed; no generation or billing changes.",
+      "updatedAt": "2026-11-13T22:13:04Z",
+      "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
+      "reviewedSha": "4b70c08313b68436aabb370bb24f7309afab004e",
+      "branch": "feat/home-character-selection-20261113",
+      "files": [
+        "lab/index.html",
+        "lab/CHARACTER-HOME-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Merged PR #1021",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1021"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image, character invitation and carousel",
+          "result": "passed",
+          "scope": "20 existing Node tests; asset dimensions confirmed 1125x2000.",
+          "observedAt": "2026-11-13"
+        },
+        {
+          "label": "Static build and required remote checks",
+          "result": "passed",
+          "scope": "npm run build; approved-image-ui, validate and owner CI passed.",
+          "observedAt": "2026-11-13"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "sourceSha": "97449acd7e2462a4364a81a3b2078123fb898271",
+        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/9d7aa698-5cc0-4e72-abeb-1f5b4f409db5",
+        "observedAt": "2026-11-13",
+        "limitations": [
+          "Desktop public gallery observed; physical phone and signed-in creation not exercised."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Only four lazy-loaded figure cards added to homepage, using existing casting JPEGs and sequential numbers 09–12.",
+          "scope": "Homepage character selection only.",
+          "source": "lab/index.html",
+          "limitations": [
+            "No signed-in workflow or paid generation exercised."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Exact live character section matches reviewed HTML, SHA256 9dc47d2d6122b1d4a41508c17f9079aa4b5e57a784d885d8c7aa1ff447a5ad95. Live desktop browser shows 12 cards, four new portraits rendered, End reaches 1783px boundary and no page overflow. Cloudflare check 132202166978 succeeded for merge 97449acd7e2462a4364a81a3b2078123fb898271.",
+          "scope": "Public homepage character gallery at 1363px viewport.",
+          "source": "https://pvlab.studio/#create-your-character",
+          "observedAt": "2026-11-13",
+          "limitations": [
+            "Offscreen original lazy-loaded images were not all loaded in the final End-position snapshot; preview had all twelve loaded.",
+            "Existing broad CI failures remain: landing fails unchanged guest Inspiration looks assertion; core test run flags PR fixture assertion; not weakened."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Preserve all eight original cards, upload tile, typography, card size and carousel behavior.",
+        "Reuse existing casting assets; no generation required."
+      ]
+    },
+    {
       "id": "image-seedream-55",
       "title": "Seedream 5.5 primary model; retain 5 Pro below Qwen",
       "component": "PV LAB Image / model routing",
       "status": "needs_verification",
-      "updatedAt": "2026-11-13T13:15:55Z",
+      "updatedAt": "2026-11-14T18:27:39Z",
       "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
-      "reviewedSha": null,
+      "reviewedSha": "2c543c2f66719e47d584fee8c8426a03c607fbf5",
       "branch": "feat/seedream-55",
-      "summary": "Implemented separate SpicyAPI Seedream 5.5 engine as first Image model and default. Existing Seedream 5 Pro remains immediately below Qwen. Exact text/edit routing, eight-reference bound pricing, model labels, compatible Mood/reference handling and 1K/1.5K/2K controls are implemented. Existing history keeps its original model. A session capability gates 5.5 until the updated Worker is deployed.",
+      "summary": "Seedream 5.5 first/default and retained 5 Pro below Qwen implemented in PR 1019. Reconciled current main without dropping homepage work; only conflict was shared work index. Updated four scoped source assertions to require the new engine/default while retaining prior safeguards. Added an exact picker-order regression. Production health still lacks the 5.5 marker; Worker deployment remains blocked on Cloudflare authentication.",
       "nextAction": "Publish reviewed backend through authenticated Cloudflare access, then merge/publish frontend and verify exact live bytes plus owner/customer model switch and quote-only behavior. No paid generation needed.",
       "files": [
         "lab-worker/image-replacement.mjs",
@@ -3960,9 +4033,18 @@
         "lab/studio.html",
         "tests/lab-model-labels.test.mjs",
         "tests/lab-seedream-input-pixels.test.mjs",
-        "tests/lab-worker.test.mjs"
+        "tests/lab-worker.test.mjs",
+        "tests/lab-flash-default-2k.test.mjs",
+        "tests/lab-image-submit-handoff.test.mjs",
+        "tests/lab-inspiration-rotation.test.mjs",
+        "tests/lab-moods.test.mjs"
       ],
-      "links": [],
+      "links": [
+        {
+          "label": "Seedream 5.5 implementation PR 1019",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1019"
+        }
+      ],
       "tests": [
         {
           "label": "Focused Image, Worker, quote, credit, finance, Mood and history regressions",
@@ -3978,6 +4060,11 @@
           "label": "Legacy pixel-preparation source assertion",
           "scope": "One pre-existing cacheKey regex assumes the pre-Qwen implementation. Existing baseline code already uses the Qwen branch. No production logic or assertion was relaxed.",
           "result": "documented"
+        },
+        {
+          "label": "Current-main integration checks",
+          "scope": "237 checks: 234 passed; three existing Mood catalogue assertions fail for the already-added Fallen Angel and changed Hong Kong cover. The new-model compatibility, prompt handling, old history, exact quote and wallet tests pass. Source assertion expectations updated for new model only.",
+          "result": "documented"
         }
       ],
       "deployment": {
@@ -3990,7 +4077,7 @@
       },
       "evidence": [],
       "blockers": [
-        "Authenticated Cloudflare publishing access is required before enabling the new model in production."
+        "Cloudflare Worker token unavailable and previous browser authentication stopped at GitHub device verification. No paid generation or production change."
       ],
       "doNotRepeat": [
         "Do not relabel historical Seedream 5 Pro jobs or remove that model.",

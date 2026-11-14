@@ -223,7 +223,7 @@ test('Chrome Couture rotates twenty sensual Qwen editorial shots and keeps manua
   assert.equal(rotation.select('chrome-couture','My own couture concept').preserved,true);
   const lab=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   const guest=readFileSync(new URL('../lab/studio-guest-image.js',import.meta.url),'utf8');
-  assert.match(lab,/const preferredEngine=id==='chrome-couture'\?CHROME_COUTURE_DEFAULTS\.engine:'seedream'/);
-  assert.match(lab,/draft\.mood==='chrome-couture'\?CHROME_COUTURE_DEFAULTS\.engine:'seedream'/);
+  assert.match(lab,/const preferredEngine=id==='chrome-couture'\?CHROME_COUTURE_DEFAULTS\.engine:'seedream55'/);
+  assert.match(lab,/draft\.mood==='chrome-couture'\?CHROME_COUTURE_DEFAULTS\.engine:'seedream55'/);
   assert.match(guest,/Qwen Image 3\.0/);
 });
