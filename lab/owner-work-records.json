@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-14T18:36:20.398Z",
+  "updatedAt": "2026-11-14T18:57:53.488Z",
   "handoffs": [
     {
       "id": "owner",
@@ -352,9 +352,7 @@
           "scope": "Chrome Desert homepage crop only",
           "observedAt": "2026-11-14T18:30:05.886Z",
           "source": "https://pvlab.studio/",
-          "limitations": [
-            "This evidence records homepage crop publication only."
-          ]
+          "limitations": []
         }
       ],
       "reviewedSha": "aa7042d6b5cc49ccc3e9faa690d98b21769961d2"
@@ -3312,82 +3310,115 @@
     },
     {
       "id": "upscaler-compact-loaded-deck",
-      "title": "Compact loaded Image Upscaler controls",
+      "title": "Consistent compact Image Upscaler controls",
       "component": "PV LAB Image Upscaler",
       "status": "deployed",
-      "summary": "After upload, the Image Upscaler uses a short heading, compact source and model controls, and adjacent 38px Enlargement and Image format fields. The desktop deck grows with its settings and uses page scroll in short windows. The original photo remains contained in the existing preview.",
-      "nextAction": "Refresh the Upscaler to load the new styles.",
-      "baselineSha": "663dce86308cf9fa64d6d0d798b529f0766fc851",
-      "reviewedSha": "be0c76da20a122676d0707fa930c711e5b518f70",
-      "branch": "fix/upscaler-compact-loaded-deck-20261110",
+      "summary": "Keep one compact inspector before upload, after upload and after Clear: persistent source slot, 26px title, compact model cards and adjacent output fields. Eliminate the internal settings scrollbar and the legacy empty-only height jump.",
+      "nextAction": "None. Existing open tabs may refresh once to load the published styles.",
+      "baselineSha": "3b278caf2265dc861455901a62449b910a607ce3",
+      "reviewedSha": "03f31257c6bd9adf6c7f2e8586e187e9085cd2b9",
+      "branch": "fix/upscaler-consistent-compact-panel-20261113",
       "files": [
         "lab/upscale-loaded-workspace.css",
+        "lab/upscale-studio-v5.css",
         "lab/video-upscale.css",
         "lab/studio.html",
-        "tests/lab-upscale-ui.mjs"
+        "tests/lab-upscale-ui.mjs",
+        "tests/lab-upscale-assets-visibility.mjs",
+        "tests/lab-video-upscale-layout.mjs",
+        ".github/workflows/pv-lab-upscale-assets.yml"
       ],
       "links": [
         {
-          "label": "Merged Upscaler change",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/956"
+          "label": "Merged compact inspector fix",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1022"
         },
         {
-          "label": "Upscaler handoff",
+          "label": "Scoped Upscaler history",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
         }
       ],
       "tests": [
         {
-          "label": "Approved Image UI contract",
+          "label": "Approved Image UI contract and static validation",
           "result": "passed",
-          "scope": "All six local and CI assertions.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895934790"
+          "scope": "Six local Image contracts and final-head approved-image-ui/static Actions checks."
         },
         {
-          "label": "Loaded Upscaler deck",
+          "label": "Photographic geometry and Assets browser regression",
           "result": "passed",
-          "scope": "Both Precision versions at 1920×910, 1440×740, 1024×520 and 390×844. Real photo, no nested scroll, two adjacent settings, accessible Upscale action. Mocked upload, processing, Clear, Assets and Image/Video parity passed.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895934892"
+          "scope": "Eight photographic cases: Standard V2/High Fidelity V3 at 1920×910, 1440×740, 1024×520 and 390×844. Exact upload/Clear inspector geometry, visible source, no inner scroll, no horizontal overflow, accessible fields/action and no billable requests. Desktop/mobile Assets result, History and source-replacement assertions pass.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43628905439/job/132550892178"
         },
         {
-          "label": "Video Upscaler",
+          "label": "Image/Video layout and source preservation",
           "result": "passed",
-          "scope": "Provider and frontend validation on the same commit.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895935213"
+          "scope": "Desktop/mobile real MP4, mode isolation and preserved Image source; verified on identical product files before the final test-only corrections.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43627740056"
+        },
+        {
+          "label": "Broader CI and legacy full browser suite",
+          "result": "documented",
+          "scope": "General CI still has failures in unchanged Moods/ALTER expectations (17 versus 18 moods and old reference filenames). The legacy full browser suite hangs after desktop reference isolation. These are not reported as passed and their checks remain enabled."
         }
       ],
       "deployment": {
         "state": "verified",
-        "environment": "Cloudflare Pages pvlab-studio",
-        "sourceSha": "8811c4155d598aab72bfb151c1a53ebc5bcd2b39",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "sourceSha": "188992a847b30655c6a4c449e7db16291e8515e3",
+        "observedAt": "2026-11-14T18:57:53.488Z",
         "evidenceUrl": "https://pvlab.studio/studio?tool=upscale",
         "limitations": [
-          "The public browser verified versioned CSS and parsed rules. The loaded and processing states were exercised in Chromium with mocked provider responses."
+          "No paid generation or payment was submitted. The live browser upload/Clear used a public photographic fixture in an existing authenticated session; provider completion was outside this CSS repair."
         ]
       },
       "evidence": [
         {
           "kind": "source",
-          "summary": "The later desktop layout in video-upscale.css reintroduced the loaded Image deck's overflow-y:auto rule. The loaded settings now set the minimum row height.",
-          "scope": "Image Upscaler loaded photo layout",
+          "summary": "A high-specificity legacy empty-only 680px workspace rule moved the action by 42px at 1440×740. The later Image workspace rules now match both visible empty/source states with the same specificity.",
+          "scope": "Image Upscaler inspector sizing",
           "source": "lab/video-upscale.css",
           "limitations": []
         },
         {
+          "kind": "fixture",
+          "summary": "Independent cloud Chromium inspection of the isolated local fixture confirms identical upload geometry at all four sizes and Clear stability including expanded Precision.",
+          "scope": "Local UI with synthetic account bootstrap and disabled API writes",
+          "limitations": [
+            "Layout viewport frames; automated Actions separately covers mobile touch."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "Cloudflare Pages production check 132551634023 succeeded for exact merge 188992a847b30655c6a4c449e7db16291e8515e3.",
+          "scope": "pvlab-studio main publication",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1022",
+          "limitations": []
+        },
+        {
           "kind": "production_asset",
-          "summary": "Cloudflare production check 130112018535 succeeded for the exact merge. Both production versioned stylesheet rule hashes match the reviewed Pages preview.",
-          "scope": "upscale-loaded-workspace.css v20261110-compact-photo-deck2 and video-upscale.css v20261110-compact-photo-deck1",
+          "summary": "Release verifier returned LIVE_VERIFIED for video-upscale.css v20261114-consistent-panel2, SHA-256 855ff860888ad3625a86b68cccaa0e62a7fa2cd137379a9b022cd3d6b8c40b46. Both other inspector stylesheets match exact merge bytes: upscale-studio-v5.css eddfd33dcc69640b8f7cb0d5514d61f264a5bffa97960fa06408417b22d202d4; upscale-loaded-workspace.css 77ed3f50790fb7713415a283ed4c2a64990c690a60a27673ecb3d6047c324e90.",
+          "scope": "Custom-domain HTML version and all three modified CSS assets",
+          "source": "https://pvlab.studio/studio?tool=upscale",
+          "limitations": []
+        },
+        {
+          "kind": "signed_in_production",
+          "summary": "Live existing authenticated browser: public 960×1200 JPG selected through the source chooser and cleared through Clear. Title, model, scale, format and action rectangles remained exactly equal before/after both actions. Body overflow-y visible; clientHeight = scrollHeight = 752px. Upscale was never clicked.",
+          "scope": "Actual production upload/Clear layout and absence of an internal scrollbar",
           "source": "https://pvlab.studio/studio?tool=upscale",
           "limitations": [
-            "Browser comparison used parsed CSS rules, with exact source blobs checked against the reviewed commit."
+            "No provider submission or output completion was tested."
           ]
         }
       ],
       "blockers": [],
       "doNotRepeat": [
-        "Use page scroll in short desktop windows. Keep both output fields accessible and preserve the 38px desktop and 44px phone minimums for Precision versions."
+        "Do not make a paid generation to test this layout.",
+        "Keep the compact Image design in all source states; do not merge the opposite large-inspector design from draft #982.",
+        "Keep the existing broader CI failures separate; never claim the legacy full suite passed."
       ],
-      "updatedAt": "2026-11-10"
+      "updatedAt": "2026-11-14T18:57:53.488Z"
     },
     {
       "id": "image-base-mode-popover",

@@ -77,10 +77,9 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     });
     assert.ok(deck.model.width>0&&deck.generate.width>0,profile+': Upscale settings remain usable');
     assert.ok(deck.model.top<deck.size.top&&deck.format.top>=deck.size.top-2,profile+': model is above the output controls');
-    if(profile==='desktop')assert.ok(deck.format.top>deck.size.top,profile+': enlargement and format use the approved compact stacked rows');
-    else assert.ok(Math.abs(deck.format.top-deck.size.top)<6,profile+': mobile preserves its compact side-by-side enlargement and format selectors');
+    assert.ok(Math.abs(deck.format.top-deck.size.top)<6&&deck.format.left>deck.size.left,profile+': compact enlargement and format selectors stay side by side');
     assert.ok(deck.generate.top>deck.size.top,profile+': paid Upscale action is distinct from settings');
-    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),false,'Empty Upscaler retains the original uncluttered left panel');
+    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),true,'Empty Upscaler keeps the same compact source slot as the loaded panel');
     assert.deepEqual(await page.locator('#upscale-model-menu [data-upscale-engine]').evaluateAll(nodes=>nodes.map(n=>n.dataset.upscaleEngine)),['seedvr2','topaz-precision','topaz-wonder'],'Three grouped Upscaler models');
     assert.equal(await page.locator('.pv-upscale-output-heading').isVisible(),false,'Unwanted OUTPUT section heading is hidden');
     assert.equal(await page.locator('.pv-upscale-workspace-intro h2').innerText(),'Upscale.','Approved Upscaler title preserved');
@@ -197,7 +196,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       document.getElementById('app').classList.remove('pv-upscale-source-ready');
     });
     await page.waitForFunction(()=>!document.getElementById('app').classList.contains('pv-upscale-source-ready'));
-    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),false,'Clearing a source restores the original upload-first page');
+    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),true,'Clear retains the same compact source slot without changing the panel layout');
     assert.equal(await page.locator('.stagefoot').isVisible(),false,'Empty Upscaler does not show a technical footer');
     assert.equal(await page.locator('#settings-summary').isVisible(),false,'Redundant technical text is hidden on Upscaler');
     await page.evaluate(()=>{document.querySelector('#download').hidden=false;});
