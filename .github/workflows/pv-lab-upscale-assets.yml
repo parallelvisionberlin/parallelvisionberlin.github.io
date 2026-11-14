@@ -36,6 +36,10 @@ jobs:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-layout/node_modules/playwright/index.mjs
           PV_UPSCALE_LAYOUT_ONLY: '1'
         run: node tests/lab-upscale-ui.mjs
+      - name: Verify Assets navigation with compact controls
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-layout/node_modules/playwright/index.mjs
+        run: node tests/lab-upscale-assets-visibility.mjs
       - name: Keep compact inspector screenshots
         if: always()
         uses: actions/upload-artifact@v4
