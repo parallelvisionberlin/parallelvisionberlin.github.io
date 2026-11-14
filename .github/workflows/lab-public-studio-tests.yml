@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '22.16.0'
       - name: Recover immutable pre-change source for visual comparison
-        run: git fetch --depth=1 origin 6e1c8ba64c16140dec66175dd4878e07ab95ab84
+        run: git fetch --depth=1 origin ac4b4186bc15077c0992160e8983c22b3803ed4a
       - name: Approved Image contract
         run: node --test tests/lab-approved-image-ui-contract.test.mjs
       - name: Install pinned browser runtime

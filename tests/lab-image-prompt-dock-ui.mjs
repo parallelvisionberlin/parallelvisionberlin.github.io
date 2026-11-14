@@ -259,7 +259,9 @@ try{
         const app=document.getElementById('app');app.hidden=false;app.classList.add('image-studio-active');
         document.getElementById('image-studio').hidden=false;
         const composer=document.getElementById('image-composer');
-        composer.hidden=false;composer.classList.add('is-pv-soul');
+        composer.hidden=false;
+        const tray=document.getElementById('image-composer-references');tray.hidden=false;
+        tray.innerHTML='<div class="composer-reference-tile">Source photograph</div>';
         document.getElementById('image-composer-model-label').textContent='PV Soul';
         for(const id of ['image-composer-count-wrap','image-composer-resolution-wrap',
           'image-reference-mode-wrap','composer-exact-prompt-option','composer-more-anchor'])
@@ -271,7 +273,7 @@ try{
       });
       await page.addScriptTag({content:
         'const $=id=>document.getElementById(id);const imageComposer=document.getElementById("image-composer");\n'+
-        sizingHelper+'\nwindow.__resizePVPrompt=fitImageComposerPrompt;'});
+        sizingHelper+';let busy=false,sourceUrl="mock-source",sourceWidth=0,sourceHeight=0,imageEngine="higgsfield";const tool="image";const isSoul2=()=>true;'+soulBar+';syncSoulBar();\nwindow.__resizePVPrompt=fitImageComposerPrompt;'});
       await page.locator('#image-composer-prompt').fill(lorem);
       await page.evaluate(()=>window.__resizePVPrompt());
       const positions=await page.evaluate(()=>{
@@ -281,7 +283,7 @@ try{
         return {ratio:rect('hf-bar-ratio'),resolution:rect('hf-bar-resolution'),
           mood:rect('image-composer-moods'),model:rect('image-composer-model'),
           generate:rect('image-composer-generate'),identity:rect('composer-character'),
-          source:rect('hf-bar-source'),dock:rect('image-composer'),
+          source:rect('hf-bar-source'),references:rect('image-composer-references'),dock:rect('image-composer'),
           controls:{height:controls.getBoundingClientRect().height,
             scrollWidth:controls.scrollWidth,clientWidth:controls.clientWidth},
           prompt:rect('image-composer-prompt')};
@@ -293,13 +295,13 @@ try{
       assert.ok(positions.controls.height<52 && positions.controls.scrollWidth<=positions.controls.clientWidth+2,
         'PV Soul controls must not overflow or wrap: '+JSON.stringify(positions));
       assert.ok(positions.prompt.height>=125&&positions.prompt.height<=138,
-        'Soul prompt continues using the original bounded scroll editor');
+        'Web Soul keeps the shared bounded scroll editor: '+JSON.stringify(positions));
       assert.ok(Math.abs(positions.identity.bottom-positions.generate.bottom)<10,
         'Compact Soul ID stays anchored beside Generate');
-      assert.equal(positions.identity.height,40,'Soul ID shares the standard toolbar height');
-      assert.equal(positions.source.height,54,'Source upload uses the compact prompt row');
-      assert.ok(positions.source.bottom<=positions.identity.top && positions.source.right<positions.generate.left,
-        'Source upload stays above Soul ID and clear of Generate');
+      assert.equal(positions.identity.height,76,'Web Soul retains its approved portrait tile');
+      assert.equal(positions.source.height,0,'Web Soul never duplicates the source photograph in a native source card');
+      assert.ok(positions.references.height>0&&positions.references.left>=positions.dock.left&&positions.references.right<=positions.dock.right,
+        'The source photograph remains inside the shared reference strip: '+JSON.stringify(positions));
       assert.ok(positions.dock.height<360,
         'Soul prompt and selector row should not turn into a giant modal: '+positions.dock.height);
     }finally{await context.close();}

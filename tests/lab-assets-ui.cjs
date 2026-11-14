@@ -233,15 +233,18 @@ await page.route('**/api/higgsfield/generate',route=>{
   soulPaidSubmissions++;
   return route.fulfill({contentType:'application/json',body:JSON.stringify({job:{id:'ab000000-0000-4000-8000-000000000002',status:'queued',createdAt:Date.now(),settings:{type:'image',provider:'higgsfield',engine:'soulpro',mode:'image',prompt:'A quiet concrete room in daylight'}}})});
 });
+// The owner explicitly submits once at the bound live quote, without a
+// second modal. Hold that quote to verify pricing alone cannot dispatch.
+let releaseSoulQuote;
+const heldSoulQuote=new Promise(resolve=>releaseSoulQuote=resolve);
+await page.route('**/api/higgsfield/quote',async route=>{await heldSoulQuote;return route.fallback();});
 const outgoingQuote=page.waitForRequest(r=>r.url().endsWith('/api/higgsfield/quote')&&r.method()==='POST');
+const outgoingGeneration=page.waitForRequest(r=>r.url().endsWith('/api/higgsfield/generate')&&r.method()==='POST');
 await page.click('#image-composer-generate');
 const quotedPayload=(await outgoingQuote).postDataJSON();
 assert.equal(quotedPayload.sourceId,null);assert.equal(quotedPayload.settings.prompt,'A quiet concrete room in daylight');
-await page.locator('#quote-dialog').waitFor({state:'visible'});
 assert.equal(soulPaidSubmissions,0,'Checking the PV Soul price does not start a paid generation');
-assert.match(await page.locator('#quote-notice').innerText(),/NO SOUL ID/);
-const outgoingGeneration=page.waitForRequest(r=>r.url().endsWith('/api/higgsfield/generate')&&r.method()==='POST');
-await page.click('#confirm-generation');
+releaseSoulQuote();
 const paidPayload=(await outgoingGeneration).postDataJSON();
 assert.equal(paidPayload.quoteId,'ab000000-0000-4000-8000-000000000001');
 assert.equal(paidPayload.confirm,true);assert.equal(soulPaidSubmissions,1);

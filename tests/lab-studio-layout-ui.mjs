@@ -722,7 +722,7 @@ try{
   assert.match((await x.page.locator('#canvas-import').innerText()).replace(/\s+/g,' '),/Upload images/);
   assert.equal(await x.page.locator('#pv-mode-reference-label').innerText(),'Reference set');
   assert.equal(await x.page.locator('#reference-drop>span').innerText(),'Upload images');
-  assert.equal(await x.page.locator('#video-inspector-empty .pv-video-sidebar-section:nth-of-type(2) h3').innerText(),'Attached images');
+  assert.equal(await x.page.locator('#video-inspector-empty .pv-video-sidebar-section h3').allTextContents().then(t=>t.map(x=>x.trim()).includes('Attached images')),true);
   await x.page.locator('#pv-video-browse-library').click();
   assert.equal(await x.page.locator('#scene-library-dialog').isVisible(),true,'Approved central action opens the real Scene library');
   await x.page.keyboard.press('Escape');

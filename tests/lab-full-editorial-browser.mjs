@@ -246,6 +246,16 @@ try{
     assert.ok(geometry.top<320,'Real casting appears near the top: '+JSON.stringify(geometry));
     assert.ok(Math.abs(geometry.footerBottom-844)<2,'Continue stays at viewport bottom');
     assert.ok(geometry.continue>=44);assert.equal(geometry.arrow,'none');assert.equal(geometry.overflow,false);
+    const castingFrame=await page.locator('#casting-reference-gallery').boundingBox();
+    await page.locator('#saved-character').click();
+    await page.locator('#saved-character-gallery .editorial-saved-cast').first().waitFor();
+    const savedFrame=await page.locator('#casting-reference-gallery').boundingBox();
+    for(const key of ['x','y','width','height'])assert.ok(Math.abs(savedFrame[key]-castingFrame[key])<2,
+      'Phone source switching retains gallery '+key+' at '+phoneWidth+'px: '+JSON.stringify({castingFrame,savedFrame}));
+    assert.equal(await page.locator('#model-drop').isVisible(),true,'Pinned upload remains available in saved characters');
+    assert.equal(await page.locator('#editorial-mobile-search').isVisible(),true,'Saved-character search remains available');
+    await page.locator('[data-source-view="casting"]').click();
+
    }
    await page.setViewportSize({width:390,height:900});
    assert.equal(await page.locator('.editorial-account .credits-link').isVisible(),false);

@@ -43,6 +43,8 @@ async function openViewport(width,height){
     if(pathname.endsWith('/studio-guest-image.js')||
        pathname.endsWith('/inspiration-looks.js')||
        pathname.endsWith('/inspiration-carousel.js')||
+       pathname.endsWith('/inspiration-catalog.js')||
+       pathname.endsWith('/inspiration-catalog-data.js')||
        pathname.endsWith('/studio-mobile-entry.js')||
        pathname.endsWith('/image-editorial-deck.js')||
        pathname.endsWith('/mobile-composer-polish.js'))return route.continue();
@@ -59,6 +61,7 @@ async function openViewport(width,height){
     document.getElementById('app').hidden=true;
   });
   await page.locator('[data-guest-mood="90s-cinema"]').waitFor({state:'visible'});
+  await page.waitForFunction(()=>document.querySelectorAll('#pv-guest-cards > .pv-guest-card').length===14);
   return {page,context,errors};
 }
 try{

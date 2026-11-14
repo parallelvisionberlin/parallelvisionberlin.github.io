@@ -270,10 +270,12 @@ body.editorial-web .flow-main:has(#panel-model:not([hidden])) #step-next:focus-v
 }
 /* Pinned tile already contains Create Character; avoid a duplicate action. */
 body.editorial-web #panel-model[data-model-mode="casting"] .editorial-casting-tabs>a[href*="createCharacter"]{display:none!important}
-/* My Characters does not display the pinned tile: keep its original mobile upload. */
+/* Both sources keep the pinned upload picker. Reserve the same 44px
+   header for saved-character search without moving the locked casting frame. */
 @media(max-width:600px){
+ body.editorial-web #panel-model .editorial-casting-top{min-height:44px!important}
  body.editorial-web #panel-model[data-model-mode="saved"] #editorial-mobile-upload{
-  display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;
+  display:none!important;
  }
 }
 

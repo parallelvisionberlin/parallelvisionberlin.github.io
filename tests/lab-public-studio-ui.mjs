@@ -13,7 +13,7 @@ const headerGutterOnly=process.env.PV_HEADER_GUTTER_ONLY==='1';
 // shared Image deck, full-height Video and focused Fashion changes. Serve every
 // local dependency from this same commit instead of mixing historical HTML
 // with current CSS. Pixel tolerances and functional/privacy guards stay strict.
-const baselineRef='6e1c8ba64c16140dec66175dd4878e07ab95ab84';
+const baselineRef='ac4b4186bc15077c0992160e8983c22b3803ed4a';
 const baselineFiles=new Map();
 function baselineFile(path){
   if(!baselineFiles.has(path))baselineFiles.set(path,execFileSync('git',['show',baselineRef+':'+path],{maxBuffer:32*1024*1024}));

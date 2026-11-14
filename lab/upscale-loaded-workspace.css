@@ -3,7 +3,7 @@
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
   order:-6!important;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) .controls-body>.pv-upscale-source-control{
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .controls-body>.pv-upscale-source-control{
   order:-5!important;
   grid-column:1/-1!important;
   display:flex!important;
@@ -11,7 +11,7 @@
   margin:0 0 5px!important;
   padding:0!important;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload{
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload{
   min-height:50px!important;
   max-height:none!important;
   padding:7px 10px!important;
@@ -20,7 +20,7 @@
   border-radius:8px!important;
   background:#141618!important;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload .pv-upscale-source-icon{
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload .pv-upscale-source-icon{
   display:grid!important;
   place-items:center!important;
   flex:none!important;
@@ -85,52 +85,52 @@
   }
 }
 
-/* Compact working controls after choosing a photo, using the Video deck's
+/* Consistent Image controls before and after choosing a photo, using the Video deck's
    matte fields, consistent corner radius and adjacent output selectors. */
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
   gap:8px!important;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
   margin:0!important;
   padding:0 0 8px!important;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active) .pv-upscale-workspace-intro :is(.pv-upscale-kicker,p){
+#app.upscale-studio-active:not(.video-upscale-active) .pv-upscale-workspace-intro :is(.pv-upscale-kicker,p){
   display:none!important;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro h2{
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro h2{
   font-size:26px!important;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card{
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card{
   grid-template-columns:28px minmax(0,1fr) 16px!important;
   min-height:46px!important;
   padding:7px 9px!important;
   border-radius:8px!important;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card[aria-checked="false"]:not(:hover){
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card[aria-checked="false"]:not(:hover){
   background:#141618!important;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-art{
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-art{
   width:28px!important;
   height:28px!important;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active) .pv-upscale-precision-options{
+#app.upscale-studio-active:not(.video-upscale-active) .pv-upscale-precision-options{
   gap:5px;
   padding:0 9px 8px;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active) .pv-upscale-version-pills{
+#app.upscale-studio-active:not(.video-upscale-active) .pv-upscale-version-pills{
   grid-template-columns:repeat(2,minmax(0,1fr));
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active) .pv-upscale-version-pill{
+#app.upscale-studio-active:not(.video-upscale-active) .pv-upscale-version-pill{
   padding:5px 6px;
   border-radius:8px;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .controls-body>.parameter-grid{
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .controls-body>.parameter-grid{
   grid-column:1!important;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .controls-body>#format-control{
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .controls-body>#format-control{
   grid-column:2!important;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .controls-body :is(#upscale-scale-control,#format-control):not([hidden]){
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .controls-body :is(#upscale-scale-control,#format-control):not([hidden]){
   display:flex!important;
   flex:1 1 auto!important;
   flex-direction:column!important;
@@ -139,11 +139,11 @@
   width:100%!important;
   min-width:0!important;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .controls-body :is(#upscale-scale-control,#format-control)>.label{
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .controls-body :is(#upscale-scale-control,#format-control)>.label{
   flex:none!important;
   margin:0!important;
 }
-#app.upscale-studio-active.pv-upscale-source-ready:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .controls-body :is(#upscale-scale,#output-format){
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .controls-body :is(#upscale-scale,#output-format){
   flex:none!important;
   width:100%!important;
   max-width:none!important;
@@ -178,3 +178,11 @@
   font-size:10px!important;
   line-height:1.2!important;
 }
+
+/* One source slot and one compact inspector in both Image states.
+   Natural page scroll keeps every setting reachable in short windows. */
+#app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .controls-body>.pv-upscale-source-control{
+  order:-5!important;grid-column:1/-1!important;display:flex!important;
+  gap:5px!important;margin:0 0 5px!important;padding:0!important;
+}
+#app.upscale-studio-active:not(.video-upscale-active) #pv-upscale-source-state{display:none!important}

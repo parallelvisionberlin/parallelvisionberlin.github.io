@@ -22,7 +22,7 @@ const sourceId='10000000-0000-4000-8000-000000000001',outputId='10000000-0000-40
 let png,passed=0;
 const ok=name=>{passed++;console.log('PASS '+name);};
 async function workspace(jobs=[],width=1440,{height=1000,quoteTtlMs=180000,quoteDelayMs=0,quoteTransform=null,customer=false,submitMode='ok'}={}){
- const context=await browser.newContext({viewport:{width,height},hasTouch:width<781,isMobile:width<781,acceptDownloads:true});const page=await context.newPage();const requests=[],uploads=[],quotes=new Map(),quoteResponses=[];let count=3,quoteCount=88;
+ const context=await browser.newContext({viewport:{width,height},hasTouch:width<781,isMobile:width<781,acceptDownloads:true});const page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(20000);const requests=[],uploads=[],quotes=new Map(),quoteResponses=[];let count=3,quoteCount=88;
  page.on('dialog',async d=>{await d.accept();});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await context.route('https://**/*',async route=>{
@@ -137,7 +137,107 @@ const seedModel={engine:'seedvr2',model:'fal-ai/seedvr/upscale/image',credits:10
 const precisionModel={engine:'topaz-precision',model:'topaz/upscale/image/precision',quality:'Standard V2',credits:37};
 const wonderModel={engine:'topaz-wonder',model:'topaz/upscale/image/generative',quality:'Wonder 3.5',credits:37};
 
+async function verifyPhotographicLayout(){
+ let x;
+  // Use a real PV LAB photographic JPG, not just the synthetic pixel fixture.
+  // The expanded Precision card is the tallest normal loaded state.
+  const photographicFixture='lab/visuals/upscaler-chrome-wool-option-1.jpg';
+  assert.ok(existsSync(photographicFixture),'Approved Upscaler photographic fixture exists');
+  for(const [width,height] of [[1920,910],[1440,740],[1024,520],[390,844]]){
+   x=await workspace([],width,{height});await x.page.click('#tool-upscale');
+   const inspectorStyle=()=>x.page.evaluate(()=>{
+    const origin=document.querySelector('#app>.workspace>.controls').getBoundingClientRect();
+    const rect=selector=>{const el=document.querySelector(selector),r=el.getBoundingClientRect();return {x:r.x-origin.x,y:r.y-origin.y,width:r.width,height:r.height,font:getComputedStyle(el).fontSize};};
+    const body=document.querySelector('#app>.workspace>.controls>.controls-body');
+    return {title:rect('.pv-upscale-workspace-intro h2'),model:rect('#upscale-model-trigger'),scale:rect('#upscale-scale'),format:rect('#output-format'),action:rect('#generate'),overflow:getComputedStyle(body).overflowY,bodyHeight:body.clientHeight,scrollHeight:body.scrollHeight};
+   });
+   const emptyInspector=await inspectorStyle();
+   if(width>=781){
+    assert.equal(emptyInspector.overflow,'visible','Empty inspector uses page scroll too');
+    assert.ok(emptyInspector.scrollHeight<=emptyInspector.bodyHeight+1,'Empty controls need no nested scroll');
+   }
+   const chooser=x.page.waitForEvent('filechooser');
+   await x.page.getByRole('button',{name:'Upload an image to upscale',exact:true}).click();
+   await (await chooser).setFiles({
+     name:'pv-lab-editorial-photo.jpg',mimeType:'image/jpeg',buffer:readFileSync(photographicFixture)
+   });
+   await x.page.waitForFunction(()=>{
+     const img=document.getElementById('preview');
+     return img&&!img.hidden&&img.naturalWidth>0&&document.getElementById('app').classList.contains('pv-upscale-source-ready')&&window.__labTest.settled();
+   });
+   const loadedInspector=await inspectorStyle();
+   for(const key of ['title','model','scale','format','action']){
+    assert.deepEqual(loadedInspector[key],emptyInspector[key],'Upload preserves '+key+' geometry and type at '+width+'px');
+   }
+   await selectModel(x.page,/Topaz Standard V2/);
+   for(const quality of ['Standard V2','High Fidelity V3']){
+    await selectQuality(x.page,quality,{touch:width===390});
+    const g=await x.page.evaluate(()=>{
+      const body=document.querySelector('#app>.workspace>.controls>.controls-body');
+      const scale=document.getElementById('upscale-scale').getBoundingClientRect();
+      const format=document.getElementById('output-format').getBoundingClientRect();
+      const generate=document.getElementById('generate').getBoundingClientRect();
+      const model=document.getElementById('upscale-model-trigger').getBoundingClientRect();
+      const photo=document.getElementById('preview');
+      return {scaleTop:scale.top,scaleRight:scale.right,formatTop:format.top,formatLeft:format.left,
+        scaleHeight:scale.height,formatHeight:format.height,formatBottom:format.bottom,modelHeight:model.height,
+        generateTop:generate.top,actionPageBottom:generate.bottom+scrollY,photoWidth:photo.naturalWidth,
+        photoHeight:photo.naturalHeight,overflow:getComputedStyle(body).overflowY,bodyHeight:body.clientHeight,
+        bodyScrollHeight:body.scrollHeight,documentHeight:document.documentElement.scrollHeight,
+        documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth};
+    });
+    assert.ok(g.generateTop>=g.formatBottom-1,
+      'REAL photographic source and '+quality+' keep Upscale below Image format at '+width+'px: '+JSON.stringify(g));
+    assert.ok(g.photoWidth>0&&g.photoHeight>0,'Original photographic media stays visible');
+    assert.ok(g.documentWidth<=g.viewportWidth,'No horizontal overflow with a loaded photograph');
+    assert.ok(Math.abs(g.scaleTop-g.formatTop)<=1&&g.scaleRight<g.formatLeft,
+      'Enlargement and Image format sit side by side: '+JSON.stringify(g));
+    assert.equal(g.scaleHeight,38,'Enlargement uses the compact Video field height');
+    assert.equal(g.formatHeight,38,'Image format matches Enlargement');
+    assert.ok(g.modelHeight>=44&&g.modelHeight<55,'Model button stays compact and readable');
+    if(width>=781){
+      assert.equal(g.overflow,'visible','The loaded deck has no inner scroll container');
+      assert.ok(g.bodyScrollHeight<=g.bodyHeight+1,'All settings fit their deck: '+JSON.stringify(g));
+      if(height>=700)assert.ok(g.actionPageBottom<=height+1,'Upscale stays in view: '+JSON.stringify(g));
+      assert.ok(g.actionPageBottom<=g.documentHeight+1,'Short windows can reach Upscale with page scroll');
+    }
+    assert.equal(quoteRequests(x).length,0,'Model preview never creates a billable quote');
+    assert.equal(countPaid(x),0,'Model preview never submits generation');
+    mkdirSync('test-results',{recursive:true});
+    const version=quality==='Standard V2'?'standard-v2':'high-fidelity-v3';
+    await x.page.screenshot({path:'test-results/upscaler-photo-loaded-'+width+'-'+version+'.png',fullPage:true});
+    ok('Loaded real photograph '+quality+' at '+width+'×'+height+': compact settings, no inner scroll, no billable calls');
+   }
+   // Same-row toggle closes and reopens the existing version selector on
+   // both mouse and touch without losing High Fidelity or making a paid call.
+   const precisionRow=x.page.locator('#upscale-precision-trigger');
+   assert.equal(await precisionRow.getAttribute('aria-checked'),'true');
+   const beforeToggleQuality=await x.page.locator('#upscale-topaz-model').inputValue();
+   if(width===390)await precisionRow.tap();else await precisionRow.click();
+   assert.equal(await x.page.locator('#upscale-precision-options').isVisible(),false,'Second click collapses Precision at '+width+'px');
+   assert.equal(await precisionRow.getAttribute('aria-expanded'),'false');
+   assert.equal(await x.page.locator('#upscale-engine').inputValue(),'topaz-precision','Collapse preserves active model');
+   assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),beforeToggleQuality,'Collapse preserves selected quality');
+   if(width===390)await precisionRow.tap();else await precisionRow.click();
+   assert.equal(await x.page.locator('#upscale-precision-options').isVisible(),true,'Click again expands Precision at '+width+'px');
+   assert.equal(await precisionRow.getAttribute('aria-expanded'),'true');
+   assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),beforeToggleQuality,'Reopen restores the selected quality');
+   assert.equal(quoteRequests(x).length,0,'Opening and closing never fetches a paid quote');
+   assert.equal(countPaid(x),0,'Opening and closing never submits generation');
+   const beforeClear=await inspectorStyle();
+   await x.page.getByRole('button',{name:'Clear',exact:true}).click();
+   await x.page.waitForFunction(()=>!document.getElementById('app').classList.contains('pv-upscale-source-ready')&&window.__labTest.settled());
+   const afterClear=await inspectorStyle();
+   for(const key of ['title','model','scale','format','action'])assert.deepEqual(afterClear[key],beforeClear[key],'Clear preserves '+key+' geometry at '+width+'px');
+   assert.deepEqual(x.errors,[]);
+   await x.context.close();
+  }
+
+}
+
 try{
+ if(process.env.PV_UPSCALE_LAYOUT_ONLY==='1'){await verifyPhotographicLayout();}
+ else {
  // Reproduce the loaded-image dead button without dispatching a provider call.
  const interruptedUpscale={id:'10000000-0000-4000-8000-000000000070',status:'uncertain',
    error:'Submission interrupted before acknowledgement.',createdAt:Date.now(),
@@ -609,79 +709,7 @@ try{
    assert.deepEqual(x.errors,[]);ok((customer?'Customer':'Owner')+' selects and submits both fresh qualities with bound credits and unchanged geometry at '+width+'px');await x.context.close();
   }
 
-  // Use a real PV LAB photographic JPG, not just the synthetic pixel fixture.
-  // The expanded Precision card is the tallest normal loaded state.
-  const photographicFixture='lab/visuals/upscaler-chrome-wool-option-1.jpg';
-  assert.ok(existsSync(photographicFixture),'Approved Upscaler photographic fixture exists');
-  for(const [width,height] of [[1920,910],[1440,740],[1024,520],[390,844]]){
-   x=await workspace([],width,{height});await x.page.click('#tool-upscale');
-   const chooser=x.page.waitForEvent('filechooser');
-   await x.page.getByRole('button',{name:'Upload an image to upscale',exact:true}).click();
-   await (await chooser).setFiles({
-     name:'pv-lab-editorial-photo.jpg',mimeType:'image/jpeg',buffer:readFileSync(photographicFixture)
-   });
-   await x.page.waitForFunction(()=>{
-     const img=document.getElementById('preview');
-     return img&&!img.hidden&&img.naturalWidth>0&&document.getElementById('app').classList.contains('pv-upscale-source-ready');
-   });
-   await selectModel(x.page,/Topaz Standard V2/);
-   for(const quality of ['Standard V2','High Fidelity V3']){
-    await selectQuality(x.page,quality,{touch:width===390});
-    const g=await x.page.evaluate(()=>{
-      const body=document.querySelector('#app>.workspace>.controls>.controls-body');
-      const scale=document.getElementById('upscale-scale').getBoundingClientRect();
-      const format=document.getElementById('output-format').getBoundingClientRect();
-      const generate=document.getElementById('generate').getBoundingClientRect();
-      const model=document.getElementById('upscale-model-trigger').getBoundingClientRect();
-      const photo=document.getElementById('preview');
-      return {scaleTop:scale.top,scaleRight:scale.right,formatTop:format.top,formatLeft:format.left,
-        scaleHeight:scale.height,formatHeight:format.height,formatBottom:format.bottom,modelHeight:model.height,
-        generateTop:generate.top,actionPageBottom:generate.bottom+scrollY,photoWidth:photo.naturalWidth,
-        photoHeight:photo.naturalHeight,overflow:getComputedStyle(body).overflowY,bodyHeight:body.clientHeight,
-        bodyScrollHeight:body.scrollHeight,documentHeight:document.documentElement.scrollHeight,
-        documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth};
-    });
-    assert.ok(g.generateTop>=g.formatBottom-1,
-      'REAL photographic source and '+quality+' keep Upscale below Image format at '+width+'px: '+JSON.stringify(g));
-    assert.ok(g.photoWidth>0&&g.photoHeight>0,'Original photographic media stays visible');
-    assert.ok(g.documentWidth<=g.viewportWidth,'No horizontal overflow with a loaded photograph');
-    assert.ok(Math.abs(g.scaleTop-g.formatTop)<=1&&g.scaleRight<g.formatLeft,
-      'Enlargement and Image format sit side by side: '+JSON.stringify(g));
-    assert.equal(g.scaleHeight,38,'Enlargement uses the compact Video field height');
-    assert.equal(g.formatHeight,38,'Image format matches Enlargement');
-    assert.ok(g.modelHeight>=44&&g.modelHeight<55,'Model button stays compact and readable');
-    if(width>=781){
-      assert.equal(g.overflow,'visible','The loaded deck has no inner scroll container');
-      assert.ok(g.bodyScrollHeight<=g.bodyHeight+1,'All settings fit their deck: '+JSON.stringify(g));
-      if(height>=700)assert.ok(g.actionPageBottom<=height+1,'Upscale stays in view: '+JSON.stringify(g));
-      assert.ok(g.actionPageBottom<=g.documentHeight+1,'Short windows can reach Upscale with page scroll');
-    }
-    assert.equal(quoteRequests(x).length,0,'Model preview never creates a billable quote');
-    assert.equal(countPaid(x),0,'Model preview never submits generation');
-    mkdirSync('test-results',{recursive:true});
-    const version=quality==='Standard V2'?'standard-v2':'high-fidelity-v3';
-    await x.page.screenshot({path:'test-results/upscaler-photo-loaded-'+width+'-'+version+'.png',fullPage:true});
-    ok('Loaded real photograph '+quality+' at '+width+'×'+height+': compact settings, no inner scroll, no billable calls');
-   }
-   // Same-row toggle closes and reopens the existing version selector on
-   // both mouse and touch without losing High Fidelity or making a paid call.
-   const precisionRow=x.page.locator('#upscale-precision-trigger');
-   assert.equal(await precisionRow.getAttribute('aria-checked'),'true');
-   const beforeToggleQuality=await x.page.locator('#upscale-topaz-model').inputValue();
-   if(width===390)await precisionRow.tap();else await precisionRow.click();
-   assert.equal(await x.page.locator('#upscale-precision-options').isVisible(),false,'Second click collapses Precision at '+width+'px');
-   assert.equal(await precisionRow.getAttribute('aria-expanded'),'false');
-   assert.equal(await x.page.locator('#upscale-engine').inputValue(),'topaz-precision','Collapse preserves active model');
-   assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),beforeToggleQuality,'Collapse preserves selected quality');
-   if(width===390)await precisionRow.tap();else await precisionRow.click();
-   assert.equal(await x.page.locator('#upscale-precision-options').isVisible(),true,'Click again expands Precision at '+width+'px');
-   assert.equal(await precisionRow.getAttribute('aria-expanded'),'true');
-   assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),beforeToggleQuality,'Reopen restores the selected quality');
-   assert.equal(quoteRequests(x).length,0,'Opening and closing never fetches a paid quote');
-   assert.equal(countPaid(x),0,'Opening and closing never submits generation');
-   assert.deepEqual(x.errors,[]);
-   await x.context.close();
-  }
+  await verifyPhotographicLayout();
 
   x=await workspace();await x.page.click('#tool-upscale');
   const trigger=x.page.locator('#upscale-model-trigger'),precision=x.page.locator('#upscale-precision-trigger');
@@ -707,6 +735,7 @@ try{
   ok('Keyboard selects nested Precision quality, wraps between models and leaves inline cards visible with zero paid side effects');await x.context.close();
  }
  }
+ }
  console.log('BROWSER_CHECKS_PASSED='+passed);
-}finally{await browser.close();await new Promise(r=>server.close(r));}
+}finally{await browser.close();server.closeAllConnections();await new Promise(r=>server.close(r));}
 
