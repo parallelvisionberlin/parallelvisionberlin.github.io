@@ -282,7 +282,6 @@ try{
   const preservedDirection='A photographic portrait inside the same room';
   await text.fill(preservedDirection);
   await page.locator('#scene-image-open').click();
-  assert.equal(await page.locator('#scene-image-menu-categories').isVisible(),true,'Four-square button directly opens Elements');
   await page.locator('#scene-image-menu [data-scene-target="locations"]').click();
   await page.locator('#scene-library-dialog[open]').waitFor();
   // The long technical note lives behind the compact About Elements control.
@@ -328,7 +327,6 @@ try{
   // Switching categories from an unsaved Element must never silently erase it
   // or leave the Create view stranded beneath a newly selected sidebar tab.
   await page.locator('#scene-image-open').click();
-  assert.equal(await page.locator('#scene-image-menu-categories').isVisible(),true,'Four-square button directly opens Elements');
   await page.locator('#scene-image-menu [data-scene-target="characters"]').click();
   await page.locator('#scene-new').click();
   await page.locator('#scene-name').fill('Unsaved Nina Draft');

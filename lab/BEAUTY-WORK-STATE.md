@@ -1,5 +1,60 @@
 # Beauty Studio and Studios navigation
 
+
+## 2026-11-12 | Final owner-supplied HF casting photographs
+
+- Owner supplied three HF casting portraits and delegated final selection/publication after rejecting generated alternatives. Use these actual supplied photographs; no further generation, retouching or synthetic skin/style edits.
+- **Beauty:** second displayed photo, `hf_20261112_124335_31aebb33-9fd9-415b-ad77-5504a485ee62.png`, Library `libfile_5fed3785825881919e12989004ef7af5`. Frontal face/neck, cooler film tone, candid expression. Asset `archive-beauty-hf-casting-20261112.webp`.
+- **Window Study:** first displayed photo, `hf_20261112_124335_0de4f4b1-285b-4514-b702-1bbe98afa2dc.png`, Library `libfile_68e5a934a1088191817f9423e84b715a`. Three-quarter portrait with soft lateral daylight, warm skin and window-frame edge. Asset `archive-windowstudy-hf-casting-20261112.webp`.
+- Third supplied image is not used: similar framing, less distinction between cards. Existing generation prompts/presets remain illustrative light/finish controls.
+- Both originals preserved in Library; proportionally downsampled to 1200x1600 WebP, each <180 kB. Per-image `object-position:center 18%` keeps the full face and some neck visible in both wide and square existing card frames. Only these two references/native dimensions/focal positions and existing gallery fixture change.
+- Release check repair: `ubuntu-latest` moved this Beauty run to Ubuntu 26.04, unsupported by pinned Playwright 1.57.0. Pinned only the Beauty workflow runner to Ubuntu 24.04, matching previously successful job 131150431525. Browser assertions and runtime version unchanged.
+- Skin Study macro, approved supplied Windblown, other looks, captions, layout, hero, uploads, providers and billing unchanged. Do not revert to the rejected generated Beauty/Window Study covers. Current production evidence: structured `alter-tabbed-editor` record.
+
+
+
+## 2026-11-12 | Refined Beauty and Window Study direction
+
+- Owner rejected the prior muted/ungroomed portrait direction. Corrected with deliberate grooming, minimal black fashion styling, healthy natural skin, stronger light and a composed editorial presence. Full-face Beauty and window-light Window Study remain distinct from macro Skin Study.
+- `archive-beauty-refined-20261112.webp`: complete face/neck, swept-back groomed hair, refined subtle makeup, black high-neck top and sculptural soft window light. Original generated file `exec-13c4ddf6-5b9b-42de-991e-3e69530b664f.png`.
+- `archive-windowstudy-refined-20261112.webp`: long brushed hair, tailored black coat, engaged expression and architectural window light in a clean modern Berlin interior. Original `exec-3a8826cf-8b4f-4e32-8ede-c6a40c8a5368.png`.
+- Both 1536x1024 optimized WebPs, each <180 kB. Previous photographs retained for history. Only two image references and existing gallery fixture change; no geometry, captions, presets or user workflow change.
+- Skin Study macro, selected supplied HF Windblown, other looks, hero, models, uploads and billing remain unchanged. See structured `alter-tabbed-editor` record for final release evidence.
+
+
+
+## 2026-11-12 | Beauty wide portrait and Window Study follow-up
+
+- Owner approved separating the two visual purposes: Beauty shows the entire face plus neck; Skin Study stays the extreme macro. Added request: replace plastic-looking Window Study with a more candid, materially interesting window-light photograph.
+- New `lab/visuals/beauty/atelier/archive-beauty-portrait-20261112.webp`, 1536x1024, generated from the previous Beauty eye image as a skin/colour reference. Natural freckles, pores and subtle dewy highlights retained, with complete hairline, chin, neck and upper shoulders in a wider composition suitable for the existing card crop.
+- Source original: `exec-d92f88d6-7d74-45d5-a0c9-706236dcb6a2.png`. Previous macro source `archive-beauty-hd-20261112.webp` retained for history. Single image-generation edit, no variants.
+- Window Study uses new `archive-windowstudy-glass-20261112.webp`: candid upper-body view through old glass with restrained street reflections and directional daylight, rather than the prior glossy portrait. Original image and published selection behavior remain preserved. Generated original: `exec-eff1a062-2eec-41ba-bade-3b164142aa06.png`.
+- No changes to Skin Study, supplied HF Windblown, Night Tape, presets, hero, layout, captions, providers, upload or billing. Current publication evidence is in structured `alter-tabbed-editor` record.
+
+
+
+## 2026-11-12 | Windblown supplied-photo follow-up
+
+- Owner requested selection of the best of four newly supplied HF images and immediate website update. Chosen: `hf_20261112_104120_1075d235-c171-426d-9307-5850b600c2bb.png`, the fourth image in the message, woman catching her windblown hair with one hand.
+- Reused the exact supplied photograph, with only proportional downsampling and WebP compression. New `lab/visuals/beauty/atelier/archive-windblown-hf-20261112.webp` is 1200x1600; browser retains the existing object-fit card crop. Original source Library ID: `libfile_80d73c6f261c81919801ecc5e926e4d3`.
+- Only Windblown image reference/dimensions and existing gallery image-path fixture change. Captions, presets, hero, other nineteen looks, models, uploads and billing unchanged.
+- Existing Image/archive/gallery contracts passed locally. See `alter-tabbed-editor` in `lab/owner-work-records.json` for current CI and production evidence, superseding the prior Windblown image below.
+
+
+
+## 2026-11-12 | Four archive covers: LIVE VERIFIED
+
+- Scoped request: repair blurry Beauty; replace Pinterest-origin Night Tape; increase Skin Study macro detail; replace Windblown with retro Riviera convertible / soft pastel film.
+- Beauty source was only 246x137 px. Built-in image generation recreated the same eye/dewy-skin composition at 1536x1024. New Skin Study resolves pores, freckles and fine vellus hair; new Windblown shows wind in hair from a vintage cream convertible on the French coast. Three generated originals are represented by optimized 1536x1024 WebPs in the repository.
+- Night Tape reuses the current public Hong Kong Nights Mood preview from `lab/moods.js`: `https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/e06ac253-47c4-47b4-80e0-b90df2949f45.png`, downloaded and optimized locally. No new Night Tape generation.
+- Assets: `archive-beauty-hd-20261112.webp`, `archive-nighttape-mood-20261112.webp`, `archive-skinstudy-macro-20261112.webp`, `archive-windblown-riviera-20261112.webp`, all under `lab/visuals/beauty/atelier/`, each <180 kB.
+- Only these four card references and two captions change. Windblown uses existing daylight + soft-film native settings and refined wind/pastel prompt while preserving the source person, clothing and environment. Module imports are versioned `20261112-archive-photo1`; no layout, hero, provider, billing or upload change.
+- Local validation: 29 relevant Image, Beauty, category, archive and gallery tests passed. Full Beauty desktop/mobile CI, quote/idempotency, Studios phone fit and approved Image UI passed (run 43198785769). All 26 broad private-lab failures match baseline; no new failures. Local preview slot belonged to another session and was not interrupted.
+- PR #1010 reviewed head `0366806be4a4807718bdb67b82bc9e6f9d3ec59d`, production merge `94a370540bd5f53d3cad0d28e567330ca3b9eb95`. Exact Cloudflare app check 131118756756 succeeded for project pvlab-studio, deployment b103a766-050e-4ec1-aea9-7e6250ac6fbd.
+- Public production browser verified all four versioned covers load at 1536x1024, the module version is 20261112-archive-photo1, Windblown selects daylight/soft-film, and no horizontal page overflow at 1363px. No paid generation or real signed-in account tested. Direct byte fetch returned HTTP 403, so no production byte-hash equality is claimed. Actual rendering and deployment were verified independently.
+- No publication work pending. See structured `alter-tabbed-editor` record for evidence.
+
+
 ## 2026-11-08 | Twenty curated looks and four-plus-peek editorial archive: LIVE VERIFIED
 
 - Owner approved the fashion-exhibition direction for **Editorial Looks & Moods**: four complete photographic cards on large desktop (>=1350px) plus a visible sliver of the fifth to imply continuous horizontal browsing. Cards have greater height, breathing room, restrained captions, and no decorative arrows. Responsive gallery on smaller screens retains existing wheel, inertia, trackpad, native swipe, focus and keyboard selection behavior.

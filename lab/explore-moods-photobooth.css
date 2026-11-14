@@ -36,6 +36,12 @@
  width:100%!important;height:100%!important;object-fit:cover!important;
  object-position:50% 35%;filter:none!important;transform:scale(1.15)!important;opacity:1!important;
 }
+/* Dreamcore desktop: shift the 4:3 artwork within its tall crop, not the frame or controls. */
+@media (min-width:601px){
+ #mc-look-dialog.mc-photobooth:not(.is-credit-offer) #mc-look-preview[data-mood-id="dreamcore"]{
+  object-position:62% 35%!important;transform:scale(1.15)!important;
+ }
+}
 #mc-look-dialog.mc-photobooth:not(.is-credit-offer) .mc-look-dialog-media::after{
  content:"";position:absolute;inset:0;pointer-events:none;
  background:linear-gradient(90deg,transparent 40%,#0d101400 60%,#0d1014 100%),linear-gradient(0deg,#0d10147d,transparent 45%);
@@ -324,6 +330,22 @@
 }
 @media(max-width:600px) and (max-height:700px){
  #mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer) .mc-look-dialog-body{height:calc(100% - 196px)}
+}
+
+/* Phone result: retain the approved outer card and photographic header.
+   Generating has no Download / balance / Make another controls yet. Remove
+   their invisible grid tracks only during processing so the Silver Darkroom
+   fills the existing workspace instead of leaving a dead strip below it.
+   Completed results and their controls keep the original rows. All Moods. */
+@media(max-width:600px){
+  #mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer):has(#mc-look-result-loading:not([hidden])) .mc-look-result-artwork{
+    grid-template-rows:22px minmax(0,1fr);
+  }
+  #mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer):has(#mc-look-result-loading:not([hidden])) .mc-look-result-actions[hidden],
+  #mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer):has(#mc-look-result-loading:not([hidden])) #mc-look-result-balance[hidden],
+  #mc-look-dialog.mc-photobooth.is-result-view:not(.is-credit-offer):has(#mc-look-result-loading:not([hidden])) #mc-look-result-again[hidden]{
+    display:none!important;
+  }
 }
 
 /* The verified price arrives asynchronously; reserve its line from the start. */

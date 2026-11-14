@@ -293,7 +293,7 @@ try{
       return {media:rect('.history-media'),heart:rect('.asset-heart'),download:rect('.result-download')};
     });
     assert.equal(await tiles.first().locator('.history-video-play').isVisible(),true,'The thumbnail retains one clear Play Video affordance');
-    assert.equal(await tiles.first().locator('.asset-video-badge').isVisible(),width>640,'Only phone cards hide the redundant Video badge');
+    assert.equal(await tiles.first().locator('.asset-video-badge').isVisible(),false,'Video History keeps one Play marker at every width; Assets classification is separate');
     if(width<=640){
       assert.ok(cardControls.heart.bottom<cardControls.download.top,'Favorite and Download do not overlap');
       assert.ok(Math.abs(cardControls.download.bottom-cardControls.media.bottom)<3,'Download sits at the image/text boundary, not the bottom of the whole card');

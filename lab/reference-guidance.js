@@ -83,6 +83,8 @@ export function canUseReferenceGuidance(labels){
 }
 export function referenceInstruction(raw,index){
   const r=normalizeReferenceLabel(raw),target=REFERENCE_TARGETS[r.role]?.find(([id])=>id===r.target)?.[1];
+  if(r.role==='style'&&r.name.startsWith('Fallen Angel style - '))
+    return 'Reference '+(index+1)+' [Curated scene / physical wings]: '+r.note;
   let instruction=descriptions[r.role];
   if(r.role==='detail')instruction='Use only the '+(target||'selected detail').toLowerCase()+' as a localized visual reference. Match it to the final composition perspective and lighting. Do not copy the reference person, overall pose, clothing or background.';
   if(r.role==='outfit')instruction='Use only the '+(target||'full outfit').toLowerCase()+'. Fit it to the target subject and pose. Do not copy the wearer, face, body, camera or background.';
@@ -91,6 +93,8 @@ export function referenceInstruction(raw,index){
 }
 function compactReferenceInstruction(raw,index){
   const r=normalizeReferenceLabel(raw),target=REFERENCE_TARGETS[r.role]?.find(([id])=>id===r.target)?.[1];
+  if(r.role==='style'&&r.name.startsWith('Fallen Angel style - '))
+    return 'Reference '+(index+1)+' [Curated scene / wings]: '+r.note;
   // Curated Dream Blur Style notes already say OPTICS ONLY; don't repeat the generic instruction.
   if(r.role==='style'&&r.name.startsWith('Dream Blur style - '))
     return 'Reference '+(index+1)+' [Style optics / '+r.name.slice('Dream Blur style - '.length)+']: '+r.note;

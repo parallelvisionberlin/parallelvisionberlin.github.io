@@ -23,7 +23,7 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('.lab-pricing-welcome').count(),0,'Free credits offer is removed from pricing');
   assert.equal(await page.locator('.start-link').getAttribute('href'),'./studio.html?tool=image&welcome=1');
   assert.deepEqual(await page.locator('.studio-tool-link').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['./studio.html?tool=image','./studio.html?tool=video','./studio.html?tool=upscale']);
-  assert.deepEqual(await page.locator('.landing-header nav > a:not([hidden]),.landing-header nav > .pv-studios-menu > .pv-studios-trigger').allTextContents(),['Image','Video','Upscaler','Studios','Explore Moods','Pricing']);
+  assert.deepEqual(await page.locator('.landing-header nav > a:not([hidden]),.landing-header nav > .pv-studios-menu > .pv-studios-trigger').allTextContents(),['Image','Video','Upscaler','Studios','Moods','Pricing']);
   assert.equal(await page.locator('.pv-studios-panel').isVisible(),false,'Studios is closed initially');
   if(await page.evaluate(()=>matchMedia('(hover: hover) and (pointer: fine)').matches)){
     await page.locator('.pv-studios-trigger').hover();

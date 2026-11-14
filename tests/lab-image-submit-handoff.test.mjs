@@ -37,10 +37,11 @@ test('A stale completion cannot release a newer request with the same signature'
   assert.equal(h.has('repeat'),false);
 });
 
-test('Only one owner Seedream image unlocks before server confirmation',()=>{
+test('Only single-image owner Seedream or web PV Still submissions unlock before server confirmation',()=>{
   const source=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.match(source,/fastEligible=!customerMode&&selected.engine==='seedream'&&requested===1&&provider==='spicy'/);
+  assert.match(source,/ownerStill=window\.__PV_LAB_NATIVE__!==1&&ownerAccount&&selected\.soulProModel==='soul2'&&provider==='higgsfield'/);
+  assert.match(source,/fastEligible=!customerMode&&requested===1&&\(selected\.engine==='seedream'&&provider==='spicy'\|\|ownerStill\)/);
   assert.match(source,/feedback=beginImageFeedback[\s\S]*?fastImageHandoff.reserve\(requestKey,provider,requested\)/);
   assert.match(source,/imageSubmissionPending=false;imageSubmissionStage='Sending…';update\(\)/);
   assert.match(source,/fastImageHandoff.has\(currentImageSubmissionKey\(\)\)/);

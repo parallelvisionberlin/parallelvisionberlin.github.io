@@ -15,8 +15,8 @@ export function modelImageInputIssue(engine, items = [], {count = 1, processing 
     return 'Krea 3 accepts up to four input photographs. Remove extra references. Nothing submitted.';
   if (engine === 'qwen3' && refs.length > 3)
     return 'Qwen Image 3.0 accepts up to three reference photos. Remove extras before generating. Nothing submitted.';
-  if (engine === 'qwen3' && refs.some(item=>Number(item.file.size)>10000000))
-    return 'Qwen Image 3.0 supports up to 10 MB per reference photo. Compress the image and try again. Nothing submitted.';
+  // Qwen reference photos over 10 MB are converted to private working copies
+  // before its quote. Do not reject original files at attachment or Generate.
 
   // SpicyAPI accepts ten Flash references. Files over 10 MiB use the
   // existing prepared working-copy flow without modifying their originals.

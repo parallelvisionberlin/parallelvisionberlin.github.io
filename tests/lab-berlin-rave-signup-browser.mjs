@@ -32,6 +32,11 @@ for(const width of [320,390,1440])for(const returning of [false,true]){
       if(/^\/api\/jobs\/job-rave-\d+\/performance$/.test(url.pathname))return json({ok:true});
       if(/^\/api\/jobs\/job-rave-\d+$/.test(url.pathname))return json({job:{id:url.pathname.split('/').at(-1),status:'completed',outputId:'output-rave'}});
       if(url.pathname==='/api/assets/output-rave')return route.fulfill({contentType:'image/png',body:photo});
+      if(url.pathname==='/api/customer/mood-offer-event'){
+        assert.equal(req.method(),'POST');
+        assert.ok(['offer_viewed','offer_clicked','repeat_clicked'].includes(req.postDataJSON().event),'Only the documented offer telemetry is mocked');
+        return json({ok:true});
+      }
       throw Error('Unexpected API route '+url.pathname);
     }
     if(url.hostname!=='pvlab.studio')return route.abort();

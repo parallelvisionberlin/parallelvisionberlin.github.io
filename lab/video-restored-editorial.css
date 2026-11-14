@@ -224,7 +224,7 @@
  margin:0!important;padding:0!important;flex:1 1 150px!important;
  line-height:1.4!important;font-size:10px!important;color:#adb7c3!important;
 }
-/* Extend accepts optional image and character references alongside its clip. */
+/* Extend shows attached photos for a deliberate switch to Reference set; provider Extend never receives them. */
 #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.video-extend-active #reference-mode:not([hidden]){
  display:flex!important;flex-direction:column!important;
  gap:9px!important;padding:0!important;background:transparent!important;

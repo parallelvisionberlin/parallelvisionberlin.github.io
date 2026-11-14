@@ -21,9 +21,20 @@ class DB {
 }
 function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length};},async delete(k){objects.delete(k);}}};return{env,objects};}
 let calls=[],quotedRequest=null,createCount=0,providerState='queued',createMode='ok',maxPrice='2.700000';
-let uploadedReference=null;
+let uploadedReference=null,hfQuotedRequest=null,hfCreates=0,hfEstimate='1.35',hfCreateMode='ok';
 globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:String(url),options});if(u.pathname==='/.well-known/jwks.json')return Response.json({keys:[jwk]});if(u.hostname==='cdn.spicyapi.ai'){assert.ok(!options.headers?.Authorization);if(u.pathname.endsWith('.png'))return new Response(new Uint8Array([137,80,78,71,13,10,26,10,0]),{headers:{'content-type':'image/png'}});return new Response(new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]),{headers:{'content-type':'video/mp4'}});}
  if(u.hostname==='test.r2.cloudflarestorage.com'){assert.equal(options.method,'PUT');assert.equal(new Headers(options.headers).get('authorization'),null);uploadedReference=new Uint8Array(options.body);return new Response(null,{status:200});}
+ if(u.hostname==='api.higgsfield.ai'){
+  assert.equal(options.headers.Authorization,'Key synthetic:extend');
+  if(u.pathname.startsWith('/estimate/')){hfQuotedRequest=JSON.parse(options.body);return Response.json({usd:hfEstimate});}
+  if(u.pathname==='/bytedance/seedance-2.5/video-extend'){
+   hfCreates++;assert.deepEqual(JSON.parse(options.body),hfQuotedRequest);
+   if(hfCreateMode==='timeout')throw new Error('Simulated uncertain submission');
+   if(hfCreateMode==='reject')return new Response('Rejected',{status:422});
+   return Response.json({request_id:'40000000-0000-4000-8000-000000000001',status_url:'https://api.higgsfield.ai/requests/40000000-0000-4000-8000-000000000001/status'});
+  }
+  throw new Error('Unmocked Higgsfield request '+u.pathname);
+ }
  assert.equal(u.hostname,'api.spicyapi.ai');assert.equal(options.headers.Authorization,'Bearer '+KEY);
  if(u.pathname.endsWith('/chat/credit'))return Response.json({code:200,data:{available:'10',held:'0',total:'10'}});
  if(u.pathname.endsWith('/common/upload-url')){const input=JSON.parse(options.body);return Response.json({code:200,data:{fileId:'fil_synthetic_reference',uploadUrl:'https://test.r2.cloudflarestorage.com/reference',method:'PUT',headers:{'Content-Type':input.contentType,'Content-Length':String(input.bytes)},maxBytes:10485760,expiresAt:new Date(Date.now()+1200000).toISOString()}});}
@@ -106,42 +117,134 @@ test('Reference media survive shared drafts and are removed only when unreferenc
  assert.equal((await req(env,'/api/jobs/'+j1.id,{method:'DELETE'})).status,200);assert.equal((await req(env,'/api/assets/'+a)).status,200);
  assert.equal((await req(env,'/api/jobs/'+j2.id,{method:'DELETE'})).status,200);assert.equal((await req(env,'/api/assets/'+a)).status,404);
 });
-test('Seedance extension quotes Higgsfield, binds one owned video, submits once and archives video output',async()=>{
- const {env}=fixture();env.HF_CREDENTIALS='test:secret';const image=await setup(env),video=await reference(env);
- const archived=env.LAB_DB.db.prepare("INSERT INTO jobs(id,owner_id,params,state,created_at,updated_at) VALUES(?,'owner-internal','{}','completed',1,1)");
- for(let i=0;i<509;i++)archived.run(crypto.randomUUID());
- const previous=globalThis.fetch;let estimates=0,submits=0,lastInput,status='queued';const task=crypto.randomUUID();
- globalThis.fetch=async(url,opts={})=>{const u=new URL(url);if(u.hostname==='api.higgsfield.ai'){
-  assert.equal(opts.headers.Authorization,'Key test:secret');assert.equal(opts.redirect,'manual');
-  if(u.pathname.startsWith('/estimate/')){estimates++;lastInput=JSON.parse(opts.body);return Response.json({usd:1.5});}
-  if(u.pathname==='/bytedance/seedance-2.5/video-extend'){submits++;assert.deepEqual(JSON.parse(opts.body),lastInput);return Response.json({request_id:task,status_url:'https://api.higgsfield.ai/requests/'+task+'/status'});}
-  return Response.json({status,video:{url:'https://cdn.spicyapi.ai/extension.mp4'}});
- }return previous(url,opts);};
- try{
-  const roles=[{name:'alma.png',role:'identity',note:'Use Alma only.',elementId:crypto.randomUUID(),elementName:'Alma',elementCategory:'characters'}];
-  const settings={...sd('extend'),referenceRoles:roles,referenceVideos:[{name:'camera.mp4',seconds:3}]},data={sourceId:video,referenceVideoIds:[video],referenceSourceIds:[image],settings};
-  const draft=await req(env,'/api/drafts',{method:'POST',data});assert.equal(draft.status,201,await draft.clone().text());const savedDraft=(await draft.json()).job;assert.deepEqual(savedDraft.settings.referenceSourceIds,[image]);assert.deepEqual(savedDraft.settings.referenceVideoIds,[video]);assert.equal(estimates,0);
-  const r=await req(env,'/api/quotes',{method:'POST',data});assert.equal(r.status,200,await r.clone().text());const q=await r.json();
-  assert.equal(q.provider,'Higgsfield');assert.equal(q.priceIsEstimate,true);assert.equal(submits,0);assert.equal(estimates,1);
-  assert.deepEqual(q.settings.referenceSourceIds,[image]);assert.equal(q.settings.referenceRoles[0].elementName,'Alma');
-  assert.equal(lastInput.image_urls.length,1);assert.match(lastInput.prompt,/@Image1.*identity/);assert.match(lastInput.prompt,/Use Alma only/);
-  const signedImage=new URL(lastInput.image_urls[0]);assert.equal((await req(env,signedImage.pathname+signedImage.search,{authToken:null,headers:{Origin:''}})).status,200);
-  assert.equal((await req(env,'/api/assets/'+image,{authToken:guest})).status,403);
-  assert.equal(lastInput.duration,5);assert.equal(lastInput.duration_seconds,undefined);assert.equal(lastInput.aspect_ratio,undefined);assert.equal(lastInput.output_format,'mp4');assert.match(lastInput.video_url,/\/input\// );
-  assert.equal((await req(env,'/api/quotes',{method:'POST',data:{...data,referenceVideoIds:[]}})).status,400);assert.equal(estimates,1);
-  for(const badIds of [[video],[image,image],Array(31).fill(image),[crypto.randomUUID()]]){
-   const bad=await req(env,'/api/quotes',{method:'POST',data:{...data,referenceSourceIds:badIds}});assert.ok([400,404].includes(bad.status));
-  }
-  assert.equal(estimates,1,'Invalid references fail before contacting the provider');
-  env.LAB_DB.db.prepare('UPDATE settings SET daily_limit_microusd=1000000').run();assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).status,409);assert.equal(submits,0);
-  env.LAB_DB.db.prepare('UPDATE settings SET daily_limit_microusd=10000000').run();
-  const j=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;assert.equal(j.status,'queued');assert.equal(j.settings.provider,'higgsfield');assert.equal(submits,1);
-  await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});assert.equal(submits,1);
-  const clipOnly=await req(env,'/api/quotes',{method:'POST',data:{...data,referenceSourceIds:[],settings:{...settings,referenceRoles:[]}}});assert.equal(clipOnly.status,200);assert.equal(lastInput.image_urls,undefined);
-  status='completed';env.LAB_DB.db.prepare('UPDATE jobs SET last_poll=0 WHERE id=?').run(j.id);
-  const completed=(await(await req(env,'/api/jobs/'+j.id)).json()).job;assert.equal(completed.status,'completed');assert.ok(completed.outputId);assert.equal(completed.settings.type,'video');
-  assert.deepEqual(completed.settings.referenceSourceIds,[image]);assert.deepEqual(completed.settings.referenceRoles,q.settings.referenceRoles);
-  const history=await(await req(env,'/api/jobs')).json();const stored=history.jobs.find(entry=>entry.id===j.id);
-  assert.deepEqual(stored.settings.referenceSourceIds,[image]);assert.equal(stored.settings.referenceRoles[0].elementName,'Alma');
- }finally{globalThis.fetch=previous;}
+test('Seedance Extend uses the SpicyAPI bound quote and preserves one source video through completion',async()=>{
+ const {env}=fixture(),image=await setup(env),video=await reference(env);
+ const settings={...sd('extend'),referenceVideos:[{name:'camera.mp4',seconds:10}]};
+ const data={sourceId:video,referenceVideoIds:[video],settings};
+ const before=calls.filter(c=>c.url.endsWith('/jobs/quote')).length;
+ createCount=0;providerState='queued';createMode='ok';maxPrice='2.700000';
+ const r=await req(env,'/api/quotes',{method:'POST',data});assert.equal(r.status,200,await r.clone().text());
+ const q=await r.json();
+ assert.equal(q.provider,'SpicyAPI');assert.equal(q.settings.provider,'spicy');assert.equal(q.settings.mode,'extend');
+ assert.equal(calls.filter(c=>c.url.endsWith('/jobs/quote')).length,before+1);assert.equal(createCount,0);
+ assert.equal(quotedRequest.model,'bytedance/seedance-2.5/video-extend');
+ assert.equal(quotedRequest.input.duration_seconds,5);assert.equal(quotedRequest.input.resolution,'720p');
+ assert.equal(quotedRequest.input.generate_audio,true);assert.equal(quotedRequest.input.prompt,settings.prompt);
+ assert.equal(quotedRequest.input.aspect_ratio,undefined);assert.equal(quotedRequest.input.image_urls,undefined);
+ assert.match(quotedRequest.input.video_url,/\/input\//);
+ const signed=new URL(quotedRequest.input.video_url);
+ assert.equal((await req(env,signed.pathname+signed.search,{authToken:null,headers:{Origin:''}})).status,200);
+ assert.equal((await req(env,'/api/assets/'+video,{authToken:guest})).status,403);
+ for(const invalid of [
+   {...data,referenceVideoIds:[]},
+   {...data,sourceId:image},
+   {...data,referenceAudioIds:[video]},
+ ]){
+  const result=await req(env,'/api/quotes',{method:'POST',data:invalid});
+  assert.equal(result.status,400,await result.clone().text());
+ }
+ assert.equal(calls.filter(c=>c.url.endsWith('/jobs/quote')).length,before+1,'Invalid Extend input must fail before contacting the provider');
+ env.LAB_DB.db.prepare('UPDATE settings SET daily_limit_microusd=1000000').run();
+ assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).status,409);
+ assert.equal(createCount,0);
+ env.LAB_DB.db.prepare('UPDATE settings SET daily_limit_microusd=10000000').run();
+ const submitted=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});
+ assert.equal(submitted.status,202,await submitted.clone().text());
+ const j=(await submitted.json()).job;
+ assert.equal(j.status,'queued');assert.equal(j.settings.provider,'spicy');assert.equal(createCount,1);
+ const again=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});
+ assert.equal(again.status,200);assert.equal(createCount,1,'Duplicate confirmation never submits twice');
+ providerState='succeeded';env.LAB_DB.db.prepare('UPDATE jobs SET last_poll=0 WHERE id=?').run(j.id);
+ const completed=(await(await req(env,'/api/jobs/'+j.id)).json()).job;
+ assert.equal(completed.status,'completed');assert.ok(completed.outputId);
+ assert.deepEqual(completed.settings.referenceVideoIds,[video]);
+ const history=(await(await req(env,'/api/jobs')).json()).jobs.find(x=>x.id===j.id);
+ assert.ok(history);assert.equal(history.outputId,completed.outputId);
+});
+
+
+test('Customer Extend with photos preserves inputs, quotes without debit and submits exactly once after confirmation',async()=>{
+ const {env}=fixture(),db=env.LAB_DB.db,customer='user_ExtendReferenceQA';
+ for(const migration of ['0006-customers-billing','0007-lab-referrals','0008-soul-id-launch-credits','0011-customer-lifecycle','0015-lab-promotional-credits','0023-welcome-guard','0025-promo-generation-holds','0029-pause-welcome-promotion','0033-owner-voucher-generation'])
+  db.exec(readFileSync(new URL('../lab-worker/migrations/'+migration+'.sql',import.meta.url),'utf8'));
+ Object.assign(env,{LAB_CUSTOMER_SIGNUPS_ENABLED:'true',LAB_WELCOME_CREDITS_ENABLED:'false',LAB_CHECKOUT_ENABLED:'true',LAB_PUBLIC_GENERATION_ENABLED:'true',LAB_CUSTOMER_SPICY_API_KEY:KEY,LAB_STRIPE_SECRET_KEY:'sk_test_synthetic',LAB_STRIPE_WEBHOOK_SECRET:'whsec_synthetic'});
+ const authToken=await token(customer);
+ const session=await req(env,'/api/session',{authToken});assert.equal(session.status,200,await session.clone().text());
+ db.prepare('INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES(?,?,?,?,?,?)')
+  .run('funding:'+customer,customer,10000,'purchase','test-funding:'+customer,Date.now());
+ const upload=await req(env,'/api/uploads',{method:'POST',authToken,raw:new Uint8Array([137,80,78,71,13,10,26,10,0]),headers:{'Content-Type':'image/png','X-Filename':'identity.png'}});
+ assert.equal(upload.status,201,await upload.clone().text());const image=(await upload.json()).id;
+ const video=await reference(env,'video',authToken);
+ const settings={...sd('extend'),prompt:'The sculpture turns slowly.',duration:7,resolution:'1080p',audio:false,referenceVideos:[{name:'camera.mp4',seconds:3,note:'Keep camera movement.'}]};
+ const data={sourceId:video,referenceVideoIds:[video],referenceSourceIds:[image],settings};
+ const snapshot=()=>({balance:db.prepare('SELECT balance_credits AS n FROM lab_customers WHERE id=?').get(customer).n,
+  ledger:db.prepare('SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=?').get(customer).n,
+  quotes:db.prepare('SELECT COUNT(*) AS n FROM quotes WHERE owner_id=?').get(customer).n,
+  jobs:db.prepare('SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?').get(customer).n,
+  spend:db.prepare('SELECT COUNT(*) AS n FROM spend WHERE owner_id=?').get(customer).n});
+ const initial=snapshot();createCount=0;hfCreates=0;hfEstimate='1.35';hfCreateMode='ok';
+ Object.assign(env,{HF_CREDENTIALS:'synthetic:extend',LAB_CUSTOMER_HIGGSFIELD_ENABLED:'true'});
+ // Use the deployed debit/quote parity trigger, rather than the superseded launch formula.
+ db.exec(readFileSync(new URL('../lab-worker/migrations/0029-pricing-debit-parity.sql',import.meta.url),'utf8'));
+ const quotePath=()=>req(env,'/api/quotes',{method:'POST',authToken,data});
+ const beforeProvider=calls.length;
+ for(const invalid of [{...data,referenceSourceIds:[image,image]}, {...data,referenceVideoIds:[video,video]}, {...data,referenceSourceIds:[video]}, {...data,referenceAudioIds:[video]}, {...data,lastSourceId:image}]){
+  const result=await req(env,'/api/quotes',{method:'POST',authToken,data:invalid});assert.equal(result.status,400,await result.clone().text());
+ }
+ assert.equal(calls.length,beforeProvider,'Invalid combinations cannot reach either provider');assert.deepEqual(snapshot(),initial);
+ env.LAB_CUSTOMER_HIGGSFIELD_ENABLED='false';
+ assert.equal((await quotePath()).status,403);assert.deepEqual(snapshot(),initial);
+ env.LAB_CUSTOMER_HIGGSFIELD_ENABLED='true';
+ const response=await quotePath();assert.equal(response.status,200,await response.clone().text());const q=await response.json();
+ assert.equal(q.settings.provider,'higgsfield');assert.equal(q.settings.mode,'extend');assert.equal(q.provider,'Higgsfield');
+ assert.equal(q.priceIsEstimate,true);assert.match(q.notice,/not a bound maximum/);
+ assert.deepEqual(q.settings.referenceVideoIds,[video]);assert.deepEqual(q.settings.referenceSourceIds,[image]);
+ for(const key of ['prompt','duration','resolution','audio'])assert.equal(q.settings[key],settings[key]);
+ assert.equal(hfQuotedRequest.duration,7);assert.equal(hfQuotedRequest.resolution,'1080p');assert.equal(hfQuotedRequest.generate_audio,false);
+ assert.equal(hfQuotedRequest.image_urls.length,1);assert.match(hfQuotedRequest.video_url,/\/input\//);
+ for(const url of [hfQuotedRequest.video_url,...hfQuotedRequest.image_urls]){
+  const u=new URL(url);assert.equal((await req(env,u.pathname+u.search,{authToken:null,headers:{Origin:''}})).status,200);
+ }
+ assert.deepEqual(snapshot(),{...initial,quotes:initial.quotes+1});assert.equal(hfCreates,0);assert.equal(createCount,0);
+ const draft=await req(env,'/api/drafts',{method:'POST',authToken,data});assert.equal(draft.status,201);
+ const saved=(await draft.json()).job;assert.equal(saved.status,'draft');assert.equal(saved.settings.mode,'extend');assert.deepEqual(saved.settings.referenceSourceIds,[image]);
+ const confirm=()=>req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:q.id,confirm:true}});
+ assert.equal((await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:q.id}})).status,400);
+ env.LAB_CUSTOMER_HIGGSFIELD_ENABLED='false';assert.equal((await confirm()).status,403);assert.equal(hfCreates,0);
+ env.LAB_CUSTOMER_HIGGSFIELD_ENABLED='true';
+ const submitted=await Promise.all([confirm(),confirm()]);for(const result of submitted)assert.ok([200,202].includes(result.status),await result.clone().text());
+ assert.equal(hfCreates,1,'Concurrent confirmations submit the exact priced payload once');
+ assert.equal(snapshot().balance,initial.balance-q.creditCost);assert.equal(snapshot().ledger,initial.ledger+1);assert.equal(snapshot().spend,1);
+ const q2Response=await quotePath();assert.equal(q2Response.status,200);const q2=await q2Response.json();
+ hfCreateMode='reject';
+ const failed=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:q2.id,confirm:true}});assert.equal((await failed.json()).job.status,'failed');
+ assert.equal(snapshot().balance,initial.balance-q.creditCost,'Definite provider rejection refunds exactly once');
+ assert.equal(snapshot().spend,1);hfCreateMode='ok';
+ const q3=await(await quotePath()).json();
+ db.prepare('UPDATE quotes SET expires_at=1 WHERE id=?').run(q3.id);
+ assert.equal((await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:q3.id,confirm:true}})).status,409);
+ const available=snapshot().balance;
+ db.prepare('UPDATE lab_customers SET balance_credits=1 WHERE id=?').run(customer);
+ const cheapWallet=await(await quotePath()).json();
+ const insufficient=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:cheapWallet.id,confirm:true}});
+ assert.equal(insufficient.status,402);assert.equal(hfCreates,2);assert.equal(snapshot().spend,1);
+ db.prepare('UPDATE lab_customers SET balance_credits=? WHERE id=?').run(available,customer);
+ hfCreateMode='timeout';
+ const uncertain=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:cheapWallet.id,confirm:true}});
+ assert.equal((await uncertain.json()).job.status,'uncertain');assert.equal(hfCreates,3);
+ const lockQuote=await(await quotePath()).json();
+ const locked=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:lockQuote.id,confirm:true}});
+ assert.equal(locked.status,409);assert.equal(hfCreates,3,'An uncertain request is never retried or bypassed');
+ hfCreateMode='ok';
+});
+test('Extend reference estimates fail closed for invalid prices or the provider safety ceiling',async()=>{
+ const {env}=fixture(),image=await setup(env),video=await reference(env);
+ env.HF_CREDENTIALS='synthetic:extend';
+ const data={sourceId:video,referenceVideoIds:[video],referenceSourceIds:[image],settings:{...sd('extend'),referenceVideos:[{seconds:3,name:'clip.mp4'}]}};
+ const before=env.LAB_DB.db.prepare('SELECT COUNT(*) n FROM quotes').get().n,created=hfCreates;
+ for(const [price,status] of [['0',502],['NaN',502],['20.000001',409]]){
+  hfEstimate=price;const result=await req(env,'/api/quotes',{method:'POST',data});assert.equal(result.status,status,await result.clone().text());
+ }
+ assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) n FROM quotes').get().n,before);
+ assert.equal(hfCreates,created);hfEstimate='1.35';
 });

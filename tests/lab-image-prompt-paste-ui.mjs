@@ -19,6 +19,10 @@ const handlerEnd=source.indexOf('\nfor(const [copy,real]',handlerStart);
 assert.ok(handlerStart>0&&handlerEnd>handlerStart);
 const sizing=source.slice(sizingStart,sizingEnd);
 const handler=source.slice(handlerStart,handlerEnd);
+const positionStart=source.indexOf('function positionReferenceIntent(){');
+const positionEnd=source.indexOf('\nfunction syncReferenceIntentUi(){',positionStart);
+assert.ok(positionStart>0&&positionEnd>positionStart);
+const positionReferenceIntent=source.slice(positionStart,positionEnd);
 assert.match(handler,/inputType==='insertFromPaste'/);
 assert.match(html,/image-composer-stable\.css\?v=\d{8}-[a-z0-9-]+/);
 const stable=readFileSync('lab/image-composer-stable.css','utf8');
@@ -61,9 +65,141 @@ try{
       });
       await page.addScriptTag({content:
         "const $=id=>document.getElementById(id);const busy=false;const imageComposer=$('image-composer');const committedElementMentions=[];function updateElementSuggestions(){}function effectiveImagePrompt(){return '';}" +
-        sizing+'\n'+handler+
+        sizing+'\n'+handler+'\n'+positionReferenceIntent+
         "\n$('prompt').addEventListener('input',fitImageComposerPrompt);fitImageComposerPrompt();"
       });
+      // Measure the shared tool surface, including the phone's open More row.
+      const toolbar=await page.evaluate(()=>{
+        const composer=document.getElementById('image-composer');
+        const mobile=matchMedia('(max-width:899px)').matches;
+        const settings=composer.dataset.mobileSettings;
+        const base=document.getElementById('composer-reference-intent-toggle');
+        const baseHidden=base.hidden;
+        base.hidden=false;
+        if(mobile)composer.dataset.mobileSettings='open';
+        const rect=element=>{
+          const r=element.getBoundingClientRect();
+          const style=getComputedStyle(element);
+          return {id:element.id,left:r.left,right:r.right,top:r.top,width:r.width,height:r.height,
+            display:style.display,border:style.borderTopWidth,radius:style.borderRadius,
+            background:style.backgroundColor,fontSize:style.fontSize};
+        };
+        const measure=id=>rect(document.getElementById(id));
+        const layout={
+          deck:rect(composer),
+          generate:measure('image-composer-generate'),
+          select:measure('image-composer-count'),
+          count:measure('image-composer-count-wrap'),
+          minus:measure('image-composer-count-decrease'),
+          plus:measure('image-composer-count-increase'),
+          status:measure('image-composer-count-status'),
+          tools:[...composer.querySelectorAll('[data-deck-control],#image-composer-mobile-more')]
+            .map(rect).filter(tool=>tool.width>0&&tool.height>0)
+        };
+        if(matchMedia('(min-width:1180px) and (min-height:680px)').matches){
+          const label=base.textContent, compactLabel=base.getAttribute('data-compact-label');
+          const modeStyle=()=>{
+            const style=getComputedStyle(base),icon=getComputedStyle(base,'::before');
+            return {font:style.font,letterSpacing:style.letterSpacing,padding:style.paddingInline,
+              gap:style.columnGap,icon:icon.maskImage,width:base.getBoundingClientRect().width};
+          };
+          layout.baseStyle=modeStyle();
+          base.textContent='References only ⌄';
+          base.dataset.compactLabel='Refs ⌄';
+          layout.referencesStyle=modeStyle();
+          const text=document.createRange();
+          text.selectNodeContents(base);
+          const bounds=text.getBoundingClientRect(), button=base.getBoundingClientRect();
+          const style=getComputedStyle(base);
+          layout.referencesLabelFits=bounds.left>=button.left+parseFloat(style.paddingLeft)+13+parseFloat(style.columnGap)-1
+            &&bounds.right<=button.right-parseFloat(style.paddingRight)+1;
+          base.textContent=label;
+          if(compactLabel===null)delete base.dataset.compactLabel;
+          else base.dataset.compactLabel=compactLabel;
+        }
+        base.hidden=baseHidden;
+        if(mobile){
+          if(settings===undefined)delete composer.dataset.mobileSettings;
+          else composer.dataset.mobileSettings=settings;
+        }
+        return layout;
+      });
+      const {count,deck}=toolbar;
+      const phone=viewport.width<=899;
+      assert.equal(toolbar.select.display,'none','The original select stays hidden on web');
+      assert.equal(toolbar.status.fontSize,phone?'11px':'13px','Count shares the toolbar type scale');
+      for(const tool of toolbar.tools){
+        assert.equal(tool.height,phone?35:34,tool.id+' shares the toolbar height');
+        assert.equal(tool.border,'0px',tool.id+' has a borderless surface');
+        assert.equal(tool.radius,'8px',tool.id+' shares the toolbar corner radius');
+        assert.equal(tool.background,'rgb(50, 52, 55)',tool.id+' shares the matte charcoal surface');
+        assert.ok(tool.left>=deck.left&&tool.right<=deck.right,tool.id+' stays inside the deck');
+      }
+      if(viewport.width>=1180){
+        for(const tool of toolbar.tools){
+          assert.ok(Math.abs(tool.top-count.top)<=1,tool.id+' aligns with the desktop toolbar');
+          assert.ok(tool.right<=toolbar.generate.left,tool.id+' clears Generate');
+        }
+        const icons=toolbar.tools.filter(tool=>['image-composer-add','scene-characters-open','scene-image-open'].includes(tool.id));
+        assert.deepEqual(icons.map(tool=>tool.width),[34,34,34],'Desktop icon buttons use one square size');
+        assert.equal(count.width,80,'The count stepper preserves its desktop slot');
+        assert.deepEqual(toolbar.referencesStyle,toolbar.baseStyle,'Both image modes use the same type, icon and spacing');
+        assert.notEqual(toolbar.baseStyle.icon,'none','Both image modes show the photo icon');
+        assert.equal(toolbar.referencesLabelFits,true,'The full References only label fits beside its icon');
+      }
+      for(const part of ['minus','status','plus']){
+        const item=toolbar[part];
+        assert.ok(item.width>0&&item.left>=count.left&&item.right<=count.right,
+          part+' stays inside the count stepper');
+      }
+      const intent=await page.evaluate(()=>{
+        const base=document.getElementById('composer-reference-intent-toggle');
+        const menu=document.getElementById('composer-reference-intent');
+        const deck=document.getElementById('image-composer');
+        const bounds=el=>el.getBoundingClientRect().toJSON();
+        const wasHidden=base.hidden;
+        const mobileSettings=deck.getAttribute('data-mobile-settings');
+        base.hidden=false;
+        if(matchMedia('(max-width:899px)').matches)deck.dataset.mobileSettings='open';
+        const before=bounds(deck);
+        menu.hidden=false;
+        positionReferenceIntent();
+        return {before,after:bounds(deck),button:bounds(base),menu:bounds(menu),wasHidden,mobileSettings,
+          width:document.documentElement.clientWidth,height:innerHeight,
+          heading:getComputedStyle(menu.querySelector('.reference-intent-heading')).display,
+          choices:[...menu.querySelectorAll('.reference-intent-choice')].map(bounds)};
+      });
+      assert.deepEqual(intent.before,intent.after,'Opening the Base picker leaves the deck in place');
+      assert.equal(intent.heading,'none','The web picker has no heading row');
+      assert.ok(intent.menu.width<=224&&intent.menu.height<=104,'The Base picker stays compact');
+      assert.ok(intent.menu.left>=7&&intent.menu.right<=intent.width-7&&intent.menu.top>=7&&intent.menu.bottom<=intent.height-7,
+        'The Base picker remains inside the viewport: '+JSON.stringify(intent));
+      assert.ok(Math.abs(intent.button.top-intent.menu.bottom-6)<=1&&intent.menu.left<=intent.button.left+1&&intent.menu.right>=intent.button.right-1,
+        'The Base picker opens from the toolbar button: '+JSON.stringify(intent));
+      assert.ok(intent.choices.every(choice=>choice.height>=(phone?44:36)),'Mode choices keep comfortable targets');
+      if(viewport.width===1440||viewport.height===844){
+        mkdirSync('test-artifacts/prompt-deck',{recursive:true});
+        await page.screenshot({path:'test-artifacts/prompt-deck/base-mode-'+viewport.width+'.png'});
+        if(viewport.width===1440){
+          await page.evaluate(()=>{
+            const base=document.getElementById('composer-reference-intent-toggle');
+            base.textContent='References only ⌄';base.dataset.compactLabel='Refs ⌄';
+            document.getElementById('composer-reference-intent').hidden=true;
+          });
+          await page.screenshot({path:'test-artifacts/prompt-deck/references-only-type.png'});
+          await page.evaluate(()=>{
+            const base=document.getElementById('composer-reference-intent-toggle');
+            base.textContent='Base image ⌄';delete base.dataset.compactLabel;
+          });
+        }
+      }
+      await page.evaluate(({wasHidden,mobileSettings})=>{
+        document.getElementById('composer-reference-intent').hidden=true;
+        document.getElementById('composer-reference-intent-toggle').hidden=wasHidden;
+        const deck=document.getElementById('image-composer');
+        if(mobileSettings===null)delete deck.dataset.mobileSettings;
+        else deck.dataset.mobileSettings=mobileSettings;
+      },intent);
       const editor=page.locator('#image-composer-prompt');
       // The sizing helper must never replace the contextual copy already
       // chosen by syncImageComposer() for a selected Base photograph.

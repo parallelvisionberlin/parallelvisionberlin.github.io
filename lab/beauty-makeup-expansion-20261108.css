@@ -2,7 +2,7 @@
    Scoped only to Makeup: no hero, title, gallery, other tab or generation layout changes. */
 #beauty-panel-makeup .beauty-choice-list {
   grid-template-rows: none;
-  grid-auto-rows: clamp(114px, 12vh, 130px);
+  grid-auto-rows: clamp(94px, 10.4vh, 114px);
   align-content: start;
   overflow-y: auto;
   overflow-x: hidden;
@@ -10,8 +10,16 @@
   scrollbar-width: thin;
   scrollbar-color: #ffffff5a transparent;
   scroll-padding-block: 8px;
-  mask-image: linear-gradient(to bottom,#000 0%,#000 calc(100% - 17px),transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom,#000 0%,#000 calc(100% - 17px),transparent 100%);
+  mask-image: linear-gradient(to bottom,#000 0%,#000 calc(100% - 8px),transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom,#000 0%,#000 calc(100% - 8px),transparent 100%);
+}
+/* Make the eye treatment legible while preserving each original photographic asset. */
+#beauty-panel-makeup .beauty-choice-list .beauty-choice-photo {
+  background-position: center 37%;
+  filter: saturate(.88) brightness(.98);
+}
+#beauty-panel-makeup .beauty-choice-list button[aria-pressed="true"] .beauty-choice-photo {
+  filter: saturate(.96) brightness(1.04);
 }
 #beauty-panel-makeup .beauty-choice-list::-webkit-scrollbar { width: 5px; }
 #beauty-panel-makeup .beauty-choice-list::-webkit-scrollbar-thumb { background: #8888; border-radius: 8px; }

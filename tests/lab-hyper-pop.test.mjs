@@ -26,7 +26,7 @@ test('Hyper Pop stays one curated Mood, using original Reptare owner artwork',()
   const mood=moodById(id);
   assert.ok(mood);
   assert.equal(MOODS.filter(m=>m.id===id).length,1);
-  assert.equal(MOODS.length,17);
+  assert.equal(MOODS.length,18);
   assert.equal(mood.defaultIntensity,75);
   assert.equal(mood.preview,'/lab/visuals/reptare-detail.webp');
   assert.match(mood.direction,/liquid chrome/i);

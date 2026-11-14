@@ -11,7 +11,7 @@ const direction='Keep the same person and cafe. Preserve my white shirt and do n
 
 test('80s Film keeps its identity and original card assets while using the approved early-tape recipe',()=>{
   const mood=moodById('80s-film');
-  assert.equal(MOODS.length,17);
+  assert.equal(MOODS.length,18);
   assert.equal(mood.name,'80s Film');assert.equal(mood.category,'Analog');
   assert.equal(mood.preview,'/lab/mood-previews/hd/80s-film-20261011.jpg');
   assert.equal(mood.previewFull,'/lab/mood-bank/2026-10-11/80s-film/originals/80s-film.png');

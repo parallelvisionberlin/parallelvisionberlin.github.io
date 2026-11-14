@@ -136,9 +136,7 @@
 /* Existing saved-pack control remains in the DOM for Soul/native flows,
    but standard desktop Image Studio accesses those packs through the grid. */
 html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-toggle{display:none!important}
-#image-composer .scene-image-menu[hidden],
-#image-composer #scene-image-menu-categories[hidden],
-#image-composer #scene-image-menu-home[hidden]{display:none!important}
+#image-composer .scene-image-menu[hidden]{display:none!important}
 #image-composer .scene-image-menu{
   position:absolute;bottom:calc(100% + 12px);left:0;z-index:300;
   width:252px;box-sizing:border-box;padding:6px;border:1px solid #414447;
@@ -150,35 +148,18 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   border-right:1px solid #414447;border-bottom:1px solid #414447;
   background:#171a1d;transform:rotate(45deg)
 }
-/* Make Photo packs and Elements exactly equal-height, even when a subtitle wraps. */
-#image-composer #scene-image-menu-home{display:grid;grid-auto-rows:1fr}
-#image-composer .scene-menu-option,
 #image-composer .scene-menu-category{
-  display:flex;align-items:center;text-align:left;width:100%;min-height:48px;
+  display:flex;align-items:center;text-align:left;width:100%;min-height:45px;
   gap:11px;padding:8px;border:0;border-radius:9px;background:transparent;
-  color:#eeeef0;font:inherit;cursor:pointer
+  color:#eeeef0;font:inherit;font-size:12px;font-weight:600;cursor:pointer
 }
-#image-composer .scene-menu-option + .scene-menu-option{border-top:1px solid #2c2e32;border-radius:0 0 9px 9px}
-#image-composer .scene-menu-option:hover,
 #image-composer .scene-menu-category:hover{background:#292d30}
 #image-composer .scene-menu-icon{
-  flex:0 0 35px;width:35px;height:35px;border-radius:9px;background:#262a2e;
+  flex:0 0 26px;width:26px;height:29px;
   display:grid;place-items:center;color:#cbd0d1
 }
-#image-composer .scene-menu-icon svg{width:20px;height:20px}
-#image-composer .scene-menu-text{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
-#image-composer .scene-menu-text strong{font-size:12px;font-weight:600;color:#f2f2f2}
-#image-composer .scene-menu-text small{font-size:10px;line-height:1.35;color:#a3a5aa;font-weight:400}
+#image-composer .scene-menu-icon svg{width:19px;height:19px}
 #image-composer .scene-menu-chevron{margin-left:auto;flex:0 0 12px;color:#a9adb2;font-size:20px;font-weight:300}
-#image-composer .scene-menu-back{
-  display:flex;align-items:center;gap:10px;width:100%;padding:8px 11px 10px;
-  border:0;border-bottom:1px solid #303236;background:transparent;
-  color:#c4c5c8;text-align:left;font-size:12px;font-weight:600;cursor:pointer
-}
-#image-composer .scene-menu-back:hover{color:#fff}
-#image-composer .scene-menu-category{min-height:45px;font-size:12px;font-weight:600}
-#image-composer .scene-menu-category .scene-menu-icon{background:transparent;width:26px;height:29px;flex-basis:26px}
-#image-composer .scene-menu-category .scene-menu-icon svg{width:19px;height:19px}
 #image-composer .scene-image-library-wrap :is(button:focus-visible){outline:2px solid #f0f0e8;outline-offset:2px}
 
 /* Editorial Elements browser, leaving the existing save/reference pipeline intact. */

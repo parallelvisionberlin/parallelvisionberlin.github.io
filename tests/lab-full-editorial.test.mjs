@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const html=read('lab/full-editorial.html');
 const js=read('lab/full-editorial.js');
@@ -96,6 +96,19 @@ test('Progress reuses the homepage ivory film and keeps results prominent',()=>{
  assert.match(read('lab/full-editorial-atelier.css'),/font-size:clamp\(34px,3.4vw,56px\)/);
 });
 
+test('My Characters swaps into the same Identity gallery instead of adding a second layout',()=>{
+ const c=read('lab/full-editorial-identity-refresh.css');
+ assert.match(c,/PVLAB_IDENTITY_SAVED_IN_PLACE_20261111/);
+ assert.match(js,/castRail\.append\(savedRail\)/,'Saved rail is inserted in the existing photo frame');
+ assert.match(js,/\$\('casting-reference-gallery'\)\.hidden=false/,'Pinned Create Character stays visible');
+ assert.match(js,/\['editorial-cast-track','editorial-cast-prev','editorial-cast-next'\]/,'Only the portrait track and its arrows swap');
+ assert.match(c,/#casting-reference-gallery \.editorial-cast-rail > #editorial-saved-rail:not\(\[hidden\]\)/);
+ assert.match(c,/height:100%!important;min-height:0!important/,'Saved rail fills the existing portrait height');
+ assert.match(c,/#panel-model\[data-model-mode="saved"\] \.editorial-casting-tabs/,'Saved tab keeps the same top tab geometry');
+ assert.match(c,/#panel-model\[data-model-mode="saved"\] \.editorial-casting-top h3/,'No extra Choose your cast title');
+ assert.match(c,/@media\(min-width:801px\)/,'Desktop change is scoped');
+});
+
 test('Identity casting uses the approved photographic layout rather than standalone form rows',()=>{
  const stage=html.slice(html.indexOf('id="panel-model"'),html.indexOf('id="panel-style"'));
  const top=stage.slice(stage.indexOf('editorial-casting-top'),stage.indexOf('id="casting-reference-gallery"'));
@@ -110,7 +123,7 @@ test('Identity casting uses the approved photographic layout rather than standal
  const identityCss=read('lab/full-editorial-identity-refresh.css');
  assert.match(identityCss,/scroll-snap-type:x mandatory/,'Casting supports a horizontal snap carousel');
  assert.match(identityCss,/position:sticky!important/,'Selection dock follows the active viewport');
- assert.match(html,/full-editorial-identity-refresh\.css\?v=20261106-typography6/);
+ assert.match(html,/full-editorial-identity-refresh\.css\?v=20261111-normal-wheel2/);
 
  const atelierCss=read('lab/full-editorial-atelier.css');
  assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
@@ -119,7 +132,7 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.match(html,/full-editorial\.js\?v=20261106-identity-reference4/);
+ assert.ok(html.includes('full-editorial.js?v=20261111-normal-wheel2'),'Full Editorial loads the current casting gallery');
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);setIdentitySource\('casting'\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=step!==1/,'Composition remains visible throughout Identity');
@@ -173,6 +186,17 @@ test('Campaign composition portraits have the approved 185px fashion-editorial t
  assert.match(c,/height:172px;min-height:172px/,'The mobile carousel maintains a comfortable card height');
 });
 
+test('Identity hero becomes 12px shorter and Composition cards 12px taller on regular desktop only',()=>{
+ const c=read('lab/full-editorial-identity-refresh.css');
+ assert.match(c,/PVLAB_IDENTITY_HERO_COMPOSITION_BALANCE_20261111/);
+ assert.match(c,/clamp\(237px,calc\(29svh - 12px\),281px\)/,'Tall desktop hero preserves its responsive clamp');
+ assert.match(c,/clamp\(236px,calc\(31svh - 12px\),273px\)/,'Regular desktop hero loses only 12px');
+ assert.match(c,/@media\(min-width:801px\) and \(min-height:761px\)/,'Composition increase excludes mobile and short desktop');
+ assert.match(c,/height:144px!important;min-height:144px!important/,'All three Composition cards gain 12px');
+ assert.match(c,/height:110px!important;min-height:110px!important/,'Short-desktop compact cards remain unchanged');
+ assert.match(c,/height:146px!important;min-height:146px!important/,'Phone composition remains unchanged');
+});
+
 test('Empty Identity fits compactly and final Generate has editorial visual hierarchy',()=>{
  const atelier=read('lab/full-editorial-atelier.css');
  assert.match(atelier,/PVLAB_EDITORIAL_COMPACT_EMPTY_AND_CTA_20261101/);
@@ -211,6 +235,14 @@ test('Identity typography clears Back and progress rail; Continue uses a subdued
  assert.match(c,/#step-next:disabled/);
  assert.doesNotMatch(c.slice(c.indexOf('PVLAB_IDENTITY_HERO_TEXT_CTA_20261101')),/#editorial-cast-empty:not/,'No state-dependent hero geometry');
  assert.match(html,/id="step-next" class="primary"/,'Existing continue action and semantics unchanged');
+ assert.match(html, /full-editorial\.css\?v=20261111-arrival-stability1/, 'Full Editorial loads updated primary stylesheet');
+ assert.match(html, /rel="preload" href="\.\/fonts\/dm-sans-latin-v17\.woff2" as="font" type="font\/woff2" crossorigin/, 'DM Sans is fetched before the first hero paint');
+ assert.match(css, /font-display:block/, 'Avoid visible fallback-font swap during arrival');
+ assert.doesNotMatch(js, /getElementById\('editorial-hero'\)\.scrollIntoView/, 'Startup does not redundantly scroll the arrival hero');
+ const labelCss=read('lab/full-editorial-identity-refresh.css');
+ assert.match(labelCss,/transform:scaleY\(1\.1\)/,'Continue lettering grows taller without resizing button');
+ assert.match(labelCss,/font-size:16px;\s*font-weight:650/,'Continue is marginally larger');
+ assert.match(labelCss,/font-size:15\.5px;\s*font-weight:410/,'to styling remains lighter');
 });
 
 test('Identity carousel retains saved character, uploading and multi-cast controls',()=>{
@@ -218,7 +250,11 @@ test('Identity carousel retains saved character, uploading and multi-cast contro
  assert.match(html,/id="editorial-cast-prev"/);
  assert.match(html,/id="editorial-cast-next"/);
  assert.match(html,/id="editorial-clear-cast"/);
- assert.equal((html.match(/data-sample-kind="model"/g)||[]).length,5,'All five existing reference portraits remain');
+ assert.equal((html.match(/data-sample-kind="model"/g)||[]).length,10,'Five original and five new casting models remain selectable');
+ for(const id of ['slate','cobalt','pearl','acid','blossom']){
+  assert.ok(html.includes('data-sample-src="./visuals/character-casting/'+id+'-cast-20261111.jpg"'),'New card '+id+' must have a selectable reference');
+  assert.ok(existsSync(new URL('../lab/visuals/character-casting/'+id+'-cast-20261111.jpg',import.meta.url)),'Image asset must be present for '+id);
+ }
  assert.match(html,/createCharacter=1/,'Create Character deep link remains genuine');
  assert.match(js,/function moveCastCarousel/);
  assert.match(js,/document\.addEventListener\('keydown'/);
@@ -247,7 +283,7 @@ test('Identity matches wide editorial reference without losing narrow desktop sc
  assert.match(s,/max-width:1550px/);
  assert.match(s,/max-width:1760px!important/);
  assert.match(s,/object-position:54% 24%/);
- assert.match(s,/height:clamp\(248px,31svh,285px\)/);
+ assert.match(s,/height:clamp\(236px,calc\(31svh - 12px\),273px\)/);
  assert.match(s,/height:clamp\(258px,31svh,294px\)/);
 });
 
@@ -267,4 +303,12 @@ test('Identity uses an available bundled bold fallback when Impact is missing',(
  assert.equal((s.match(/font-family:Impact,'Arial Narrow',DM,Arial,sans-serif!important/g)||[]).length,2);
  assert.match(s,/font-synthesis:none!important/);
  assert.doesNotMatch(s,/font-weight:900!important/);
+});
+
+test('Casting wheel is scoped to the whole fixed gallery and normal desktop deltas cannot snap back',()=>{
+ const styles=read('lab/full-editorial-identity-refresh.css');
+ assert.match(styles,/PVLAB_CASTING_WHEEL_NORMAL_DELTA_20261111/);
+ assert.match(styles,/@media \(min-width:801px\)[\s\S]*?#editorial-cast-track\.editorial-cast-track\s*\{\s*scroll-snap-type:none!important/);
+ assert.match(js,/\$\('casting-reference-gallery'\)\.addEventListener\('wheel',handleCastingWheel,\{passive:false\}\)/);
+ assert.doesNotMatch(js,/\$\('editorial-cast-track'\)\.addEventListener\('wheel',handleCastingWheel/);
 });

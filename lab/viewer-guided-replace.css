@@ -63,3 +63,10 @@
 #image-lightbox .viewer-selection-advice{padding:10px;border:1px solid #44404e;border-radius:8px;background:#221f28;color:#ddd;font-size:11px;line-height:1.55}
 #image-lightbox .viewer-selection-advice p{margin:0 0 9px}
 #image-lightbox .viewer-selection-advice button{margin:0 5px 3px 0;padding:7px 9px;border:1px solid #57505e;border-radius:6px;background:#2d2932;color:#eee;font:550 11px 'DM Sans',sans-serif;cursor:pointer}
+
+/* Saved references are a separate action, never hidden in the active mode tile. */
+#image-lightbox .viewer-choose-reference[hidden]{display:none!important}
+#image-lightbox .viewer-choose-reference{display:block;width:100%;min-height:44px;padding:11px 14px;border:1px solid #655b70;border-radius:8px;background:#25212b;color:#f1eaf9;text-align:left;font:600 13px/1.4 'DM Sans',sans-serif;cursor:pointer}
+#image-lightbox .viewer-choose-reference:hover{background:#302a38;border-color:#a08bb7}
+#image-lightbox .viewer-choose-reference:focus-visible{outline:2px solid #e1d4f1;outline-offset:2px}
+#image-lightbox .viewer-choose-reference:disabled{opacity:.5;cursor:default}

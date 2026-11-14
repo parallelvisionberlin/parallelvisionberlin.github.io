@@ -1,0 +1,73 @@
+/* Web Image Deck only: one number stepper in the existing toolbar skin.
+   The original select remains authoritative and remains visible in native. */
+html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-deck #image-composer-count {
+  display:none!important;
+}
+html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.pv-editorial-deck #image-composer-count-wrap {
+  box-sizing:border-box!important;
+  flex:0 0 80px!important;
+  width:80px!important;
+  min-width:80px!important;
+  height:var(--pv-image-tool-height,32px)!important;
+  min-height:var(--pv-image-tool-height,32px)!important;
+  padding:0 3px!important;
+  border:0!important;
+  border-radius:8px!important;
+  background:var(--pv-image-tool-fill,#323437)!important;
+  box-shadow:none!important;
+}
+html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-deck #image-composer-count-wrap::after {
+  content:none!important;
+}
+#image-composer .composer-count-stepper {
+  display:none;
+}
+html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-deck .composer-count-stepper {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:center;
+  width:100%;
+  height:100%;
+  white-space:nowrap;
+}
+#image-composer .composer-count-stepper button {
+  display:grid;
+  place-items:center;
+  box-sizing:border-box;
+  width:100%;
+  height:calc(var(--pv-image-tool-height,32px) - 4px);
+  min-height:0;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:5px;
+  background:transparent;
+  color:#b5bbb5;
+  font:500 16px/1 Arial,sans-serif;
+  cursor:pointer;
+}
+#image-composer .composer-count-stepper button:hover:not(:disabled) {
+  background:var(--pv-image-tool-hover,#3e4043);
+  color:#f5f5f5;
+}
+#image-composer .composer-count-stepper button:focus-visible {
+  outline:2px solid #e9e7e5;
+  outline-offset:0;
+}
+#image-composer .composer-count-stepper button:disabled {
+  color:#686e68;
+  cursor:default;
+}
+#image-composer .composer-count-stepper output {
+  color:#f5f5f5;
+  text-align:center;
+  font:600 var(--pv-image-tool-type,13px)/1.2 'DM Sans',Arial,sans-serif;
+  font-variant-numeric:tabular-nums;
+}
+@media(max-width:899px){
+  html:not(.pv-native-lab) #main #app.image-studio-active #image-composer.pv-editorial-deck #image-composer-count-wrap {
+    flex:0 0 88px!important;
+    width:88px!important;
+    min-width:88px!important;
+  }
+}

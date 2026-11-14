@@ -123,12 +123,6 @@
     width:min(245px,calc(100vw - 88px))!important;
     max-height:min(43dvh,260px);overflow-y:auto;overflow-x:hidden
   }
-  html:not(.pv-native-lab) #app.image-studio-active #image-composer .scene-image-menu .scene-menu-option{
-    box-sizing:border-box;min-width:0;padding:8px
-  }
-  html:not(.pv-native-lab) #app.image-studio-active #image-composer .scene-image-menu .scene-menu-text small{
-    white-space:normal;overflow-wrap:normal;font-size:10px;line-height:1.25
-  }
 }
 @media(max-width:360px){
   html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-controls{

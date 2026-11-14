@@ -257,7 +257,7 @@ function referenceLabels(value,max=10) {
 }
 // Keep the curated mood IDs synchronized with the Image selector and My Moods;
 // Berlin Rave explicitly changes clothing while retaining face and scene.
-const IMAGE_MOOD_IDS=new Set(['hong-kong-nights','90s-cinema','night-flash','fashion-editorial','berlin-rave','80s-film','kodak-gold','soft-pastel-film','frutiger-aero','dreamcore','sumi-ink','hyper-pop','polaroid-600','synthetic-romance','midnight-reverie','dream-blur','fisheye-2000','custom']);
+const IMAGE_MOOD_IDS=new Set(['hong-kong-nights','90s-cinema','night-flash','fashion-editorial','berlin-rave','80s-film','kodak-gold','soft-pastel-film','frutiger-aero','dreamcore','sumi-ink','hyper-pop','polaroid-600','synthetic-romance','midnight-reverie','dream-blur','fisheye-2000','fallen-angel','custom']);
 function imageMoodMetadata(value){
   if(value.moodId==null||value.moodId==='')return {};
   if(!IMAGE_MOOD_IDS.has(value.moodId))fail(400,'Unknown image mood.');
@@ -396,11 +396,10 @@ function assembledPrompt(p) {
 }
 async function prepareInput(env,owner,data,p,url) {
   await validateImageReplacement(env,owner,data,p,{fail,source,falImageBytes,storedImageDimensions});
-  if(p.engine==='seedance'&&p.mode==='extend')return prepareVideoExtension(env,owner,data,p,{fail,source,sources});
+  if(p.engine==='seedance'&&p.mode==='extend'&&data.referenceSourceIds?.length)return prepareVideoExtension(env,owner,data,p,{fail,source,sources});
   if(p.engine==='seedance'&&p.mode==='transform'){const {original}=await prepareCharacterTransform(env,owner,data,p,{fail,source,sources});return {primary:original,input:{}};}
   if(p.engine==='kling'){if(url)fail(400,'Use the Kling image generation route.');const ids=data.referenceSourceIds||[],refs=ids.length?await sources(env,owner,ids,1):[];p.referenceSourceIds=refs.map(a=>a.id);return {primary:refs[0]||null,input:{}};}
   if(p.engine==='kling3')return prepareKlingSpicyInput(env,owner,data,p,url,{fail,source,signedInput});
-  if(p.provider==='higgsfield'&&p.mode==='extend'){const primary=await source(env,owner,data.sourceId);if(!['video/mp4','video/quicktime'].includes(primary.mime))fail(400,'Choose a video to extend.');p.referenceVideoIds=[primary.id];return {primary,input:{}};}
   if(p.provider==='higgsfield'){if(url)fail(400,'Use the Soul 2 generation route.');const primary=await source(env,owner,data.sourceId);return {primary,input:{}};}
   if(p.mode==='upscale'&&p.provider==='fal'){
     if(data.lastSourceId||data.referenceSourceIds?.length||data.transferSourceIds?.length)fail(400,'Upscale uses one original source image and no extra references or compressed working copies.');
@@ -412,7 +411,7 @@ async function prepareInput(env,owner,data,p,url) {
     return prepareSeedanceVariant(env,owner,data,p,url,{fail,source,sources,signedInput});
   if(p.engine==='seedance'){
     const prepared=await prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput});
-    if(p.prompt)prepared.input.prompt=assembledPrompt(p);return prepared;
+    if(p.prompt)prepared.input.prompt=p.mode==='extend'?p.prompt:assembledPrompt(p);return prepared;
   }
   if(p.provider==='fal'&&['h3maxfal','omni'].includes(p.engine)){
     let primary=null,imageUrls=[],imageUrl=null,endImageUrl=null;
@@ -1396,7 +1395,7 @@ async function route(request,env,ctx) {
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range,X-PV-Lab-Client,X-Replacement-Job-Id','Access-Control-Max-Age':'600'}});
   if(url.pathname==='/api/public/local-currency'&&request.method==='GET')return localCurrency(request);
-  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1'});
+  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1',seedanceExtendReferences:'20261112-extend-refs1'});
   if(url.pathname.startsWith('/api/music/public/'))return musicPublicRoute(request,env);
   // PV LAB anonymous traffic uses its own origin-checked, bounded payload.
   if(url.pathname==='/api/public/traffic'&&request.method==='POST')return recordLabTraffic(request,env);
@@ -1566,11 +1565,11 @@ async function route(request,env,ctx) {
       const partnerDashboard=account.accountClosed?null:await partnerWorkspace(env,owner);
       const c=await config(env,owner);
       const ready=account.generationReady;
-      return json({...account,partnerDashboard,owner:false,ownerId:owner,version:VERSION,config:{...publicConfig(c,ready&&!!env.FAL_KEY),enabled:ready,configured:ready,customer:true,videoPreparationEngines:publicConfig(c,!!env.FAL_KEY).videoEngines,videoEngines:ready?publicConfig(c,!!env.FAL_KEY).videoEngines:[],higgsfieldEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true',soulNightFlashEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true'&&env.LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED==='true',videoTransformCustomerEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true'&&env.LAB_CUSTOMER_VIDEO_TRANSFORM_ENABLED==='true',geminiEnabled:ready&&!!env.GEMINI_API_KEY,soulTrainingEnabled:false,soulReinterpretEnabled:false,soulPresets:publicSoulPresets(),falEnabled:ready&&!!env.FAL_KEY}});
+      return json({...account,partnerDashboard,owner:false,ownerId:owner,version:VERSION,config:{...publicConfig(c,ready&&!!env.FAL_KEY),enabled:ready,configured:ready,customer:true,videoPreparationEngines:publicConfig(c,!!env.FAL_KEY).videoEngines,videoEngines:ready?publicConfig(c,!!env.FAL_KEY).videoEngines:[],higgsfieldEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true',seedanceExtendReferencesEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true',soulNightFlashEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true'&&env.LAB_CUSTOMER_SOUL_NIGHT_FLASH_ENABLED==='true',videoTransformCustomerEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true'&&env.LAB_CUSTOMER_VIDEO_TRANSFORM_ENABLED==='true',geminiEnabled:ready&&!!env.GEMINI_API_KEY,soulTrainingEnabled:false,soulReinterpretEnabled:false,soulPresets:publicSoulPresets(),falEnabled:ready&&!!env.FAL_KEY}});
     }
     await run(env,"DELETE FROM spend WHERE owner_id=? AND job_id IN (SELECT id FROM jobs WHERE owner_id=? AND state='failed' AND COALESCE(json_extract(params,'$.provider'),'')='fal')",owner,owner);
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
-    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),videoEngines:publicConfig(c,!!env.FAL_KEY).videoEngines,higgsfieldEnabled:!!env.HF_CREDENTIALS,higgsfieldPrices:SOUL2_PRICES,geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
+    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),videoEngines:publicConfig(c,!!env.FAL_KEY).videoEngines,higgsfieldEnabled:!!env.HF_CREDENTIALS,seedanceExtendReferencesEnabled:!!env.HF_CREDENTIALS,higgsfieldPrices:SOUL2_PRICES,geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
   }
   if(path==='/api/soul-pro/identity'&&method==='GET'){
     const pack=await first(env,'SELECT id,refs,created_at FROM packs WHERE owner_id=? AND name=? ORDER BY created_at DESC LIMIT 1',owner,SOUL_PRO_IDENTITY_PACK);
@@ -1944,8 +1943,8 @@ async function route(request,env,ctx) {
     if(!Number.isInteger(quoteCount)||quoteCount<1||quoteCount>4)fail(400,'Choose 1 to 4 images for one price check.');
     if(quoteCount>1&&!(p.type==='image'&&['seedream','seedreamlite','flash','qwen3','zspicy'].includes(p.engine)&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for SpicyAPI image generation.');
     if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0))fail(400,'Add a prompt or at least one reference photograph.');
+    if(p.engine==='seedance'&&p.mode==='extend'&&data.referenceSourceIds?.length)return json(await quoteVideoExtension(env,owner,data,p,url,hfDeps()));
     if(p.provider==='higgsfield'&&p.mode==='transform')return json(await quoteCharacterTransform(env,owner,data,p,url,hfDeps()));
-    if(p.provider==='higgsfield'&&p.mode==='extend')return json(await quoteVideoExtension(env,owner,data,p,url,hfDeps()));
     if(p.provider==='fal'&&p.engine==='video-upscale'){
       if(!env.FAL_KEY)fail(503,'fal.ai video upscaling is not configured on this Worker.');
       if(data.lastSourceId||data.referenceSourceIds?.length||data.transferSourceIds?.length)

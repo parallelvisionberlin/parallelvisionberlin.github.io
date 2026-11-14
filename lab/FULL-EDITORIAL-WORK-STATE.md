@@ -1,3 +1,22 @@
+## 2026-11-11 / Production launch verified
+- PR #973 merged into main as `7cf3d1c63ad692b287df0468cacd05ddaf034738`: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/973
+- Five new owner-selected models SLATE, COBALT, PEARL, ACID and BLOSSOM are selectable alongside the five existing models, with identical card format and no changes to the original assets.
+- Wheel above the portrait track scrolls models horizontally. Create Character / Upload remains pinned; native touch scrolling, keyboard navigation and model selection still work.
+- Scoped source tests: 30/30 passed. The complete mocked Full Editorial 1440/390 browser suite passed, with no paid generation.
+- Cloudflare Pages canonical deployment `29571837-b636-4d19-b246-9143fd879637` succeeded for the exact commit `7cf3d1c63ad692b287df0468cacd05ddaf034738` and has `https://pvlab.studio` as alias.
+- Actual production signed-out browser checked at 1440 and 390 px. All ten photos load; each of the five new portraits selects/deselects correctly; wheel and fixed tile behave as approved; no page overflow or browser errors.
+- All five new JPGs plus Full Editorial HTML/JS returned HTTP 200 and byte-matched approved branch content.
+- GitHub Actions jobs were queued at merge; independently executed scoped tests plus live guest verification are the evidence. No paid provider jobs or customer charges were used; signed-in paid generation remains unverified.
+
+## 2026-11-11 / 10-model casting carousel (historical pre-release checkpoint)
+- Selected five distinct user-supplied photographic references: SLATE (male, charcoal), COBALT (short bob, blue couture), PEARL (mature woman, ivory tailoring), ACID (androgynous man, green tailoring) and BLOSSOM (blonde, floral car portrait).
+- Preserve the existing five (SILVER, BRONZE, COPPER, IVORY, NIGHT) in their original positions. The five new cards follow as 06–10, using web-optimized JPEG assets in `lab/visuals/character-casting/`. The user-uploaded image originals are not overwritten.
+- In desktop Identity, Create Character / Upload is pinned left. Vertical mouse wheel over the portrait track scrolls only the portraits horizontally; trackpad native horizontal scrolling, touch swipes, keyboard arrows and deliberate click-to-select remain.
+- No new controls, changes to the hero or composition, pricing, accounts, model providers or generation. Ordinary four-step and Chrome Desert quick preset remain unchanged.
+- Ported onto concurrent latest main, retaining approved 12px hero reduction, expanded Composition cards and font preload.
+- Verify tests, browser selection, desktop 1440/1680, phone 320/390/600 and horizontal overflow before deploying. Draft PR #973: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/973
+- Not yet merged or deployed. No paid jobs run.
+
 ## 2026-11-03 / mobile spacing, quieter navigation and clean portraits
 - Owner approved follow-up tweaks after phone screenshot `libfile_cfe8757ad5108191805ace504b67e776`; published source is PR #818.
 - Baseline `4329685683f4f1b32406926f95fbc8ec1acd0767`; reviewed head `e184c7ac8c5504ccb41fdcc3f7dc1987e5fe467c`; merge `fa5d0c49a82acbfdd1364fee3ff789456a4a0c43`.

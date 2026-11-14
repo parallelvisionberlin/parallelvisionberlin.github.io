@@ -17,7 +17,7 @@ function fixture({balance=100,response='credit',explicit=true,intent=null,review
   const settings={type:'image',mode:'image',engine:'seedream',prompt:'A photographic portrait',resolution:'1k',aspectRatio:'16:9'};
   const priced={kind:'bound',provider:'spicy',count:1,credits:35,inputs:{sourceId:null,referenceSourceIds:[]},quotes:[{id:'q',settings,maxUsd:.1,expiresAt:Date.now()+90000}]};
   const env={console,Error,TypeError,JSON,Date,Number,Math,Set,Map,Array,Blob,ArrayBuffer,AbortController,setTimeout,clearTimeout,setInterval,clearInterval,structuredClone,crypto:webcrypto,
-    owner:true,epoch:1,userId:'customer',customerMode:true,customerBillingReady:true,customerGenerationReady:true,customerTrialGenerationPaused:false,
+    owner:true,ownerAccount:false,epoch:1,userId:'customer',customerMode:true,customerBillingReady:true,customerGenerationReady:true,customerTrialGenerationPaused:false,
     customerCreditBalance:balance,tool:'image',busy:false,imageSubmissionPending:explicit,customerPriceIntentPending:false,imageSubmissionStage:'Sending…',
     imageEngine:'seedream',imageProcessing:'normal',fashionActive:false,activeJobs:[],slotStates:new Set(['submitting','queued','running','uncertain']),
     window:{__PV_LAB_NATIVE__:0},config:{enabled:true,imageReplacementEnabled:true},sourceId:null,file:null,poseMapSourceId:null,references:[],inspirationMoodId:'',sourceWidth:900,sourceHeight:1200,

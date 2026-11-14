@@ -25,7 +25,9 @@ assert.ok(source.includes("document.documentElement.classList.remove('pv-studio-
 assert.ok(source.includes("document.documentElement.classList.add('pv-studio-boot-lock')"),'In-place sign-in reactivates the loading scrollbar lock');
 const studioHtml=readFileSync('lab/studio.html','utf8');
 const accountSdk=readFileSync('lab/native-account.js','utf8');
-assert.match(accountSdk,/boundedSetup\(Promise\.all\(\[sdk,ui\]\),12000/,'Clerk resources cannot load indefinitely');
+assert.match(accountSdk,/boundedSetup\(loadClerkBrowserSdk\(\{frontendApi,publishableKey\}\),12000/,'Clerk SDK has its own deadline');
+assert.ok(accountSdk.includes("}),12000,'Clerk UI timed out.','AUTH_UI');"),'Clerk UI has its own deadline');
+assert.match(accountSdk,/await Promise\.all\(\[sdk,ui\]\)/,'Both bounded Clerk resources must finish before session setup');
 assert.match(accountSdk,/boundedSetup\(clerk\.load\(/,'Signed-in Clerk initialization has a deadline');
 assert.match(studioHtml,/window\.__pvLabBootRecover=/,'Early loader provides an independent recovery action');
 assert.match(studioHtml,/window\.setTimeout\(window\.__pvLabBootRecover,22000\)/,'A stalled Studio cannot hide behind the splash indefinitely');
@@ -124,7 +126,7 @@ try{
   assert.ok(d.navigation.top>=d.header.top&&d.navigation.bottom<=d.header.bottom,'Tool tabs stay inside the shared header');
   assert.ok(Math.abs(d.workspace.top-d.header.bottom)<=3,'Workspace starts directly below the shared header');
   assert.ok(d.workspace.top<140,'Workspace must be above the fold');
-  assert.equal(d.dock.height,64,'Approved relaxed Generate dock retains its fixed 64px track');
+  assert.equal(d.dock.height,54,'Approved full-height composer retains its 54px content-sized footer');
   assert.ok(d.dock.bottom<=d.panel.bottom+2,'Generation controls remain inside their panel');
   assert.ok(d.generate.bottom<=d.panel.bottom+2,'Generate dock must remain inside left panel');
   assert.ok(Math.abs(d.stage.top-d.inspector.top)<2&&Math.abs(d.stage.bottom-d.inspector.bottom)<2,'Video preview and right inspector share their top and bottom edges');
@@ -451,6 +453,19 @@ try{
     'Exact Prompt stays available as a tiny inline switch');
   assert.equal(await x.page.locator('#composer-exact-prompt').isChecked(),false,
     'Automatic prompt enhancement remains enabled by default');
+  assert.equal(await x.page.locator('#image-composer-count').isVisible(),false,
+    'Web Image shows the stepper instead of the old dropdown');
+  assert.equal(await x.page.locator('#image-composer-count-status').textContent(),'1/4',
+    'Seedream initially offers one of four images');
+  await x.page.locator('#image-composer-count-increase').click();
+  assert.equal(await x.page.locator('#image-count').inputValue(),'2',
+    'Desktop + must update the real image count used for quotes and generation');
+  await x.page.locator('#image-composer-count-decrease').click();
+  assert.equal(await x.page.locator('#image-count').inputValue(),'1',
+    'Desktop - restores the original one-image default');
+  assert.equal(await x.page.locator('#image-composer-count-decrease').isDisabled(),true,
+    'At the minimum count the minus action is disabled');
+
   const exactMetrics=await x.page.evaluate(()=>{
     const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {top:r.top,right:r.right,left:r.left,width:r.width};};
     const exact=document.getElementById('composer-exact-prompt-option'),count=document.getElementById('image-composer-count-wrap');
@@ -518,8 +533,6 @@ try{
   });
   assert.ok(menuPlacement.menuBottom<=menuPlacement.triggerTop+2,
     'Compact library opens above the circular trigger: '+JSON.stringify(menuPlacement));
-  assert.equal(await x.page.locator('#scene-image-menu-categories').isVisible(),true,'Four-square icon opens Elements directly');
-  assert.equal(await x.page.locator('#scene-image-menu-home').isVisible(),false,'Do not require an Elements submenu click');
   assert.equal(await x.page.locator('#scene-image-menu [data-scene-target]').count(),4);
   await x.page.click('#scene-image-menu [data-scene-target="characters"]');
   assert.equal(await x.page.locator('#scene-library-dialog').isVisible(),true);
@@ -579,7 +592,6 @@ try{
   await x.page.click('#scene-close');
   await x.page.click('#image-composer-prompt');
   await x.page.click('#scene-image-open');
-  await x.page.click('#scene-menu-back');
   await x.page.click('#scene-menu-packs');
   assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs');
   assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),true,'Saved packs open the matching Elements-style Photo Packs library');
@@ -1054,18 +1066,27 @@ try{
   });
   assert.ok(libraryMenu.left>=8&&libraryMenu.right<=382,
     'Elements categories menu must remain entirely visible on the phone: '+JSON.stringify(libraryMenu));
-  assert.equal(await x.page.locator('#scene-image-menu-categories').isVisible(),true);
-  const categoriesMenu=await x.page.locator('#scene-image-menu').evaluate(el=>{
-    const r=el.getBoundingClientRect();return {left:r.left,right:r.right};
-  });
-  assert.ok(categoriesMenu.left>=8&&categoriesMenu.right<=382,'Elements categories must fit inside the viewport');
+  assert.equal(await x.page.locator('#scene-menu-packs').isVisible(),true,'Photo packs is a direct menu option on mobile');
   await x.page.locator('#scene-image-open').click();
 
 
   assert.equal(await x.page.locator('#image-composer-resolution').isVisible(),false,'Secondary resolution is collapsed initially');
   await x.page.locator('#image-composer-mobile-more').click();
   assert.equal(await x.page.locator('#image-composer-resolution').isVisible(),true,'More exposes the original resolution select');
-  assert.equal(await x.page.locator('#image-composer-count').isVisible(),true,'More exposes the original image count select');
+  assert.equal(await x.page.locator('#image-composer-count-status').isVisible(),true,'More exposes the new image count stepper');
+  const countBefore=await x.page.locator('#image-count').inputValue();
+  const mobileChoices=await x.page.locator('#image-count option').evaluateAll(options=>options.map(option=>option.value));
+  const nextCount=mobileChoices[mobileChoices.indexOf(countBefore)+1];
+  if(nextCount){
+    await x.page.locator('#image-composer-count-increase').click();
+    assert.equal(await x.page.locator('#image-count').inputValue(),nextCount,
+      'Mobile + updates the authoritative generation count');
+    assert.equal(await x.page.locator('#image-composer-count-status').textContent(),
+      nextCount+'/'+mobileChoices.at(-1),'Mobile displays selected count and model limit');
+    await x.page.locator('#image-composer-count-decrease').click();
+    assert.equal(await x.page.locator('#image-count').inputValue(),countBefore,
+      'Mobile - restores the authoritative generation count');
+  }
   const extras=await x.page.evaluate(()=>{
     const composer=document.getElementById('image-composer').getBoundingClientRect();
     const labels=['image-composer-resolution-wrap','image-composer-count-wrap']

@@ -22,7 +22,7 @@ const server=http.createServer(async(req,res)=>{
  if(u.pathname==='/api/quotes'){
   const chunks=[];for await(const chunk of req)chunks.push(chunk);
   const input=JSON.parse(Buffer.concat(chunks).toString());quoteCount++;
-  assert.equal(input.count,1);assert.equal(input.referenceSourceIds.length,2);
+  assert.equal(input.count,1);assert.ok([2,3].includes(input.referenceSourceIds.length),'Normal editorial uses 2 refs; curated world uses 3');
   quotedPrompts.push(input.settings.prompt);
   const list=Array.from({length:input.count},(_,i)=>({id:'quote-'+quoteCount+'-'+i,settings:input.settings,expiresAt:Date.now()+quoteTTL,creditCost:input.settings.resolution==='2k'?70:35}));
   for(const q of list)quoted.set(q.id,q);
@@ -54,6 +54,14 @@ try{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4179/lab/full-editorial.html',{waitUntil:'domcontentloaded'});
   await page.locator('.editorial-hero-art img').evaluate(img=>img.decode().catch(()=>{}));
+  await page.evaluate(()=>document.fonts.ready);
+  const arrival=await page.evaluate(()=>({
+   scrollY:window.scrollY,
+   heroTop:document.getElementById('editorial-hero').getBoundingClientRect().top,
+   headerBottom:document.querySelector('.editorial-header').getBoundingClientRect().bottom
+  }));
+  assert.ok(Math.abs(arrival.scrollY)<2,'Hero arrival never moves page during initialization: '+JSON.stringify(arrival));
+  assert.ok(Math.abs(arrival.heroTop-arrival.headerBottom)<3,'Hero stays directly below navigation: '+JSON.stringify(arrival));
   await page.screenshot({path:'test-results/editorial/'+width+'-hero.png',fullPage:width===390});
   await page.locator('#editorial-start').click();
   // A condensed display face is already heavy; do not artificially bold it
@@ -98,7 +106,7 @@ try{
   assert.equal(await page.locator('.editorial-cast-pinned').count(),1,'One pinned Create Character and upload card');
   assert.match(await page.locator('.editorial-create-character').getAttribute('href'),/createCharacter=1/);
   const carouselState=await castTrack.evaluate(el=>({width:el.clientWidth,full:el.scrollWidth,count:el.querySelectorAll('.atelier-reference').length}));
-  assert.equal(carouselState.count,5,'All five photographic casting references remain');
+  assert.equal(carouselState.count,10,'Original five plus five approved new casting references');
   assert.ok(carouselState.full>carouselState.width+30,'The casting gallery scrolls horizontally');
   assert.equal(await page.locator('#editorial-cast-prev').isDisabled(),true);
   await page.locator('#editorial-cast-next').click();
@@ -108,6 +116,58 @@ try{
   await page.keyboard.press('ArrowLeft');
   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<9);
   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,'Keyboard browsing does not change selection');
+
+
+  if(width>800){
+   const before=await page.evaluate(()=>({
+    left:document.getElementById('editorial-cast-track').scrollLeft,
+    pinned:document.querySelector('.editorial-cast-pinned').getBoundingClientRect().toJSON(),
+    pageY:scrollY
+   }));
+   await castTrack.locator('.atelier-reference').first().hover();
+   await page.mouse.wheel(0,100);
+   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft>=80);
+   const firstWheel=await castTrack.evaluate(el=>el.scrollLeft);
+   assert.ok(firstWheel>=80&&firstWheel<=150,'A normal 100px wheel moves the portraits without snapping back: '+firstWheel);
+   await page.mouse.wheel(0,35);
+   await page.waitForFunction(left=>document.getElementById('editorial-cast-track').scrollLeft>left+18,firstWheel);
+   await page.mouse.wheel(0,305);
+   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft>350);
+   const after=await page.evaluate(()=>({
+    left:document.getElementById('editorial-cast-track').scrollLeft,
+    pinned:document.querySelector('.editorial-cast-pinned').getBoundingClientRect().toJSON(),
+    pageY:scrollY
+   }));
+   assert.ok(after.left>before.left,'Wheel over gallery moves portraits horizontally');
+   assert.ok(Math.abs(after.pinned.x-before.pinned.x)<1&&Math.abs(after.pinned.y-before.pinned.y)<1,'Create Character stays fixed');
+   assert.ok(Math.abs(after.pageY-before.pageY)<1,'Scroll belongs to the gallery');
+   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,'Wheel never selects a model');
+   await page.mouse.wheel(0,-440);
+   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<30);
+   await page.locator('.editorial-cast-pinned').hover();
+   const pinnedBefore=await page.locator('.editorial-cast-pinned').boundingBox();
+   await page.mouse.wheel(0,100);
+   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft>=80);
+   const pinnedAfter=await page.locator('.editorial-cast-pinned').boundingBox();
+   assert.ok(Math.abs(pinnedAfter.x-pinnedBefore.x)<1&&Math.abs(pinnedAfter.y-pinnedBefore.y)<1,'The Create Character tile remains fixed when wheel is over it');
+   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,'Wheel does not select any model');
+   await castTrack.evaluate(el=>el.scrollTo({left:0,behavior:'instant'}));
+   await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<3);
+  }
+  for(const id of ['slate','cobalt','pearl','acid','blossom']){
+   const card=page.locator('#editorial-cast-track [data-sample-label="'+id[0].toUpperCase()+id.slice(1)+' portrait"]');
+   assert.equal(await card.count(),1,'New casting card exists: '+id);
+   assert.ok((await card.getAttribute('data-sample-src')).endsWith(id+'-cast-20261111.jpg'));
+  }
+  const slate=page.locator('#editorial-cast-track [data-sample-label="Slate portrait"]');
+  await slate.click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===1);
+  assert.equal(await slate.getAttribute('aria-pressed'),'true','New model selection sets identity');
+  await slate.click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===0);
+  assert.equal(await slate.getAttribute('aria-pressed'),'false','New model can be deselected');
+  await castTrack.evaluate(track=>{track.style.scrollBehavior='auto';track.scrollLeft=0;track.style.scrollBehavior='';});
+  await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<3);
 
   let baselineCastSizes=null;
   if(width>800){
@@ -119,11 +179,12 @@ try{
    const layout=await page.evaluate(()=>{
     const rect=selector=>document.querySelector(selector).getBoundingClientRect();
     const hero=rect('#panel-model .stage-visual'),header=rect('.editorial-header'),rail=rect('.editorial-flow-rail'),back=rect('.progress-top'),cards=rect('#casting-reference-gallery');
-    return {heroBelowHeader:hero.top>=header.bottom,topGap:hero.top-header.bottom,heroHeight:hero.height,railHidden:getComputedStyle(document.querySelector('.editorial-flow-rail')).display==='none',backInside:back.top>=hero.top&&back.bottom<=hero.bottom,cardsVisible:cards.bottom<=innerHeight-12};
+    return {heroBelowHeader:hero.top>=header.bottom,topGap:hero.top-header.bottom,heroHeight:hero.height,compositionHeight:rect('.editorial-composition-option').height,railHidden:getComputedStyle(document.querySelector('.editorial-flow-rail')).display==='none',backInside:back.top>=hero.top&&back.bottom<=hero.bottom,cardsVisible:cards.bottom<=innerHeight-12};
    });
    assert.equal(layout.heroBelowHeader,true,'Sticky header does not cover hero controls');
    assert.ok(layout.topGap<=13,'Hero begins immediately below the header');
-   assert.ok(layout.heroHeight>=248&&layout.heroHeight<=286,'Identity uses approved large photographic hero');
+   assert.ok(layout.heroHeight>=236&&layout.heroHeight<=274,'Identity hero is only 12px shorter: '+JSON.stringify(layout));
+   assert.ok(Math.abs(layout.compositionHeight-144)<1,'Composition cards gain 12px at 1440px without changing card widths: '+JSON.stringify(layout));
    for(const key of ['railHidden','backInside','cardsVisible'])assert.equal(layout[key],true,key);
    const emptyBounds=await page.evaluate(()=>{
     const r=selector=>document.querySelector(selector).getBoundingClientRect();
@@ -149,7 +210,11 @@ try{
    assert.ok(textClearance.kickerTop>=textClearance.heroTop-2,'Stage kicker remains inside photographic hero');
    assert.ok(textClearance.subtitleBottom<=textClearance.heroBottom-15,'Subtitle clears the hero edge: '+JSON.stringify(textClearance));
    assert.equal(textClearance.buttonRadius,'0px','Continue has square corners');
-   assert.notEqual(textClearance.disabledBackground,'rgb(244, 241, 234)','Disabled Continue is dark');
+   await page.waitForFunction(()=>{
+    const next=document.getElementById('step-next');
+    return next.disabled&&getComputedStyle(next).backgroundColor!=='rgb(244, 241, 234)';
+   },null,{timeout:5000});
+   assert.notEqual(await page.locator('#step-next').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(244, 241, 234)','Disabled Continue is dark');
    assert.match(emptyBounds.buttonBackground,/rgba?\(\s*(?:0|1\d|2\d|3\d)/,'Disabled Continue uses dark editorial styling');
    await page.locator('#editorial-top-back').click();
    assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
@@ -177,7 +242,7 @@ try{
     assert.ok(Math.abs(geometry.captionLeft)<=2&&Math.abs(geometry.captionRight)<=2,'Caption shading reaches both card edges without an inset rectangle');
     assert.equal(geometry.imageBorder,'0px','No second border inside the portrait');
     assert.equal(geometry.columns,2,'Pinned tile and gallery make two tracks');assert.ok(geometry.secondLeft>geometry.firstLeft);
-    assert.ok(Math.abs(geometry.thirdTop-geometry.top)<3,'Casting portraits remain in one horizontal row');
+    assert.ok(Math.abs(geometry.thirdTop-geometry.top)<=3.5,'Casting portraits remain in one horizontal row, including the 3px hover lift');
     assert.ok(geometry.top<320,'Real casting appears near the top: '+JSON.stringify(geometry));
     assert.ok(Math.abs(geometry.footerBottom-844)<2,'Continue stays at viewport bottom');
     assert.ok(geometry.continue>=44);assert.equal(geometry.arrow,'none');assert.equal(geometry.overflow,false);
@@ -192,6 +257,9 @@ try{
    await page.locator('#editorial-mobile-menu').click();
    assert.equal(await page.locator('#editorial-mobile-search').isVisible(),false,'Casting has no redundant search field');
    await page.locator('#saved-character').click();
+   assert.equal(await page.locator('#casting-reference-gallery').isVisible(),true,'Phone My Characters keeps the existing casting gallery');
+   assert.equal(await page.locator('.editorial-cast-pinned').isVisible(),true,'Phone My Characters retains its pinned Create Character');
+   assert.equal(await page.locator('#editorial-cast-track').isVisible(),false,'Phone public portraits are replaced by saved characters');
    await page.locator('#editorial-mobile-search').click();
    await page.locator('#editorial-cast-search').fill('Test Actor');
    await page.locator('#saved-character-gallery .editorial-saved-cast').first().waitFor();
@@ -202,7 +270,7 @@ try{
    assert.equal(await page.locator('#saved-character-gallery .editorial-saved-cast:visible').count(),1,'Private saved characters still support search');
    await page.locator('#editorial-mobile-search').click();
    await page.locator('[data-source-view="casting"]').click();
-   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference:visible').count(),5);
+   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference:visible').count(),10);
    const uploadsBeforePicker=uploadCount;const picker=page.waitForEvent('filechooser');await page.locator('#model-drop').click();await picker;
    assert.equal(uploadCount,uploadsBeforePicker,'Opening the file chooser sends no upload or paid request');
    await page.screenshot({path:'test-results/editorial/390-mobile-casting.png'});
@@ -280,7 +348,7 @@ try{
     columns:getComputedStyle(root.querySelector('.editorial-composition-grid')).gridTemplateColumns,
     filter:getComputedStyle(firstImg).filter};
   });
-  assert.ok(compositionLayout.heights.every(h=>Math.abs(h-(width>800?132:146))<2),'Three compact photographic Composition cards');
+  assert.ok(compositionLayout.heights.every(h=>Math.abs(h-(width>800?144:146))<2),'Three compact photographic Composition cards');
   assert.equal(compositionLayout.photosPosition,'absolute','Composition images fill their cards instead of flowing into columns');
   assert.equal(compositionLayout.copyPosition,'absolute','Composition labels overlay photographs');
   if(width>800){
@@ -329,10 +397,29 @@ try{
    const remainingCover=await page.locator('#model-thumbs .editorial-model-cover img').first().getAttribute('src');
    const compositionImages=await page.locator('.editorial-composition-art img').evaluateAll(els=>els.map(img=>img.getAttribute('src')));
    assert.ok(compositionImages.every(src=>src===remainingCover),'Removed model is not retained in disabled Composition photos');
-   // Saved Characters is a real source tab; one saved pack produces one person.
+   // Swapping source tabs keeps the approved Identity frame, pinned card and
+   // Composition shelf in precisely the same positions.
+  const beforeSaved=await page.evaluate(()=>{
+   const box=id=>{const r=document.querySelector(id).getBoundingClientRect();return {top:r.top,left:r.left,width:r.width,height:r.height}};
+   return {gallery:box('#casting-reference-gallery'),pinned:box('.editorial-cast-pinned'),footer:box('#step-footer'),composition:box('#editorial-casting-controls')};
+  });
   await page.locator('#saved-character').click();
   await page.locator('#saved-character-gallery .editorial-saved-cast').first().waitFor();
   assert.equal(await page.locator('#editorial-saved-rail').isVisible(),true);
+  assert.equal(await page.locator('#casting-reference-gallery').isVisible(),true,'My Characters reuses the same visible gallery');
+  assert.equal(await page.locator('#editorial-cast-track').isVisible(),false,'Public portraits are swapped out rather than displayed above saved characters');
+  assert.equal(await page.locator('.editorial-cast-pinned').isVisible(),true,'Create Character stays locked in the same place');
+  assert.equal(await page.locator('#editorial-saved-rail').evaluate(el=>el.parentElement.classList.contains('editorial-cast-rail')),true,'Saved portraits render inside the original portrait rail');
+  if(width>800){
+   assert.equal(await page.locator('#panel-model .editorial-casting-top h3').isVisible(),false,'No second Choose your cast heading');
+   assert.equal(await page.locator('#editorial-cast-search').isVisible(),true,'Saved character search remains available');
+  }
+  const afterSaved=await page.evaluate(()=>{
+   const box=id=>{const r=document.querySelector(id).getBoundingClientRect();return {top:r.top,left:r.left,width:r.width,height:r.height}};
+   return {gallery:box('#casting-reference-gallery'),pinned:box('.editorial-cast-pinned'),footer:box('#step-footer'),composition:box('#editorial-casting-controls')};
+  });
+  for(const key of Object.keys(beforeSaved))for(const property of Object.keys(beforeSaved[key]))
+   assert.ok(Math.abs(beforeSaved[key][property]-afterSaved[key][property])<2,'My Characters must not resize/reposition '+key+'.'+property+': '+JSON.stringify({beforeSaved,afterSaved}));
   assert.equal(await page.locator('#editorial-saved-prev').isDisabled(),true);
   assert.equal(await page.locator('#editorial-saved-next').isDisabled(),true);
 
@@ -505,7 +592,7 @@ try{
    const panel=get('.flow-main'),track=get('#editorial-cast-track'),
     cards=Array.from(document.querySelectorAll('#editorial-cast-track .atelier-reference')).map(el=>el.getBoundingClientRect());
    return {width:innerWidth,mainWidth:panel.width,heroHeight:get('#panel-model .stage-visual').height,
-    trackWidth:track.width,firstLeft:cards[0].left,lastRight:cards.at(-1).right,trackRight:track.right,
+    trackWidth:track.width,firstLeft:cards[0].left,originalFifthRight:cards[4].right,lastRight:cards.at(-1).right,trackRight:track.right,
     fullWidth:document.getElementById('editorial-cast-track').scrollWidth,
     compositionBottom:get('#editorial-composition-choices').bottom};
   });
@@ -528,7 +615,8 @@ try{
   assert.ok(Math.abs(heroCopy.left)<=3,'Identity title is left-aligned with the hero: '+JSON.stringify(heroCopy));
   assert.ok(heroCopy.top>=0&&heroCopy.top<=45,'Hero intro begins high like the approved reference: '+JSON.stringify(heroCopy));
   assert.equal(heroCopy.separated,true,'Back control stays clear of the hero title');
-  assert.ok(geometry.lastRight<=geometry.trackRight+2,'All five casting photos visible without clipping: '+JSON.stringify(geometry));
+  assert.ok(geometry.originalFifthRight<=geometry.trackRight+2,'Original five portraits remain visible on wide desktop: '+JSON.stringify(geometry));
+  assert.ok(geometry.lastRight>geometry.trackRight+80,'Longer gallery scrolls horizontally: '+JSON.stringify(geometry));
   assert.ok(geometry.firstLeft<geometry.lastRight,'Original portraits in natural order');
   await page.locator('#casting-reference-gallery .atelier-reference').first().click();
   await page.locator('#casting-reference-gallery .atelier-reference').nth(2).click();
@@ -569,6 +657,7 @@ try{
   await page.locator('#editorial-flow').waitFor({state:'visible'});
   assert.equal(await page.locator('#panel-model').isVisible(),true,'Homepage CTA opens Identity directly');
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),0,'Homepage also opens with an empty cast');
+  await page.locator('#editorial-casting-controls').waitFor({state:'visible',timeout:5000});
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Homepage Identity exposes Composition with disabled choices');
   assert.equal(await page.locator('#editorial-casting-controls').getAttribute('data-cast-state'),'empty');
   assert.equal(await page.locator('[data-cast-composition="together"]').isDisabled(),true,'Not selectable until two models');
@@ -626,6 +715,53 @@ try{
   assert.equal(await page.locator('#model-thumbs .editorial-model-extra-thumb').count(),7,'Back retains every view');
   assert.equal(uploadCount,startUploads,'Transfer stays local until explicit credit review');
   assert.equal(jobCount,startJobs);assert.equal(quoteCount,startQuotes);
+  await page.close();
+ }
+ // Chrome Desert's homepage CTA has a distinct two-step path; no generation on navigation.
+ for(const width of [1440,390]){
+  const page=await browser.newPage({viewport:{width,height:900}});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const beforeJobs=jobCount,beforeQuotes=quoteCount;
+  await page.goto('http://127.0.0.1:4179/lab/index.html',{waitUntil:'domcontentloaded'});
+  await page.locator('#featured-photo-pack .pv-photo-pack-action').click();
+  await page.waitForURL('**/full-editorial.html?world=chrome-desert');
+  await page.locator('#editorial-world-preset').waitFor({state:'visible'});
+  assert.equal(await page.locator('#panel-model').isVisible(),true,'World CTA opens Identity directly');
+  assert.equal(await page.locator('#panel-style').isVisible(),false,'Styling is optional');
+  assert.match(await page.locator('#progress-title').textContent(),/1 \/ 2/);
+  try{
+   await page.waitForFunction(()=>document.querySelectorAll('#location-thumbs img').length===2,null,{timeout:8000});
+  }catch(error){
+   const diagnostic=await page.evaluate(()=>({
+    status:document.querySelector('#editorial-status')?.textContent,
+    thumbnails:document.querySelectorAll('#location-thumbs img').length,
+    worldLink:location.href,
+    scenery:performance.getEntriesByType('resource').filter(r=>r.name.includes('chrome-desert')).map(r=>({name:r.name,status:r.responseStatus,duration:r.duration})),
+    thumbnailMarkup:document.querySelector('#location-thumbs')?.innerHTML.slice(0,500),
+    hasFile:typeof File
+   }));
+   throw new Error('Chrome Desert world references missing: '+JSON.stringify(diagnostic)+' / '+errors.join('|'),{cause:error});
+  }
+  assert.equal(jobCount,beforeJobs);
+  assert.equal(quoteCount,beforeQuotes);
+  await page.locator('#casting-reference-gallery .atelier-reference').first().click();
+  await page.waitForFunction(()=>!document.getElementById('step-next').disabled);
+  await page.locator('#step-next').click();
+  assert.equal(await page.locator('#panel-generate').isVisible(),true,'Choose subject to go straight to review');
+  assert.equal(await page.locator('#editorial-review-world').isVisible(),true);
+  assert.match(await page.locator('#review-location-text').textContent(),/Chrome Desert/);
+  await page.waitForFunction(()=>/^\d[\d,]* credits$/.test(document.getElementById('editorial-cost').textContent),null,{timeout:12000});
+  assert.ok(quoteCount>=beforeQuotes+4,'Receives actual four-shot quotes');
+  assert.equal(jobCount,beforeJobs,'Review never submits a paid job');
+  assert.ok(quotedPrompts.some(p=>p.includes('Curated environment preset: Chrome Desert')),'Quote uses curated direction');
+  await page.locator('#editorial-review-world [data-edit-step="3"]').click();
+  assert.equal(await page.locator('#panel-mood').isVisible(),true,'Location can be edited');
+  await page.locator('#step-next').click();
+  assert.equal(await page.locator('#panel-generate').isVisible(),true,'Edit returns to review');
+  const dimensions=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:innerWidth}));
+  assert.ok(dimensions.scroll<=dimensions.viewport+3,'No horizontal overflow: '+JSON.stringify(dimensions));
+  assert.equal(errors.length,0,'Browser exceptions: '+errors.join(' | '));
+  await page.screenshot({path:'test-results/editorial/'+width+'-chrome-desert-world.png'});
   await page.close();
  }
  console.log('PASS Full Editorial 1440/390 steps, uploads, inline live quote, stale/expired quote guards, one-click batch, no ambiguous retries, real result assets and overflow');

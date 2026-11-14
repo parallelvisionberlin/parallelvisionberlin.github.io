@@ -63,7 +63,9 @@ export async function grantVerifiedWelcome(env,subject){
     // previously registered wallets with retained promotional balances.
     const eligible=await first(env,`SELECT 1 AS eligible FROM lab_customers c
       JOIN lab_image_trial_controls t ON t.id=1
-      WHERE c.id=? AND c.created_at>=t.started_at`,subject);
+      WHERE c.id=? AND c.created_at>=t.started_at AND c.balance_credits=0
+        AND NOT EXISTS(SELECT 1 FROM lab_credit_entries e
+          WHERE e.customer_id=c.id AND e.kind IN ('purchase','subscription'))`,subject);
     if(!eligible)return false;
   }
   const contact=await first(env,`SELECT email FROM lab_customer_contacts

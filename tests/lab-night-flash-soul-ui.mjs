@@ -16,7 +16,7 @@ customerGenerationReady=true;customerBillingReady=true;customerCreditBalance=100
 wallet.connect({customer:customerMode,balanceCredits:1000,billingReady:true,products:[]});
 applyConfig({enabled:true,configured:true,geminiEnabled:true,falEnabled:true,higgsfieldEnabled:true,concurrency:{image:4,video:1}});
 $('app').hidden=false;$('gate').hidden=true;setTool('image');await loadHistory();finishLabBoot();update();
-window.__nightFlashRead=()=>({settings:settings(),source:!!file,mood:moodUI.selected(),pending:imageSubmissionPending});
+window.__nightFlashRead=()=>({settings:settings(),source:!!file,mood:moodUI.selected(),pending:imageSubmissionPending,busy,pricingPending:customerPriceIntentPending});
 window.__nightFlashGate=value=>applyConfig({soulNightFlashEnabled:value});
 window.__nightFlashReuse=job=>restore(job);
 window.__nightFlashChoosePro=model=>{soulProModel=model;$('soul-pro-model').value=model;$('image-engine').value='soulpro';$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));updateSoulProModelUi();update();};
@@ -34,6 +34,7 @@ try{
   for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const role of ['owner','customer']){
     const context=await browser.newContext({viewport,reducedMotion:'reduce'}),page=await context.newPage();
     const errors=[],quotes=new Map(),jobs=new Map(),requests=[];let generated=0,seq=1,failQuote=false;
+    let batchQuoteFailure=false,batchUncertain=false,batchQuoteNumber=0;
     const id=()=> '30000000-0000-4000-8000-'+String(seq++).padStart(12,'0');
     const characterId=id(),pendingId=id(),portraitId=id();
     page.on('pageerror',e=>errors.push(e.message));
@@ -51,7 +52,8 @@ try{
       if(path.startsWith('/api/assets/'))return route.fulfill({contentType:'image/jpeg',body:readFileSync('lab/mood-previews/hd/night-flash-20261011.jpg')});
       if(path==='/api/uploads')return send({id:id()},201);
       if(path==='/api/higgsfield/quote'){
-        if(failQuote)return send({error:'Fixture provider estimate unavailable'},503);
+        batchQuoteNumber++;
+        if(failQuote||batchQuoteFailure&&batchQuoteNumber%2===0)return send({error:'Fixture provider estimate unavailable'},503);
         if(role==='owner')await new Promise(done=>setTimeout(done,100));
         const p=soul2Parameters(data.settings,(status,message)=>{throw new Error(message);},{hasBase:!!data.sourceId});
         if(!data.sourceId){p.model=SOUL2_TEXT_MODEL;p.mode='image';}
@@ -61,7 +63,7 @@ try{
       }
       if(path==='/api/higgsfield/generate'){
         assert.equal(data.confirm,true);assert.ok(quotes.has(data.quoteId));generated++;
-        const q=quotes.get(data.quoteId),job={id:id(),status:'queued',settings:q.settings,sourceId:q.sourceId,createdAt:Date.now(),estimatedUsd:.0057};jobs.set(job.id,job);return send({job},202);
+        const q=quotes.get(data.quoteId),job={id:id(),status:batchUncertain?'uncertain':'queued',error:batchUncertain?'Fixture result unconfirmed':undefined,settings:q.settings,sourceId:q.sourceId,createdAt:Date.now(),estimatedUsd:.0057};jobs.set(job.id,job);return send({job},202);
       }
       if(path.startsWith('/api/jobs/'))return send({job:jobs.get(path.split('/')[3])});
       return send({error:'Unmocked '+path},404);
@@ -106,7 +108,10 @@ try{
         return {soul:{color:s.color,clear:getComputedStyle(clear).color},legacyLayout:deck.classList.contains('is-pv-soul'),identityInToolbar:deck.querySelector('.composer-controls').contains(document.getElementById('composer-character'))};
       });
       assert.equal(palettes.legacyLayout,false,'Soul uses the normal web deck');
-      assert.equal(palettes.identityInToolbar,true,'Identity stays in the normal toolbar');
+      assert.equal(palettes.identityInToolbar,false,'PV Still identity is the approved portrait tile beside Generate');
+      assert.equal(await page.locator('.image-composer-toolbar > #composer-character').count(),1,'Only one PV Still character control');
+      assert.equal(await page.locator('#scene-characters-open').isVisible(),false,'Duplicate character shortcut is hidden');
+      assert.equal(await page.locator('#composer-character-name').textContent(),'Character','Empty tile caption');
       assert.equal(palettes.soul.color,'rgb(220, 255, 0)','Mood text remains legible on the dark control');
       assert.equal(palettes.soul.clear,palettes.soul.color,'Clear action remains legible too');
       if(viewport.width>=1180){
@@ -162,6 +167,40 @@ try{
       assert.equal(await page.locator('#composer-library-cards').getByRole('button',{name:/Still training/}).isEnabled(),false);
       await page.locator('#composer-library-cards').getByRole('button',{name:/Fixture identity/}).click();
       await page.locator('#composer-library-close').click();
+      await page.waitForFunction(()=>document.querySelector('#composer-character-photo img')?.naturalWidth>0);
+      assert.equal(await page.locator('#composer-character-name').textContent(),'Fixture identity','Selected name appears over the portrait');
+      assert.equal(await page.locator('#composer-character').getAttribute('aria-label'),'Change character: Fixture identity');
+      const portrait=await page.locator('#composer-character').evaluate(tile=>{
+        const photo=tile.querySelector('img'),box=tile.getBoundingClientRect(),image=photo.getBoundingClientRect();
+        const generate=document.getElementById('image-composer-generate').getBoundingClientRect();
+        const controls=tile.closest('#image-composer').querySelector('.composer-controls').getBoundingClientRect();
+        return {width:box.width,height:box.height,imageWidth:image.width,imageHeight:image.height,fit:getComputedStyle(photo).objectFit,generateHeight:generate.height,bottom:box.bottom,generateBottom:generate.bottom,left:box.x,right:box.right,generateLeft:generate.x,controlsRight:controls.right};
+      });
+      await page.screenshot({path:'test-results/night-flash-soul-character-selected-'+role+'-'+viewport.width+'.png'});
+      if(viewport.width>=1180)assert.ok(portrait.controlsRight+6<=portrait.left,'Selected-character controls fit before the tile: '+JSON.stringify(portrait));
+      assert.ok(portrait.right+6<=portrait.generateLeft,'Portrait tile never overlaps Generate: '+JSON.stringify(portrait));
+      assert.ok(Math.abs(portrait.width-portrait.height)<1,'Character box remains square');
+      assert.ok(portrait.height<portrait.generateHeight&&portrait.height>=portrait.generateHeight*.85,'Character box is only slightly shorter than Generate');
+      assert.ok(Math.abs(portrait.bottom-portrait.generateBottom)<1,'Tile and Generate share a bottom edge');
+      assert.ok(portrait.imageWidth>=portrait.width-3&&portrait.imageHeight>=portrait.height-3,'Portrait fills the Character box');
+      assert.equal(portrait.fit,'cover');
+      await page.locator('#composer-character').click();
+      await page.locator('#composer-library-cards').getByRole('button',{name:'No character',exact:true}).click();
+      await page.locator('#composer-library-close').click();
+      assert.equal(await page.locator('#composer-character-photo img').count(),0,'Clearing selection removes the previous portrait');
+      assert.equal(await page.locator('#composer-character-name').textContent(),'Character');
+      await page.locator('#composer-character').click();
+      await page.locator('#composer-library-cards').getByRole('button',{name:/Fixture identity/}).click();
+      await page.locator('#composer-library-close').click();
+      await page.waitForFunction(()=>document.querySelector('#composer-character-photo img')?.naturalWidth>0);
+      await page.locator('#image-composer-model').click();
+      await page.locator('.composer-model-option[data-value="seedream"]').click();
+      assert.equal(await page.locator('#composer-character').isVisible(),false,'Seedream has no separate Character tile');
+      assert.equal(await page.locator('#scene-characters-open').isVisible(),true,'Seedream retains its toolbar character shortcut');
+      await page.locator('#image-composer-model').click();
+      await page.locator('.composer-model-option[data-value="soulpro"]').click();
+      await page.waitForFunction(()=>document.querySelector('#composer-character-photo img')?.naturalWidth>0);
+      assert.equal(await page.locator('#scene-characters-open').isVisible(),false,'Returning to PV Still restores the single tile');
       if(viewport.width<=899&&!await page.locator('#image-composer-more').isVisible())await page.locator('#image-composer-mobile-more').click();
       await page.locator('#image-composer-more').click();
       await page.locator('#hf-strength').press('Home');
@@ -278,6 +317,60 @@ try{
         assert.equal(Math.round(blockedDeck.height),Math.round(resolvedDeck.height),'Resolving compatibility does not add/remove a status row');
         assert.equal(generated,1,'Both popup choices and Escape never generate');
 
+      }
+      for(const scenario of ['two images','second quote fails','first result unconfirmed']){
+        batchQuoteFailure=scenario==='second quote fails';
+        batchUncertain=scenario==='first result unconfirmed';
+        batchQuoteNumber=0;
+        await page.reload();
+        await page.waitForFunction(()=>window.__nightFlashReady===true);
+        await page.locator('#image-composer-model').click();
+        await page.locator('.composer-model-option[data-value="soulpro"]').click();
+        const counter=page.locator('#image-composer-count-wrap');
+        if(viewport.width<=899&&!await counter.isVisible())await page.locator('#image-composer-mobile-more').click();
+        assert.equal(await counter.isVisible(),true,'PV Still has the shared quantity control');
+        assert.equal(await page.locator('#image-composer-count-status').innerText(),'1/2');
+        await page.locator('#image-composer-count-increase').click();
+        assert.equal(await page.locator('#image-composer-count-status').innerText(),'2/2');
+        assert.equal(await page.locator('#image-count').inputValue(),'2');
+        assert.equal(await page.locator('#image-composer-count-increase').isDisabled(),true);
+        await page.locator('#image-composer-prompt').fill('A ceramic still life. '+scenario);
+        const beforeGenerated=generated,startRequest=requests.length;
+        const batchGenerate=page.locator('#image-composer-generate');
+        await batchGenerate.click();
+        if(batchQuoteFailure){
+          await page.waitForFunction(()=>document.getElementById('image-composer-status').textContent.includes('Fixture provider estimate unavailable'));
+          assert.equal(generated,beforeGenerated,'An incomplete batch price cannot submit its first image');
+          assert.equal(await page.locator('#quote-dialog').isVisible(),false);
+        }else{
+          if(role==='customer'){
+            await page.locator('#quote-dialog').waitFor({state:'visible'});
+            assert.equal(generated,beforeGenerated,'The batch quote needs customer confirmation');
+            assert.match(await page.locator('#quote-price').innerText(),/14\s*credits/);
+            assert.match(await page.locator('#quote-expiry').innerText(),/2 images/);
+            if(!batchUncertain){
+              await page.locator('[data-close="quote-dialog"]').click();
+              assert.equal(generated,beforeGenerated,'Cancelling the complete quote does not generate');
+              await batchGenerate.click();
+              await page.locator('#quote-dialog').waitFor({state:'visible'});
+            }
+            await page.locator('#confirm-generation').evaluate(button=>{button.click();button.click();});
+          }
+          await page.waitForFunction(()=>{
+            const state=window.__nightFlashRead();
+            return !state.pending&&!state.busy&&!state.pricingPending;
+          });
+          assert.equal(generated-beforeGenerated,batchUncertain?1:2,'Only the selected, confirmed images are submitted');
+          const submitted=requests.slice(startRequest).filter(r=>r.path==='/api/higgsfield/generate');
+          assert.equal(new Set(submitted.map(r=>r.data.quoteId)).size,submitted.length,'Each image uses its own bound quote');
+          if(batchUncertain){
+            await batchGenerate.dispatchEvent('click');
+            assert.equal(generated-beforeGenerated,1,'An unconfirmed first image blocks further paid requests');
+          }else{
+            await page.screenshot({path:'test-results/night-flash-soul-pv-still-count-'+role+'-'+viewport.width+'.png'});
+          }
+        }
+        console.log('PASS PV Still '+scenario+' '+role+' '+viewport.width+'px');
       }
       assert.deepEqual(errors,[]);
       console.log('PASS Won Kar Night owner visibility, Soul selection and no automatic generation '+role+' '+viewport.width+'px');

@@ -72,7 +72,16 @@ try {
         assert.equal(g.overflow,false,'No horizontal overflow '+JSON.stringify({viewport,attached,long,g}));
         assert.ok(g.deck.y>=0&&g.deck.bottom<=viewport.height+2,'Dock remains in viewport');
         for(const box of [g.generate,g.character,g.prompt,g.controls])assert.ok(box.x>=g.deck.x&&box.right<=g.deck.right+1&&box.bottom<=g.deck.bottom+1,'All controls remain in deck '+JSON.stringify({viewport,attached,long,g}));
-        assert.equal(await page.locator('.composer-controls > #composer-character').count(),1,'Soul ID is a standard toolbar control');
+        assert.equal(await page.locator('.image-composer-toolbar > #composer-character').count(),1,'PV Still uses the approved single portrait tile beside Generate');
+        assert.equal(await page.locator('#scene-characters-open').isVisible(),false,'No duplicate left character shortcut');
+        assert.ok(g.character.height<g.generate.height&&g.character.height>=g.generate.height*.85,'Character square is slightly shorter than Generate');
+        assert.ok(Math.abs(g.character.width-g.character.height)<1,'Character tile is square');
+        assert.ok(g.character.right+6<=g.generate.x,'Character tile never overlaps Generate: '+JSON.stringify({viewport,attached,long,g}));
+        for(const key of ['x','right','width','bottom'])assert.ok(Math.abs(g.deck[key]-standard.deck[key])<1,'Switching to PV Still keeps the locked deck '+key+': '+JSON.stringify({viewport,attached,long,g,standard}));
+        if(viewport.width>=1180){
+          assert.equal(g.deck.width,1064,'All Image models share the locked desktop width');
+          for(const key of ['x','right','width','height','bottom'])assert.ok(Math.abs(g.generate[key]-standard.generate[key])<1,'Generate stays anchored across models: '+key);
+        }
         assert.equal(await page.locator('#hf-bar-source').isVisible(),false,'Source uploads use the normal +, with no extra card');
         assert.equal(await page.locator('#image-composer').evaluate(el=>el.classList.contains('is-pv-soul')),false,'The web never enables the native Soul layout');
         if(viewport.width>=1160&&!attached&&!long){assert.equal(g.deck.height,standard.deck.height,'Same compact shell height');assert.equal(g.generate.height,standard.generate.height,'Same Generate height');assert.equal(g.deck.y,standard.deck.y,'Same baseline');assert.equal(g.radius,standard.radius,'Same corners');}

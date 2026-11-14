@@ -228,9 +228,9 @@ try{
       await page.evaluate(()=>window.releaseTestGuest());
       await page.locator('#gate.pv-guest-image').waitFor({state:'visible'});
       await page.locator('#signin').waitFor({state:'visible'});
-      assert.deepEqual(await page.locator('#pv-guest-cards .pv-guest-card').evaluateAll(cards=>cards.map(card=>card.dataset.guestMood)),
-        ['dream-blur','90s-cinema','fashion-editorial','fisheye-2000','chrome-couture','hong-kong-nights','dreamcore','80s-film'],
-        'Guest Image Studio retains the eight approved looks, including Fisheye 2000');
+      assert.deepEqual(await page.locator('#pv-guest-cards .pv-guest-card').evaluateAll(cards=>cards.map(card=>card.dataset.guestMood||card.dataset.inspirationConcept)),
+        ['dream-blur','desert-stop','fashion-editorial','fisheye-2000','chrome-couture','lost-highway','dreamcore','80s-film','hong-kong-nights','90s-cinema','eros-lingerie','hotel-intimacy','post-human','desert-sculptures'],
+        'Guest Inspiration retains all fourteen looks and the approved road-card position swaps');
       assert.equal(await page.locator('#app').isVisible(),false,'Private workspace remains closed');
       assert.match(await page.locator('#pv-guest-title').innerText(),/Start with a feeling/i);
       await page.locator('[data-guest-mood="dream-blur"]').click();

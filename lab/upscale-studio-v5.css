@@ -225,6 +225,12 @@
   grid-column:auto!important;
   width:100%!important;
 }
+#upscale-queue-block[hidden]{display:none!important}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-queue-block{
+  order:-1;flex:none;width:100%;min-width:0;
+}
+#upscale-queue-reason{margin:0 0 8px;color:#d5b99f;font-size:12px;line-height:1.5}
+#upscale-review-queue{min-height:36px;padding:7px 12px;font-size:12px}
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #upscale-price,
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #save{grid-column:auto!important;max-width:100%}
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{

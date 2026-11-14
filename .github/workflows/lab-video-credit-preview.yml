@@ -1,14 +1,14 @@
 name: PV LAB Video credit preview
 on:
   pull_request:
-    paths: ['lab/lab.js', 'lab/media-references.js', 'lab/video-input-action.js', 'lab/video-scene-states.js', 'lab/video-euro-pricing.js', 'lab/video-relaxed-studio.css', 'lab/video-composer-single-scroll.css', 'lab/studio.html', 'tests/lab-video-generate-scroll-ui.mjs', 'tests/lab-video-single-scroll.test.mjs', 'tests/lab-video-credit-preview-ui.mjs', '.github/workflows/lab-video-credit-preview.yml']
+    paths: ['lab/lab.js', 'lab/media-references.js', 'lab/video-input-action.js', 'lab/video-scene-states.js', 'lab/video-euro-pricing.js', 'lab/video-relaxed-studio.css', 'lab/video-composer-single-scroll.css', 'lab/studio.html', 'tests/lab-video-generate-scroll-ui.mjs', 'tests/lab-video-single-scroll.test.mjs', 'tests/lab-video-credit-preview-ui.mjs', 'tests/lab-video-reference-preupload-ui.mjs', 'lab/video-reference-upload.js', '.github/workflows/lab-video-credit-preview.yml']
   push:
     branches: [main]
-    paths: ['lab/lab.js', 'lab/media-references.js', 'lab/video-input-action.js', 'lab/video-scene-states.js', 'lab/video-euro-pricing.js', 'lab/video-relaxed-studio.css', 'lab/video-composer-single-scroll.css', 'lab/studio.html', 'tests/lab-video-generate-scroll-ui.mjs', 'tests/lab-video-single-scroll.test.mjs', 'tests/lab-video-credit-preview-ui.mjs', '.github/workflows/lab-video-credit-preview.yml']
+    paths: ['lab/lab.js', 'lab/media-references.js', 'lab/video-input-action.js', 'lab/video-scene-states.js', 'lab/video-euro-pricing.js', 'lab/video-relaxed-studio.css', 'lab/video-composer-single-scroll.css', 'lab/studio.html', 'tests/lab-video-generate-scroll-ui.mjs', 'tests/lab-video-single-scroll.test.mjs', 'tests/lab-video-credit-preview-ui.mjs', 'tests/lab-video-reference-preupload-ui.mjs', 'lab/video-reference-upload.js', '.github/workflows/lab-video-credit-preview.yml']
 jobs:
   video-credit-preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 7
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,6 +28,10 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-video-credit/node_modules/playwright/index.mjs
       - run: node tests/lab-video-credit-preview-ui.mjs
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-video-credit/node_modules/playwright/index.mjs
+      - name: Verify references upload before Generate and retry safely
+        run: node tests/lab-video-reference-preupload-ui.mjs
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-video-credit/node_modules/playwright/index.mjs
       - uses: actions/upload-artifact@v4

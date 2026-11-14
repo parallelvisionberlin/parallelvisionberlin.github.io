@@ -51,11 +51,13 @@ try{
   assert.equal(await page.locator('#precision-source-holder').getAttribute('aria-busy'),'true','Busy is visible before the provider response');
   assert.equal(await page.locator('.pv-selection-feedback').isVisible(),true);assert.match(await page.locator('.pv-selection-feedback').textContent(),/Selecting/);
   assert.equal(await page.locator('.pv-selection-click-ring').isVisible(),true);
+  assert.equal(await page.locator('.pv-selection-scan').isVisible(),true,'A visible in-photo sweep communicates processing');
   await photoClick(150,230);assert.equal(await page.evaluate(()=>window.requests.filter(x=>x.method==='POST').length),1,'Double clicks do not buy extra requests');
   await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await page.locator('.pv-selection-click-ring').evaluate(e=>getComputedStyle(e).animationName),'none');
   await page.evaluate(()=>{window.hold=false;window.finishRequest();});await done();
   assert.ok(await pixel(150,230)>0);assert.equal(await pixel(440,230),0,'Other garment remains untouched');
   assert.equal(await page.locator('.pv-selection-feedback').isVisible(),false);
+  assert.equal(await page.locator('.pv-selection-scan').isVisible(),false,'The sweep stops when selection completes');
   assert.equal(await page.locator('#precision-source-holder').getAttribute('aria-busy'),null);
   assert.equal(await page.evaluate(()=>window.requests.find(x=>x.method==='POST').body.candidateMasks),true);
   await page.evaluate(()=>{window.editor.clearSelection();window.editor.setSelectionTarget('background');});

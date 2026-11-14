@@ -93,12 +93,33 @@ try{
       assert.equal(scrolled.top,overlay.top-scrolled.scrollY,'Notice scrolls away with the document');
       await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));await settle(page);
 
-      // The header menu must remain above the banner and keep its tap targets.
+      // The header menu must be above the banner over their *actual intersection*.
+      // The original first-link-only check missed the hidden menu wordmark/identity.
       await page.locator('#lab-account-strip>summary').click();
+      const menuLayer=await page.evaluate(()=>{
+        const header=document.querySelector('.landing-header--home');
+        const panel=document.querySelector('#lab-account-strip .pv-account-panel');
+        const notice=document.querySelector('#lab-credit-banner');
+        const a=panel.getBoundingClientRect(),b=notice.getBoundingClientRect();
+        const overlapTop=Math.max(a.top,b.top),overlapBottom=Math.min(a.bottom,b.bottom);
+        const x=a.left+a.width/2,y=(overlapTop+overlapBottom)/2;
+        return {
+          overlap:overlapBottom-overlapTop,
+          front:panel.contains(document.elementFromPoint(x,y)),
+          headerZ:Number(getComputedStyle(header).zIndex),
+          bannerZ:Number(getComputedStyle(notice).zIndex)
+        };
+      });
+      assert.ok(menuLayer.overlap>0,`${width}: the menu and notice must overlap in this regression test`);
+      assert.ok(menuLayer.headerZ>menuLayer.bannerZ,`${width}: open header must stack above notice`);
+      assert.equal(menuLayer.front,true,`${width}: menu identity and wordmark must not be hidden by credit notice`);
       assert.equal(await page.locator('#lab-account-strip a[href="./account.html"]').evaluate(el=>{
         const b=el.getBoundingClientRect();return el.contains(document.elementFromPoint(b.x+b.width/2,b.y+b.height/2));
-      }),true,'Banner does not obstruct the account menu');
+      }),true,'Banner does not obstruct account links');
       await page.locator('#lab-account-strip>summary').click();
+      assert.ok(await page.locator('.landing-header--home').evaluate(el=>Number(getComputedStyle(el).zIndex))<menuLayer.bannerZ,
+        `${width}: closed menu returns header to its normal layer`);
+      assert.equal(await banner.isVisible(),true,'Closing the menu preserves the existing zero-credit notice');
       await banner.locator('a').click();
       assert.equal(new URL(page.url()).hash,'#pricing','Plan link opens the existing homepage pricing flow');
       assert.equal(await page.locator('#pricing').isVisible(),true);

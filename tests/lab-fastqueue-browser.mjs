@@ -10,7 +10,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{clerk=await loadLabAccount();");const bootEnd=source.indexOf("\n// Soul composer:",boot);assert.ok(boot>0&&bootEnd>boot);
-const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();await restoreStudioEntry();update();window.__labTest={lock,setBusy:value=>{busy=!!value;update();},setCustomerMode:value=>{customerMode=!!value;update();},setImageLimit:value=>{config.concurrency.image=value;update();}};`;
+const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;ownerAccount=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,higgsfieldEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};hf.configure(true);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();await restoreStudioEntry();finishLabBoot();update();window.__labTest={lock,poll,setBusy:value=>{busy=!!value;update();},setCustomerMode:value=>{customerMode=!!value;update();},setImageLimit:value=>{config.concurrency.image=value;update();}};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4179,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -18,9 +18,10 @@ const ORIGIN='http://127.0.0.1:4179',API='https://parallel-vision-lab.parallelvi
 let passed=0,png;const ok=name=>{passed++;console.log('PASS '+name);};
 const id=n=>'20000000-0000-4000-8000-'+String(n).padStart(12,'0');
 const settings={type:'image',mode:'image',prompt:'A ceramic sculpture in soft daylight.',resolution:'2k',aspectRatio:'16:9',outputFormat:'png',referenceRoles:[],referenceSourceIds:[]};
-async function workspace({failure='',width=1440,height=1000,initial=[],savedPacks=[],quoteDelay=0,historyDelay=0}={}){
+async function workspace({failure='',width=1440,height=1000,initial=[],savedPacks=[],quoteDelay=0,historyDelay=0,holdStillQuotes=false}={}){
  const context=await browser.newContext({viewport:{width,height},acceptDownloads:true}),page=await context.newPage();
  const requests=[],errors=[],dialogs=[],jobs=[...initial],quotes=new Map();let sequence=100,accepted=0,renewed=false,historyGets=0;
+ const stillQuotes=Promise.withResolvers();
  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',async d=>{dialogs.push(d.message());await d.accept();});
  await context.route('https://**/*',async route=>{
   const req=route.request(),url=new URL(req.url());if(!url.href.startsWith(API)){await route.abort();return;}
@@ -31,6 +32,20 @@ async function workspace({failure='',width=1440,height=1000,initial=[],savedPack
   if(path==='/api/jobs/bulk-delete'&&method==='POST'){const ids=data.ids||[];let deleted=0;for(let i=jobs.length-1;i>=0;i--)if(ids.includes(jobs[i].id)&&!['queued','running','saving','uncertain','submitting'].includes(jobs[i].status)){jobs.splice(i,1);deleted++;}return send({ok:true,deleted});}
   if(path.startsWith('/api/jobs/')&&path.endsWith('/recover')&&method==='POST'){const job=jobs.find(j=>path.includes('/'+j.id+'/recover'));if(!job)return send({error:'Not found.'},404);job.status='completed';job.outputId=job.id;job.error='';return send({job});}
   if(path==='/api/packs')return send({packs:savedPacks});
+  if(path==='/api/higgsfield/characters')return send({characters:[]});
+  if(path==='/api/higgsfield/quote'){
+    if(holdStillQuotes)await stillQuotes.promise;
+    const q={id:id(sequence++),provider:'Higgsfield',sourceId:data.sourceId,settings:data.settings,
+      estimatedUsd:.006,maxUsd:.006,expiresAt:Date.now()+180000};
+    quotes.set(q.id,{q,data});return send(q);
+  }
+  if(path==='/api/higgsfield/generate'){
+    assert.equal(data.confirm,true);
+    const entry=quotes.get(data.quoteId);assert.ok(entry);
+    const job={id:id(sequence++),sourceId:entry.q.sourceId,settings:entry.q.settings,
+      status:'queued',createdAt:Date.now(),estimatedUsd:.006,providerTaskId:'still-synthetic'};
+    accepted++;jobs.unshift(job);return send({job},202);
+  }
   if(path==='/api/soul-pro/identity'&&method==='GET')return send({configured:true,count:2,refs:[{id:id(950),name:'nina-front.png'},{id:id(951),name:'nina-three-quarter.png'}]});
   if(path==='/api/soul-pro/identity'&&method==='POST')return send({configured:true,count:(data.referenceSourceIds||[]).length||1,refs:[]},201);
   if(path==='/api/soul-pro/identity'&&method==='DELETE')return send({configured:false,count:0,refs:[]});
@@ -79,7 +94,7 @@ async function workspace({failure='',width=1440,height=1000,initial=[],savedPack
  try{await page.waitForFunction(()=>!!window.__labTest,undefined,{timeout:12000});}
  catch(e){console.error('IMAGE_STUDIO_BOOT_DIAGNOSTICS',JSON.stringify({url:page.url(),title:await page.title(),errors,requests:requests.slice(0,9),scripts:await page.locator('script[src]').evaluateAll(a=>a.map(el=>el.src))}));throw e;}
  if(!png)png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=320;const x=c.getContext('2d');x.fillStyle='#333';x.fillRect(0,0,320,320);x.fillStyle='#aaa';x.fillRect(75,75,170,170);return c.toDataURL().split(',')[1];}),'base64');
- return {page,context,requests,errors,dialogs,jobs,accepted:()=>accepted};
+ return {page,context,requests,errors,dialogs,jobs,accepted:()=>accepted,releaseStillQuotes:stillQuotes.resolve};
 }
 const count=(x,path,method='POST')=>x.requests.filter(r=>r.path===path&&r.method===method).length;
 const ready=page=>page.waitForFunction(()=>!document.querySelector('#resolution').disabled);
@@ -202,8 +217,47 @@ try{
   assert.equal(x.requests.filter(req=>req.path==='/api/jobs'&&req.method==='POST').length,3);
   await x.page.waitForFunction(()=>!document.querySelector('#image-composer-generate').disabled,undefined,{timeout:2500});
   assert.deepEqual(x.errors,[],'No browser-side exceptions');
-  console.log('FAST_IMAGE_QUEUE_BROWSER_CHECKS_PASSED=1');
+  assert.equal(await x.page.locator('#image-composer-generate').getAttribute('aria-controls'),null);
   await x.context.close();
+
+  const y=await workspace({width:390,height:844,holdStillQuotes:true});
+  await y.page.locator('#image-composer-model').click();
+  await y.page.locator('.composer-model-option[data-value="soulpro"]').click();
+  await y.page.locator('#image-composer-prompt').fill('A quiet still life in warm window light.');
+  const generate=y.page.locator('#image-composer-generate');
+  const stillClickedAt=Date.now();
+  await generate.click();
+  assert.equal(await generate.isDisabled(),true);
+  assert.equal(await generate.getAttribute('title'),null,'Cooldown does not show a browser tooltip');
+  assert.equal(await generate.evaluate(el=>getComputedStyle(el).cursor),'default');
+  await generate.dispatchEvent('click');
+  await y.page.waitForFunction(()=>!document.getElementById('image-composer-generate').disabled,undefined,{timeout:2700});
+  assert.ok(Date.now()-stillClickedAt>=1900&&Date.now()-stillClickedAt<3000,'PV Still unlocks in two seconds while its quote is pending');
+  assert.equal(await generate.getAttribute('title'),null,'The tooltip stays gone after PV Still unlocks');
+  assert.equal(count(y,'/api/higgsfield/quote'),1,'An accidental PV Still repeat does not quote again');
+  assert.equal(count(y,'/api/higgsfield/generate'),0);
+  await generate.click();
+  await y.page.waitForFunction(()=>document.querySelector('#image-composer-generate .composer-generate-label').textContent==='Queue full');
+  assert.equal(await generate.isDisabled(),true,'Unacknowledged PV Still requests reserve both slots');
+  assert.equal(await generate.getAttribute('title'),null,'A full local queue has no browser tooltip');
+  y.releaseStillQuotes();
+  await y.page.waitForFunction(()=>document.querySelector('#image-composer-generate .composer-generate-label').textContent==='View queue');
+  assert.equal(await generate.isEnabled(),true,'A full server queue can be opened directly from the deck');
+  assert.equal(await generate.getAttribute('title'),null,'A full server queue has no browser tooltip');
+  assert.equal(y.accepted(),2);
+  const queueButton=await generate.boundingBox();
+  await y.page.mouse.move(queueButton.x+queueButton.width/2,queueButton.y+queueButton.height/2);
+  await y.page.mouse.down();
+  y.jobs[0].status='saving';
+  await y.page.evaluate(()=>window.__labTest.poll());
+  await y.page.waitForFunction(()=>document.querySelector('#image-composer-generate .composer-generate-label').textContent==='Generate');
+  assert.equal(await generate.isEnabled(),true,'Generate returns when a verified slot frees');
+  await y.page.mouse.up();
+  await y.page.waitForFunction(()=>document.getElementById('active').open);
+  assert.equal(count(y,'/api/higgsfield/generate'),2,'A press that started on View queue never submits an image when a slot frees');
+  assert.deepEqual(y.errors,[],'No PV Still browser exceptions');
+  await y.context.close();
+  console.log('FAST_IMAGE_QUEUE_BROWSER_CHECKS_PASSED=1');
 }finally{
   await browser.close();
   await new Promise(resolve=>server.close(resolve));

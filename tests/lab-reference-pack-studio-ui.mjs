@@ -83,7 +83,6 @@ async function workspace(width=1440,height=900){
 async function openPackMenu(page){
   if(!await page.locator('#scene-image-open').isVisible())await page.locator('#image-composer-prompt').click();
   await page.locator('#scene-image-open').click();
-  await page.locator('#scene-menu-back').click();
 }
 const noPaid=()=>assert.equal(requests.some(r=>r.method==='POST'&&['/api/quotes','/api/jobs','/api/higgsfield/generate'].includes(r.path)),false,'Pack actions never submit paid inference');
 const refs=async (page,n)=>page.waitForFunction(expected=>document.querySelectorAll('#reference-list .reference-item').length===expected,n);
@@ -91,7 +90,18 @@ mkdirSync('test-results/photo-packs',{recursive:true});
 try{
   let {page,context,errors}=await workspace();
   const before=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
-  await openPackMenu(page);await page.locator('#scene-menu-packs').click();
+  await openPackMenu(page);
+  const menu=page.locator('#scene-image-menu');
+  assert.equal(await menu.locator('button').count(),5,'The flat menu has no Back button or submenu');
+  for(const name of ['Characters','Outfits','Props','Locations','Photo packs']){
+    assert.equal(await menu.getByRole('menuitem',{name,exact:true}).isVisible(),true);
+  }
+  await page.keyboard.press('Escape');
+  assert.equal(await menu.isVisible(),false);
+  assert.equal(await page.locator('#scene-image-open').evaluate(el=>el===document.activeElement),true);
+  await openPackMenu(page);
+  await menu.getByRole('menuitem',{name:'Photo packs',exact:true}).click();
+  assert.equal(await menu.isVisible(),false);
   assert.equal(await page.locator('#pack-studio-dialog').isVisible(),true);
   const box=await page.locator('#pack-studio-dialog').evaluate(el=>{
     const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width};
@@ -264,7 +274,14 @@ try{
   packs.splice(originalPackCount);
 
   ({page,context,errors}=await workspace(390,844));
-  await openPackMenu(page);await page.locator('#scene-menu-packs').click();
+  await openPackMenu(page);
+  const phoneMenu=await page.locator('#scene-image-menu').evaluate(el=>{
+    const {left,right,top,bottom}=el.getBoundingClientRect();
+    return {left,right,top,bottom};
+  });
+  assert.ok(phoneMenu.left>=0&&phoneMenu.right<=390&&phoneMenu.top>=0&&phoneMenu.bottom<=844,
+    'All five menu rows fit in the phone viewport: '+JSON.stringify(phoneMenu));
+  await page.getByRole('menuitem',{name:'Photo packs',exact:true}).click();
   const mobile=await page.locator('#pack-studio-dialog').evaluate(el=>{
     const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};
   });

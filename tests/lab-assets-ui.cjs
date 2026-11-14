@@ -263,7 +263,7 @@ await page.route('**/api/image-models/generate',route=>{const payload=route.requ
 for(const engine of ['flash','kling']){
   await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="'+engine+'"]').click();
   await page.fill('#image-composer-prompt','Editorial architecture in daylight');
-  await page.selectOption('#image-composer-count','1');
+  assert.equal(await page.locator('#image-count').inputValue(),'1','Model switching keeps one image selected');
   assert.equal(await page.locator('#resolution').inputValue(),engine==='flash'?'2k':'1k');
   assert.equal(await page.locator('#composer-character').isVisible(),false,'No redundant plus in the new models');
   const expectedPath=engine==='flash'?'/api/quotes':'/api/image-models/generate';
@@ -453,7 +453,7 @@ await page.setInputFiles('#video-references','assets/optimized/video/fashion-aft
 await page.waitForFunction(()=>document.querySelectorAll('#video-reference-list video').length===1);
 await page.fill('#prompt','Continue the slow movement through the room.');
 assert.equal(await page.locator('#generate').isEnabled(),true,'An uploaded video enables extension');
-assert.equal(await page.evaluate(()=>window.__referenceSettings().provider),'higgsfield');assert.equal(await page.locator('#preview-label').textContent(),'Video to extend');
+assert.equal(await page.evaluate(()=>window.__referenceSettings().provider),'spicy');assert.equal(await page.locator('#preview-label').textContent(),'Video to extend');
 assert.equal(await page.evaluate(()=>window.__referenceSettings().referenceVideos.length),1);
 assert.equal(await page.locator('#ratio-control').isVisible(),false,'Extension follows the input framing');
 console.log('VIDEO_EXTEND_MOBILE='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));

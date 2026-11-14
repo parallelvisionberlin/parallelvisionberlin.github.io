@@ -351,7 +351,7 @@ try{
  await x.page.locator('#save').evaluate(button=>button.click());await ready(x.page);assert.equal(x.accepted(),1);const draft=x.page.locator('.card[data-state="draft"]');await clickAdvanced(x.page);await draft.click();await x.page.click('#image-detail-reuse');await ready(x.page);await clickAdvanced(x.page);assert.equal(await x.page.locator('#prompt').inputValue(),settings.prompt);assert.equal(x.accepted(),1);ok('Saving and reusing a draft do not generate or charge');assert.deepEqual(x.errors,[]);await x.context.close();
 
   x=await workspace();await imageForm(x);
-  await x.page.selectOption('#image-composer-count','2');
+  await x.page.click('#image-composer-count-increase');assert.equal(await x.page.locator('#image-count').inputValue(),'2');
   await x.page.click('#image-composer-generate');await waitAccepted(x,2);await ready(x.page);
   if(x.accepted()!==2)console.error('BATCH_IMAGE_DIAG',JSON.stringify({accepted:x.accepted(),requests:x.requests.filter(r=>['/api/quotes','/api/jobs'].includes(r.path)),errors:x.errors,notice:await x.page.locator('#notice').innerText(),disabled:await x.page.locator('#image-composer-generate').isDisabled(),count:await x.page.locator('#image-composer-count').inputValue()}));
   assert.equal(x.accepted(),2,'Two images require two independent paid submissions');
@@ -424,10 +424,14 @@ try{
   assert.equal(await x.page.locator('#composer-reference-intent').isVisible(),false,'Upload must not open a compulsory chooser');
   assert.match(await x.page.locator('#composer-reference-intent-toggle').innerText(),/Base image/);
   await x.page.click('#composer-reference-intent-toggle');
-  assert.match(await x.page.locator('#composer-reference-intent').innerText(),/How would you like to create/);
-  assert.equal(await x.page.locator('#composer-reference-intent .reference-intent-choice').count(),2);
-  assert.equal(await x.page.locator('#composer-reference-intent').getByText('Same person').count(),0);
-  await x.page.click('#composer-reference-intent-close');
+  const intentMenu=x.page.locator('#composer-reference-intent');
+  assert.deepEqual(await intentMenu.locator('.reference-intent-copy strong').allTextContents(),['Edit an image','Create with references']);
+  assert.equal(await intentMenu.locator('.reference-intent-heading').isVisible(),false);
+  assert.equal(await intentMenu.locator('[data-reference-intent="base"]').getAttribute('aria-pressed'),'true');
+  assert.equal(await intentMenu.locator('[data-reference-intent="base"]').evaluate(el=>el===document.activeElement),true);
+  await x.page.keyboard.press('Escape');
+  assert.equal(await intentMenu.isVisible(),false);
+  assert.equal(await x.page.locator('#composer-reference-intent-toggle').evaluate(el=>el===document.activeElement),true);
   assert.equal(await x.page.locator('.composer-reference-index').first().innerText(),'BASE');
   assert.equal(await x.page.locator('#image-composer-references .role-general').count(),2);
   assert.deepEqual(await x.page.locator('#image-composer-references .composer-reference-role').evaluateAll(a=>a.map(el=>el.value)),['none','none']);
@@ -530,7 +534,7 @@ try{
  x=await workspace({savedPacks:slowPacks,packPreviewGate,brokenPreviewAssets:[badId]});
  const originalDeckHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
  await x.page.click('#image-composer-prompt');
- await x.page.click('#scene-image-open');await x.page.click('#scene-menu-back');await x.page.click('#scene-menu-packs');
+ await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');
  assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),true,'The Photo Packs menu opens the existing reference library modal');
  assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs');
  assert.equal(await x.page.locator('#composer-library').isVisible(),false,'No legacy oversized popover competes with the modal');
@@ -557,7 +561,7 @@ try{
  // It must not touch the generation quote/submit routes or reset the Image deck.
  x=await workspace();
  await x.page.click('#image-composer-prompt');
- await x.page.click('#scene-image-open');await x.page.click('#scene-menu-back');await x.page.click('#scene-menu-packs');
+ await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');
  await x.page.click('#pack-studio-new');
  assert.equal(await x.page.locator('#pack-studio-create-view').isVisible(),true);
  assert.equal(await x.page.locator('#pack-studio-from-deck').isDisabled(),true);
@@ -585,7 +589,7 @@ try{
  const packReferencePhotos=[{name:'front.png',mimeType:'image/png',buffer:png},{name:'side.png',mimeType:'image/png',buffer:png},{name:'back.png',mimeType:'image/png',buffer:png}];
  x=await workspace();await x.page.locator('#reference-images').setInputFiles(packReferencePhotos);await waitRefs(x.page,3);
  await x.page.click('#image-composer-prompt');
- await x.page.click('#scene-image-open');await x.page.click('#scene-menu-back');await x.page.click('#scene-menu-packs');await x.page.click('#pack-studio-new');
+ await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');await x.page.click('#pack-studio-new');
  assert.equal(await x.page.locator('#pack-studio-from-deck').getAttribute('aria-pressed'),'false');
  assert.equal(await x.page.locator('#pack-studio-previews .pack-studio-preview').count(),0);
  await x.page.click('#pack-studio-from-deck');
@@ -646,7 +650,7 @@ try{
 
  // Image upscaling is one paid job per click, independent of the Image batch selector.
  const upscaleForm=async x=>{await x.page.click('#tool-upscale');await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);};
- x=await workspace();await imageForm(x);await x.page.selectOption('#image-count:visible, #image-composer-count:visible','4');await upscaleForm(x);
+ x=await workspace();await imageForm(x);for(let i=0;i<3;i++)await x.page.click('#image-composer-count-increase');assert.equal(await x.page.locator('#image-count').inputValue(),'4');await upscaleForm(x);
  assert.equal(await x.page.locator('#generate').innerText(),'Upscale');assert.match(await x.page.locator('#generation-help').innerText(),/one paid upscaling job/);
  await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.deepEqual(x.dialogs,[]);ok('Upscale ignores Image batch count and creates one job without review');await x.context.close();
  x=await workspace({quoteDelay:300});await upscaleForm(x);await x.page.evaluate(()=>{document.querySelector('#generate').click();document.querySelector('#generate').click();});await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);ok('Rapid repeated Upscale clicks cannot double-submit');await x.context.close();

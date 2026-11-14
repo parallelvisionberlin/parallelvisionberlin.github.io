@@ -23,6 +23,19 @@ const clerkMock=`export class Clerk {
 }`;
 async function setup(width,customer=true,overrides={}){
   const context=await browser.newContext({viewport:{width,height:950},reducedMotion:'reduce'}),page=await context.newPage();
+  await context.addInitScript(()=>{
+    const NativeObserver=window.MutationObserver;
+    window.MutationObserver=class extends NativeObserver{
+      constructor(callback){
+        let deliveries=0;
+        super((records,observer)=>{
+          if(!deliveries)setTimeout(()=>{deliveries=0;},0);
+          if(++deliveries>300)throw new Error('Mutation delivery never settled: '+records.map(r=>(r.target.id||r.target.nodeName)+'.'+r.attributeName).join(',')+' callback '+String(callback).slice(0,180));
+          callback(records,observer);
+        });
+      }
+    };
+  });
   const errors=[],writes=[];let fundingErrors=0;let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null,checkoutUrl='javascript:alert(1)',checkoutObserved=null,observeCheckout=null,initialized=!overrides.newCustomer;
   let deferredResizeNotices=0;
   page.on('pageerror',e=>{

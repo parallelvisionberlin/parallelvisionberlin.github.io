@@ -1,0 +1,20 @@
+// Approved owner photographs, grouped by their photographic treatment.
+// These are visible examples with editable prompts, never automatic provider references.
+const root='./visuals/inspiration-road/';
+const identity='If a Base person is supplied, preserve their facial identity, age, body proportions and anatomy; do not substitute the example model. Depict adults only. Natural skin, physically credible hands and clothing, no beauty smoothing, CGI finish, text or logos.';
+const night='Cinematic roadside fashion photograph with the unsettling narrative atmosphere of David Lynch and the severe flash lighting and assured female presence of Helmut Newton. An adult woman in an oversized charcoal blazer worn against bare skin, its upper fastening and lapels covering her chest, minimal black briefs and tall worn cowboy boots. A deserted highway closed to traffic at deep blue dusk, violet and faded peach horizon, utility poles receding into darkness. Hard on-camera flash against underexposed ambient light, visible 35mm color-negative grain, cool shadows and believable skin. ';
+const day='Minimal cinematic black-underwear campaign with Helmut Newton photographic severity and an unresolved road-movie narrative. An adult woman in a simple opaque black bra and briefs with worn cowboy boots, beside the open trunk of a parked late-1970s black convertible on a deserted desert highway closed to traffic. Dry ochre scrub, faded centerline, huge pale sky, harsh afternoon sunlight and hard shadows. Authentic slightly faded 35mm color-negative texture, tactile chrome and sun-warmed skin, quiet confident attitude. ';
+function example(file,direction,recipe){return Object.freeze({cover:root+file+'-20261112.webp',prompt:recipe+direction+' '+identity});}
+const highway=Object.freeze([
+  example('lost-highway-window','Photograph from the passenger seat through the lowered side window: the curved black window frame encloses the composition, the woman stands several meters outside, holding the lower blazer edges in the wind while the upper blazer stays closed. She looks away down the road. Wide environmental composition; show the boots, asphalt and distant horizon.',night),
+  example('lost-highway-witness','Frame through the open passenger window with an out-of-focus adult driver seen from behind in the left foreground and a scratched side mirror at the right edge. The woman stands on the road line, one hand holding her blazer closed, looking toward the occupant. Keep the observer secondary and the encounter ambiguous. Wide film-still framing.',night),
+  example('lost-highway-shoulder','Photograph from inside the parked car, with its door pillar cutting diagonally across the left foreground and the lowered window edge below. The woman stands on the gravel shoulder, hands in blazer pockets, wind lifting the lower hem, eyes directed past the car. Off-center full-body composition, abrupt flash falloff and a distant pair of headlights.',night)
+]);
+const desert=Object.freeze([
+  example('desert-stop-rear','Rear three-quarter full-body view, the woman casually holding the trunk lid with one hand and looking across the empty road. Hair loosely tied up, weight resting naturally on one leg. The open trunk is dark, with only restrained everyday travel details. Spacious vertical framing; let the road and empty sky carry the atmosphere.',day),
+  example('desert-stop-luggage','Side-profile full-body photograph with the woman at the right of the open trunk, one hand on its lid, wind moving her loose hair. A small vintage cream suitcase and casually folded travel clothes are visible inside. Chrome rear bumper in the foreground, quiet mountains beyond, generous pale sky and a long boot shadow on the asphalt.',day)
+]);
+export const ROAD_INSPIRATION_SCENES=Object.freeze([
+  Object.freeze({id:'lost-highway',title:'Lost Highway',category:'Cinema',cover:highway[0].cover,prompt:highway[0].prompt,examples:highway}),
+  Object.freeze({id:'desert-stop',title:'Desert Stop',category:'Fashion',cover:desert[0].cover,prompt:desert[0].prompt,examples:desert})
+]);

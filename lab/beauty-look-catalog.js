@@ -12,105 +12,105 @@ export const beautyLookCatalog={
       "id": "natural",
       "label": "Natural",
       "instruction": "Subtle natural makeup.",
-      "image": "./visuals/beauty/atelier/alter-makeup-natural-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-natural-20261108-v2.webp",
       "preview": ""
     },
     {
       "id": "editorial",
       "label": "Editorial",
       "instruction": "Editorial makeup with a considered, photographic finish.",
-      "image": "./visuals/beauty/atelier/alter-makeup-editorial-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-editorial-20261108-v2.webp",
       "preview": ""
     },
     {
       "id": "soft-glam",
       "label": "Soft glam",
       "instruction": "Soft glam makeup, softly defined eyes and restrained gloss.",
-      "image": "./visuals/beauty/atelier/alter-makeup-soft-glam-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-soft-glam-20261108-v2.webp",
       "preview": ""
     },
     {
       "id": "bold",
       "label": "Bold",
       "instruction": "Bold fashion makeup with intentional colour and definition.",
-      "image": "./visuals/beauty/atelier/alter-makeup-bold-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-bold-20261108-v2.webp",
       "preview": ""
     },
     {
       "id": "metallic",
       "label": "Metallic",
       "instruction": "Reflective metallic fashion eyeshadow, precise edges and a believable photographed finish.",
-      "image": "./visuals/beauty/atelier/alter-makeup-metallic-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-metallic-20261108-v2.webp",
       "preview": ""
     },
     {
       "id": "smoky",
       "label": "Smoky",
       "instruction": "Smoky charcoal eye makeup with softly diffused edges and realistic photographic texture.",
-      "image": "./visuals/beauty/atelier/alter-makeup-smoky-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-smoky-20261108-v2.webp",
       "preview": ""
     },
     {
       "id": "shimmer",
       "label": "Shimmer",
       "instruction": "Fine reflective shimmer on the eyelids, precise highlights and a restrained editorial finish.",
-      "image": "./visuals/beauty/atelier/alter-makeup-shimmer-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-shimmer-20261108-v2.webp",
       "preview": ""
     },
     {
       "id": "rose",
       "label": "Rose gloss",
       "instruction": "Muted rose-toned eye makeup with a subtle glossy finish, preserving realistic skin texture.",
-      "image": "./visuals/beauty/atelier/alter-makeup-rose-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-rose-20261108-v2.webp",
       "preview": ""
     },
     {
       "id": "graphic",
       "label": "Graphic liner",
       "instruction": "Clean graphic winged eyeliner with sharp, intentional black edges; preserve eye shape and natural skin.",
-      "image": "./visuals/beauty/atelier/alter-makeup-graphic-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-graphic-20261108-v2.webp",
       "preview": ""
     },
     {
       "id": "wet-lid",
       "label": "Wet lid",
       "instruction": "Editorial wet-look eyelids with translucent reflective gloss and natural skin texture.",
-      "image": "./visuals/beauty/atelier/alter-makeup-wet-lid-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-wet-lid-20261108-v2.webp",
       "preview": ""
     },
     {
       "id": "crystal",
       "label": "Crystal",
       "instruction": "Fine crystal-like makeup accents around the eyelids, restrained and precisely placed; no facial jewellery or new accessories.",
-      "image": "./visuals/beauty/atelier/alter-makeup-crystal-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-crystal-20261108-v2.webp",
       "preview": ""
     },
     {
       "id": "bronze",
       "label": "Bronze",
       "instruction": "Warm burnished bronze eyeshadow, softly sculpted eyelids and a believable photographed finish.",
-      "image": "./visuals/beauty/atelier/alter-makeup-bronze-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-bronze-20261108-v2.webp",
       "preview": ""
     },
     {
       "id": "plum",
       "label": "Deep plum",
       "instruction": "Deep plum eyeshadow with nuanced purple-brown shading, refined edges and natural realistic skin.",
-      "image": "./visuals/beauty/atelier/alter-makeup-plum-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-plum-20261108-v2.webp",
       "preview": ""
     },
     {
       "id": "nude",
       "label": "Soft nude",
       "instruction": "Barely-there nude makeup in softly blended taupe and natural skin tones.",
-      "image": "./visuals/beauty/atelier/alter-makeup-nude-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-nude-20261108-v2.webp",
       "preview": ""
     },
     {
       "id": "vinyl",
       "label": "Vinyl black",
       "instruction": "Black vinyl-finish eye makeup with glossy reflective eyelids and controlled edges, preserving facial anatomy.",
-      "image": "./visuals/beauty/atelier/alter-makeup-vinyl-20261108.webp",
+      "image": "./visuals/beauty/atelier/alter-makeup-vinyl-20261108-v2.webp",
       "preview": ""
     }
   ],
@@ -486,6 +486,6 @@ export const beautyLookPresets={
   "softfocus": {"makeup": "soft-glam", "hair": "volume", "skin": "satin", "light": "softbox", "color": "soft-film", "text": "Soft diffuse portrait light, delicate optical bloom and a gentle film-like colour treatment while retaining recognizable facial detail and authentic skin. Keep the original outfit and environment."},
   "velvet": {"makeup": "editorial", "hair": "sleek", "skin": "matte", "light": "low-key", "color": "contrast", "text": "Intimate low-key editorial portrait with rich shadow depth, detailed highlights and lifelike skin tones. Keep the original identity, hairstyle length, clothing and location."},
   "silverhalo": {"makeup": "keep", "hair": "textured", "skin": "soft-matte", "light": "rim", "color": "mono", "text": "Fine black-and-white photographic portrait with a delicate rim-lit hair outline, nuanced grain and controlled contrast. Preserve recognizable features, clothing and the source scene."},
-  "windblown": {"makeup": "natural", "hair": "tousled", "skin": "natural", "light": "rim", "color": "neutral", "text": "Natural editorial hair movement with soft loose strands and believable rim-lit volume, preserving original hair length and colour, facial identity, pose and environment."}
+  "windblown": {"makeup": "natural", "hair": "tousled", "skin": "natural", "light": "daylight", "color": "soft-film", "text": "Wind-swept editorial hair with loose moving strands and soft pastel colour-negative film tonality, evoking a vintage south-of-France road trip. Preserve original hair length and colour, facial identity, pose, clothing and environment; keep the original location without adding a car."}
 };
 export const beautyChoiceMap=category=>Object.fromEntries(beautyLookCatalog[category].map(o=>[o.id,o.instruction]));

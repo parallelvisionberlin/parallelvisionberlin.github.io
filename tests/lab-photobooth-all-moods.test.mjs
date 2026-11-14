@@ -15,8 +15,8 @@ const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'u
 const direction='Keep the same recognizable person, expression, viewpoint and framing.';
 
 test('Photobooth uses 1K for both web and native mobile, with one bound paid submission',()=>{
-  assert.equal(MOODS.length,17,'Expected the entire PV LAB curated Mood catalogue');
-  assert.equal(new Set(MOODS.map(m=>m.id)).size,17,'Every Mood ID must be unique');
+  assert.equal(MOODS.length,18,'Expected the entire PV LAB curated Mood catalogue');
+  assert.equal(new Set(MOODS.map(m=>m.id)).size,18,'Every Mood ID must be unique');
   assert.match(client,/resolution:'1k',aspectRatio:imageAutoRatio/);
   assert.doesNotMatch(client,/resolution:'2k',aspectRatio:imageAutoRatio/);
   assert.match(explore,/import\('\.\/app-mood-generation\.js\?/);
@@ -30,13 +30,26 @@ test('Photobooth uses 1K for both web and native mobile, with one bound paid sub
   assert.match(worker,/const prompt=compileImagePrompt\(p\.prompt,p\.referenceRoles,p\)/);
 });
 
-test('all seventeen Mood thumbnails and editorial detail assets exist',()=>{
+test('all eighteen Moods use existing local assets or their approved remote previews',()=>{
   for(const mood of MOODS){
     for(const asset of [mood.preview,mood.previewFull]){
       if(!asset)continue;
-      const pathname=new URL(asset,'https://pvlab.studio').pathname;
-      assert.ok(pathname.startsWith('/lab/'),'Mood preview paths must remain under PV LAB');
-      assert.ok(existsSync(new URL('..'+pathname,import.meta.url)),mood.id+': missing '+pathname);
+      const url=new URL(asset,'https://pvlab.studio'),pathname=url.pathname;
+      if(url.origin!=='https://pvlab.studio'){
+        const approved={
+          'hong-kong-nights':'e06ac253-47c4-47b4-80e0-b90df2949f45',
+          'fallen-angel':'b259ac39-d73c-4853-b591-f82809e699ea'
+        };
+        assert.equal(url.href,'https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/'+approved[mood.id]+'.png',mood.id+' remote preview must be the approved public artwork');
+      }else{
+        assert.ok(pathname.startsWith('/lab/'),'Local Mood previews remain under PV LAB');
+        assert.ok(existsSync(new URL('..'+pathname,import.meta.url)),mood.id+': missing '+pathname);
+      }
+    }
+    if(mood.id==='fallen-angel'){
+      assert.equal(mood.mobilePreview,false,'Fallen Angel explicitly uses its approved preview on native');
+      assert.equal(mood.previewFull,mood.preview,'Its detail preserves the approved full artwork');
+      continue;
     }
     for(const suffix of ['', '-detail']){
       const pathname='/lab/mood-previews/mobile/v1/'+mood.id+suffix+'.jpg';
@@ -93,6 +106,11 @@ for(const mood of MOODS){
         }else if(mood.id==='hyper-pop'){
           assert.equal(planned.references.length,intensity>34?2:0,context+' chrome-cloud Style references at medium and high intensity only');
           assert.ok(roles.slice(hasPhoto?1:0).every(r=>r.role==='style'),context+' chrome-cloud sources may not replace Base identity');
+        }else if(mood.id==='fallen-angel'){
+          assert.equal(planned.references.length,2,context+' approved scene and feather references');
+          assert.ok(roles.slice(hasPhoto?1:0).every(r=>r.role==='style'),context+' scene and feathers never replace identity');
+          assert.match(expanded,/SCENE AND LIGHT ONLY/,context+' reference scene role');
+          assert.match(expanded,/WINGS ONLY/,context+' reference feather role');
         }else if(mood.id==='80s-film'){
           const shouldAttach=hasPhoto&&intensity===100;
           assert.equal(planned.references.length,shouldAttach?1:0,context+' approved analog optics Style only for Base 100%');

@@ -7,7 +7,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{clerk=await loadLabAccount();");assert.ok(boot>0);
-const testSource=source.slice(0,boot)+source.slice(source.indexOf("\n// Soul composer:",boot))+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;ownerAccount=true;userId='test';config={enabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],higgsfieldEnabled:true,concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();syncVideoStudioMode();window.__labTest={lock,setCustomer:()=>{customerMode=true;ownerAccount=false;customerGenerationReady=true;config.customer=true;wallet.connect({customer:true,balanceCredits:1000,billingReady:true});update();}};`;
+const testSource=source.slice(0,boot)+source.slice(source.indexOf("\n// Soul composer:",boot))+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;ownerAccount=true;userId='test';config={enabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],higgsfieldEnabled:true,seedanceExtendReferencesEnabled:true,concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();syncVideoStudioMode();window.__labTest={lock,setExtendAccess:enabled=>{config.seedanceExtendReferencesEnabled=enabled;update();},setCustomer:()=>{customerMode=true;ownerAccount=false;customerGenerationReady=true;customerBillingReady=true;config.customer=true;wallet.connect({customer:true,balanceCredits:1000,billingReady:true});update();}};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg'})[extname(path)]||'application/octet-stream');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4193,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true,...(process.env.PV_CHROMIUM_EXECUTABLE?{executablePath:process.env.PV_CHROMIUM_EXECUTABLE}:{})});
@@ -28,13 +28,13 @@ async function workspace({failure='',width=1440,initial=[],quoteDelay=0}={}){
   const send=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
   if(path==='/api/jobs'&&method==='GET')return send({jobs,activeJobs:jobs.filter(j=>['queued','running','saving','uncertain','submitting'].includes(j.status)),concurrency:{image:4,video:1},next:null});
   if(path==='/api/packs')return send({packs:[character]});
-  if(path==='/api/uploads'||path==='/api/reference-uploads'){const aid=id(sequence++);assets.set(aid,{mime:req.headers()['content-type'],bytes:req.postDataBuffer()});return send({id:aid},201);}
+  if(path==='/api/uploads'||path==='/api/reference-uploads'){const aid=id(sequence++);requests.at(-1).responseId=aid;assets.set(aid,{mime:req.headers()['content-type'],bytes:req.postDataBuffer()});return send({id:aid},201);}
   if(path.startsWith('/api/assets/')){const a=assets.get(path.split('/').at(-1));return route.fulfill({status:200,contentType:a?.mime||'image/png',body:a?.bytes||png});}
   if(path==='/api/drafts'){const job={id:id(sequence++),sourceId:data.sourceId,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[],lastSourceId:data.lastSourceId||null,referenceVideoIds:data.referenceVideoIds||[],referenceAudioIds:data.referenceAudioIds||[]},status:'draft',createdAt:Date.now()};jobs.unshift(job);return send({job},201);}
   if(path==='/api/quotes'){
    if(quoteDelay)await new Promise(r=>setTimeout(r,quoteDelay));
    if(failure==='quote')return send({error:'Provider quote unavailable. No generation submitted.'},502);
-   const q={id:id(sequence++),creditCost:222,estimatedUsd:0.036,maxUsd:0.036,expiresAt:Date.now()+(failure==='expired'?-1:180000),settings:{...data.settings,mode:failure==='wrong-model'?(data.settings.mode==='upscale'?'image':'upscale'):data.settings.mode,referenceSourceIds:data.referenceSourceIds||[],referenceVideoIds:data.referenceVideoIds||[],referenceAudioIds:data.referenceAudioIds||[],lastSourceId:data.lastSourceId||null,model:data.settings.engine==='seedance'?'bytedance/seedance-2.5/'+({start:'image-to-video',text:'text-to-video',reference:'reference-to-video',extend:'video-extend'})[data.settings.mode]:'alibaba/wan-3.0/image-to-video',transferNotes:[]}};
+   const q={provider:data.settings.provider==='higgsfield'?'Higgsfield':'SpicyAPI',priceIsEstimate:data.settings.provider==='higgsfield',id:id(sequence++),creditCost:222,estimatedUsd:0.036,maxUsd:0.036,expiresAt:Date.now()+(failure==='expired'?-1:180000),settings:{...data.settings,mode:failure==='wrong-model'?(data.settings.mode==='upscale'?'image':'upscale'):data.settings.mode,referenceSourceIds:data.referenceSourceIds||[],referenceVideoIds:data.referenceVideoIds||[],referenceAudioIds:data.referenceAudioIds||[],lastSourceId:data.lastSourceId||null,model:data.settings.engine==='seedance'?'bytedance/seedance-2.5/'+({start:'image-to-video',text:'text-to-video',reference:'reference-to-video',extend:'video-extend'})[data.settings.mode]:'alibaba/wan-3.0/image-to-video',transferNotes:[]}};
    quotes.set(q.id,{q,data});return send(q);
   }
   if(path==='/api/jobs'&&method==='POST'){
@@ -65,13 +65,24 @@ const sound=Buffer.alloc(44+8000*3*2);sound.write('RIFF');sound.writeUInt32LE(so
 const choose=async(x,mode='start')=>{await x.page.click('#tool-video');await x.page.selectOption('#video-engine','seedance');await x.page.click('#mode-'+mode);await x.page.fill('#prompt','A ceramic sculpture under soft daylight. The camera moves slowly.');};
 const still=async(x,id='image')=>{await x.page.locator('#'+id).setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);};
 try{
- for(const width of [390,1440]){
+ for(const width of [390,1440])for(const role of ['owner','customer']){
   const x=await workspace({width});const {page}=x;
+  if(role==='customer')await page.evaluate(()=>window.__labTest.setCustomer());
   await choose(x,'extend');
+  await page.selectOption('#duration','7');
+  await page.selectOption('#resolution','1080p');
+  await page.locator('#pv-video-audio-pill').click();
+  const initialSettings=await page.evaluate(()=>Object.fromEntries(['duration','resolution','ratio','seed','audio'].map(id=>{const e=document.getElementById(id);return [id,e.type==='checkbox'?e.checked:e.value];})));
   assert.equal(await page.locator('#scene-video-open').isVisible(),true,'Saved References available in Extend');
   assert.equal(await page.locator('#reference-drop').isVisible(),true,'Optional reference uploads available in Extend');
   await page.locator('#video-references').setInputFiles({name:'walk.mp4',mimeType:'video/mp4',buffer:motion});
   await page.waitForFunction(()=>document.querySelector('#video-reference-list').children.length===1);
+  await page.waitForFunction(()=>!!document.getElementById('generate').dataset.credits);
+  const clipId=x.requests.find(r=>r.path==='/api/reference-uploads').responseId;
+  assert.ok(clipId,'Video-only Extend has a quoted private upload');
+  const extendQuote=x.requests.filter(r=>r.path==='/api/quotes').at(-1).data;
+  assert.equal(extendQuote.settings.mode,'extend');assert.deepEqual(extendQuote.referenceVideoIds,[clipId]);
+  assert.deepEqual(extendQuote.referenceSourceIds,[]);assert.equal(count(x,'/api/jobs'),0);
   await page.click('#scene-video-open');
   await page.locator('#scene-grid .scene-card-select').click();
   await page.locator('.scene-feature-attach').click();
@@ -79,24 +90,49 @@ try{
   assert.equal(await page.locator('#mode-extend').getAttribute('aria-selected'),'true','Character attachment preserves Extend');
   assert.equal(await page.locator('#reference-list .reference-element-item').isVisible(),true);
   await page.fill('#prompt','Alma continues toward the café door. Preserve her face and tattoos.');
-  await page.click('#save');await ready(page);
-  const draft=x.requests.find(r=>r.path==='/api/drafts').data;assert.deepEqual(draft.referenceSourceIds,character.refs.map(r=>r.id));
+  await page.waitForFunction(()=>!!document.getElementById('generate').dataset.credits);
+  assert.equal(await page.locator('#extend-reference-switch').isVisible(),false,'Supported Extend stays in Extend');
+  assert.equal(await page.locator('#generate').isDisabled(),false);
+  assert.equal(await page.locator('#save').isDisabled(),false,'Compatible Extend draft is allowed');
+  assert.match(await page.locator('#extend-help-description').innerText(),/Continue your original video/);
+  assert.match(await page.locator('#extend-help-description').innerText(),/Higgsfield/);
+  assert.equal(await page.locator('#video-reference-list video').count(),1);
+  assert.equal(await page.locator('#reference-list .reference-element-item').count(),1);
+  assert.equal(await page.locator('#save').isVisible(),false,'Preserve the approved hidden Video Save control');
+  assert.deepEqual(await page.evaluate(()=>Object.fromEntries(['duration','resolution','ratio','seed','audio'].map(id=>{const e=document.getElementById(id);return [id,e.type==='checkbox'?e.checked:e.value];}))),initialSettings,'Output controls and prompt stay in place');
+  assert.equal(count(x,'/api/jobs'),0,'Price previews never generate');assert.equal(x.accepted(),0);
   await page.click('#generate');await page.locator('#quote-dialog').waitFor({state:'visible'});
   const request=x.requests.filter(r=>r.path==='/api/quotes').at(-1).data;
-  assert.equal(request.settings.mode,'extend');
+  assert.equal(request.settings.mode,'extend');assert.equal(request.settings.provider,'higgsfield');
   assert.deepEqual(request.referenceSourceIds,character.refs.map(r=>r.id));
-  assert.equal(request.referenceVideoIds.length,1);assert.equal(request.sourceId,request.referenceVideoIds[0]);
+  assert.deepEqual(request.referenceVideoIds,[clipId],'The exact source clip ID survives');
+  assert.equal(request.settings.duration,7);assert.equal(request.settings.resolution,'1080p');assert.equal(request.settings.audio,false);
+  assert.equal(request.referenceVideoIds.length,1);assert.equal(request.sourceId,clipId,'The original clip remains the primary Extend source');
+  assert.equal(request.settings.referenceRoles.length,character.refs.length);
   assert.ok(request.settings.referenceRoles.every(r=>r.role==='identity'&&r.elementName==='Alma'));
   assert.equal(count(x,'/api/jobs'),0,'Review never submits automatically');
+  assert.equal(x.accepted(),0,'Neither switching nor price review submits a job');
   await page.click('#confirm-generation');await ready(page);
+  assert.equal(x.accepted(),1,'Only explicit confirmation starts one mocked job');
   await page.locator('#history .card').first().click();await page.click('#video-detail-reuse');await ready(page);
   await page.waitForFunction(()=>document.querySelector('#reference-list .reference-element-item')?.textContent.includes('Alma'));
   assert.equal(await page.locator('#mode-extend').getAttribute('aria-selected'),'true');
   assert.equal(await page.locator('#video-reference-list video').count(),1,'Reuse restores original video');
   assert.equal(await page.locator('#reference-list .reference-element-item').count(),1,'Reuse restores grouped identity');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-  await page.screenshot({path:`test-results/extend-character-${width}.png`,fullPage:true});
-  assert.deepEqual(x.errors,[]);console.log(`PASS Extend saved Alma, quote payload, History/Reuse and layout at ${width}px`);
+  await page.screenshot({path:`test-results/extend-character-${role}-${width}.png`,fullPage:true});
+  await page.evaluate(()=>window.__labTest.setExtendAccess(false));
+  assert.equal(await page.locator('#generate').isDisabled(),true,'Unreleased backend or disabled account cannot quote mixed Extend');
+  const quoteCount=count(x,'/api/quotes');await page.waitForTimeout(800);
+  assert.equal(count(x,'/api/quotes'),quoteCount,'Unavailable Extend route never starts another quote');
+  assert.equal(await page.locator('#extend-reference-switch').isVisible(),true);
+  await page.click('#extend-reference-switch');
+  assert.equal(await page.locator('#mode-reference').getAttribute('aria-selected'),'true');
+  assert.equal(await page.locator('#video-reference-list video').count(),1);
+  assert.equal(await page.locator('#reference-list .reference-element-item').count(),1);
+  assert.match(await page.locator('#notice').textContent(),/new shot, not an appended extension/);
+  assert.equal(x.accepted(),1,'Fallback does not start another job');
+  assert.deepEqual(x.errors,[]);console.log(`PASS true Extend retains Alma, clip, prompt, quote, History/Reuse and layout for ${role} at ${width}px`);
   await x.context.close();
  }
 }finally{await browser.close();await new Promise(r=>server.close(r));}

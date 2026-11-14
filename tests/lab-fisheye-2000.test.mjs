@@ -13,10 +13,10 @@ function recipe(engine='seedream',count=1,mode='base',intensity=75,user='A candi
     referenceRoles:Array.from({length:count},(_,i)=>({name:'user-photo-'+i+'.png',role:mode==='base'&&!i?'base':'identity',note:''}))};
   return {r,settings};
 }
-test('Fisheye 2000 is the seventeenth curated Mood with only the owner-supplied photos',()=>{
+test('Fisheye 2000 remains one of eighteen curated Moods with only the owner-supplied photos',()=>{
   const mood=moodById(id);
   assert.ok(mood);
-  assert.equal(MOODS.length,17);
+  assert.equal(MOODS.length,18);
   assert.equal(MOODS.filter(m=>m.id===id).length,1);
   assert.equal(mood.category,'Fashion');
   assert.equal(mood.defaultIntensity,75);
@@ -43,7 +43,7 @@ test('Fisheye 2000 is the seventeenth curated Mood with only the owner-supplied 
   }
   const html=readFileSync(new URL('../lab/moods.html',import.meta.url),'utf8');
   assert.equal((html.match(/data-mood-id="fisheye-2000"/g)||[]).length,1);
-  assert.match(html,/All 17 curated visual Moods/);
+  assert.match(html,/All 18 curated visual Moods/);
   const backend=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
   const boards=readFileSync(new URL('../lab-worker/moodboards.mjs',import.meta.url),'utf8');
   assert.match(backend,/IMAGE_MOOD_IDS=new Set\([^\n]+fisheye-2000/);

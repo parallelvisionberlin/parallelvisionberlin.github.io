@@ -1,5 +1,18 @@
 # Image replacement flow
 
+## Latest verified viewer update, 2026-11-08
+
+- PR #937 merged as `95be60a358232bb080d2ac02fdb33a923f9634f1`; exact public frontend files verified: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42508211622
+- Modes only change mode. Choose Character / Change Character opens the existing private library explicitly. Outfit/Object use the same dedicated affordance.
+- Magic Select shows an in-photo scan sweep and larger position ring; reduced-motion users retain the status without the animation. No fake mask, fake percent or extra inference.
+- File loading, Preparing images (completed / total), Checking price, and priced Generate are separate actual stages. Viewer input optimization/upload runs at most two tasks concurrently and retains all photos/order/notes, source limits and stale-session checks.
+- Synthetic desktop/mobile and existing quote/payment/selection regressions passed. No paid generation or live-account latency benchmark. No backend, provider, price, database or credential change.
+- The reported whole-person replacement is still unacceptable: a hard new hair/head boundary with retained light-hair edges is visible in the screenshot. Do not present UI publication as a quality repair.
+- Core remaining task: inspect original/mask/raw/composite, integrate and quality-test a mask-aware multi-reference route with exact pricing and exterior protection. fal GPT Image 2 Edit documents mask_url plus up to 16 inputs, so source + eight Character photos fit its documented capacity, but this endpoint has NOT been integrated or tested here. Native mask guidance may not follow exact boundaries; retain output validation. Provider docs: https://fal.ai/models/openai/gpt-image-2/edit/api and https://developers.openai.com/api/docs/guides/image-generation .
+- No further user settings or paid retry is required for this frontend change.
+
+## Previous release history
+
 ## Latest checked release, 2026-11-08: Replace regions, loading feedback and Alma prompt budget
 
 - PR #933 merged; reviewed deployment source `49677f7317a7b9cfbdae86bcb49d02ae1eac97ca`. Production Cloudflare Pages and code-only Worker were independently verified, including exact public module bytes and Worker version `c29ec785-50f5-4b47-b354-548100036241`. Release: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42493484108
