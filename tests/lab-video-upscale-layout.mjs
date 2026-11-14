@@ -60,8 +60,8 @@ try{
   assert.equal(await page.locator('#upscale-canvas').isVisible(),true,label+': Image canvas visible');
   assert.equal(await page.locator('#upscale-model-menu [data-upscale-engine]').first().isVisible(),true,label+': original Image model cards');
   assert.equal(await page.locator('#upscale-model-menu [data-video-upscale-model]').first().isVisible(),false,label+': Video cards hidden in Image');
-  // Empty-state parity: the original model cards do not move when the media
-  // changes, and Video must not expose Image-only settings or a credit hint.
+  // Image now keeps its compact inspector in both source states. Video keeps
+  // its existing card design; switching back must restore each mode exactly.
   const emptyImageScroll=await page.evaluate(()=>{
     const body=document.querySelector('#app>.workspace>.controls>.controls-body');
     return {scrollHeight:body.scrollHeight,clientHeight:body.clientHeight};
@@ -70,8 +70,9 @@ try{
   await page.locator('[data-video-upscale-tab="video"]').click();
   const videoCard=await page.locator('#upscale-model-menu [data-video-upscale-model]').first().boundingBox();
   assert.ok(imageCard&&videoCard,label+': both modes have a real model card');
-  assert.ok(Math.abs(imageCard.y-videoCard.y)<=2,label+': model cards retain their vertical position');
-  assert.ok(Math.abs(imageCard.height-videoCard.height)<=2,label+': model cards retain their height');
+  assert.ok(imageCard.height>=44&&imageCard.height<55,label+': Image uses the approved compact card');
+  assert.ok(videoCard.height>=57,label+': Video retains its existing larger card');
+  assert.ok(Math.abs(imageCard.x-videoCard.x)<=2&&Math.abs(imageCard.width-videoCard.width)<=2,label+': modes retain the shared inspector bounds');
   assert.equal(await page.locator('.controls-body > .parameter-grid').isVisible(),false,label+': no Image enlargement row in Video');
   assert.equal(await page.locator('.controls-body > #format-control').isVisible(),false,label+': no Image format row in Video');
   assert.equal(await page.locator('.pv-video-upscale-quote').isVisible(),false,label+': no credit prompt before a source video');
@@ -94,6 +95,7 @@ try{
   console.log('VIDEO_VISIBLE_CHILDREN',label,JSON.stringify(childDiag));
   if(width>780)assert.ok(emptyVideo.scrollHeight<=Math.max(emptyVideo.clientHeight,emptyImageScroll.scrollHeight)+3,label+': Video adds no unnecessary sidebar overflow');
   await page.locator('[data-video-upscale-tab="image"]').click();
+  assert.deepEqual(await page.locator('#upscale-model-menu [data-upscale-engine]').first().boundingBox(),imageCard,label+': returning to Image restores compact card geometry');
   // An uploaded Image must remain untouched when switching media modes.
   await page.evaluate(()=>{
    const c=document.createElement('canvas');c.width=400;c.height=400;
@@ -142,7 +144,7 @@ try{
       canvas:rect('#upscale-canvas'),file:rect('#pv-video-upscale-file')};
   });
   console.log('ACTION_PARITY',label,JSON.stringify({image:original,video:video.action,stageDiag}));
-  assert.ok(Math.abs(original.action.top-video.action.top)<=2,label+': same Upscale button position');
+  assert.ok(video.action.height>=44,label+': Video keeps an accessible Upscale action');
   assert.ok(Math.abs(original.picker.left-video.picker.left)<=2,label+': model cards stay in place');
   assert.match(video.photo,/upscaler-chrome-wool-option-1\.jpg/,label+': exact Image photograph remains');
   if(width>780)assert.ok(video.canvas.bottom<=height+2,label+': desktop stays within viewport');

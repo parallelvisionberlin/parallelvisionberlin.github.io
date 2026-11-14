@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-13",
+  "updatedAt": "2026-11-13T22:13:04Z",
   "handoffs": [
     {
       "id": "owner",
@@ -584,7 +584,7 @@
       "title": "Selected Image Mood label clarity",
       "component": "Image Mood control",
       "status": "needs_verification",
-      "summary": "Desktop 104px selected Mood pill reserves room for clear ×; Night Flash lettering is bounded and cannot cover the clear button. Rest of Image toolbar untouched.",
+      "summary": "Desktop 104px selected Mood pill reserves room for clear \u00d7; Night Flash lettering is bounded and cannot cover the clear button. Rest of Image toolbar untouched.",
       "nextAction": "Run Night Flash geometry and Image UI checks, merge reviewed PR, confirm Cloudflare and production asset.",
       "baselineSha": "a73fc4242a76802458facee8379d713654af9c15",
       "reviewedSha": null,
@@ -713,7 +713,7 @@
       "title": "Group partner dashboards",
       "component": "Owner navigation",
       "status": "deployed",
-      "summary": "Robin / König Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
+      "summary": "Robin / K\u00f6nig Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
       "nextAction": "No additional menu work is pending. Recheck only if navigation code, routes or role behavior change.",
       "baselineSha": "e400ff36ca7e6d541dfeb8d8748fc0357a0b6730",
       "reviewedSha": "9fc17771dd75bd3eeb4cd5bbdc77812945f98e1c",
@@ -860,7 +860,7 @@
       "component": "Owner workspace",
       "status": "deployed",
       "summary": "Published: clear View activity access to existing generated-content review, restored manual Customers Refresh and improved Recent purchases spacing. Approved simplified navigation and existing functions retained.",
-      "nextAction": "Use Customers → View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
+      "nextAction": "Use Customers \u2192 View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
       "baselineSha": "e2cd02bce742b157d12308b76908cbacea34b604",
       "reviewedSha": "01362b3073f7d997d98d7ebd2830ad586d244d77",
       "branch": "fix/owner-activity-access-20261106",
@@ -1286,7 +1286,7 @@
         },
         {
           "kind": "fixture",
-          "summary": "Rendered a local scene-specific exposure/color proof preserving original pixel coordinates and 1343×767 geometry. Both faces, expressions and composition remain source-derived. Original frontal lighting remains evident.",
+          "summary": "Rendered a local scene-specific exposure/color proof preserving original pixel coordinates and 1343\u00d7767 geometry. Both faces, expressions and composition remain source-derived. Original frontal lighting remains evident.",
           "scope": "User-supplied storefront Base capture, local deterministic render and visual inspection.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/HONG-KONG-IMAGE3-WORK-STATE.md",
           "observedAt": "2026-11-07T09:15:51Z",
@@ -1419,7 +1419,7 @@
         },
         {
           "kind": "production_asset",
-          "summary": "Actual public Chrome Couture selection at 1363×936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
+          "summary": "Actual public Chrome Couture selection at 1363\u00d7936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
           "scope": "Rendered public production layout after reload; no Generate click.",
           "source": "https://pvlab.studio/studio?tool=image",
           "observedAt": "2026-11-06T20:55:35.186Z",
@@ -2192,7 +2192,7 @@
       "title": "Smaller Image reference removal controls",
       "component": "Image prompt deck",
       "status": "deployed",
-      "summary": "Published: Image thumbnail × controls are 16px and appear on hover or visible keyboard focus on mouse-equipped web devices. Existing touch/native visibility and sizing remain.",
+      "summary": "Published: Image thumbnail \u00d7 controls are 16px and appear on hover or visible keyboard focus on mouse-equipped web devices. Existing touch/native visibility and sizing remain.",
       "nextAction": "No further work pending for this request. Real signed-in hover/removal observation remains separate from asset publication and synthetic-session browser checks.",
       "baselineSha": "c714d7ec533da9807bb3f0f03e5c571463d2a4e4",
       "reviewedSha": "dd1aab176c7cadbfe987955c14cdf055188c3a31",
@@ -3421,7 +3421,7 @@
         {
           "label": "Picker geometry and shared toolbar",
           "result": "passed",
-          "scope": "Anchored menu, viewport fit, compact choices and stable deck at 1440×900, 1100×700, 390×844 and 390×600. Desktop and phone screenshots inspected.",
+          "scope": "Anchored menu, viewport fit, compact choices and stable deck at 1440\u00d7900, 1100\u00d7700, 390\u00d7844 and 390\u00d7600. Desktop and phone screenshots inspected.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42905720524"
         },
         {
@@ -3475,7 +3475,7 @@
       "title": "PV Still image quantity counter",
       "component": "Image / PV Still",
       "status": "deployed",
-      "summary": "Added the shared 1–2 image counter for PV Still. Each image uses its own live quote and job; customer confirmation shows the total. Complete quote validation, two-slot availability checks and stop-on-uncertain handling protect partial batches.",
+      "summary": "Added the shared 1\u20132 image counter for PV Still. Each image uses its own live quote and job; customer confirmation shows the total. Complete quote validation, two-slot availability checks and stop-on-uncertain handling protect partial batches.",
       "nextAction": "No implementation work remains. If the owner reports a real provider issue, inspect the returned job and quote before retrying.",
       "baselineSha": "1255c78b396c00bef6caf8df3bb9a6f004cf6b25",
       "reviewedSha": "1ab7d0211094c058c428a74db309cf4d34bf12b0",
@@ -3952,6 +3952,79 @@
         "The remaining screenshot-only groups Night Drive, Asphalt and Convertible are proposed follow-ups; original full-resolution files were not attached."
       ],
       "updatedAt": "2026-11-12T13:07:01.356Z"
+    },
+    {
+      "id": "home-character-selection-20261113",
+      "title": "Homepage curated twelve-character selection",
+      "component": "PV LAB homepage / Characters",
+      "status": "deployed",
+      "summary": "Added Slate, Cobalt, Pearl and Acid from the existing Full Editorial casting section after the eight original homepage portraits. Existing card dimensions, copy, upload CTA and carousel logic are unchanged.",
+      "nextAction": "Complete. Phone rendering and real signed-in character creation were not observed; no generation or billing changes.",
+      "updatedAt": "2026-11-13T22:13:04Z",
+      "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
+      "reviewedSha": "4b70c08313b68436aabb370bb24f7309afab004e",
+      "branch": "feat/home-character-selection-20261113",
+      "files": [
+        "lab/index.html",
+        "lab/CHARACTER-HOME-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Merged PR #1021",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1021"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image, character invitation and carousel",
+          "result": "passed",
+          "scope": "20 existing Node tests; asset dimensions confirmed 1125x2000.",
+          "observedAt": "2026-11-13"
+        },
+        {
+          "label": "Static build and required remote checks",
+          "result": "passed",
+          "scope": "npm run build; approved-image-ui, validate and owner CI passed.",
+          "observedAt": "2026-11-13"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "sourceSha": "97449acd7e2462a4364a81a3b2078123fb898271",
+        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/9d7aa698-5cc0-4e72-abeb-1f5b4f409db5",
+        "observedAt": "2026-11-13",
+        "limitations": [
+          "Desktop public gallery observed; physical phone and signed-in creation not exercised."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Only four lazy-loaded figure cards added to homepage, using existing casting JPEGs and sequential numbers 09\u201312.",
+          "scope": "Homepage character selection only.",
+          "source": "lab/index.html",
+          "limitations": [
+            "No signed-in workflow or paid generation exercised."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Exact live character section matches reviewed HTML, SHA256 9dc47d2d6122b1d4a41508c17f9079aa4b5e57a784d885d8c7aa1ff447a5ad95. Live desktop browser shows 12 cards, four new portraits rendered, End reaches 1783px boundary and no page overflow. Cloudflare check 132202166978 succeeded for merge 97449acd7e2462a4364a81a3b2078123fb898271.",
+          "scope": "Public homepage character gallery at 1363px viewport.",
+          "source": "https://pvlab.studio/#create-your-character",
+          "observedAt": "2026-11-13",
+          "limitations": [
+            "Offscreen original lazy-loaded images were not all loaded in the final End-position snapshot; preview had all twelve loaded.",
+            "Existing broad CI failures remain: landing fails unchanged guest Inspiration looks assertion; core test run flags PR fixture assertion; not weakened."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Preserve all eight original cards, upload tile, typography, card size and carousel behavior.",
+        "Reuse existing casting assets; no generation required."
+      ]
     }
   ]
 }

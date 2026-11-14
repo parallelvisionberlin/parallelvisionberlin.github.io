@@ -31,6 +31,11 @@ jobs:
         run: |
           npm install --prefix /tmp/pv-upscale-visibility --no-save playwright@1.62.1
           node /tmp/pv-upscale-visibility/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify compact Image inspector before and after photographic upload
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
+          PV_UPSCALE_LAYOUT_ONLY: '1'
+        run: node tests/lab-upscale-ui.mjs
       - name: Verify mobile and desktop Image/Video Upscaler parity
         if: ${{ !cancelled() }}
         env:
