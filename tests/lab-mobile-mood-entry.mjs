@@ -252,6 +252,8 @@ try{
         document.getElementById('lab-image-empty-intro').hidden=true;
         document.getElementById('image-composer').dataset.mobileSettings='closed';
         document.getElementById('image-composer-references').hidden=true;
+        // syncImageComposer hides trained-character tiles for Seedream.
+        document.getElementById('composer-character').hidden=true;
       });
       await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       assert.equal(await page.locator('#image-composer-prompt').evaluate(e=>parseFloat(getComputedStyle(e).fontSize)),16,'Authenticated phone prompt also avoids undersized text');

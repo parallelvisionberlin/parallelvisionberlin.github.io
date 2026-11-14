@@ -58,15 +58,18 @@ await page.locator('#history .card[data-job="job-0"]').click();
 await page.waitForFunction(()=>document.querySelector('#image-lightbox-img').naturalWidth>0);
 assert.equal(reads.get('/api/assets/out-0'),1,'Reopening the viewer reuses cached original bytes');
 await page.keyboard.press('Escape');
-// No full video fetch on entry; an explicit slow view must not lock navigation.
+// History restores the latest completed video on entry without autoplay.
+// A pending original fetch must remain shared and must never lock navigation.
 let releaseVideo;
 const slowVideo=new Promise(resolve=>releaseVideo=resolve);
 await page.route('**/api/assets/out-4',async route=>{await slowVideo;await route.fulfill({contentType:'video/mp4',body:Buffer.from('mock video bytes')});});
-await page.click('#tool-video');
+const restoredVideo=page.waitForRequest('**/api/assets/out-4');
+await page.click('#tool-video');await restoredVideo;
 await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===2);
-assert.equal(reads.get('/api/assets/out-4')||0,0,'Entering Video does not download or autoplay a previous MP4');
-const explicitVideo=page.waitForRequest('**/api/assets/out-4');
-await page.locator('#history .card[data-job="job-4"]').click();await explicitVideo;
+assert.equal(reads.get('/api/assets/out-4'),1,'History restores the latest completed original once');
+assert.equal(await page.locator('#video').evaluate(el=>el.paused&&!el.autoplay),true,'Restoring a previous video never autoplays it');
+await page.locator('#history .card[data-job="job-4"]').click();
+assert.equal(reads.get('/api/assets/out-4'),1,'Explicit selection shares the pending original request');
 assert.equal(await page.locator('#tool-image').isEnabled(),true,'Slow video playback does not disable tabs');
 await page.click('#tool-image');
 const videoFinished=page.waitForResponse('**/api/assets/out-4');releaseVideo();await videoFinished;
@@ -82,7 +85,7 @@ for(const section of ['upscale','image','video','assets']){
 await page.click('#tool-image');
 await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===4&&[...document.querySelectorAll('#history img')].every(i=>i.naturalWidth>0));
 page.off('request',trackAssets);
-console.log('PASS section URLs and reloads, shared gallery bytes, no Video auto-download and nonblocking slow playback');
+console.log('PASS section URLs and reloads, shared gallery bytes, no Video autoplay, shared original request and nonblocking slow playback');
 for(const width of [1920,1440,900,899,821,768,390,320]){
   await page.setViewportSize({width,height:1000});
   const header=await page.locator('.studio-header').boundingBox();

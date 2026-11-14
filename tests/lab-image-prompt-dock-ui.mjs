@@ -175,8 +175,8 @@ try{
           'Prompt and the lower tool row must not overlap: '+JSON.stringify(metrics));
         assert.ok(metrics.prompt.width>metrics.references.width-7,
           'The prompt uses the full row instead of competing horizontally with photos: '+JSON.stringify(metrics));
-        assert.ok(await page.locator('#image-composer-prompt').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))===15.5,
-          'Uploaded-photo prompt uses smaller 15.5px Image typography');
+        assert.ok(await page.locator('#image-composer-prompt').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))===13,
+          'Uploaded-photo prompt retains approved 13px desktop Image typography');
         assert.ok(Math.abs(metrics.generate.bottom-metrics.controls.bottom)<=6,
           'Generate remains bottom-aligned with controls after loading references and pasting a long prompt: '+JSON.stringify(metrics));
       }

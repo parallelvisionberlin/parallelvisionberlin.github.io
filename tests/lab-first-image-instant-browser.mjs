@@ -28,6 +28,9 @@ if(mockRole==='guest'){
   // A real signed-out boot never activates the private Image workspace.
   $('app').classList.remove('image-studio-active');
   $('app').hidden=true;$('gate').hidden=false;
+  // Complete the real signed-out route state; its class and tool data own
+  // the canonical guest frame and reserved desktop scrollbar gutter.
+  $('gate').classList.add('pv-guest-image');$('gate').dataset.guestTool='image';
 }
 // Test-only trigger for transitioning from an empty customer welcome to
 // one saved image without making any paid request or changing production APIs.

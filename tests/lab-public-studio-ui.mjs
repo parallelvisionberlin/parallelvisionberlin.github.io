@@ -9,88 +9,24 @@ const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).hr
 const {PNG}=(await import(pathToFileURL(resolve(dirname(process.env.PV_PLAYWRIGHT_MODULE),'../pngjs/lib/png.js')).href)).default;
 const root=resolve('.');
 const headerGutterOnly=process.env.PV_HEADER_GUTTER_ONLY==='1';
-// Approved source before this fix, including the later locked Image and V28 Upscaler.
-const approvedRef='ac33d20c50bdd88e71547e96a70781efae4b5a11';
-const approvedFiles=new Map(['lab/lab.js','lab/studio.html','lab/studio-guest-image.js','lab/studio-guest-image.css','lab/precision-edit.js','lab/video-scene-states.js','lab/fashion-studio.js','lab/fashion.js'].map(path=>[path,execFileSync('git',['show',approvedRef+':'+path]) ]));
-// Owner-approved Dream Blur cover replacement, PR #521. Update only the two
-// Image card image URLs in the independent baseline; retain every layout byte
-// and their previously approved wallpaper until the independently approved\n// October 31 chrome background refinement below. All other pixel checks remain strict.
-const approvedImageHtml=approvedFiles.get('lab/studio.html').toString('utf8');
-const originalDreamBlurCard='src="./mood-previews/dream-blur-20261015.jpg"';
-assert.equal(approvedImageHtml.split(originalDreamBlurCard).length,3,'Approved public and signed-in Dream Blur card anchors remain identifiable');
-approvedFiles.set('lab/studio.html',Buffer.from(approvedImageHtml.replaceAll(
-  originalDreamBlurCard,'src="./mood-previews/dream-blur-cover-20261024.webp"'
-)));
-// Explicit owner approval, October 27: add the direct Characters shortcut
-// beside All references. Freeze only that button and its responsive slot rules
-// in the independent Image baseline; retain all pixel comparison tolerances.
-const approvedCharacterButton='<button id="pv-guest-characters" data-deck-control="characters" class="pv-guest-setting pv-guest-icon pv-guest-expanded-only" type="button" data-guest-signin title="Characters" aria-label="Sign in to open saved characters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7.5" r="3.5"/><path d="M5 20v-2.2c0-3.8 14-3.8 14 0V20Z"/></svg></button>';
-const approvedCharacterStyles=`
-#gate.pv-guest-image #pv-guest-characters{display:flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0;border-radius:50%;border:1px solid #686b6c;background:transparent}
-#gate.pv-guest-image #pv-guest-characters svg{width:17px;height:17px}
-#gate.pv-guest-image .scene-image-library-wrap{display:flex;gap:5px}
-@media(max-width:760px){
-html:not(.pv-native-lab) #gate.pv-guest-image .scene-image-library-wrap{display:flex!important;flex:0 0 auto!important;min-width:0!important;width:auto!important;gap:4px}
-#gate.pv-guest-image #pv-guest-characters{flex:0 0 35px;width:35px;min-width:35px;height:35px;min-height:35px}
-}
-@media(max-width:360px){#gate.pv-guest-image #pv-guest-characters{flex-basis:33px;width:33px;min-width:33px;height:33px;min-height:33px}}
-`;
-const approvedCharacterAnchor='<div class="scene-image-library-wrap"><button id="pv-guest-library"';
-const approvedCharacterHtml=approvedFiles.get('lab/studio.html').toString();
-assert.equal(approvedCharacterHtml.split(approvedCharacterAnchor).length,2,'Original library slot remains unique');
-approvedFiles.set('lab/studio.html',Buffer.from(approvedCharacterHtml
-  .replace(approvedCharacterAnchor,'<div class="scene-image-library-wrap">'+approvedCharacterButton+'<button id="pv-guest-library"')
-  .replace('</head>','<style>'+approvedCharacterStyles+'</style></head>')));
-
-// Owner-approved chrome editorial background, left headline and Chrome Couture
-// photograph (October 31). Update only the independent Image visual reference
-// with these expressly changed elements. All other baseline sources and
-// strict pixel tolerances remain unchanged.
-const approvedChromeHtml=approvedFiles.get('lab/studio.html').toString('utf8');
-const previousChromeSrc='src="./mood-previews/chrome-couture-20261019.avif"';
-assert.equal(approvedChromeHtml.split(previousChromeSrc).length,3,
-  'Approved public and signed-in Chrome Couture card anchors remain identifiable');
-approvedFiles.set('lab/studio.html',Buffer.from(approvedChromeHtml
-  .replaceAll(previousChromeSrc,'src="./mood-previews/chrome-couture-metal-editorial-20261031.jpg"')
-  .replace('</head>','<link rel="stylesheet" href="./image-chrome-hero-20261031.css?v=1"></head>')));
-// Freeze each baseline’s matching Retouch/Video dependencies with its HTML.
-// Owner-approved Runway Replace Outfit freezes its own Fashion visual source,
-// while all Image/Video/Upscaler/Retouch baselines remain
-// the exact previously approved references and pixel tolerances.
-const fashionApprovedRef='45e63c19b612ee7ffef17b234b5c2ef23ea4724c';
-const fashionApprovedFiles=new Map(['lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js','lab/precision-edit.js','lab/video-scene-states.js','lab/lab.js','lab/studio.html','lab/studio-guest-image.css','lab/studio-guest-image.js','lab/studio-public-preview.js'].map(path=>[path,execFileSync('git',['show',fashionApprovedRef+':'+path])]));
-// Owner-approved October 31 Replace Outfit redesign. Freeze only Fashion's
-// own HTML/CSS/controller reference at the reviewed commit. Independent
-// Image/Video/Upscaler/Retouch baselines and pixel tolerances remain untouched.
-const focusedFashionRef='6c2d5df3e7de574c49de4fb497729902489a2b39';
-// GitHub Actions checks out a shallow PR merge commit; retrieve the immutable
-// reviewed Fashion reference before comparing pixels.
-try{execFileSync('git',['cat-file','-e',focusedFashionRef+'^{commit}'],{stdio:'pipe'});}
-catch{execFileSync('git',['fetch','--depth=1','origin',focusedFashionRef],{stdio:'pipe'});}
-for(const path of ['lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js']){
-  fashionApprovedFiles.set(path,execFileSync('git',['show',focusedFashionRef+':'+path]));
+// Immutable pre-change main, including the approved November Inspiration,
+// shared Image deck, full-height Video and focused Fashion changes. Serve every
+// local dependency from this same commit instead of mixing historical HTML
+// with current CSS. Pixel tolerances and functional/privacy guards stay strict.
+const baselineRef='6e1c8ba64c16140dec66175dd4878e07ab95ab84';
+const baselineFiles=new Map();
+function baselineFile(path){
+  if(!baselineFiles.has(path))baselineFiles.set(path,execFileSync('git',['show',baselineRef+':'+path],{maxBuffer:32*1024*1024}));
+  return baselineFiles.get(path);
 }
 const fashionHeroPath='./visuals/fashion-replace/hero-approved-fabric-20261031.svg';
-const currentFashionHtml=readFileSync('lab/fashion.html','utf8');
-const currentFashionCss=readFileSync('lab/fashion.css','utf8');
-assert.equal(currentFashionHtml.split(fashionHeroPath).length,3,'Approved sculptural-fabric photograph remains unchanged');
-assert.ok(currentFashionCss.includes('Fashion Studio / Replace Outfit focus'),'Owner-approved focused responsive layout must be present');
-const fashionApprovedHtml=fashionApprovedFiles.get('lab/fashion.html').toString('utf8');
-const approvedFashionCss=fashionApprovedFiles.get('lab/fashion.css').toString('utf8');
-assert.ok(fashionApprovedHtml.includes('<span>Replace</span><em>outfit.</em>'),'Approved Fashion headline retained');
-assert.ok(fashionApprovedHtml.includes('aria-labelledby="fashion-looks-title" hidden aria-hidden="true"'),'Style & Looks is visually retired');
-assert.ok(approvedFashionCss.includes('grid-area:2/1')&&approvedFashionCss.includes('Fashion Studio / Replace Outfit focus'),'Focused upload and Generate geometry is frozen');
-
-// Owner-approved typography and expanding prompt mockup, 29 Oct 2026.
-// Pin its implemented Video source independently; keep every other tool's
-// existing pixel reference and all comparison tolerances unchanged.
-const approvedVideoRef='80ed747b8c5df30abc0abd80352c61c1aad15990';
-// Shallow CI checkouts must retrieve this immutable approved reference too.
-try{execFileSync('git',['cat-file','-e',approvedVideoRef+'^{commit}'],{stdio:'pipe'});}
-catch{execFileSync('git',['fetch','--depth=1','origin',approvedVideoRef],{stdio:'pipe'});}
-const approvedVideoFiles=new Map(['lab/lab.js','lab/studio.html','lab/video-compact-studio.css','lab/video-relaxed-studio.css','lab/video-editorial-deck.js','lab/video-scene-states.js'].map(path=>[path,execFileSync('git',['show',approvedVideoRef+':'+path])]));
-assert.match(approvedVideoFiles.get('lab/video-relaxed-studio.css').toString(),/Approved refined mockup/,'Frozen Video reference includes the approved typography and prompt fit');
-assert.match(approvedVideoFiles.get('lab/video-editorial-deck.js').toString(),/pv-video-prompt-box/,'Frozen Video reference retains inside-prompt controls');
+for(const content of [readFileSync('lab/fashion.html','utf8'),baselineFile('lab/fashion.html').toString()]){
+  assert.equal(content.split(fashionHeroPath).length,3,'Approved sculptural-fabric photograph remains unchanged');
+  assert.ok(content.includes('<span>Replace</span><em>outfit.</em>'),'Approved Fashion headline retained');
+  assert.ok(content.includes('aria-labelledby="fashion-looks-title" hidden aria-hidden="true"'),'Style & Looks is visually retired');
+}
+for(const content of [readFileSync('lab/fashion.css','utf8'),baselineFile('lab/fashion.css').toString()])
+  assert.ok(content.includes('grid-area:2/1')&&content.includes('Fashion Studio / Replace Outfit focus'),'Focused upload and Generate geometry is frozen');
 
 const account=`
 const state=window.__publicAccount||=(()=>{
@@ -117,9 +53,7 @@ const server=http.createServer((req,res)=>{
   if(relative(root,path).startsWith('..')||!existsSync(path)||!statSync(path).isFile())return res.writeHead(404).end();
   res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.avif':'image/avif'})[extname(path)]||'application/octet-stream');
   res.end(pathname==='/lab/native-account.js'?account:
-    req.headers['x-pv-approved-fashion']==='1'&&fashionApprovedFiles.has(requestedPath.slice(1))?fashionApprovedFiles.get(requestedPath.slice(1)):
-    req.headers['x-pv-approved-video']==='1'&&approvedVideoFiles.has(requestedPath.slice(1))?approvedVideoFiles.get(requestedPath.slice(1)):
-    req.headers['x-pv-approved-baseline']==='1'&&approvedFiles.has(requestedPath.slice(1))?approvedFiles.get(requestedPath.slice(1)):readFileSync(path));
+    req.headers['x-pv-prechange-baseline']==='1'?baselineFile(requestedPath.slice(1)):readFileSync(path));
 });
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
 const base='http://127.0.0.1:'+server.address().port;
@@ -219,10 +153,9 @@ try{
         }
       }
       assert.deepEqual(requests,[],'guests must make no private API requests');
-      // Compare the actual editorial regions with the approved implementation
-      // recovered from Git, independently booted through its original auth path.
-      const baseline=await browser.newContext({viewport:{width,height:950},isMobile:width<700,hasTouch:width<700,reducedMotion:'reduce',extraHTTPHeaders:route==='video'?{'x-pv-approved-video':'1'}:{'x-pv-approved-baseline':'1',...(route==='fashion'?{'x-pv-approved-fashion':'1'}:{})}});
-      if(route!=='image'&&route!=='fashion')await baseline.addInitScript(()=>{window.__publicInitialRole='owner';});
+      // Compare identical guest roles against the coherent pre-change snapshot.
+      // Customer/owner authorization and writes remain covered separately below.
+      const baseline=await browser.newContext({viewport:{width,height:950},isMobile:width<700,hasTouch:width<700,reducedMotion:'reduce',extraHTTPHeaders:{'x-pv-prechange-baseline':'1'}});
       const reference=await baseline.newPage();
       await baseline.route('https://**/*',async intercepted=>{
         const request=intercepted.request(),url=new URL(request.url());
@@ -251,12 +184,8 @@ try{
       if(route==='fashion'){
         for(const inspected of [page,reference]){
           assert.equal(await inspected.locator('#fashion-studio .result-panel').isVisible(),false,'An empty Fashion view never presents a decorative photo as a result');
-          if(inspected===page){
-            assert.equal(await inspected.locator('#fashion-studio .slot-example').count(),0,'Fashion upload tiles have no decorative examples');
-            assert.equal(await inspected.locator('#fashion-studio .slot-glyph').count(),2,'Both tiles have minimal icons');
-          }else{
-            assert.equal(await inspected.locator('#fashion-studio .slot-example').count(),2,'The historical baseline retains the former examples');
-          }
+          assert.equal(await inspected.locator('#fashion-studio .slot-example').count(),0,'Fashion upload tiles have no decorative examples');
+          assert.equal(await inspected.locator('#fashion-studio .slot-glyph').count(),2,'Both tiles have minimal icons');
         }
       }
       // Phone Image deck parity is exercised in lab-mobile-mood-entry; keep independent pixel protection for the unchanged entrance photographs/title.
@@ -264,7 +193,7 @@ try{
       for(const [index,selector] of regions[route].entries()){
         const actual=await capture(page,selector,`test-results/visual-${route}-${width}-${index}-actual.png`);
         const expected=await capture(reference,selector,`test-results/visual-${route}-${width}-${index}-approved.png`);
-        compareVisual(actual,expected,`Approved ${route} visual at ${width}px: ${selector}`);
+        compareVisual(actual,expected,`Pre-change ${route} visual at ${width}px: ${selector}`);
       }
       await baseline.close();
       await fullPage(page,`test-results/studio-public-${route}-${width}.png`);

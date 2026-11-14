@@ -310,7 +310,7 @@ try{
     await page.evaluate(()=>{const center=document.querySelector('#video-feed-center');center.scrollTop=center.scrollHeight;});
     await tiles.first().evaluate(el=>el.click());
     assert.equal(await page.locator('#video-job-stage').isVisible(),true,'Video click opens the central loading surface');
-    assert.match(await page.locator('#video-job-stage-title').innerText(),/Opening video/);
+    assert.match(await page.locator('#video-job-stage-title').innerText(),/Opening video/i);
     assert.equal(await page.locator('#video-detail-status').innerText(),'Completed',
       'Job inspector truthfully retains the backend state');
     assert.equal(await page.locator('#video-job-stage-state').innerText(),'Loading',

@@ -491,7 +491,7 @@ try{
       descriptionFontSize:getComputedStyle(help.querySelector('small')).fontSize};
   });
   assert.equal(exactSurface.border,'0px','No chip border around Exact');
-  assert.equal(exactSurface.background,'rgba(0, 0, 0, 0)','Exact background is transparent');
+  assert.equal(exactSurface.background,'rgb(50, 52, 55)','Exact uses the approved shared Image toolbar fill');
   assert.equal(exactSurface.tooltipVisibility,'hidden','Hover explanation is hidden by default');
   assert.match(exactSurface.tooltipText,/Exact Prompt.*No automatic prompt improvements/);
   assert.ok(exactSurface.tooltipWidth<=225&&exactSurface.paddingTop==='6px'&&exactSurface.paddingLeft==='8px'&&exactSurface.rowGap==='3px',

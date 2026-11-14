@@ -4081,21 +4081,24 @@
       "title": "Stop phone Mood selection freezing and restore regression coverage",
       "component": "CI / customer-risk regression coverage",
       "status": "needs_verification",
-      "summary": "The phone Mood observer fix is independently confirmed in mocked Chromium and WebKit account suites on 1a00b276: guarded checkout, credit notices, balances, account switching and sign-out complete without starvation at desktop/phone widths. All 1256 local source/work-state tests also pass on that exact commit. Remaining required layout fixtures are being reconciled with real boot and settled-animation states. Corrected an assistant-authored wrong menu-font expectation back to the original approved Bodoni/Didot serif; no product font changed.",
-      "nextAction": "Hold the final candidate fixed. Run Chromium and WebKit account flows plus the mandatory Image paste, first-image, Studio layout and Soul parity browser suites. Inspect newly exposed fixture or visual failures against documented approved behavior. Do not merge or deploy without the required user decision.",
+      "summary": "Phone Mood selection no longer self-schedules the observed class mutation indefinitely. Chromium and WebKit account/checkout/credit-notice suites pass on 1a00b276 and again on 43d2a7af; all 1256 local source/work-state tests pass on 43d2a7af. The incorrect test-only font expectation was restored and pricing/landing browsers now pass. Removed the extra guest scrollbar-gutter rule added during preparation: the guest fixture omitted the real route class/data and must initialize them instead. Remaining fixture corrections retain strict guards and require the exact next commit in hosted CI.",
+      "nextAction": "Validate the next exact candidate in hosted browser CI. Keep pre-existing Full Editorial mobile source-switch geometry failure visible and do not silently relax it. Compare application/Worker/schema changes against the base before a release decision; never merge or deploy autonomously.",
       "baselineSha": "ecac340065516290d9b933eed84ab7f899e89ad6",
-      "reviewedSha": "1a00b276468fe4ab32839b24cd4df17a74478668",
+      "reviewedSha": "43d2a7af8f8b4ed14c32f727f19d911d1e0d7628",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
+        ".github/workflows/lab-public-studio-tests.yml",
         ".github/workflows/lab-tests.yml",
         "lab/image-editorial-deck.js",
         "lab/owner-work-records.json",
         "lab/studio.html",
         "tests/lab-80s-tape.test.mjs",
         "tests/lab-account-browser.mjs",
+        "tests/lab-assets-ui.cjs",
         "tests/lab-beauty-five-preview-fixes.test.mjs",
         "tests/lab-berlin-rave-signup-browser.mjs",
         "tests/lab-elements-smart-browser.mjs",
+        "tests/lab-first-image-instant-browser.mjs",
         "tests/lab-fisheye-2000.test.mjs",
         "tests/lab-full-editorial-browser.mjs",
         "tests/lab-hong-kong-image3-baseline.test.mjs",
@@ -4106,6 +4109,7 @@
         "tests/lab-landing-stability.mjs",
         "tests/lab-landing-ui.cjs",
         "tests/lab-mobile-mood-entry.mjs",
+        "tests/lab-mood-creator-browser.mjs",
         "tests/lab-mood-creator-flow.test.mjs",
         "tests/lab-mood-nav-browser.mjs",
         "tests/lab-mood-preflight-speed.test.mjs",
@@ -4181,11 +4185,6 @@
           "scope": "ce2b0b74: all 1256 local Lab and canonical work-state tests passed. This is the source/fixture baseline for the subsequent phone observer fix."
         },
         {
-          "label": "Phone-fix focused source contracts",
-          "result": "passed",
-          "scope": "58 approved Image, Video and Mood contract checks pass after the idempotent phone-lift and shared desktop gutter changes. Browser verification of the final commit is still required."
-        },
-        {
           "label": "Exact phone-fix source regression",
           "result": "passed",
           "scope": "1a00b276: 1256/1256 local Lab and work-state checks."
@@ -4201,6 +4200,18 @@
           "result": "passed",
           "scope": "1a00b276: same intercepted account and billing cases; no observer-starvation error. Actual customer Safari/Stripe production behavior remains separate.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43630872749/job/132556941800"
+        },
+        {
+          "label": "Restored approved menu font validation",
+          "result": "passed",
+          "scope": "43d2a7af: pricing-responsive and landing browser pass after reverting assistant-introduced sans-serif expectation to original Bodoni/Didot serif. Product font never changed.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43631397714/job/132558587014"
+        },
+        {
+          "label": "Exact 43d2a7af account browser validation",
+          "result": "passed",
+          "scope": "Chromium and WebKit intercepted account, guarded checkout, credit notice, Mood and sign-out flows pass. 1256 local Lab/work-state tests pass as well.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43631393487/job/132558572982"
         }
       ],
       "deployment": {
@@ -4267,11 +4278,38 @@
           "limitations": [
             "No actual Safari customer session or paid API operation."
           ]
+        },
+        {
+          "kind": "source",
+          "summary": "The actual guest Image route sets pv-guest-image and data-guest-tool=image; image-editorial-deck.css already reserves its wide-desktop gutter. The fixture omitted these fields. The extra application gutter rule authored during this task is removed, preserving prior product styling.",
+          "scope": "Corrective fixture setup, not a product layout redesign",
+          "source": "tests/lab-first-image-instant-browser.mjs",
+          "limitations": [
+            "The corrected fixture still requires hosted browser validation."
+          ]
+        },
+        {
+          "kind": "source",
+          "summary": "Visual comparison previously combined selected October source files with current CSS and patched markup. The replacement freezes all local dependency bytes at pre-change main 6e1c8ba, compares identical guest roles, and retains original strict pixel tolerances and independent customer/owner/privacy tests. Current main includes previously approved November catalog and compositor changes.",
+          "scope": "Independent coherent pre-change regression baseline",
+          "source": "tests/lab-public-studio-ui.mjs",
+          "limitations": [
+            "Visual equivalence is not independently verified production customer behavior."
+          ]
+        },
+        {
+          "kind": "source",
+          "summary": "restoreLatestVideoSelection deliberately restores the latest completed history item without autoplay. Asset-library fixture now tests exactly one shared pending original request, paused/no-autoplay state, enabled navigation and protection from late responses after leaving Video.",
+          "scope": "Existing read-only history behavior; no provider submission",
+          "source": "lab/lab.js",
+          "limitations": [
+            "The updated browser fixture requires exact-candidate hosted validation."
+          ]
         }
       ],
       "blockers": [
-        "Required layout/visual browser checks still need final-candidate validation.",
-        "A wrong menu font expectation introduced in test maintenance was caught in CI and reverted; candidate readiness remains blocked until revalidated."
+        "Required layout/visual checks still need the next exact-candidate hosted run.",
+        "Full Editorial source-switch geometry currently fails by 14.3125px on phone on unchanged application files; not silently accepted or described as a regression caused by the observer guard."
       ],
       "doNotRepeat": [
         "Do not rewrite approved catalog/design to silence assertions. Reuse existing PR #934 for its test-fixture files.",
