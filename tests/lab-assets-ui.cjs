@@ -198,7 +198,7 @@ assert.deepEqual(await page.evaluate(()=>window.__referenceSettings().referenceR
 await page.locator('.composer-reference-tile').nth(1).focus();await page.keyboard.press('Alt+ArrowLeft');
 assert.deepEqual(await page.evaluate(()=>window.__referenceSettings().referenceRoles.map(r=>r.role)),['body','identity'],'Reordering does not assign a base');
 await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'References mode fits mobile');await page.setViewportSize({width:1440,height:1000});
-await page.locator('.composer-reference-remove').first().click();await page.locator('.composer-reference-remove').first().click();await page.fill('#image-composer-prompt','');
+await page.locator('.composer-reference-tile').first().hover();await page.locator('.composer-reference-remove').first().click();await page.locator('.composer-reference-tile').first().hover();await page.locator('.composer-reference-remove').first().click();await page.fill('#image-composer-prompt','');
 console.log('PASS reference-only roles, settings, prompt, toggle, reorder and mobile layout');
 await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="soulpro"]').click();
 
@@ -209,7 +209,7 @@ await page.waitForFunction(()=>document.querySelector('#image-composer').classLi
 assert.ok((await page.locator('#image-composer').boundingBox()).height>soulEmptyDockHeight,'Soul grows only to show attached photo row');
 assert.equal((await page.locator('#image-composer-generate').boundingBox()).height,soulGenerateHeight);
 assert.equal(await page.locator('#hf-bar-source').isVisible(),false,'Loaded source appears once in the reference row');
-await page.locator('.composer-reference-remove').click();
+await page.locator('.composer-reference-tile').hover();await page.locator('.composer-reference-remove').click();
 assert.equal((await page.locator('#image-composer').boundingBox()).height,soulEmptyDockHeight,'Removing photo restores compact Soul');
 assert.equal(await page.locator('#hf-bar-ratio option:checked').textContent(),'16:9');
 await page.click('#composer-character');

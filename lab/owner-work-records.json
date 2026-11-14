@@ -4081,10 +4081,10 @@
       "title": "Stop phone Mood selection freezing and restore regression coverage",
       "component": "CI / customer-risk regression coverage",
       "status": "needs_verification",
-      "summary": "Phone Mood selection no longer self-schedules the observed class mutation indefinitely. Chromium and WebKit account/checkout/credit-notice suites pass on 1a00b276 and again on 43d2a7af; all 1256 local source/work-state tests pass on 43d2a7af. The incorrect test-only font expectation was restored and pricing/landing browsers now pass. Removed the extra guest scrollbar-gutter rule added during preparation: the guest fixture omitted the real route class/data and must initialize them instead. Remaining fixture corrections retain strict guards and require the exact next commit in hosted CI.",
-      "nextAction": "Validate the next exact candidate in hosted browser CI. Keep pre-existing Full Editorial mobile source-switch geometry failure visible and do not silently relax it. Compare application/Worker/schema changes against the base before a release decision; never merge or deploy autonomously.",
+      "summary": "Exact 0997afff passes 1256 local source/work-state checks, both Chromium and WebKit account/checkout/credit-notice suites, Image paste, all current public Studio visual/privacy cases against immutable pre-change main, Soul parity and main source suite. Remaining old fixtures omitted hover before reference removal or synthesized native Soul state in a web page; correcting those uses existing real interaction/controller behavior. Full Editorial mobile source-switch geometry still fails on unchanged product code, without relaxing its tolerance.",
+      "nextAction": "Hold and validate the next candidate. Keep the unchanged Full Editorial geometry failure and production smoke coverage gap explicit. No merge, production deployment or migration without the user decision.",
       "baselineSha": "ecac340065516290d9b933eed84ab7f899e89ad6",
-      "reviewedSha": "43d2a7af8f8b4ed14c32f727f19d911d1e0d7628",
+      "reviewedSha": "0997afff88083ca0366171ea90c0337c3452ed9b",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
         ".github/workflows/lab-public-studio-tests.yml",
@@ -4212,6 +4212,12 @@
           "result": "passed",
           "scope": "Chromium and WebKit intercepted account, guarded checkout, credit notice, Mood and sign-out flows pass. 1256 local Lab/work-state tests pass as well.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43631393487/job/132558572982"
+        },
+        {
+          "label": "Exact 0997afff customer and visual regressions",
+          "result": "passed",
+          "scope": "1256 local checks; Chromium/WebKit account, guarded checkout and Mood flows; Image prompt paste; Soul model parity; public Image/Video/Upscale/Retouch/Fashion visual comparisons and customer/owner/privacy flows all pass.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43632517742/job/132562048656"
         }
       ],
       "deployment": {
@@ -4304,6 +4310,15 @@
           "source": "lab/lab.js",
           "limitations": [
             "The updated browser fixture requires exact-candidate hosted validation."
+          ]
+        },
+        {
+          "kind": "source",
+          "summary": "Merged PR #970 (6fe930c, 2026-11-11 02:41:10Z) explicitly permits shorter Inspiration portraits only where full cards cannot fit above the fixed dock, with a 120px floor. Mobile fixture now requires actual full-size overlap before accepting shortening, unchanged photo bytes/source, the floor and strict clearance; original height remains required when it fits.",
+          "scope": "Reconcile two contradictory assertions in the prior mobile test while retaining physical visibility checks",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/commit/6fe930c143d45f3efdd5c35f1d5ddb94da6ef9e0",
+          "limitations": [
+            "Exact next candidate needs hosted browser validation."
           ]
         }
       ],

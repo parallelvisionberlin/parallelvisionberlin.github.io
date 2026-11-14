@@ -669,6 +669,7 @@ try{
     inlineGeometry.promptTop-inlineGeometry.refBottom<=22,
     'The uploaded thumbnail occupies one compact row above the prompt, aligned to the text: '+JSON.stringify(inlineGeometry));
   await x.page.screenshot({path:'test-results/lab-image-inline-reference.png',fullPage:false});
+  await x.page.locator('.composer-reference-tile').hover();
   await x.page.click('.composer-reference-remove');
   await x.page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===0);
   assert.equal(await x.page.locator('#ref-count').textContent().then(t=>t.includes('0')),true,'Removing in-bar thumbnail updates true reference list');

@@ -295,7 +295,8 @@ try{
         const card=document.querySelector('#lab-welcome-presets .lab-welcome-preset').getBoundingClientRect();
         const title=document.getElementById('lab-welcome-title').getBoundingClientRect();
         const shelf=document.querySelector('#lab-welcome-start .lab-welcome-carousel');
-        return {height:card.height,titleGap:card.top-title.bottom,
+        return {height:card.height,top:card.top,titleGap:card.top-title.bottom,
+          src:document.querySelector('#lab-welcome-presets .lab-welcome-preset img').getAttribute('src'),
           margin:parseFloat(getComputedStyle(shelf).marginTop)};
       });
       const signedRest=await signedCards();
@@ -303,8 +304,7 @@ try{
       await page.locator('#image-composer-prompt').fill('Analog atmosphere. '.repeat(60));
       await page.waitForFunction(()=>document.getElementById('image-composer').classList.contains('pv-deck-expanded'));
       const signedExpanded=await signedCards();
-      assert.ok(Math.abs(signedExpanded.height-signedRest.height)<1,
-        'Signed-in Image photos remain full size when the prompt expands');
+      assert.equal(signedExpanded.src,signedRest.src,'Expanding the prompt retains the original Inspiration photograph');
       assert.ok(signedExpanded.titleGap>=12&&signedExpanded.titleGap<=signedRest.titleGap+2,
         'Signed-in Image photos keep enough title clearance while moving toward the prompt dock: '+JSON.stringify({signedRest,signedExpanded}));
       const signedClearance=await page.evaluate(()=>{
@@ -313,6 +313,15 @@ try{
         return {cardBottom:card.bottom,deckTop:dock.top,
           lifted:document.getElementById('lab-welcome-start').classList.contains('pv-phone-inspiration-lift')};
       });
+      // Merged #970 explicitly permits shortening only when full portraits
+      // cannot fit above the fixed dock, with a 120px photographic floor.
+      // Keep full size whenever it fits; retain strict measured clearance.
+      if(signedExpanded.height<signedRest.height-1){
+        assert.ok(signedExpanded.top+signedRest.height>signedClearance.deckTop-8,
+          'Full-size portraits would actually overlap the dock before allowing a shorter card: '+JSON.stringify({signedRest,signedExpanded,signedClearance}));
+        assert.ok(signedExpanded.height>=120,'Short browser viewports retain at least 120px photographs');
+      }else assert.ok(Math.abs(signedExpanded.height-signedRest.height)<1,
+        'Signed-in Image photos retain their original height whenever it fits');
       assert.equal(signedClearance.lifted,true,'Expanded signed-in Inspiration computes a safe top lift');
       if(signedClearance.deckTop>=240)
         assert.ok(signedClearance.cardBottom<=signedClearance.deckTop-8,

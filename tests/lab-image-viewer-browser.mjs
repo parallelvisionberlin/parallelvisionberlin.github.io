@@ -313,7 +313,7 @@ try{
     assert.match(await page.locator('#video-job-stage-title').innerText(),/Opening video/i);
     assert.equal(await page.locator('#video-detail-status').innerText(),'Completed',
       'Job inspector truthfully retains the backend state');
-    assert.equal(await page.locator('#video-job-stage-state').innerText(),'Loading',
+    assert.equal(await page.locator('#video-job-stage-state').textContent(),'Loading',
       'The player does not report Ready before video data arrives');
     if(width===1440)assert.equal(await page.locator('#video-feed-center').evaluate(el=>el.scrollTop),0,
       'Selecting a History card reveals the large desktop player');
