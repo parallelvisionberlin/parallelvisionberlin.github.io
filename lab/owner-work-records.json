@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-14T18:30:05.886Z",
+  "updatedAt": "2026-11-14T18:34:06.757Z",
   "handoffs": [
     {
       "id": "owner",
@@ -3841,11 +3841,11 @@
       "id": "road-campaign-inspiration-20261112",
       "title": "Lost Highway and Desert Stop Inspiration cards",
       "component": "Image Studio / Inspiration",
-      "status": "needs_verification",
-      "summary": "Two existing Inspiration pairs now swap positions in guest and signed-in rows: Desert Stop / Vinyl Heat and Lost Highway / Green Haze. All 14 cards retain their DOM nodes, selection handlers, imagery and prompts. Prior road-card production verification remains historical evidence below.",
-      "nextAction": "Merge reconciled PR #1020 after scoped checks, then verify the Cloudflare production release and published order.",
+      "status": "deployed",
+      "summary": "Published the requested position swaps: Desert Stop is second and Lost Highway sixth; Vinyl Heat and Green Haze remain in the same 14-card carousel at tenth and ninth. Actual signed-in owner production gallery showed the new order and both road cards populated their matching editable prompts. No paid generation submitted.",
+      "nextAction": "Complete. Mobile rendering was not newly observed; existing unrelated compact-deck-height CI failure remains documented.",
       "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
-      "reviewedSha": "073bde953d964c00f31219865cc6d449459f3f03",
+      "reviewedSha": "60f287e9367b67aad1503560cec8f72cd5d596af",
       "branch": "fix/inspiration-road-order-20261113",
       "files": [
         "lab/inspiration-road-scenes.js",
@@ -3916,14 +3916,24 @@
           "label": "2026-11-14 release reconciliation",
           "result": "passed",
           "scope": "Resolved work-record conflict while preserving the newer homepage character release. 23 approved Image, catalog and rotation tests plus static build and diff checks pass. Prior first-image CI failure concerns existing public/signed compact deck height, unrelated to node reordering."
+        },
+        {
+          "label": "Published source and real owner gallery",
+          "result": "passed",
+          "observedAt": "2026-11-14T18:34:06.757Z",
+          "scope": "Release verifier LIVE_VERIFIED for carousel JS. Catalog JS production SHA256 equals reviewed bytes. Real signed-in desktop: Desert Stop second, Lost Highway sixth, all 14 cards retained; both card selections injected their respective prompts. Screenshot inspected.",
+          "source": "https://pvlab.studio/studio?tool=image"
         }
       ],
       "deployment": {
-        "state": "not_started",
+        "state": "verified",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "sourceSha": null,
+        "sourceSha": "0b2aed6763567a863d7b3231cf25d82432af7de2",
+        "observedAt": "2026-11-14T18:34:06.757Z",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=image",
         "limitations": [
-          "New order has not been deployed or observed in a real signed-in production session."
+          "Real owner signed-in desktop verified. No new physical-phone or guest-browser observation; both rows share the same reordered-node code.",
+          "No paid generation or payment executed."
         ]
       },
       "evidence": [
@@ -3961,6 +3971,24 @@
           "limitations": [
             "No paid generation or payment executed."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Merged PR #1020 at 0b2aed6763567a863d7b3231cf25d82432af7de2. Cloudflare Pages check 132545463612 succeeded. Live carousel SHA256 4cbbbade1892a04a3c87f372d58d2f205d1819e4366c5404c523e33981ffb24f; catalog SHA256 29f61e096e34b2f6fc6b06d468dd2d6cb74feea8f0da5a1bdd35ce055cb87688.",
+          "scope": "Published script byte equality and correct asset cache version.",
+          "observedAt": "2026-11-14T18:34:06.757Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1020",
+          "limitations": []
+        },
+        {
+          "kind": "signed_in_production",
+          "summary": "Actual owner gallery shows Desert Stop in slot 2 and Lost Highway in slot 6, Green Haze 9 and Vinyl Heat 10. All 14 cards remain. Selecting the two featured cards fills the matching prompt. Original empty composer restored without submitting.",
+          "scope": "Desktop signed-in card ordering and selection.",
+          "observedAt": "2026-11-14T18:34:06.757Z",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": [
+            "Not a physical-phone test; no paid generation."
+          ]
         }
       ],
       "blockers": [],
@@ -3970,7 +3998,7 @@
         "Do not upload example people as a customer identity or automatically run a paid job.",
         "The remaining screenshot-only groups Night Drive, Asphalt and Convertible are proposed follow-ups; original full-resolution files were not attached."
       ],
-      "updatedAt": "2026-11-14T18:28:34.983Z"
+      "updatedAt": "2026-11-14T18:34:06.757Z"
     },
     {
       "id": "home-character-selection-20261113",
