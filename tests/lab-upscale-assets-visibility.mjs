@@ -196,7 +196,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       document.getElementById('app').classList.remove('pv-upscale-source-ready');
     });
     await page.waitForFunction(()=>!document.getElementById('app').classList.contains('pv-upscale-source-ready'));
-    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),false,'Clearing a source restores the original upload-first page');
+    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),true,'Clear retains the same compact source slot without changing the panel layout');
     assert.equal(await page.locator('.stagefoot').isVisible(),false,'Empty Upscaler does not show a technical footer');
     assert.equal(await page.locator('#settings-summary').isVisible(),false,'Redundant technical text is hidden on Upscaler');
     await page.evaluate(()=>{document.querySelector('#download').hidden=false;});
