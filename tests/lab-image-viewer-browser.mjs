@@ -298,7 +298,7 @@ try{
       assert.ok(cardControls.heart.bottom<cardControls.download.top,'Favorite and Download do not overlap');
       assert.ok(Math.abs(cardControls.download.bottom-cardControls.media.bottom)<3,'Download sits at the image/text boundary, not the bottom of the whole card');
     }else{
-      assert.ok(cardControls.download.top-cardControls.media.top<10,'Desktop keeps its existing Download position');
+      assert.ok(Math.abs(cardControls.media.bottom-cardControls.download.bottom-5)<2,'Desktop Download retains the approved 5px inset at the thumbnail boundary');
     }
     if(shape==='landscape'){
       await tiles.first().scrollIntoViewIfNeeded();

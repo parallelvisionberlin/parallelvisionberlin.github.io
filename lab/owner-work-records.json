@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-14T18:59:56.280Z",
+  "updatedAt": "2026-11-14T19:12:17.537Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4078,16 +4078,17 @@
     },
     {
       "id": "customer-risk-ci-coverage-20261114",
-      "title": "Restore PV LAB CI and current regression fixtures",
+      "title": "Stop phone Mood selection freezing and restore regression coverage",
       "component": "CI / customer-risk regression coverage",
       "status": "in_progress",
-      "summary": "PR #1024 restores supported browser installation and its exact-commit reference workflow passes all nine browser flows. Reused existing draft #934, preserving its nine fixture repairs, and refreshed obsolete pre-Fallen-Angel catalog, asset, header, footer and reference assertions against existing approved source. The only product edit corrects the Studio description from seventeen to eighteen Moods. Local full Lab suite now passes all 1250 tests. Hosted browser validation remains required; account Mood selection has an unresolved timeout with a bounded mutation-starvation diagnostic added.",
-      "nextAction": "Run the exact integrated #934 candidate in hosted browser CI, inspect the account diagnostic and remaining failures, and correct supported causes without changing approved design or paid behavior. Keep #934 stacked on #1024. No merge or production deployment is authorized.",
+      "summary": "Exact foundation and fixture repairs pass all 1256 local source/work-state checks. Hosted Chromium and WebKit diagnose a real phone UI starvation loop: lab-welcome-start.class repeatedly triggers the deck MutationObserver. The candidate makes the observed phone-lift class addition idempotent and refreshes its asset URL. A separate measured 7.5px guest/authenticated desktop deck shift is addressed by reserving the same desktop scrollbar gutter on guest Image. Existing checkout, wallet, provider, Worker and schema behavior is unchanged. Browser validation of these final changes remains required.",
+      "nextAction": "Hold the final candidate fixed. Run Chromium and WebKit account flows plus the mandatory Image paste, first-image, Studio layout and Soul parity browser suites. Inspect newly exposed fixture or visual failures against documented approved behavior. Do not merge or deploy without the required user decision.",
       "baselineSha": "ecac340065516290d9b933eed84ab7f899e89ad6",
-      "reviewedSha": "c3db18505b33fec9c81caa55c02af435c069ad10",
+      "reviewedSha": "ce2b0b74a0c42db70706f418e09079d35efc538e",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
         ".github/workflows/lab-tests.yml",
+        "lab/image-editorial-deck.js",
         "lab/owner-work-records.json",
         "lab/studio.html",
         "tests/lab-80s-tape.test.mjs",
@@ -4096,12 +4097,15 @@
         "tests/lab-berlin-rave-signup-browser.mjs",
         "tests/lab-elements-smart-browser.mjs",
         "tests/lab-fisheye-2000.test.mjs",
+        "tests/lab-full-editorial-browser.mjs",
         "tests/lab-hong-kong-image3-baseline.test.mjs",
         "tests/lab-hyper-pop.test.mjs",
+        "tests/lab-image-prompt-dock-ui.mjs",
         "tests/lab-image-viewer-browser.mjs",
         "tests/lab-inspiration-carousel.test.mjs",
         "tests/lab-landing-stability.mjs",
         "tests/lab-landing-ui.cjs",
+        "tests/lab-mobile-mood-entry.mjs",
         "tests/lab-mood-creator-flow.test.mjs",
         "tests/lab-mood-nav-browser.mjs",
         "tests/lab-mood-preflight-speed.test.mjs",
@@ -4170,6 +4174,16 @@
           "result": "passed",
           "scope": "Commit c3db185, 2026-11-14 18:38:22 UTC: both unchanged-source benchmark variants, 151 source checks and nine mocked reference browser flows passed.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43627568360/job/132546775758"
+        },
+        {
+          "label": "Pre-fix exact fixture candidate",
+          "result": "passed",
+          "scope": "ce2b0b74: all 1256 local Lab and canonical work-state tests passed. This is the source/fixture baseline for the subsequent phone observer fix."
+        },
+        {
+          "label": "Phone-fix focused source contracts",
+          "result": "passed",
+          "scope": "58 approved Image, Video and Mood contract checks pass after the idempotent phone-lift and shared desktop gutter changes. Browser verification of the final commit is still required."
         }
       ],
       "deployment": {
@@ -4217,17 +4231,36 @@
           "limitations": [
             "Catalog and geometry fixture repairs do not establish new paid provider behavior."
           ]
+        },
+        {
+          "kind": "automated_test",
+          "summary": "Chromium reports Mutation delivery never settled on lab-welcome-start.class, callback ()=>queueMicrotask(sync). The original opaque Mood click timeout becomes a specific observed self-scheduling layout loop.",
+          "scope": "Synthetic zero-credit phone customer Mood selection, no real payments or generations",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43629889049/job/132553928992",
+          "limitations": [
+            "Production customer behavior was not independently exercised.",
+            "The diagnostic intentionally fails instead of accepting a locked event loop."
+          ]
+        },
+        {
+          "kind": "automated_test",
+          "summary": "WebKit reproduces the same lab-welcome-start.class observer starvation after successful guarded checkout and account-entry cases.",
+          "scope": "Independent browser-engine reproduction using intercepted account and billing APIs",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43629889049/job/132553929136",
+          "limitations": [
+            "No actual Safari customer session or paid API operation."
+          ]
         }
       ],
       "blockers": [
-        "Hosted browser validation pending; local Chromium startup is denied.",
-        "Main retains known red catalog/design and account browser checks; these are not evidence of lost credits or payment harm by themselves."
+        "Final phone-fix Chromium/WebKit and mandatory Image browser validation pending.",
+        "Some previously blocked visual suites expose old baseline/fixture mismatches; do not silently bypass them or change approved design merely to clear checks."
       ],
       "doNotRepeat": [
         "Do not rewrite approved catalog/design to silence assertions. Reuse existing PR #934 for its test-fixture files.",
         "Do not overlap current Upscaler, Inspiration ordering, Seedream or Chrome Desert feature branches."
       ],
-      "updatedAt": "2026-11-14T18:59:56.280Z"
+      "updatedAt": "2026-11-14T19:12:17.537Z"
     }
   ]
 }

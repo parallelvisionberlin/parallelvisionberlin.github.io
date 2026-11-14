@@ -35,6 +35,7 @@ html.pv-studio-boot-lock{scroll-behavior:auto!important}
 /* Retain the reserved gutter after loading only for Image gallery/history.
    Mobile stays centered without reserving unused scrollbar space. */
 @media(min-width:761px){html:has(#app.image-studio-active){scrollbar-gutter:stable}}
+@media(min-width:761px){html:has(#gate.pv-guest-image:not([hidden])){scrollbar-gutter:stable}}
 @media(min-width:761px){html:has(#app.video-studio-active){scrollbar-gutter:stable}}
 /* Fashion also reserves the same gutter so the header does not shift after loading. */
 @media(min-width:761px){html:has(#app.fashion-studio-active){scrollbar-gutter:stable}}
@@ -192,7 +193,7 @@ document.addEventListener('click',event=>{
 <link rel="stylesheet" href="./inspiration-carousel.css?v=20261019-editorial-chevrons2">
 <link rel="stylesheet" href="./image-editorial-deck.css?v=20261022-canonical-entry2&promptType=20261106-13px-compact1">
 <link rel="stylesheet" href="./image-moods-return.css?v=20261031-primary-inspiration1&inspirationGlow=20261017-halo2&mobileInspire=20261018-1&phoneBackdrop=20261019-1">
-<script defer src="./image-editorial-deck.js?v=20261111-character-tile1&phoneInspirationLift=20261111v1"></script>
+<script defer src="./image-editorial-deck.js?v=20261111-character-tile1&phoneInspirationLift=20261114-stable1"></script>
 <script type="module" src="./studio-guest-image.js?v=20261104-guest-fixed-dock2&phoneInspirationLift=20261111v1&clerkBootstrap=20261103&inspiration=rotation1&dreamBlurInspirationRefs=20261102v1&chrome=1&greenHaze=2&fisheyeCover=20261021v1&toolRoute=20261021-v2&publicTools=20261023-1&fisheyeY2K=20261024v1&chromeQwen20=20261031v1&dreamBlurExposure=20261102v2&sunFadeInspiration=20261104v1&inspirationCatalog=20261111v1&inspirationPromptSwitch=20261112v1"></script>
 <script type="module" src="./inspiration-carousel.js?v=20261019-keyboard2&inspirationCatalog=20261113-road-order1&wheelScroll=20261112v1"></script>
 <script defer src="./studio-mobile-entry.js?v=20261024-stable-guest1"></script>

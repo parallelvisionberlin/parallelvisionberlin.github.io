@@ -104,6 +104,7 @@ try{
           tools:['pv-guest-add','pv-guest-library','pv-guest-model','pv-guest-moods','pv-guest-mobile-more'].map(rect),
           doc:document.documentElement.scrollWidth,viewport:innerWidth};
       });
+      await page.evaluate(async()=>{await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
       const before=await metrics();
       assert.equal(before.prompt.font,16,'Public phone prompt prevents undersized-input focus zoom');
       assert.ok(before.deck.x>=0&&before.deck.right<=width&&before.deck.bottom<=height,'Entire dock fits the phone');
@@ -246,13 +247,14 @@ try{
         document.getElementById('image-composer').classList.add('is-seedream');
         document.getElementById('image-composer-references').hidden=true;
       });
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       assert.equal(await page.locator('#image-composer-prompt').evaluate(e=>parseFloat(getComputedStyle(e).fontSize)),16,'Authenticated phone prompt also avoids undersized text');
       assert.equal(await page.locator('#image-composer-mobile-more').isVisible(),true);
       const signed=await page.evaluate(()=>{
         const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};
         return {deck:rect('image-composer'),tools:['image-composer-add','scene-image-open','image-composer-model','image-composer-moods','image-composer-mobile-more'].map(rect)};
       });
-      assert.ok(Math.abs(signed.deck.height-before.deck.height)<=5,'Public and signed compact decks share their height');
+      assert.ok(Math.abs(signed.deck.height-before.deck.height)<=5,'Public and signed compact decks share their height: '+JSON.stringify({signed,guest:before}));
       assert.equal(signed.deck.width,before.deck.width,'Public and signed dock widths match');
       for(let i=0;i<signed.tools.length;i++){
         assert.ok(Math.abs(signed.tools[i].y-signed.tools[0].y)<2,'Signed primary controls also stay on one row');

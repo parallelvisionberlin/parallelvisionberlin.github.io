@@ -133,7 +133,7 @@ try{
         });
         assert.equal(appearance.direction,'column',kind+': Generate action remains centered');
         assert.equal(appearance.iconHidden,true,kind+': decorative symbol is removed');
-        assert.ok(appearance.labelSize>=17,kind+': primary Generate label is legible: '+appearance.labelSize);
+        assert.equal(appearance.labelSize,15,kind+': shared Image surface retains its approved 15px Generate typography');
         if(kind==='seedream')seedreamGenerateAppearance=appearance;
         else assert.deepEqual(appearance,seedreamGenerateAppearance,
           'PV Soul uses the exact Seedream Generate styling and 144×84px button area');

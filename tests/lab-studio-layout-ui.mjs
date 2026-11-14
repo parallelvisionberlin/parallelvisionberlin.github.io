@@ -309,7 +309,7 @@ try{
   });
   assert.equal(videoTypography.size,14,'Approved relaxed Video motion prompt uses 14px type');
   assert.match(videoTypography.family,/DM Sans/,'PV Lab uses its own editorial UI typography');
-  assert.equal(d.stage.height,744,'Approved relaxed desktop stage leaves room for real History');
+  assert.equal(d.stage.height,656,'Current film-dossier stage reserves the approved 244px at 900px viewport height');
   assert.equal(d.canvas.height,d.stage.height-2,'Empty artwork fills the bordered preview');
   assert.ok(d.modes.top-d.model.bottom<110,'Start/reference buttons remain near model info');
   assert.equal(d.explanationCollapsed,true);

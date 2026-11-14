@@ -87,7 +87,10 @@
     const title=surface.querySelector('h1,h2');
     const first=grid.querySelector(':scope > button');
     if(!title||!first)return;
-    surface.classList.add('pv-phone-inspiration-lift');
+    // This surface is observed for class changes. Re-adding the same token
+    // still delivers a mutation and must not schedule another layout forever.
+    if(!surface.classList.contains('pv-phone-inspiration-lift'))
+      surface.classList.add('pv-phone-inspiration-lift');
     const header=document.getElementById('studio-header');
     const headerBottom=header?.getBoundingClientRect().bottom||0;
     const availableLift=Math.max(0,title.getBoundingClientRect().top-headerBottom-12);
