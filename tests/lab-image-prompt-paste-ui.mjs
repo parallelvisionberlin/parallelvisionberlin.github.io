@@ -410,7 +410,7 @@ try{
         app.hidden=role==='guest';app.classList.toggle('image-studio-active',role!=='guest');
         gate.hidden=role!=='guest';gate.classList.add('pv-guest-image');gate.dataset.guestTool='image';
         app.classList.toggle('pv-moods-discovery-open',role==='owner-inspiration');
-        document.getElementById('lab-welcome-balance').hidden=role==='owner-inspiration';
+        document.querySelector('#lab-welcome-start .lab-welcome-balance').hidden=role==='owner-inspiration';
         document.getElementById('image-studio').hidden=false;
         document.getElementById('image-gallery-empty').hidden=role==='history';
         document.getElementById('lab-welcome-start').hidden=role==='history';
@@ -453,14 +453,21 @@ try{
             const title=document.querySelector(guest?'#gate h1':'#lab-welcome-start h2').getBoundingClientRect();
             return {deckTop:deck.top,deckBottom:deck.bottom,deckHeight:deck.height,
               cardBottom:Math.max(...cards.map(el=>el.getBoundingClientRect().bottom)),
-              titleTop:title.top,headerBottom:document.getElementById('studio-header').getBoundingClientRect().bottom,
+              rowBottom:cards[0]?.closest('.inspiration-carousel-shell')?.getBoundingClientRect().bottom,
+              cardTop:Math.min(...cards.map(el=>el.getBoundingClientRect().top)),
+              cardHeight:cards[0]?.getBoundingClientRect().height,
+              baseCardHeight:parseFloat(getComputedStyle(document.querySelector(guest?'.pv-guest-content':'#lab-welcome-start')).getPropertyValue('--pv-welcome-card-height')),
+              titleBottom:title.bottom,titleTop:title.top,headerBottom:document.getElementById('studio-header').getBoundingClientRect().bottom,
               font:parseFloat(getComputedStyle(field).fontSize),promptHeight:field.getBoundingClientRect().height,
               scrollWidth:document.documentElement.scrollWidth,value:field.value};
           },role);
           const label=JSON.stringify({role,viewport,state,geometry});
           if(role!=='history'){
             if(state==='empty')restingGeometry=geometry;
-            for(const key of ['titleTop','cardBottom'])assert.ok(Math.abs(geometry[key]-restingGeometry[key])<1,
+            assert.ok(geometry.cardHeight>=geometry.baseCardHeight+20,'Desktop cards are visibly taller than the original row: '+label);
+            assert.ok(Math.abs(geometry.cardBottom-geometry.rowBottom)<1,'Taller cards retain the original row bottom: '+label);
+            assert.ok(geometry.cardTop>=geometry.titleBottom+23,'Taller cards keep a clear gap below the heading: '+label);
+            for(const key of ['titleTop','cardTop','cardBottom'])assert.ok(Math.abs(geometry[key]-restingGeometry[key])<1,
               'Desktop heading/cards stay fixed while the prompt grows: '+key+' '+label);
           }
           assert.ok(geometry.deckBottom<=viewport.height-28,'Generate stays above the browser bottom: '+label);

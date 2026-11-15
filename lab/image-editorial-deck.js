@@ -25,9 +25,17 @@
   let emptyRealFocus=false;
   let emptyGuestFocus=false;
   function fitWelcomeCards(surface,grid,available){
+    // Keep the established row/bottom position. Only the photographs extend
+    // into spare space above it; prompt growth never changes these dimensions.
+    surface.style.setProperty('--pv-welcome-card-growth','0px');
     const copy=grid.getBoundingClientRect().top-surface.firstElementChild.getBoundingClientRect().top;
     const height=Math.max(140,Math.min(379,innerHeight*.39,available-copy));
     surface.style.setProperty('--pv-welcome-card-height',Math.floor(height)+'px');
+    const title=surface.querySelector('h1,h2');
+    const room=grid.getBoundingClientRect().top-title.getBoundingClientRect().bottom-24;
+    const growth=Math.floor(Math.max(0,Math.min(80,room)));
+    surface.style.setProperty('--pv-welcome-card-growth',growth+'px');
+    surface.style.setProperty('--pv-welcome-card-growth-half',(growth/2)+'px');
   }
   function fitWelcomeDeck(){
     const visible=welcomeWidth.matches&&!document.documentElement.classList.contains('pv-image-previews-hidden')&&

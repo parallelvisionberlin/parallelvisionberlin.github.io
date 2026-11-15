@@ -712,3 +712,25 @@ html:not(.pv-native-lab) #app.image-studio-active
     display:block!important;visibility:hidden!important;
   }
 }
+
+/* Owner-approved taller desktop cards: grow upward from the existing row.
+   Reserve its original height so the heading, row bottom and dock stay put. */
+@media(min-width:1180px) and (min-height:680px){
+  html:not(.pv-native-lab) :is(#gate.pv-guest-image .pv-guest-carousel,#app.image-studio-active #lab-welcome-start .lab-welcome-carousel){
+    height:var(--pv-welcome-card-height,39dvh);
+  }
+  html:not(.pv-native-lab) :is(#gate.pv-guest-image #pv-guest-cards,#app.image-studio-active #lab-welcome-presets){
+    height:calc(var(--pv-welcome-card-height,39dvh) + var(--pv-welcome-card-growth,0px))!important;
+    translate:0 calc(-1 * var(--pv-welcome-card-growth,0px));
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .pv-guest-card,
+  html:not(.pv-native-lab) #app.image-studio-active:has(#image-composer.pv-welcome-deck) #lab-welcome-start .lab-welcome-preset{
+    height:calc(var(--pv-welcome-card-height,39dvh) + var(--pv-welcome-card-growth,0px))!important;
+  }
+  html:not(.pv-native-lab) :is(#gate.pv-guest-image .pv-guest-carousel,#app.image-studio-active #lab-welcome-start .lab-welcome-carousel) .inspiration-nav{
+    top:calc(50% - var(--pv-welcome-card-growth-half,0px));
+  }
+  html:not(.pv-native-lab) :is(#gate.pv-guest-image .pv-guest-carousel,#app.image-studio-active #lab-welcome-start .lab-welcome-carousel) .pv-inspiration-view-all{
+    top:calc(-40px - var(--pv-welcome-card-growth,0px));
+  }
+}
