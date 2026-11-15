@@ -70,11 +70,7 @@ const server=http.createServer((req,res)=>{
 });
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
 const base='http://127.0.0.1:'+server.address().port;
-// Pair snapshots on one software renderer. Recurring artifact differences are
-// confined to rounded card-edge antialias samples; text/image pixels match.
-// Keep the original strict comparison thresholds below.
-const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||undefined,
-  args:['--disable-gpu','--disable-gpu-rasterization']});
+const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||undefined});
 mkdirSync('test-results',{recursive:true});
 const surfaces={image:'#pv-guest-composer',video:'#video-model-trigger',upscale:'#pv-upscale-dropzone',retouch:'#precision-demo',fashion:'#fashion-studio #fashion-form'};
 async function settled(page,route,signed=false){
@@ -87,7 +83,7 @@ async function settled(page,route,signed=false){
   await page.locator(surfaces[route]).waitFor({state:'visible'});
   await page.evaluate(()=>document.fonts.ready);
 }
-function compareVisual(actual,expected,label){
+function visualDifference(actual,expected,label){
   const a=PNG.sync.read(actual),b=PNG.sync.read(expected);
   assert.deepEqual([a.width,a.height],[b.width,b.height],label+' dimensions');
   let changed=0,maxDelta=0;
@@ -96,9 +92,13 @@ function compareVisual(actual,expected,label){
     for(let channel=0;channel<4;channel++)delta=Math.max(delta,Math.abs(a.data[offset+channel]-b.data[offset+channel]));
     if(delta)changed++;maxDelta=Math.max(maxDelta,delta);
   }
+  return {changed,maxDelta,pixels:a.width*a.height};
+}
+function compareVisual(actual,expected,label){
+  const {changed,maxDelta,pixels}=visualDifference(actual,expected,label);
   // Chromium may round a fractional crop border by one channel level. This
   // permits only that measured edge noise, never changed text, imagery or size.
-  assert.ok(maxDelta<=1&&changed<=Math.max(1,a.width*a.height*.001),label+': '+JSON.stringify({changed,maxDelta,pixels:a.width*a.height}));
+  assert.ok(maxDelta<=1&&changed<=Math.max(1,pixels*.001),label+': '+JSON.stringify({changed,maxDelta,pixels}));
 }
 async function fullPage(page,path){
   await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
@@ -211,6 +211,19 @@ try{
       for(const [index,selector] of regions[route].entries()){
         const actual=await capture(page,selector,`test-results/visual-${route}-${width}-${index}-actual.png`);
         const expected=await capture(reference,selector,`test-results/visual-${route}-${width}-${index}-approved.png`);
+        if(route==='image'&&width===320&&selector==='#pv-guest-cards'){
+          const inspect=inspected=>inspected.locator(selector).evaluate(root=>{
+            const nodes=[root,...root.querySelectorAll('.pv-guest-card,.pv-guest-card img')];
+            const keys=['width','height','transform','translate','zoom','opacity','borderColor','borderWidth','borderRadius','boxShadow','filter','backdropFilter','backgroundColor','overflow','objectFit','objectPosition'];
+            return {scroll:{x:scrollX,y:scrollY,dpr:devicePixelRatio},rootClasses:document.documentElement.className,
+              nodes:nodes.map(el=>({tag:el.tagName,className:el.className,src:el.currentSrc||'',rect:el.getBoundingClientRect().toJSON(),scrollLeft:el.scrollLeft,
+                style:Object.fromEntries(keys.map(key=>[key,getComputedStyle(el)[key]]))}))};
+          });
+          const actualRepeat=await capture(page,selector,'test-results/visual-image-320-repeat-actual.png');
+          const baselineRepeat=await capture(reference,selector,'test-results/visual-image-320-repeat-approved.png');
+          console.log('VISUAL_320_DIAGNOSTIC='+JSON.stringify({actual:await inspect(page),baseline:await inspect(reference),
+            paired:visualDifference(actual,expected,'paired'),actualSelf:visualDifference(actual,actualRepeat,'actual repeat'),baselineSelf:visualDifference(expected,baselineRepeat,'baseline repeat')}));
+        }
         compareVisual(actual,expected,`Pre-change ${route} visual at ${width}px: ${selector}`);
       }
       await baseline.close();
