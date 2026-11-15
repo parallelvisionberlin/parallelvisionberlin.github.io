@@ -734,8 +734,8 @@ try{
     'Populated History retains its existing selection flow, never the welcome-only grid');
   await page.locator('#history-cancel-select').click();
   assert.equal(await page.locator('#history-selection').isVisible(),false);
-  // The same six Mood cards reappear through Inspiration after a real History
-  // result. Their background must be identical to the original welcome.
+  // Reopened private Inspiration keeps its existing cinematic backdrop;
+  // the approved chrome photograph belongs to the first-image/public entry.
   await page.evaluate(()=>window.__welcomeMockInspiration(true));
   assert.equal(await page.locator('#lab-welcome-start').isVisible(),true);
   const inspirationSurface=await page.locator('.image-gallery-shell').evaluate(shell=>{
@@ -744,12 +744,12 @@ try{
     return {image:back.backgroundImage,opacity:back.opacity,
       filter:back.filter,gradient:overlay.backgroundImage};
   });
-  assert.equal(inspirationSurface.image,welcomeSurface.image,
-    'Inspiration must use the same blue/copper background as first-image welcome');
+  assert.match(inspirationSurface.image,/\/visuals\/pvlab-subtle-cinematic-background-20261017\.webp/,
+    'Reopened Inspiration retains its approved cinematic plate');
   assert.equal(inspirationSurface.filter,'none','Inspiration must not restore the saturated/blurred wallpaper');
   assert.equal(inspirationSurface.opacity,'1');
-  assert.equal(inspirationSurface.gradient,welcomeSurface.gradient,
-    'Inspiration and welcome must use the same legibility overlay');
+  assert.match(inspirationSurface.gradient,/linear-gradient\(rgba\(2, 4, 8, 0\.16\) 0%, rgba\(2, 4, 8, 0\.035\) 38%, rgba\(2, 4, 8, 0\.08\) 74%, rgba\(3, 4, 7, 0\.25\) 100%\)/,
+    'Private Inspiration retains all four approved legibility stops');
   const inspirationArrows=page.locator('.lab-welcome-carousel .inspiration-nav');
   await page.locator('.lab-welcome-carousel .inspiration-nav-next').waitFor({state:'visible'});
   const inspirationViewport=await page.evaluate(()=>{

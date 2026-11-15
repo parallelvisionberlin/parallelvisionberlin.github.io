@@ -93,6 +93,9 @@ async function workspace({failure='',width=1440,height=1000,initial=[],savedPack
  await page.goto(ORIGIN+'/lab/studio.html?tool=image');
  try{await page.waitForFunction(()=>!!window.__labTest,undefined,{timeout:12000});}
  catch(e){console.error('IMAGE_STUDIO_BOOT_DIAGNOSTICS',JSON.stringify({url:page.url(),title:await page.title(),errors,requests:requests.slice(0,9),scripts:await page.locator('script[src]').evaluateAll(a=>a.map(el=>el.src))}));throw e;}
+ // The existing two-second owner handoff is scoped to Seedream 5 Pro.
+ // The current 5.5 default has separate first-image/customer coverage.
+ await page.selectOption('#image-engine','seedream');
  if(!png)png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=320;const x=c.getContext('2d');x.fillStyle='#333';x.fillRect(0,0,320,320);x.fillStyle='#aaa';x.fillRect(75,75,170,170);return c.toDataURL().split(',')[1];}),'base64');
  return {page,context,requests,errors,dialogs,jobs,accepted:()=>accepted,releaseStillQuotes:stillQuotes.resolve};
 }

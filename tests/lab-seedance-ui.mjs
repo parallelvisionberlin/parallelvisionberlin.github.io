@@ -245,8 +245,13 @@ try{
  // Retained media-note handlers are hidden in the approved compact Video deck.
  for(const [selector,value] of [['#video-reference-list input','Camera movement only.'],['#audio-reference-list input','Rhythm.']])
   await x.page.locator(selector).evaluate((input,note)=>{input.value=note;input.dispatchEvent(new Event('input',{bubbles:true}));},value);
- await x.page.click('#save');await ready(x.page);assert.equal(count(x,'/api/jobs'),0);assert.equal(count(x,'/api/reference-uploads'),2);
- await x.page.click('#clear');await x.page.locator('.card[data-state="draft"]').click();await x.page.click('#video-detail-reuse');await ready(x.page);
+ // Save draft is retained for compatibility, not shown in the compact deck.
+ // Exercise that real handler and verify its response without exposing a new action.
+ assert.equal(await x.page.locator('#save').isVisible(),false);
+ const savedDraft=x.page.waitForResponse(response=>new URL(response.url()).pathname==='/api/drafts'&&response.request().method()==='POST');
+ await x.page.locator('#save').evaluate(button=>button.click());assert.equal((await savedDraft).status(),201);
+ await ready(x.page);assert.equal(count(x,'/api/jobs'),0);assert.equal(count(x,'/api/reference-uploads'),2);
+ await x.page.locator('#clear').evaluate(button=>button.click());await x.page.locator('.card[data-state="draft"]').click();await x.page.click('#video-detail-reuse');await ready(x.page);
  assert.match(await x.page.locator('#video-ref-count').innerText(),/1 \/ 10/);assert.match(await x.page.locator('#audio-ref-count').innerText(),/1 \/ 10/);assert.equal(await x.page.locator('#video-reference-list input').inputValue(),'Camera movement only.');assert.equal(await x.page.locator('#audio-reference-list input').inputValue(),'Rhythm.');assert.equal(count(x,'/api/jobs'),0);ok('Mixed references retain media, durations and notes through draft, clear and Reuse');
  await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});const mixed=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(mixed.referenceVideoIds.length,1);assert.equal(mixed.referenceAudioIds.length,1);assert.equal(mixed.referenceSourceIds.length,1);assert.equal(mixed.settings.referenceVideos[0].seconds,3);assert.equal(mixed.settings.referenceAudio[0].seconds,3);assert.equal(x.accepted(),0);ok('Mixed references use a quoted, not automatic, paid request');
  await x.page.click('[data-close="quote-dialog"]');await x.page.selectOption('#video-engine','wan');assert.equal(await x.page.locator('#video-engine').inputValue(),'seedance');ok('Changing models cannot silently discard unsupported media');assert.deepEqual(x.errors,[]);await x.context.close();

@@ -140,7 +140,7 @@ assert.equal(await page.locator('#lab-welcome-balance').textContent(),'1,000 cre
  const beforeWelcomeSubmit=paidJobs;
  await welcome.click('[data-welcome-mood="dream-blur"]');
  assert.match(await welcome.locator('#image-composer-prompt').inputValue(),/motion blur/i);
- assert.equal(await welcome.locator('#image-engine').inputValue(),'seedream');
+ assert.equal(await welcome.locator('#image-engine').inputValue(),'seedream55');
  assert.equal(await welcome.locator('#image-composer-resolution').inputValue(),'2k');
  assert.equal(await welcome.locator('#image-composer-count').inputValue(),'1');
  assert.equal(await welcome.locator('#image-composer-ratio').inputValue(),'16:9');
@@ -149,7 +149,7 @@ assert.equal(await page.locator('#lab-welcome-balance').textContent(),'1,000 cre
  await welcome.click('#image-composer-generate');
  await welcome.waitForFunction(()=>!document.querySelector('#generate').disabled);
  assert.equal(paidJobs,beforeWelcomeSubmit+1,'Only the explicit Generate click submits one provider job');
- console.log('PASS current Inspiration uses authenticated balance, one Seedream 2K image, bound quote and explicit submission');
+ console.log('PASS current Inspiration uses authenticated balance, one Seedream 5.5 2K image, bound quote and explicit submission');
  await welcome.close();
  assert.deepEqual(errors,[]);
 }finally{

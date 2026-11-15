@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-15T12:35:27.326Z",
+  "updatedAt": "2026-11-15T12:43:07.052Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4233,10 +4233,10 @@
       "title": "Stop phone Mood freezing, stabilize saved-character frame and restore regression coverage",
       "component": "Customer generation / regression coverage",
       "status": "needs_verification",
-      "summary": "Phone Mood observer-loop fix, stable Full Editorial source header and the locked 1064px guest Image frame are prepared in existing draft #934. Integrate current main 29dbf29f, including the independently merged/deployed Seedream 5.5 release, without modifying its Worker, model routing, prices, source defaults or another owner record. Synthetic image sessions now advertise the current backend capability. Browser fixtures assert explicit Inspiration preset replacement and customer 2K default, choose 1K explicitly for quote-binding coverage, permit exactly one authenticated Reference preupload with zero quote/job writes, and observe the real Uploading references stage while uploads are held. Strict visual baseline uses immutable current main with only the documented guest-width correction; tolerances unchanged. Exact hosted CI remains required.",
+      "summary": "Exact 2227bcf0 passes all 1252 hosted Lab source tests, 283 focused isolated checks locally, both account engines, strict public visual/privacy, Full Editorial, legacy Assets upload/snapshot/Queue guards and the read-only domain/health/CORS monitor. Remaining six checks represent five fixture cases: duplicate first-image jobs assumed the chrome and private Inspiration plates match; owner fast-queue case implicitly selected new 5.5 instead of its explicitly scoped 5 Pro; customer first-image expected the retired default; Partner mobile links moved into two disclosures; retained Video Save draft is intentionally hidden. Follow-up changes only fixtures and this record; product code is unchanged from exact 2227bcf0. Required next-candidate hosted results must be inspected.",
       "nextAction": "Read all required browser and live-monitor results for the next exact #934 candidate. Inspect failures before proposing review. No PR merge, production publication, migration, paid generation or Stripe change is authorized.",
       "baselineSha": "29dbf29f4b429ac04debf373037d2a324311cc96",
-      "reviewedSha": "e29c78c79d8a715bef8c20ff8681855fa3ca00ca",
+      "reviewedSha": "2227bcf0904158a061c91f3ea7f11ceff29917e8",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
         ".github/workflows/lab-public-studio-tests.yml",
@@ -4284,7 +4284,8 @@
         "tests/lab-sumi-e.test.mjs",
         "tests/lab-upscale-ui.mjs",
         "tests/lab-video-ergonomics.test.mjs",
-        "tests/lab-won-kar-night.test.mjs"
+        "tests/lab-won-kar-night.test.mjs",
+        "tests/lab-partner-dashboard-browser.mjs"
       ],
       "links": [
         {
@@ -4423,6 +4424,18 @@
           "label": "Sparse local broad source comparison",
           "result": "failed",
           "scope": "Exact 29dbf29f: 1256 tests, 1200 passed / 56 failed; integrated candidate: 1217 passed / 39 failed. Missing visual assets and site shells in the sparse worktree prevent full local validation. Baseline and candidate failures compared; no pass claim for the broad suite. Hosted checkout contains the complete assets and must validate the exact candidate."
+        },
+        {
+          "label": "Exact 2227bcf0 complete hosted Lab source suite",
+          "result": "passed",
+          "scope": "1252/1252, 2026-11-15 12:37:26 UTC. Exact commit also passes all 283 focused local tests. This resolves the sparse local asset-coverage limitation for source checks.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43714747323/job/132813723163"
+        },
+        {
+          "label": "Exact 2227bcf0 hosted browser and monitor follow-up",
+          "result": "failed",
+          "scope": "49 succeeded / six failed after all jobs completed. Five distinct old fixture assumptions are corroborated by unchanged application source. Video Reference authenticated preupload, sign-out, Start/Reference/Extend, customer confirmations, explicit paid review and reuse all passed before the retained hidden Save action stalled. No new application regression was established; the next corrected exact candidate still requires full affected browser checks.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43714747378/job/132813723630"
         }
       ],
       "deployment": {
@@ -4601,6 +4614,25 @@
           "limitations": [
             "All corrected browser fixtures still require the exact candidate CI result."
           ]
+        },
+        {
+          "kind": "automated_test",
+          "summary": "The current live domain served the expected Generate/Exact assets and redirect, returned HTTP 200, exposed compatible backend health marker and allowed the configured frontend CORS origin at 2026-11-15 12:36:57 UTC.",
+          "scope": "Read-only public production probes from exact 2227bcf0 monitor; not private account behavior.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43714742826/job/132813708923",
+          "limitations": [
+            "Health version is a compatibility marker, not an exact deployed Worker source SHA.",
+            "This does not verify signed-in generation, Stripe credit delivery or applied migrations."
+          ]
+        },
+        {
+          "kind": "source",
+          "summary": "Fast owner handoff is intentionally limited by existing code and independent contract to Seedream 5 Pro or PV Still; its fixture now explicitly chooses 5 Pro while customer/first-image tests retain the 5.5 default. Private reopened Inspiration has a stronger existing cinematic-plate rule; retain exact asset and all four gradient stops. Mobile owner partner links reside in nested disclosure panels, not the old jumpbar. Retained Save draft remains hidden while its real handler/response and no-paid-job semantics are tested.",
+          "scope": "Supported fixture synchronization only; no provider eligibility, design, wallet, authorization or payment implementation changes.",
+          "source": "tests/lab-image-submit-handoff.test.mjs",
+          "limitations": [
+            "The next exact commit must pass affected hosted browser flows."
+          ]
         }
       ],
       "blockers": [
@@ -4611,7 +4643,7 @@
         "Do not rewrite approved catalog/design to silence assertions. Reuse existing PR #934 for its test-fixture files.",
         "Do not overlap current Upscaler, Inspiration ordering, Seedream or Chrome Desert feature branches."
       ],
-      "updatedAt": "2026-11-15T12:35:27.326Z"
+      "updatedAt": "2026-11-15T12:43:07.052Z"
     }
   ]
 }
