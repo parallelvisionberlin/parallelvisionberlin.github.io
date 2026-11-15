@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-14T18:54:35.596Z",
+  "updatedAt": "2026-11-15T12:04:00Z",
   "handoffs": [
     {
       "id": "owner",
@@ -232,10 +232,10 @@
       "title": "Chrome Desert featured world to Full Editorial",
       "component": "PV LAB homepage / Full Editorial",
       "status": "deployed",
-      "summary": "Chrome Desert is now a published 3-photo featured world; USE THIS WORLD opens Full Editorial with two model-free scenery references, optional styling/location, and direct Identity-to-priced-review for the visitor's subject.",
-      "nextAction": "Public feature complete. Optional signed-in customer quote and paid generation verification remains separate; no paid job was submitted during this release. Track real usage and conversion separately.",
+      "summary": "Chrome Desert homepage crop now keeps the model’s entire head visible. Original photo, supporting cards, layout and CTA preserved.",
+      "nextAction": "No crop implementation pending. Mobile rendering was not freshly browser-tested in this release.",
       "baselineSha": "739b9b3fde2092b259997b7a98e8be83b950ba1d",
-      "branch": "feat/chrome-desert-featured-world-20261111",
+      "branch": "fix/chrome-desert-head-framing-20261114",
       "files": [
         "lab/index.html",
         "lab/home-featured-photo-pack.css",
@@ -258,6 +258,10 @@
         {
           "label": "Draft feature PR #964",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/964"
+        },
+        {
+          "label": "Head framing fix PR #1023",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1023"
         }
       ],
       "tests": [
@@ -288,6 +292,19 @@
           "scope": "Relevant PR #964 GitHub Actions checks passed; unrelated pre-existing repository-wide failures were not changed or masked.",
           "observedAt": "2026-11-11T02:46:05.577Z",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/964"
+        },
+        {
+          "label": "Crop fix focused Node checks",
+          "result": "passed",
+          "scope": "13/13 homepage, world and approved Image UI contract tests passed on integrated current main.",
+          "observedAt": "2026-11-14T18:30:05.886Z"
+        },
+        {
+          "label": "Live desktop framing",
+          "result": "passed",
+          "scope": "Preview and pvlab.studio visually show entire head; hero loaded and computed object-position is 50% 0%.",
+          "observedAt": "2026-11-14T18:30:05.886Z",
+          "source": "https://pvlab.studio/"
         }
       ],
       "blockers": [],
@@ -297,17 +314,15 @@
         "Do not give preset images to customer private Photo Packs automatically.",
         "Do not publish on a failed or unverified release."
       ],
-      "updatedAt": "2026-11-11T02:46:05.577Z",
+      "updatedAt": "2026-11-14T18:30:05.886Z",
       "deployment": {
         "state": "verified",
-        "sourceSha": "6fe930c143d45f3efdd5c35f1d5ddb94da6ef9e0",
+        "sourceSha": "ecac340065516290d9b933eed84ab7f899e89ad6",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-11T02:46:05.577Z",
+        "observedAt": "2026-11-14T18:30:05.886Z",
         "evidenceUrl": "https://pvlab.studio/",
         "limitations": [
-          "PR #964 merged at 766540fec6eac12f9d329508bfddcfee9d375245; canonical production commit 6fe930c is a verified descendant two commits later, preserving feature assets.",
-          "Original build ID df8e2d58-93ff-4d52-8c11-317465e80454 had stale queued metadata; canonical deployment e3ebe0b5-32d4-41f6-8255-0ed5a1300748 reports deploy success.",
-          "No authenticated customer session or paid generation executed."
+          "Fresh mobile browser rendering not performed. Existing unrelated CI failures include stale Moods label assertion, video preload assertion and Playwright runner incompatibility. No paid jobs or account actions."
         ]
       },
       "evidence": [
@@ -330,9 +345,17 @@
           "limitations": [
             "No real customer account/payment or provider inference was used."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Cloudflare deployment f70da8a8-abcd-4ee4-8706-93610e2c3093 succeeded. Homepage and CSS HTTP 200, correct stylesheet version, exact CSS byte match SHA256 03ce0ad1662d73b8fe12bb991e437d9501d4fac5ef294094ac7649a4b1a50883; live desktop screenshot shows full head.",
+          "scope": "Chrome Desert homepage crop only",
+          "observedAt": "2026-11-14T18:30:05.886Z",
+          "source": "https://pvlab.studio/",
+          "limitations": []
         }
       ],
-      "reviewedSha": "766540fec6eac12f9d329508bfddcfee9d375245"
+      "reviewedSha": "aa7042d6b5cc49ccc3e9faa690d98b21769961d2"
     },
     {
       "id": "image-count-stepper-20261110",
@@ -3287,82 +3310,115 @@
     },
     {
       "id": "upscaler-compact-loaded-deck",
-      "title": "Compact loaded Image Upscaler controls",
+      "title": "Consistent compact Image Upscaler controls",
       "component": "PV LAB Image Upscaler",
       "status": "deployed",
-      "summary": "After upload, the Image Upscaler uses a short heading, compact source and model controls, and adjacent 38px Enlargement and Image format fields. The desktop deck grows with its settings and uses page scroll in short windows. The original photo remains contained in the existing preview.",
-      "nextAction": "Refresh the Upscaler to load the new styles.",
-      "baselineSha": "663dce86308cf9fa64d6d0d798b529f0766fc851",
-      "reviewedSha": "be0c76da20a122676d0707fa930c711e5b518f70",
-      "branch": "fix/upscaler-compact-loaded-deck-20261110",
+      "summary": "Keep one compact inspector before upload, after upload and after Clear: persistent source slot, 26px title, compact model cards and adjacent output fields. Eliminate the internal settings scrollbar and the legacy empty-only height jump.",
+      "nextAction": "None. Existing open tabs may refresh once to load the published styles.",
+      "baselineSha": "3b278caf2265dc861455901a62449b910a607ce3",
+      "reviewedSha": "03f31257c6bd9adf6c7f2e8586e187e9085cd2b9",
+      "branch": "fix/upscaler-consistent-compact-panel-20261113",
       "files": [
         "lab/upscale-loaded-workspace.css",
+        "lab/upscale-studio-v5.css",
         "lab/video-upscale.css",
         "lab/studio.html",
-        "tests/lab-upscale-ui.mjs"
+        "tests/lab-upscale-ui.mjs",
+        "tests/lab-upscale-assets-visibility.mjs",
+        "tests/lab-video-upscale-layout.mjs",
+        ".github/workflows/pv-lab-upscale-assets.yml"
       ],
       "links": [
         {
-          "label": "Merged Upscaler change",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/956"
+          "label": "Merged compact inspector fix",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1022"
         },
         {
-          "label": "Upscaler handoff",
+          "label": "Scoped Upscaler history",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
         }
       ],
       "tests": [
         {
-          "label": "Approved Image UI contract",
+          "label": "Approved Image UI contract and static validation",
           "result": "passed",
-          "scope": "All six local and CI assertions.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895934790"
+          "scope": "Six local Image contracts and final-head approved-image-ui/static Actions checks."
         },
         {
-          "label": "Loaded Upscaler deck",
+          "label": "Photographic geometry and Assets browser regression",
           "result": "passed",
-          "scope": "Both Precision versions at 1920×910, 1440×740, 1024×520 and 390×844. Real photo, no nested scroll, two adjacent settings, accessible Upscale action. Mocked upload, processing, Clear, Assets and Image/Video parity passed.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895934892"
+          "scope": "Eight photographic cases: Standard V2/High Fidelity V3 at 1920×910, 1440×740, 1024×520 and 390×844. Exact upload/Clear inspector geometry, visible source, no inner scroll, no horizontal overflow, accessible fields/action and no billable requests. Desktop/mobile Assets result, History and source-replacement assertions pass.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43628905439/job/132550892178"
         },
         {
-          "label": "Video Upscaler",
+          "label": "Image/Video layout and source preservation",
           "result": "passed",
-          "scope": "Provider and frontend validation on the same commit.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42895935213"
+          "scope": "Desktop/mobile real MP4, mode isolation and preserved Image source; verified on identical product files before the final test-only corrections.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43627740056"
+        },
+        {
+          "label": "Broader CI and legacy full browser suite",
+          "result": "documented",
+          "scope": "General CI still has failures in unchanged Moods/ALTER expectations (17 versus 18 moods and old reference filenames). The legacy full browser suite hangs after desktop reference isolation. These are not reported as passed and their checks remain enabled."
         }
       ],
       "deployment": {
         "state": "verified",
-        "environment": "Cloudflare Pages pvlab-studio",
-        "sourceSha": "8811c4155d598aab72bfb151c1a53ebc5bcd2b39",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "sourceSha": "188992a847b30655c6a4c449e7db16291e8515e3",
+        "observedAt": "2026-11-14T18:57:53.488Z",
         "evidenceUrl": "https://pvlab.studio/studio?tool=upscale",
         "limitations": [
-          "The public browser verified versioned CSS and parsed rules. The loaded and processing states were exercised in Chromium with mocked provider responses."
+          "No paid generation or payment was submitted. The live browser upload/Clear used a public photographic fixture in an existing authenticated session; provider completion was outside this CSS repair."
         ]
       },
       "evidence": [
         {
           "kind": "source",
-          "summary": "The later desktop layout in video-upscale.css reintroduced the loaded Image deck's overflow-y:auto rule. The loaded settings now set the minimum row height.",
-          "scope": "Image Upscaler loaded photo layout",
+          "summary": "A high-specificity legacy empty-only 680px workspace rule moved the action by 42px at 1440×740. The later Image workspace rules now match both visible empty/source states with the same specificity.",
+          "scope": "Image Upscaler inspector sizing",
           "source": "lab/video-upscale.css",
           "limitations": []
         },
         {
+          "kind": "fixture",
+          "summary": "Independent cloud Chromium inspection of the isolated local fixture confirms identical upload geometry at all four sizes and Clear stability including expanded Precision.",
+          "scope": "Local UI with synthetic account bootstrap and disabled API writes",
+          "limitations": [
+            "Layout viewport frames; automated Actions separately covers mobile touch."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "Cloudflare Pages production check 132551634023 succeeded for exact merge 188992a847b30655c6a4c449e7db16291e8515e3.",
+          "scope": "pvlab-studio main publication",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1022",
+          "limitations": []
+        },
+        {
           "kind": "production_asset",
-          "summary": "Cloudflare production check 130112018535 succeeded for the exact merge. Both production versioned stylesheet rule hashes match the reviewed Pages preview.",
-          "scope": "upscale-loaded-workspace.css v20261110-compact-photo-deck2 and video-upscale.css v20261110-compact-photo-deck1",
+          "summary": "Release verifier returned LIVE_VERIFIED for video-upscale.css v20261114-consistent-panel2, SHA-256 855ff860888ad3625a86b68cccaa0e62a7fa2cd137379a9b022cd3d6b8c40b46. Both other inspector stylesheets match exact merge bytes: upscale-studio-v5.css eddfd33dcc69640b8f7cb0d5514d61f264a5bffa97960fa06408417b22d202d4; upscale-loaded-workspace.css 77ed3f50790fb7713415a283ed4c2a64990c690a60a27673ecb3d6047c324e90.",
+          "scope": "Custom-domain HTML version and all three modified CSS assets",
+          "source": "https://pvlab.studio/studio?tool=upscale",
+          "limitations": []
+        },
+        {
+          "kind": "signed_in_production",
+          "summary": "Live existing authenticated browser: public 960×1200 JPG selected through the source chooser and cleared through Clear. Title, model, scale, format and action rectangles remained exactly equal before/after both actions. Body overflow-y visible; clientHeight = scrollHeight = 752px. Upscale was never clicked.",
+          "scope": "Actual production upload/Clear layout and absence of an internal scrollbar",
           "source": "https://pvlab.studio/studio?tool=upscale",
           "limitations": [
-            "Browser comparison used parsed CSS rules, with exact source blobs checked against the reviewed commit."
+            "No provider submission or output completion was tested."
           ]
         }
       ],
       "blockers": [],
       "doNotRepeat": [
-        "Use page scroll in short desktop windows. Keep both output fields accessible and preserve the 38px desktop and 44px phone minimums for Precision versions."
+        "Do not make a paid generation to test this layout.",
+        "Keep the compact Image design in all source states; do not merge the opposite large-inspector design from draft #982.",
+        "Keep the existing broader CI failures separate; never claim the legacy full suite passed."
       ],
-      "updatedAt": "2026-11-10"
+      "updatedAt": "2026-11-14T18:57:53.488Z"
     },
     {
       "id": "image-base-mode-popover",
@@ -3820,11 +3876,11 @@
       "title": "Lost Highway and Desert Stop Inspiration cards",
       "component": "Image Studio / Inspiration",
       "status": "deployed",
-      "summary": "Published two Inspiration cards from five approved photographs: Lost Highway (three flash/dusk encounters) and Desert Stop (two sunlit open-trunk scenes). Repeated selection advances the matching preview and editable prompt. All five production photographs byte-match the reviewed originals and all five prompts match the recipe in a real signed-in owner session.",
-      "nextAction": "Use Image > Inspiration, or Explore all, and select again for another frame. No implementation blocker remains. Proposed later families: improve the existing Night Drive card with night interiors/mirrors; Asphalt for road-level and monochrome poses; Convertible for daylight cabin scenes. Full-resolution originals for those follow-ups were not attached.",
-      "baselineSha": "970588da815ade0ae53bffc5026fe2885a049a00",
-      "reviewedSha": "5182a3d1d937b7475c56df7439c582b6baf8189a",
-      "branch": "feat/highway-inspiration-20261112",
+      "summary": "Published the requested position swaps: Desert Stop is second and Lost Highway sixth; Vinyl Heat and Green Haze remain in the same 14-card carousel at tenth and ninth. Actual signed-in owner production gallery showed the new order and both road cards populated their matching editable prompts. No paid generation submitted.",
+      "nextAction": "Complete. Mobile rendering was not newly observed; existing unrelated compact-deck-height CI failure remains documented.",
+      "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
+      "reviewedSha": "60f287e9367b67aad1503560cec8f72cd5d596af",
+      "branch": "fix/inspiration-road-order-20261113",
       "files": [
         "lab/inspiration-road-scenes.js",
         "lab/inspiration-catalog-data.js",
@@ -3839,6 +3895,10 @@
         {
           "label": "Released PR #1018",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1018"
+        },
+        {
+          "label": "Position swap PR #1020",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1020"
         }
       ],
       "tests": [
@@ -3875,18 +3935,39 @@
           "observedAt": "2026-11-12T13:07:01.356Z",
           "scope": "All five browser-downloaded production WebP files SHA-256 match the reviewed local source; all five visible production prompts exactly match inspiration-road-scenes.js.",
           "source": "https://pvlab.studio/studio?tool=image"
+        },
+        {
+          "label": "2026-11-13 order swap checks",
+          "result": "passed",
+          "scope": "23 approved Image contract, catalog and rotation checks plus 4 affected carousel checks passed. Static site validation passed. Actual swap block evaluated for both rows: expected 14-card order, original nodes and handlers preserved."
+        },
+        {
+          "label": "Unchanged carousel comment assertion",
+          "result": "documented",
+          "scope": "Existing test still expects a removed comment in inspiration-looks.js; previously documented in this record, unchanged by this reorder."
+        },
+        {
+          "label": "2026-11-14 release reconciliation",
+          "result": "passed",
+          "scope": "Resolved work-record conflict while preserving the newer homepage character release. 23 approved Image, catalog and rotation tests plus static build and diff checks pass. Prior first-image CI failure concerns existing public/signed compact deck height, unrelated to node reordering."
+        },
+        {
+          "label": "Published source and real owner gallery",
+          "result": "passed",
+          "observedAt": "2026-11-14T18:34:06.757Z",
+          "scope": "Release verifier LIVE_VERIFIED for carousel JS. Catalog JS production SHA256 equals reviewed bytes. Real signed-in desktop: Desert Stop second, Lost Highway sixth, all 14 cards retained; both card selections injected their respective prompts. Screenshot inspected.",
+          "source": "https://pvlab.studio/studio?tool=image"
         }
       ],
       "deployment": {
         "state": "verified",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "sourceSha": "0fc75251badd912b64906c03c746e65f93b22384",
-        "observedAt": "2026-11-12T13:07:01.356Z",
+        "sourceSha": "0b2aed6763567a863d7b3231cf25d82432af7de2",
+        "observedAt": "2026-11-14T18:34:06.757Z",
         "evidenceUrl": "https://pvlab.studio/studio?tool=image",
         "limitations": [
-          "Cloudflare app check 131200988414 succeeded for production deployment 42f969f9-8c73-4ed0-8d0c-3f14cbd94bac.",
-          "Real signed-in owner card selection was verified. No paid provider generation or physical-phone test was performed.",
-          "Direct executor production HTTP was denied; browser-loaded photos were downloaded and SHA-256 compared instead."
+          "Real owner signed-in desktop verified. No new physical-phone or guest-browser observation; both rows share the same reordered-node code.",
+          "No paid generation or payment executed."
         ]
       },
       "evidence": [
@@ -3924,6 +4005,24 @@
           "limitations": [
             "No paid generation or payment executed."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Merged PR #1020 at 0b2aed6763567a863d7b3231cf25d82432af7de2. Cloudflare Pages check 132545463612 succeeded. Live carousel SHA256 4cbbbade1892a04a3c87f372d58d2f205d1819e4366c5404c523e33981ffb24f; catalog SHA256 29f61e096e34b2f6fc6b06d468dd2d6cb74feea8f0da5a1bdd35ce055cb87688.",
+          "scope": "Published script byte equality and correct asset cache version.",
+          "observedAt": "2026-11-14T18:34:06.757Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1020",
+          "limitations": []
+        },
+        {
+          "kind": "signed_in_production",
+          "summary": "Actual owner gallery shows Desert Stop in slot 2 and Lost Highway in slot 6, Green Haze 9 and Vinyl Heat 10. All 14 cards remain. Selecting the two featured cards fills the matching prompt. Original empty composer restored without submitting.",
+          "scope": "Desktop signed-in card ordering and selection.",
+          "observedAt": "2026-11-14T18:34:06.757Z",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "limitations": [
+            "Not a physical-phone test; no paid generation."
+          ]
         }
       ],
       "blockers": [],
@@ -3933,7 +4032,7 @@
         "Do not upload example people as a customer identity or automatically run a paid job.",
         "The remaining screenshot-only groups Night Drive, Asphalt and Convertible are proposed follow-ups; original full-resolution files were not attached."
       ],
-      "updatedAt": "2026-11-12T13:07:01.356Z"
+      "updatedAt": "2026-11-14T18:34:06.757Z"
     },
     {
       "id": "home-character-selection-20261113",
@@ -4013,12 +4112,12 @@
       "title": "Seedream 5.5 primary model; retain 5 Pro below Qwen",
       "component": "PV LAB Image / model routing",
       "status": "needs_verification",
-      "updatedAt": "2026-11-14T18:54:35.596Z",
+      "updatedAt": "2026-11-15T12:04:00Z",
       "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
       "reviewedSha": "1d87b8881cd7611485860283d138f73a3b3a533c",
       "branch": "feat/seedream-55",
-      "summary": "Seedream 5.5 first/default and retained 5 Pro below Qwen implemented in PR 1019. Reconciled current main without dropping homepage work; only conflict was shared work index. Updated four scoped source assertions to require the new engine/default while retaining prior safeguards. Added an exact picker-order regression. Production health still lacks the 5.5 marker; Worker deployment remains blocked on Cloudflare authentication.",
-      "nextAction": "Use a successful Cloudflare authentication method or restore the approved deploy credential, publish the reviewed Worker preserving bindings, verify the 5.5 health/session capability, then reconcile/merge frontend and verify exact production bytes and a real quote-only flow. Do not confirm paid generation.",
+      "summary": "Seedream 5.5 first/default and retained 5 Pro below Qwen implemented in PR 1019. Reconciled current main, preserving homepage and upscale work. Existing repository Cloudflare token verified active with read access to production Worker settings and deployments; earlier unavailable-token assumption was incorrect. Backend and frontend publication remain pending.",
+      "nextAction": "Run release checks, publish reviewed Worker without migrations while preserving production configuration, verify seedream55 health capability, merge frontend and verify production bytes. No paid generation.",
       "files": [
         "lab-worker/image-replacement.mjs",
         "lab-worker/worker.mjs",
@@ -4037,7 +4136,9 @@
         "tests/lab-flash-default-2k.test.mjs",
         "tests/lab-image-submit-handoff.test.mjs",
         "tests/lab-inspiration-rotation.test.mjs",
-        "tests/lab-moods.test.mjs"
+        "tests/lab-moods.test.mjs",
+        ".github/workflows/verify-lab-cloudflare-access.yml",
+        ".github/workflows/release-seedream-55-worker.yml"
       ],
       "links": [
         {
@@ -4065,6 +4166,11 @@
           "label": "Current-main integration checks",
           "scope": "237 checks: 234 passed; three existing Mood catalogue assertions fail for the already-added Fallen Angel and changed Hong Kong cover. The new-model compatibility, prompt handling, old history, exact quote and wallet tests pass. Source assertion expectations updated for new model only.",
           "result": "documented"
+        },
+        {
+          "label": "Release candidate focused safeguards",
+          "scope": "162 checks passed after integration with current main; approved Image contract, exact model order, routing, quotes, credits, finance, lifecycle and replacement.",
+          "result": "passed"
         }
       ],
       "deployment": {
@@ -4076,10 +4182,20 @@
           "Cloudflare GitHub sign-in reached device verification but returned 'Unable to sign in. Try again or use your email and password.' Automatic login attempts stopped."
         ]
       },
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "automated_test",
+          "summary": "Existing repository Cloudflare token is active and can read production Worker settings and deployments. Read-only workflow passed without deployment, migrations or account changes.",
+          "scope": "Current GitHub repository secret",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43711505075",
+          "observedAt": "2026-11-15T11:58:58Z",
+          "limitations": [
+            "Read access does not by itself verify deployment permission or customer generation."
+          ]
+        }
+      ],
       "blockers": [
-        "Successful authenticated Cloudflare deployment access is required. The automatic Worker workflow remains paused because its token is unavailable.",
-        "PR remains unmerged. Four amended test suites pass all 26 checks; unrelated existing CI failures remain. Recheck current main before final merge."
+        "Production release and exact asset verification remain pending. Existing token is active; no rotation is required."
       ],
       "doNotRepeat": [
         "Do not relabel historical Seedream 5 Pro jobs or remove that model.",

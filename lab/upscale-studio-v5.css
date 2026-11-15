@@ -1716,22 +1716,22 @@
    action on top of the Enlargement / Image format settings. This does not
    modify the photographic stage or the upload/generation logic. */
 @media(min-width:781px){
- #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+ #app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
    row-gap:8px!important;padding-top:18px!important;
  }
- #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
+ #app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
    margin:0!important;padding-bottom:13px!important;gap:5px!important;
  }
- #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) .controls-body>.pv-upscale-source-control{
+ #app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) .controls-body>.pv-upscale-source-control{
    gap:4px!important;
  }
- #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload{
+ #app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload{
    min-height:61px!important;max-height:61px!important;padding:8px 11px!important;gap:9px!important;
  }
- #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload .pv-upscale-source-icon{
+ #app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload .pv-upscale-source-icon{
    width:35px!important;height:35px!important;
  }
- #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+ #app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
    margin-top:11px!important;
  }
 }
@@ -1741,14 +1741,14 @@
    hero, model-card design, source image, navigation and pricing are untouched.
    The older fixed-height sidebar put its action above the format selector. */
 @media(min-width:781px){
-  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+  #app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
     height:auto!important;
     min-height:clamp(680px,calc(100dvh - 104px),980px)!important;
     max-height:none!important;
     overflow:visible!important;
     justify-content:flex-start!important;
   }
-  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+  #app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
     box-sizing:border-box!important;
     flex:0 0 auto!important;
     height:auto!important;
@@ -1757,7 +1757,7 @@
     overflow:visible!important;
     padding-bottom:0!important;
   }
-  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+  #app.upscale-studio-active:not(.video-upscale-active):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
     box-sizing:border-box!important;
     position:relative!important;
     top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
