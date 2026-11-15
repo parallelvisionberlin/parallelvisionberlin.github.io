@@ -33,3 +33,10 @@ These instructions apply to all changes under `lab/`, in addition to the reposit
 - Owner-approved 2026-11-11 exception: web PV Still uses one square Character tile beside Generate, slightly shorter than Generate. It replaces both the long identity button and the left person shortcut; selected identities fill it with their private portrait. Other models retain their toolbar character control. Source uploads stay in the existing +/reference strip. Preserve original picker handlers, model restrictions, native layout, pricing and provider logic.
 - The `is-pv-soul` and `has-character-picker` legacy layout classes are native-only. Web Soul must use the normal `pv-editorial-deck` rules.
 - Lock the outer web Image deck across all models: one shared 1064px desktop width, the same horizontal bounds and bottom anchor, and the same Generate position. PV Still's Character tile changes only the internal controls, never the frame width. References and long prompts may grow upward. Run `tests/lab-soul-deck-parity-ui.mjs` with the three existing Image browser suites when changing this contract.
+
+## Desktop Inspiration geometry, owner correction 2026-11-15
+
+- Desktop heading and cards must stay fixed while prompt text/references change. The old measured desktop lift is superseded; the existing phone adjustment remains mobile-only.
+- Preserve the approved taller single row: grow cards upward into spare heading space while keeping the original bottom edge and 24px heading gap. Do not add rows or extend cards downward.
+- Public, new, returning and owner Inspiration share the approved Chrome backdrop, heading/card spacing and1064px deck. Preserve the visually hidden credit-row layout slot even when owner status hides it.
+- Current verification and release: IMAGE-PROMPT-WORK-STATE.md, canonical record image-prompt-deck-clearance.

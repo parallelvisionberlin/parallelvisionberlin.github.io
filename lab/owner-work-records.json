@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-15T18:21:32.662Z",
+  "updatedAt": "2026-11-15T18:29:13.917Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1361,11 +1361,11 @@
       "id": "image-prompt-deck-clearance",
       "title": "Compact Image prompt and visible Inspiration card names",
       "component": "Image prompt deck",
-      "status": "in_progress",
-      "summary": "Owner correction Nov15: desktop Inspiration stays still while typing; public and owner share the 1064px frame and approved Chrome backdrop. Existing single-row cards grow upward by up to80px into spare heading space, preserving their original bottom edge and a24px headline gap. Phone adjustment retained unchanged.",
-      "nextAction": "Complete focused paste/taller-card CI, merge PR1026, verify production bytes and actual owner geometry. No paid generation.",
+      "status": "deployed",
+      "summary": "Live Nov 15: existing desktop Inspiration cards grow upward into spare heading space, keep their original bottom edge and stay fixed while typing. Public and owner share the approved Chrome backdrop, heading/card spacing and1064px composer. Phone positioning unchanged.",
+      "nextAction": "Complete and live. Preserve taller single-row desktop cards, their fixed bottom edge, the shared role frame and unchanged phone adjustment.",
       "baselineSha": "29dbf29f4b429ac04debf373037d2a324311cc96",
-      "reviewedSha": null,
+      "reviewedSha": "4c4efa8d4afc9f6c552175e902e7149f5863da97",
       "branch": "fix/desktop-inspiration-stability-20261115",
       "files": [
         "lab/image-editorial-deck.js",
@@ -1386,47 +1386,68 @@
       ],
       "tests": [
         {
-          "label": "Approved Image contract and static build",
+          "label": "Approved Image, models and static checks",
           "result": "passed",
-          "scope": "6 Image contract checks and static validation passed; JS syntax and diff checks passed."
+          "scope": "11 local source contracts, JS syntax, static build, canonical work state and diff validation passed."
         },
         {
-          "label": "Local required browser suites",
-          "result": "not_run",
-          "scope": "Chromium launch blocked by sandbox socket EPERM for paste, first-image and parity; Studio also cannot launch locally. Use hosted CI."
+          "label": "Exact final taller-card and prompt browser coverage",
+          "result": "passed",
+          "scope": "Dedicated paste job 132910431465 passed 48 desktop guest/signed-in/reopened-owner/History state cases across 1920,1440,1280px plus existing phone paste cases. Shared Soul geometry and paste steps passed in job 132910431910.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43746361936/job/132910431465"
         },
         {
-          "label": "Isolated desktop rendering",
-          "result": "passed",
-          "scope": "Cloud-browser fixture at 1363x936: heading top199.6875 and card top323.703125/bottom688.703125 remain identical from empty to long prompt; approved Chrome artwork loaded. Synthetic layout, not a real account."
-        },
-        {
-          "label": "Taller desktop card rendering",
-          "result": "passed",
-          "scope": "Isolated browser at1363x936: cards365→425px; bottom688.703125 unchanged; top263.703125; heading bottom239.703125. Existing row and dock remain in place. Mockup generated separately; not production evidence."
-        },
-        {
-          "label": "Hosted browser checks before taller-card follow-up",
-          "result": "passed",
-          "scope": "Shared Soul geometry and paste/stability suite passed at8549230. First-image passed direct role parity but hit its obsolete two-arrow scroll completion assertion; Studio retained its54/64px Video footer assertion. No assertions weakened."
+          "label": "Broader browser coverage",
+          "result": "failed",
+          "scope": "Dedicated first-image stops in unchanged phone compact-height assertion. Shared first-image passes role geometry but hits old two-arrow completion. Video layout retains 54/64px assertion; other jobs cannot install old Chromium onUbuntu 26. These unrelated gates were not weakened."
         }
       ],
       "deployment": {
-        "state": "not_started",
-        "sourceSha": null,
+        "state": "verified",
+        "sourceSha": "9d8d4f3036926e9b8e62a476082a663e5cf814ea",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-15T18:29:13.917Z",
+        "evidenceUrl": "https://pvlab.studio/studio",
         "limitations": [
-          "Local correction only; publication pending."
+          "Actual signed-in desktop behavior verified. Public roles and phone behavior use automated fixtures; no physical phone or separate signed-out production session tested.",
+          "Full CI is not green: unsupported Ubuntu 26 browser installations, existing mobile compact-height assertion, carousel two-arrow assertion and Video 54/64px footer assertion remain. No gates weakened."
         ]
       },
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "deployment",
+          "summary": "PR #1026 merged as 9d8d4f3; exact Cloudflare Pages check 132911714576 succeeded, deployment 51df79f5-4eb2-45b6-ac79-7a9bf27bcfcd.",
+          "scope": "Frontend Pages release only.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1026",
+          "observedAt": "2026-11-15T18:29:13.917Z",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Read-only release verifier returned LIVE_VERIFIED for image-editorial-deck.js, image-editorial-deck.css, image-deck-surface.css and image-chrome-hero-20261031.css at the merge SHA. Exact reviewed bytes match pvlab.studio.",
+          "scope": "All four changed application assets.",
+          "source": "lab/RELEASE-PROTOCOL.md",
+          "observedAt": "2026-11-15T18:29:13.917Z",
+          "limitations": []
+        },
+        {
+          "kind": "signed_in_production",
+          "summary": "Live signed-in desktop 1363x936: card height425px instead of 365; top 263.703125/bottom 688.703125; heading top199.6875/bottom239.703125; bar1064px. Card and heading geometry identical with empty and 3465-character prompt. Original empty prompt restored. Approved Chrome background observed.",
+          "scope": "Actual account UI; no Generate, payment, upload or credit mutation.",
+          "source": "https://pvlab.studio/studio",
+          "observedAt": "2026-11-15T18:29:13.917Z",
+          "limitations": [
+            "Public/account-role parity was checked with fixtures, not a second real signed-out production session."
+          ]
+        }
+      ],
       "blockers": [],
       "doNotRepeat": [
         "Preserve phone Inspiration adjustment, prompts, models, payments and generation.",
-        "The November6 measured desktop lift is superseded by owner instruction: no desktop card/heading motion.",
+        "The November 6 measured desktop lift is superseded by owner instruction: no desktop card/heading motion.",
         "No paid generation needed."
       ],
-      "updatedAt": "2026-11-15T18:21:32.662Z"
+      "updatedAt": "2026-11-15T18:29:13.917Z"
     },
     {
       "id": "video-loading-minimal",
