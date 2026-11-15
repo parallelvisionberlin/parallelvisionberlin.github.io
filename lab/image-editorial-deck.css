@@ -698,13 +698,39 @@ html:not(.pv-native-lab) #app.image-studio-active
   html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .inspiration-nav-next{right:-20px}
 }
 
-/* The welcome cards clear the measured, upward-growing Image deck. */
+/* History reserves the upward-growing deck. Desktop Inspiration stays still. */
 @media(min-width:1180px) and (min-height:680px){
-  html:not(.pv-native-lab) #gate.pv-guest-image .pv-guest-content > :is(.pv-guest-kicker,h1,.pv-guest-subtitle,.pv-guest-credit-note,.pv-guest-carousel),
-  html:not(.pv-native-lab) #app.image-studio-active #lab-welcome-start{
-    translate:0 calc(-1 * var(--pv-welcome-deck-lift,0px));
-  }
   html:not(.pv-native-lab) #app.image-studio-active .image-studio .archive{
     padding-bottom:max(230px,var(--pv-image-deck-reserve,230px));
+  }
+}
+
+/* The visually hidden credit row is a layout slot, including for owners
+   reopening Inspiration. Account permissions must not move the desktop cards. */
+@media(min-width:681px){
+  html:not(.pv-native-lab) #app.image-studio-active #lab-welcome-start .lab-welcome-balance[hidden]{
+    display:block!important;visibility:hidden!important;
+  }
+}
+
+/* Owner-approved taller desktop cards: grow upward from the existing row.
+   Reserve its original height so the heading, row bottom and dock stay put. */
+@media(min-width:1180px) and (min-height:680px){
+  html:not(.pv-native-lab) :is(#gate.pv-guest-image .pv-guest-carousel,#app.image-studio-active #lab-welcome-start .lab-welcome-carousel){
+    height:var(--pv-welcome-card-height,39dvh);
+  }
+  html:not(.pv-native-lab) :is(#gate.pv-guest-image #pv-guest-cards,#app.image-studio-active #lab-welcome-presets){
+    height:calc(var(--pv-welcome-card-height,39dvh) + var(--pv-welcome-card-growth,0px))!important;
+    translate:0 calc(-1 * var(--pv-welcome-card-growth,0px));
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .pv-guest-card,
+  html:not(.pv-native-lab) #app.image-studio-active:has(#image-composer.pv-welcome-deck) #lab-welcome-start .lab-welcome-preset{
+    height:calc(var(--pv-welcome-card-height,39dvh) + var(--pv-welcome-card-growth,0px))!important;
+  }
+  html:not(.pv-native-lab) :is(#gate.pv-guest-image .pv-guest-carousel,#app.image-studio-active #lab-welcome-start .lab-welcome-carousel) .inspiration-nav{
+    top:calc(50% - var(--pv-welcome-card-growth-half,0px));
+  }
+  html:not(.pv-native-lab) :is(#gate.pv-guest-image .pv-guest-carousel,#app.image-studio-active #lab-welcome-start .lab-welcome-carousel) .pv-inspiration-view-all{
+    top:calc(-40px - var(--pv-welcome-card-growth,0px));
   }
 }

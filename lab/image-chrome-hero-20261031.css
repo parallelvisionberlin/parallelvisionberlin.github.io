@@ -49,3 +49,24 @@ html:not(.pv-image-previews-hidden) #app.image-studio-active
     background:linear-gradient(180deg,rgba(2,3,5,.50) 0%,rgba(2,3,5,.23) 27%,rgba(2,3,5,.38) 78%,rgba(2,3,5,.72) 100%)!important;
   }
 }
+
+/* Desktop Inspiration reopened over History uses the same approved artwork
+   as public/new-account Image. Outrank the retired discovery wallpaper only
+   here; phone framing and Discreet Mode retain their existing rules. */
+@media(min-width:681px){
+  html:not(.pv-native-lab):not(.pv-image-previews-hidden)
+    #app.image-studio-active:not([hidden]):is(.pv-moods-discovery-open,:not(.pv-moods-discovery-open))
+    .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))::before{
+    inset:0!important;height:100%!important;
+    background:url("./visuals/image-hero-chrome-editorial-20261031.jpg") 52% 24%/cover no-repeat!important;
+    background-attachment:scroll!important;
+    opacity:1!important;filter:none!important;transform:none!important;
+  }
+  html:not(.pv-native-lab):not(.pv-image-previews-hidden)
+    #app.image-studio-active:not([hidden]):is(.pv-moods-discovery-open,:not(.pv-moods-discovery-open))
+    .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))::after{
+    background:
+      linear-gradient(90deg,rgba(4,5,7,.26) 0%,rgba(4,5,7,.09) 42%,transparent 72%),
+      linear-gradient(180deg,rgba(2,4,6,.15) 0%,rgba(2,4,6,.03) 42%,rgba(2,4,6,.11) 75%,rgba(2,3,5,.27) 100%)!important;
+  }
+}

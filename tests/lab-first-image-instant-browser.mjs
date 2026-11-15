@@ -610,6 +610,10 @@ try{
   await field.fill('A quiet editorial portrait.');
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'The card-view input remains open while deliberately editing a short prompt');
+  const stationaryCards=await page.evaluate(()=>({
+    bottom:document.getElementById('lab-welcome-presets').getBoundingClientRect().bottom,
+    titleTop:document.getElementById('lab-welcome-title').getBoundingClientRect().top
+  }));
   await field.fill(('Realistic editorial atmosphere and tactile photographic details. ').repeat(18));
   await page.waitForFunction(()=>document.querySelector('#image-composer').getBoundingClientRect().height>105);
   assert.ok(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),
@@ -655,10 +659,10 @@ try{
     titleTop:document.querySelector('#lab-welcome-start h2').getBoundingClientRect().top,
     headerBottom:document.getElementById('studio-header').getBoundingClientRect().bottom
   }));
-  assert.ok(cardClearance.bottom<=cardClearance.deckTop-15,
-    'Expanded prompt keeps whole Mood cards and names above the deck: '+JSON.stringify(cardClearance));
+  for(const key of ['bottom','titleTop'])assert.ok(Math.abs(cardClearance[key]-stationaryCards[key])<1,
+    'Desktop Inspiration stays stationary while writing and choosing a Mood: '+key+' '+JSON.stringify({stationaryCards,cardClearance}));
   assert.ok(cardClearance.titleTop>=cardClearance.headerBottom+14,
-    'Moving the cards to clear the prompt preserves the navigation: '+JSON.stringify(cardClearance));
+    'The stationary desktop heading stays below navigation: '+JSON.stringify(cardClearance));
   assert.equal((await field.inputValue()).trimEnd(),enteredText.trimEnd(),'Subsequent manual edits remain unchanged');
   assert.equal(await button.isEnabled(),true,'Hong Kong Nights must enable Generate after editing');
   await page.locator('[data-welcome-mood="dream-blur"]').click();
@@ -734,7 +738,7 @@ try{
     'Populated History retains its existing selection flow, never the welcome-only grid');
   await page.locator('#history-cancel-select').click();
   assert.equal(await page.locator('#history-selection').isVisible(),false);
-  // Reopened private Inspiration keeps its existing cinematic backdrop;
+  // Reopened desktop Inspiration now shares the approved Chrome backdrop;
   // the approved chrome photograph belongs to the first-image/public entry.
   await page.evaluate(()=>window.__welcomeMockInspiration(true));
   assert.equal(await page.locator('#lab-welcome-start').isVisible(),true);
@@ -744,12 +748,12 @@ try{
     return {image:back.backgroundImage,opacity:back.opacity,
       filter:back.filter,gradient:overlay.backgroundImage};
   });
-  assert.match(inspirationSurface.image,/\/visuals\/pvlab-subtle-cinematic-background-20261017\.webp/,
-    'Reopened Inspiration retains its approved cinematic plate');
+  assert.equal(inspirationSurface.image,welcomeSurface.image,
+    'Inspiration must use the same approved Chrome background as first-image welcome');
   assert.equal(inspirationSurface.filter,'none','Inspiration must not restore the saturated/blurred wallpaper');
   assert.equal(inspirationSurface.opacity,'1');
-  assert.match(inspirationSurface.gradient,/linear-gradient\(rgba\(2, 4, 8, 0\.16\) 0%, rgba\(2, 4, 8, 0\.035\) 38%, rgba\(2, 4, 8, 0\.08\) 74%, rgba\(3, 4, 7, 0\.25\) 100%\)/,
-    'Private Inspiration retains all four approved legibility stops');
+  assert.equal(inspirationSurface.gradient,welcomeSurface.gradient,
+    'Inspiration and welcome retain the same approved desktop overlay');
   const inspirationArrows=page.locator('.lab-welcome-carousel .inspiration-nav');
   await page.locator('.lab-welcome-carousel .inspiration-nav-next').waitFor({state:'visible'});
   const inspirationViewport=await page.evaluate(()=>{

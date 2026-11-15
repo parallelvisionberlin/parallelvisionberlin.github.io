@@ -67,12 +67,12 @@ test('Pending result cards, History, Assets, viewer and price summary share exac
  assert.doesNotMatch(source,/function detailModelName\(job\)[\s\S]{0,800}return 'Seedream 5 Pro'/);
 });
 
-test('Seedream 5.5 leads the picker and retained 5 Pro is immediately below Qwen',()=>{
+test('Seedream 5.5 leads the picker and retained 5 Pro is immediately below PV Still',()=>{
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   const select=html.match(/<select id="image-engine">([\s\S]*?)<\/select>/)[1];
   const models=[...select.matchAll(/<option value="([^"]+)"[^>]*>/g)].map(x=>x[1]);
   assert.equal(models[0],'seedream55');
-  assert.equal(models.indexOf('seedream'),models.indexOf('qwen3')+1);
+  assert.equal(models.indexOf('seedream'),models.indexOf('soulpro')+1);
   assert.equal(new Set(models).size,models.length);
   assert.match(select,/<option value="seedream55" selected>Seedream 5\.5<\/option>/);
 });

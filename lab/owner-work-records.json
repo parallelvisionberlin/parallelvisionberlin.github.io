@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-15T14:01:53.104Z",
+  "updatedAt": "2026-11-15T18:51:08.813Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1362,18 +1362,21 @@
       "title": "Compact Image prompt and visible Inspiration card names",
       "component": "Image prompt deck",
       "status": "deployed",
-      "summary": "Published: 13px desktop prompt text, 136px writing cap and measured 16px Inspiration-card clearance. History reserves the actual deck height; existing images and controls are retained.",
-      "nextAction": "No prompt-layout work remains. Preserve the measured gap, compact sizing and existing phone behavior in subsequent Studio changes.",
-      "baselineSha": "24d2b96d4c1b171edfd431f840aa73bcc1f366eb",
-      "reviewedSha": "4b24116921698ef352ce3259bda77e37ef544c7a",
-      "branch": "fix/image-prompt-deck-clearance-20261106",
+      "summary": "Live Nov 15: existing desktop Inspiration cards grow upward into spare heading space, keep their original bottom edge and stay fixed while typing. Public and owner share the approved Chrome backdrop, heading/card spacing and1064px composer. Phone positioning unchanged.",
+      "nextAction": "Complete and live. Preserve taller single-row desktop cards, their fixed bottom edge, the shared role frame and unchanged phone adjustment.",
+      "baselineSha": "29dbf29f4b429ac04debf373037d2a324311cc96",
+      "reviewedSha": "4c4efa8d4afc9f6c552175e902e7149f5863da97",
+      "branch": "fix/desktop-inspiration-stability-20261115",
       "files": [
         "lab/image-editorial-deck.js",
         "lab/image-editorial-deck.css",
         "lab/image-deck-surface.css",
         "lab/lab.js",
         "lab/studio.html",
-        "tests/lab-image-prompt-paste-ui.mjs"
+        "tests/lab-image-prompt-paste-ui.mjs",
+        "lab/image-chrome-hero-20261031.css",
+        "tests/lab-first-image-instant-browser.mjs",
+        ".github/workflows/pv-lab-image-paste.yml"
       ],
       "links": [
         {
@@ -1383,80 +1386,68 @@
       ],
       "tests": [
         {
-          "label": "Approved Image contract",
+          "label": "Approved Image, models and static checks",
           "result": "passed",
-          "scope": "All 5 existing invariants passed locally and in CI at the reviewed source.",
-          "source": "tests/lab-approved-image-ui-contract.test.mjs"
+          "scope": "11 local source contracts, JS syntax, static build, canonical work state and diff validation passed."
         },
         {
-          "label": "Prompt paste and measured card clearance",
+          "label": "Exact final taller-card and prompt browser coverage",
           "result": "passed",
-          "scope": "Final CI: desktop/phone paste, shrink, preserved text/internal scrolling, controls and 36 public/signed-in/History geometry cases. Independent browser fixtures also passed those 36 plus 12 Soul layouts.",
-          "source": "tests/lab-image-prompt-paste-ui.mjs"
+          "scope": "Dedicated paste job 132910431465 passed 48 desktop guest/signed-in/reopened-owner/History state cases across 1920,1440,1280px plus existing phone paste cases. Shared Soul geometry and paste steps passed in job 132910431910.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43746361936/job/132910431465"
         },
         {
-          "label": "Existing broader checks",
+          "label": "Broader browser coverage",
           "result": "failed",
-          "scope": "First-image role check has the exact same 120px/96px Base-width failure at baseline 24d2b96 and 454c5ab. Compact check runs with hosted Chrome but expects a Generate label >=17px while unchanged approved production uses 15px. Original assertions retained. Studio preflight has an unchanged Clerk assertion; broad suite has five existing failures.",
-          "source": "lab/IMAGE-PROMPT-WORK-STATE.md"
+          "scope": "Dedicated first-image stops in unchanged phone compact-height assertion. Shared first-image passes role geometry but hits old two-arrow completion. Video layout retains 54/64px assertion; other jobs cannot install old Chromium onUbuntu 26. These unrelated gates were not weakened."
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "d442a70730dedec9ff76bf13258d2400e4f5e995",
+        "sourceSha": "9d8d4f3036926e9b8e62a476082a663e5cf814ea",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-06T20:55:35.186Z",
-        "evidenceUrl": "https://pvlab.studio/studio?tool=image",
+        "observedAt": "2026-11-15T18:29:13.917Z",
+        "evidenceUrl": "https://pvlab.studio/studio",
         "limitations": [
-          "Public production layout and exact assets verified. Real signed-in Inspiration/History were validated with fixtures, not a live private account.",
-          "Existing unrelated Base-width, Generate-label and broad-suite assertions remain documented; no assertions were weakened."
+          "Actual signed-in desktop behavior verified. Public roles and phone behavior use automated fixtures; no physical phone or separate signed-out production session tested.",
+          "Full CI is not green: unsupported Ubuntu 26 browser installations, existing mobile compact-height assertion, carousel two-arrow assertion and Video 54/64px footer assertion remain. No gates weakened."
         ]
       },
       "evidence": [
         {
-          "kind": "source",
-          "summary": "Measured deck/card clearance replaces the unchanging desktop spacing allowance.",
-          "scope": "Source diagnosis and implementation.",
-          "source": "lab/IMAGE-PROMPT-WORK-STATE.md",
-          "limitations": [
-            "Browser checks pending."
-          ]
-        },
-        {
           "kind": "deployment",
-          "summary": "PR #876 merged as d442a70730dedec9ff76bf13258d2400e4f5e995. Exact Cloudflare Pages app check 128147866508 completed successfully.",
-          "scope": "Production Pages publication; no Worker deployment in this task.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/876",
-          "observedAt": "2026-11-06T20:55:35.186Z",
+          "summary": "PR #1026 merged as 9d8d4f3; exact Cloudflare Pages check 132911714576 succeeded, deployment 51df79f5-4eb2-45b6-ac79-7a9bf27bcfcd.",
+          "scope": "Frontend Pages release only.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1026",
+          "observedAt": "2026-11-15T18:29:13.917Z",
           "limitations": []
         },
         {
           "kind": "production_asset",
-          "summary": "Read-only verifier returned LIVE_VERIFIED for all four changed assets. SHA-256: image-editorial-deck.js d7aa9a72a25cb18e032c1de28a2ed7cede60ea1c61cd53228d0969a059de6565; image-editorial-deck.css ccb90836e118e4e5e50c1f344bf7e8a67f1d6041ddd2bda2df5b0aa7f8a6b62b; image-deck-surface.css 19691864b0d115ef1019e946f9d40102ce7f5f2482d944a8daddf13c59e6875b; lab.js 8f9021ae9bfae066e3071f4ab9e5644ac61cd8744ce9ba6ff42a539feb0bc0d9.",
-          "scope": "Exact custom-domain HTML references and reviewed source bytes at the production merge.",
+          "summary": "Read-only release verifier returned LIVE_VERIFIED for image-editorial-deck.js, image-editorial-deck.css, image-deck-surface.css and image-chrome-hero-20261031.css at the merge SHA. Exact reviewed bytes match pvlab.studio.",
+          "scope": "All four changed application assets.",
           "source": "lab/RELEASE-PROTOCOL.md",
-          "observedAt": "2026-11-06T20:55:35.186Z",
-          "limitations": [
-            "Asset verification does not establish real signed-in journeys or provider quality."
-          ]
+          "observedAt": "2026-11-15T18:29:13.917Z",
+          "limitations": []
         },
         {
-          "kind": "production_asset",
-          "summary": "Actual public Chrome Couture selection at 1363×936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
-          "scope": "Rendered public production layout after reload; no Generate click.",
-          "source": "https://pvlab.studio/studio?tool=image",
-          "observedAt": "2026-11-06T20:55:35.186Z",
+          "kind": "signed_in_production",
+          "summary": "Live signed-in desktop 1363x936: card height425px instead of 365; top 263.703125/bottom 688.703125; heading top199.6875/bottom239.703125; bar1064px. Card and heading geometry identical with empty and 3465-character prompt. Original empty prompt restored. Approved Chrome background observed.",
+          "scope": "Actual account UI; no Generate, payment, upload or credit mutation.",
+          "source": "https://pvlab.studio/studio",
+          "observedAt": "2026-11-15T18:29:13.917Z",
           "limitations": [
-            "No real signed-in or paid generation observation."
+            "Public/account-role parity was checked with fixtures, not a second real signed-out production session."
           ]
         }
       ],
       "blockers": [],
       "doNotRepeat": [
-        "No paid generation is needed for this layout fix.",
-        "Preserve approved phone viewport, card images and generation controls."
+        "Preserve phone Inspiration adjustment, prompts, models, payments and generation.",
+        "The November 6 measured desktop lift is superseded by owner instruction: no desktop card/heading motion.",
+        "No paid generation needed."
       ],
-      "updatedAt": "2026-11-06T20:55:35.186Z"
+      "updatedAt": "2026-11-15T18:29:13.917Z"
     },
     {
       "id": "video-loading-minimal",
@@ -4109,15 +4100,15 @@
     },
     {
       "id": "image-seedream-55",
-      "title": "Seedream 5.5 primary model; retain 5 Pro below Qwen",
+      "title": "Seedream 5.5 primary model; retain 5 Pro below PV Still",
       "component": "PV LAB Image / model routing",
       "status": "deployed",
-      "updatedAt": "2026-11-15T12:17:52.494Z",
+      "updatedAt": "2026-11-15T18:13:04.510Z",
       "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
-      "reviewedSha": "ab9e7fba3891cfb1bc6ae7c1b7c06e00cdbe5cbf",
-      "branch": "feat/seedream-55",
-      "summary": "Seedream 5.5 is published first/default in Image, with Seedream 5 Pro retained directly below Qwen and historical jobs unchanged. Existing repository Cloudflare token was active and used successfully; earlier unavailable-token assumption was incorrect. Worker version 6eb0a678-f336-4420-9f9c-59243f733374 was released without migrations and with all live bindings, variables and secret names preserved. Frontend merged in 59908c09a455a5422a583706aa8a75b3eeee1d1a; Cloudflare production deployment 5538dd15-4671-445e-9034-293292c236f1 succeeded. Live verification passed for the exact production HTML picker order, all eight changed JavaScript modules through their real import URLs, and backend capability.",
-      "nextAction": "Release is published and verified. Refresh Studio. Real signed-in quoting and paid output quality remain separate checks; no token rotation or further setup is required.",
+      "reviewedSha": "21cfbc55d6da547d0ccb3ca0545659496f92ce68",
+      "branch": "fix/seedream-pro-below-pv-still",
+      "summary": "Seedream 5 Pro is live directly below PV Still. The first three Image options are Seedream 5.5, PV Still and Seedream 5 Pro. Only the existing HTML option moved; all other relative positions and generation/pricing behavior are preserved. PR 1025 merged as 39825b4b70d53fec730026f8f4e39d0ec0f866c0; exact Cloudflare production check 132907013560 succeeded. Read-only signed-in production DOM observation confirmed the requested order.",
+      "nextAction": "Complete. Refresh Studio to load the published picker order. No backend redeployment or paid test was required.",
       "files": [
         "lab-worker/image-replacement.mjs",
         "lab-worker/worker.mjs",
@@ -4144,6 +4135,10 @@
         {
           "label": "Seedream 5.5 implementation PR 1019",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1019"
+        },
+        {
+          "label": "Move 5 Pro below PV Still PR 1025",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1025"
         }
       ],
       "tests": [
@@ -4176,16 +4171,20 @@
           "label": "Purchase flow browser CI limitation",
           "scope": "Pricing, quotes, finance, customer billing and approved Image Node checks passed. The browser fixture produced no completed scenarios and was cancelled by its ten-minute job timeout. Wider suite also retains existing catalogue, source and layout failures; this is not an all-green CI claim.",
           "result": "documented"
+        },
+        {
+          "label": "Model order follow-up",
+          "scope": "All 11 model-label/order and approved Image contract checks passed locally. Required approved-image-ui CI check 132905936398 and static validation passed.",
+          "result": "passed"
         }
       ],
       "deployment": {
         "state": "verified",
-        "environment": "Cloudflare Worker parallel-vision-lab and Pages pvlab-studio",
-        "sourceSha": "59908c09a455a5422a583706aa8a75b3eeee1d1a",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43712809467",
+        "environment": "PV LAB Cloudflare Pages pvlab-studio",
+        "sourceSha": "39825b4b70d53fec730026f8f4e39d0ec0f866c0",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=image",
         "limitations": [
-          "No real signed-in quote or paid generation performed.",
-          "Wider CI retains existing Mood catalogue, source and layout failures. Purchase browser fixture timed out; its quote/credit/finance Node checks passed."
+          "Verification covers model order in the signed-in production DOM; no paid request or billing action was performed."
         ]
       },
       "evidence": [
@@ -4218,6 +4217,16 @@
           "limitations": [
             "Not a real signed-in quote or paid output-quality test."
           ]
+        },
+        {
+          "kind": "signed_in_production",
+          "summary": "Production model select options begin Seedream 5.5, PV Still, Seedream 5 Pro, Kling V3. Existing signed-in Studio loaded and Seedream 5.5 remained selected. Exact merge Cloudflare Pages check succeeded before the DOM observation.",
+          "scope": "Model order only; no selection, generation or payment action",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "observedAt": "2026-11-15T18:13:04.510Z",
+          "limitations": [
+            "No output-quality or full billing-journey verification."
+          ]
         }
       ],
       "blockers": [],
@@ -4233,9 +4242,9 @@
       "title": "Stop phone Mood freezing, stabilize saved-character frame and restore regression coverage",
       "component": "Customer generation / regression coverage",
       "status": "needs_verification",
-      "summary": "Prepared in existing draft #934: stop the phone Mood observer loop, preserve the locked shared Image frame and stable Full Editorial character-source header, and restore faithful current-release regression coverage. Fully tested code candidate 6e4c327b62ec4aa96d36829d36f60eb8c8f24fa5 passes all 11 focused GitHub checks, including the complete combined Video/Image/Effects/Upscale/reference browser run. Earlier exact 68c07698 passes all 283 focused local checks and required first-image/shared-deck suites. Current source/Worker behavior is preserved from main 29dbf29f except the seven intended frontend/record files. All other owner records and handoffs are preserved. The temporary diagnostic comparison is restored to main for final review; a final record-only checkpoint must have its exact-head CI inspected before any publication decision. No production action has been taken.",
-      "nextAction": "Inspect the final record-only head in #934, then obtain the user decision required for merge/frontend publication. After an authorized release, verify actual production asset bytes and phone Mood interaction without paid Generate, checkout or credit changes. No Worker deployment or migration is needed for this frontend repair.",
-      "baselineSha": "29dbf29f4b429ac04debf373037d2a324311cc96",
+      "summary": "Updating draft #934 after #1025/#1026 merged. The earlier 8a5d2d05 remains fully tested against old main only; it now conflicts with the released taller stationary desktop cards and model order. Integrate current main while preserving all its approved desktop behavior, Chrome backdrop, Seedream 5 Pro order, and all other work records. Retain the isolated phone observer guard and existing CI/fixture repairs. Current integration still requires fresh focused and hosted validation before it can be described as ready. Production controller bytes independently confirm the unguarded phone class update remains live; no real generation/payment or production change was performed.",
+      "nextAction": "Complete validation of the integrated candidate on current main, then present the concrete merge/frontend-publication decision. No Worker deployment or migration is needed. After an authorized publication verify served controller bytes and a phone Mood interaction without paid generation.",
+      "baselineSha": "c340012303b842fd0687dfc1c7f395295b99f23a",
       "reviewedSha": "6e4c327b62ec4aa96d36829d36f60eb8c8f24fa5",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
@@ -4728,11 +4737,23 @@
           "limitations": [
             "All provider, payment and credit writes are mocked."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Read-only production HTML and its actual versioned image-editorial-deck.js returned HTTP 200 on 2026-11-15T18:48:37.787Z. SHA256 3a33a1636ea69a68789eabea1b81eea9f707ef8adc7f07429e71fe945a57ff5e still contains the unconditional observed phone class addition. Current main c3400123 has the same vulnerable source. The new account browser run times out on a Dream Blur Mood click; unrelated Ubuntu 26 browser-install failures and pre-existing Video/catalog assertions were separately identified.",
+          "scope": "Production code exposure confirmed; actual paid customer behavior not exercised.",
+          "source": "https://pvlab.studio/image-editorial-deck.js?v=20261111-character-tile1&phoneInspirationLift=20261111v1&desktopStable=20261115-taller2",
+          "observedAt": "2026-11-15T18:48:37.787Z",
+          "limitations": [
+            "Controller bytes confirm exposure, not the number of affected customers or financial loss.",
+            "No production writes, paid jobs, checkout or credit changes."
+          ]
         }
       ],
       "blockers": [
-        "User decision required before merging or publishing the prepared frontend repair.",
-        "Live signed-in checkout-to-credit delivery and paid image/video behavior remain unverified. Applied database state is unknown; no migrations were authored/applied by this repair."
+        "Integrated candidate validation is pending. Historical 61 green checks apply only to old head 8a5d2d05 against main 29dbf29f.",
+        "User decision is required before merge/frontend publication.",
+        "Real signed-in checkout-to-credit delivery and paid generation remain unverified."
       ],
       "doNotRepeat": [
         "Do not rewrite approved catalog/design to silence assertions. Reuse existing PR #934 for its test-fixture files.",
@@ -4740,7 +4761,7 @@
         "Keep strict visual thresholds. Use captured geometry/style and same-source controls when narrow rounded-edge variance recurs; do not declare production health or weaken the gate.",
         "Use current exact job IDs, nested saved-video Actions, uniform Video failure cards and inspector reuse; do not restore retired status prefixes, Liquid Metal templates or Image-only refusal markup to satisfy stale fixtures."
       ],
-      "updatedAt": "2026-11-15T14:01:53.104Z"
+      "updatedAt": "2026-11-15T18:51:08.813Z"
     }
   ]
 }

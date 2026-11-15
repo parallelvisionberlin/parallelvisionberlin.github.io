@@ -1,3 +1,12 @@
+## 2026-11-15 | Desktop Inspiration correction, published
+
+- Supersedes the November 6 desktop lift/whole-card-clearance rule: owner requires heading/cards to stay still while typing. Phone adjustment remains byte-identical.
+- Existing single desktop row grows upward by up to 80px into spare heading space, keeps its bottom edge and a 24px headline gap. No extra rows/photos; public and owner share the 1064px frame and approved Chrome background. Preserve the hidden credit-row layout slot for reopened owner Inspiration.
+- PR #1026 reviewed 4c4efa8d; merge 9d8d4f3036926e9b8e62a476082a663e5cf814ea. Cloudflare Pages check 132911714576 succeeded. All four changed assets returned LIVE_VERIFIED with exact production bytes.
+- Exact candidate paste/taller-card suite passes 48 desktop state cases plus phone paste. Shared Soul geometry and paste steps pass. Broader mobile compact-height, carousel two-arrow, Video 54/64px and Ubuntu 26 installation failures remain; no assertions disabled.
+- Actual signed-in production 1363x936: cards 425px, top 263.703125, bottom 688.703125; heading 199.6875; same coordinates with empty and 3465-character prompt. Original empty text restored; no paid generation. Public roles tested with fixtures; no separate signed-out live session or physical phone claim.
+- Complete. Canonical status and verification detail: owner-work-records.json record image-prompt-deck-clearance.
+
 ## 2026-11-07 | Owner Seedream defaults to 1K
 
 - Request: keep Seedream Pro at 1K by default in the owner Image deck.
