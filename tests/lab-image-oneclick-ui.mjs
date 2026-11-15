@@ -667,7 +667,7 @@ try{
  x=await workspace({initial:[failedFal,uncertainFal]});await x.page.click('#tool-video');
  const failedCard=x.page.locator('.card[data-job="'+failedFal.id+'"]');assert.equal(await failedCard.locator('.history-no-result strong').innerText(),'Generation failed');assert.doesNotMatch(await failedCard.innerText(),/Result pending/);assert.match(await failedCard.textContent(),/Lab estimate released: \$1\.721/);
  const uncertainCard=x.page.locator('.card[data-job="'+uncertainFal.id+'"]');assert.equal(await uncertainCard.locator('.history-no-result strong').innerText(),'Status unknown');assert.doesNotMatch(await uncertainCard.innerText(),/Result pending/);assert.match(await uncertainCard.textContent(),/provider status unknown/);
- await failedCard.click();await x.page.locator('#video-detail-extra summary').click();assert.equal(await x.page.locator('#video-detail-extra-list').getByRole('button',{name:'Recover FAL output'}).count(),1);
+ await failedCard.click();await x.page.locator('#pv-video-scene-actions>summary').click();await x.page.locator('#video-detail-extra summary').click();assert.equal(await x.page.locator('#video-detail-extra-list').getByRole('button',{name:'Recover FAL output'}).count(),1);
  ok('History distinguishes definite FAL failure from uncertain provider status and offers FAL recovery');await x.context.close();
 
 
