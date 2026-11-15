@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-15T19:15:00Z",
+  "updatedAt": "2026-11-15T18:13:04.510Z",
   "handoffs": [
     {
       "id": "owner",
@@ -232,7 +232,7 @@
       "title": "Chrome Desert featured world to Full Editorial",
       "component": "PV LAB homepage / Full Editorial",
       "status": "deployed",
-      "summary": "Chrome Desert homepage crop now keeps the model’s entire head visible. Original photo, supporting cards, layout and CTA preserved.",
+      "summary": "Chrome Desert homepage crop now keeps the model\u2019s entire head visible. Original photo, supporting cards, layout and CTA preserved.",
       "nextAction": "No crop implementation pending. Mobile rendering was not freshly browser-tested in this release.",
       "baselineSha": "739b9b3fde2092b259997b7a98e8be83b950ba1d",
       "branch": "fix/chrome-desert-head-framing-20261114",
@@ -607,7 +607,7 @@
       "title": "Selected Image Mood label clarity",
       "component": "Image Mood control",
       "status": "needs_verification",
-      "summary": "Desktop 104px selected Mood pill reserves room for clear ×; Night Flash lettering is bounded and cannot cover the clear button. Rest of Image toolbar untouched.",
+      "summary": "Desktop 104px selected Mood pill reserves room for clear \u00d7; Night Flash lettering is bounded and cannot cover the clear button. Rest of Image toolbar untouched.",
       "nextAction": "Run Night Flash geometry and Image UI checks, merge reviewed PR, confirm Cloudflare and production asset.",
       "baselineSha": "a73fc4242a76802458facee8379d713654af9c15",
       "reviewedSha": null,
@@ -736,7 +736,7 @@
       "title": "Group partner dashboards",
       "component": "Owner navigation",
       "status": "deployed",
-      "summary": "Robin / König Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
+      "summary": "Robin / K\u00f6nig Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
       "nextAction": "No additional menu work is pending. Recheck only if navigation code, routes or role behavior change.",
       "baselineSha": "e400ff36ca7e6d541dfeb8d8748fc0357a0b6730",
       "reviewedSha": "9fc17771dd75bd3eeb4cd5bbdc77812945f98e1c",
@@ -883,7 +883,7 @@
       "component": "Owner workspace",
       "status": "deployed",
       "summary": "Published: clear View activity access to existing generated-content review, restored manual Customers Refresh and improved Recent purchases spacing. Approved simplified navigation and existing functions retained.",
-      "nextAction": "Use Customers → View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
+      "nextAction": "Use Customers \u2192 View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
       "baselineSha": "e2cd02bce742b157d12308b76908cbacea34b604",
       "reviewedSha": "01362b3073f7d997d98d7ebd2830ad586d244d77",
       "branch": "fix/owner-activity-access-20261106",
@@ -1309,7 +1309,7 @@
         },
         {
           "kind": "fixture",
-          "summary": "Rendered a local scene-specific exposure/color proof preserving original pixel coordinates and 1343×767 geometry. Both faces, expressions and composition remain source-derived. Original frontal lighting remains evident.",
+          "summary": "Rendered a local scene-specific exposure/color proof preserving original pixel coordinates and 1343\u00d7767 geometry. Both faces, expressions and composition remain source-derived. Original frontal lighting remains evident.",
           "scope": "User-supplied storefront Base capture, local deterministic render and visual inspection.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/HONG-KONG-IMAGE3-WORK-STATE.md",
           "observedAt": "2026-11-07T09:15:51Z",
@@ -2172,7 +2172,7 @@
       "title": "Smaller Image reference removal controls",
       "component": "Image prompt deck",
       "status": "deployed",
-      "summary": "Published: Image thumbnail × controls are 16px and appear on hover or visible keyboard focus on mouse-equipped web devices. Existing touch/native visibility and sizing remain.",
+      "summary": "Published: Image thumbnail \u00d7 controls are 16px and appear on hover or visible keyboard focus on mouse-equipped web devices. Existing touch/native visibility and sizing remain.",
       "nextAction": "No further work pending for this request. Real signed-in hover/removal observation remains separate from asset publication and synthetic-session browser checks.",
       "baselineSha": "c714d7ec533da9807bb3f0f03e5c571463d2a4e4",
       "reviewedSha": "dd1aab176c7cadbfe987955c14cdf055188c3a31",
@@ -3304,7 +3304,7 @@
         {
           "label": "Photographic geometry and Assets browser regression",
           "result": "passed",
-          "scope": "Eight photographic cases: Standard V2/High Fidelity V3 at 1920×910, 1440×740, 1024×520 and 390×844. Exact upload/Clear inspector geometry, visible source, no inner scroll, no horizontal overflow, accessible fields/action and no billable requests. Desktop/mobile Assets result, History and source-replacement assertions pass.",
+          "scope": "Eight photographic cases: Standard V2/High Fidelity V3 at 1920\u00d7910, 1440\u00d7740, 1024\u00d7520 and 390\u00d7844. Exact upload/Clear inspector geometry, visible source, no inner scroll, no horizontal overflow, accessible fields/action and no billable requests. Desktop/mobile Assets result, History and source-replacement assertions pass.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43628905439/job/132550892178"
         },
         {
@@ -3332,7 +3332,7 @@
       "evidence": [
         {
           "kind": "source",
-          "summary": "A high-specificity legacy empty-only 680px workspace rule moved the action by 42px at 1440×740. The later Image workspace rules now match both visible empty/source states with the same specificity.",
+          "summary": "A high-specificity legacy empty-only 680px workspace rule moved the action by 42px at 1440\u00d7740. The later Image workspace rules now match both visible empty/source states with the same specificity.",
           "scope": "Image Upscaler inspector sizing",
           "source": "lab/video-upscale.css",
           "limitations": []
@@ -3361,7 +3361,7 @@
         },
         {
           "kind": "signed_in_production",
-          "summary": "Live existing authenticated browser: public 960×1200 JPG selected through the source chooser and cleared through Clear. Title, model, scale, format and action rectangles remained exactly equal before/after both actions. Body overflow-y visible; clientHeight = scrollHeight = 752px. Upscale was never clicked.",
+          "summary": "Live existing authenticated browser: public 960\u00d71200 JPG selected through the source chooser and cleared through Clear. Title, model, scale, format and action rectangles remained exactly equal before/after both actions. Body overflow-y visible; clientHeight = scrollHeight = 752px. Upscale was never clicked.",
           "scope": "Actual production upload/Clear layout and absence of an internal scrollbar",
           "source": "https://pvlab.studio/studio?tool=upscale",
           "limitations": [
@@ -3416,7 +3416,7 @@
         {
           "label": "Picker geometry and shared toolbar",
           "result": "passed",
-          "scope": "Anchored menu, viewport fit, compact choices and stable deck at 1440×900, 1100×700, 390×844 and 390×600. Desktop and phone screenshots inspected.",
+          "scope": "Anchored menu, viewport fit, compact choices and stable deck at 1440\u00d7900, 1100\u00d7700, 390\u00d7844 and 390\u00d7600. Desktop and phone screenshots inspected.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42905720524"
         },
         {
@@ -3470,7 +3470,7 @@
       "title": "PV Still image quantity counter",
       "component": "Image / PV Still",
       "status": "deployed",
-      "summary": "Added the shared 1–2 image counter for PV Still. Each image uses its own live quote and job; customer confirmation shows the total. Complete quote validation, two-slot availability checks and stop-on-uncertain handling protect partial batches.",
+      "summary": "Added the shared 1\u20132 image counter for PV Still. Each image uses its own live quote and job; customer confirmation shows the total. Complete quote validation, two-slot availability checks and stop-on-uncertain handling protect partial batches.",
       "nextAction": "No implementation work remains. If the owner reports a real provider issue, inspect the returned job and quote before retrying.",
       "baselineSha": "1255c78b396c00bef6caf8df3bb9a6f004cf6b25",
       "reviewedSha": "1ab7d0211094c058c428a74db309cf4d34bf12b0",
@@ -4039,7 +4039,7 @@
       "evidence": [
         {
           "kind": "source",
-          "summary": "Only four lazy-loaded figure cards added to homepage, using existing casting JPEGs and sequential numbers 09–12.",
+          "summary": "Only four lazy-loaded figure cards added to homepage, using existing casting JPEGs and sequential numbers 09\u201312.",
           "scope": "Homepage character selection only.",
           "source": "lab/index.html",
           "limitations": [
@@ -4066,15 +4066,15 @@
     },
     {
       "id": "image-seedream-55",
-      "title": "Seedream 5.5 primary model; retain 5 Pro below Qwen",
+      "title": "Seedream 5.5 primary model; retain 5 Pro below PV Still",
       "component": "PV LAB Image / model routing",
       "status": "deployed",
-      "updatedAt": "2026-11-15T12:17:52.494Z",
+      "updatedAt": "2026-11-15T18:13:04.510Z",
       "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
-      "reviewedSha": "ab9e7fba3891cfb1bc6ae7c1b7c06e00cdbe5cbf",
-      "branch": "feat/seedream-55",
-      "summary": "Seedream 5.5 is published first/default in Image, with Seedream 5 Pro retained directly below Qwen and historical jobs unchanged. Existing repository Cloudflare token was active and used successfully; earlier unavailable-token assumption was incorrect. Worker version 6eb0a678-f336-4420-9f9c-59243f733374 was released without migrations and with all live bindings, variables and secret names preserved. Frontend merged in 59908c09a455a5422a583706aa8a75b3eeee1d1a; Cloudflare production deployment 5538dd15-4671-445e-9034-293292c236f1 succeeded. Live verification passed for the exact production HTML picker order, all eight changed JavaScript modules through their real import URLs, and backend capability.",
-      "nextAction": "Release is published and verified. Refresh Studio. Real signed-in quoting and paid output quality remain separate checks; no token rotation or further setup is required.",
+      "reviewedSha": "21cfbc55d6da547d0ccb3ca0545659496f92ce68",
+      "branch": "fix/seedream-pro-below-pv-still",
+      "summary": "Seedream 5 Pro is live directly below PV Still. The first three Image options are Seedream 5.5, PV Still and Seedream 5 Pro. Only the existing HTML option moved; all other relative positions and generation/pricing behavior are preserved. PR 1025 merged as 39825b4b70d53fec730026f8f4e39d0ec0f866c0; exact Cloudflare production check 132907013560 succeeded. Read-only signed-in production DOM observation confirmed the requested order.",
+      "nextAction": "Complete. Refresh Studio to load the published picker order. No backend redeployment or paid test was required.",
       "files": [
         "lab-worker/image-replacement.mjs",
         "lab-worker/worker.mjs",
@@ -4101,6 +4101,10 @@
         {
           "label": "Seedream 5.5 implementation PR 1019",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1019"
+        },
+        {
+          "label": "Move 5 Pro below PV Still PR 1025",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1025"
         }
       ],
       "tests": [
@@ -4133,16 +4137,20 @@
           "label": "Purchase flow browser CI limitation",
           "scope": "Pricing, quotes, finance, customer billing and approved Image Node checks passed. The browser fixture produced no completed scenarios and was cancelled by its ten-minute job timeout. Wider suite also retains existing catalogue, source and layout failures; this is not an all-green CI claim.",
           "result": "documented"
+        },
+        {
+          "label": "Model order follow-up",
+          "scope": "All 11 model-label/order and approved Image contract checks passed locally. Required approved-image-ui CI check 132905936398 and static validation passed.",
+          "result": "passed"
         }
       ],
       "deployment": {
         "state": "verified",
-        "environment": "Cloudflare Worker parallel-vision-lab and Pages pvlab-studio",
-        "sourceSha": "59908c09a455a5422a583706aa8a75b3eeee1d1a",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43712809467",
+        "environment": "PV LAB Cloudflare Pages pvlab-studio",
+        "sourceSha": "39825b4b70d53fec730026f8f4e39d0ec0f866c0",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=image",
         "limitations": [
-          "No real signed-in quote or paid generation performed.",
-          "Wider CI retains existing Mood catalogue, source and layout failures. Purchase browser fixture timed out; its quote/credit/finance Node checks passed."
+          "Verification covers model order in the signed-in production DOM; no paid request or billing action was performed."
         ]
       },
       "evidence": [
@@ -4174,6 +4182,16 @@
           "observedAt": "2026-11-15T12:16:21Z",
           "limitations": [
             "Not a real signed-in quote or paid output-quality test."
+          ]
+        },
+        {
+          "kind": "signed_in_production",
+          "summary": "Production model select options begin Seedream 5.5, PV Still, Seedream 5 Pro, Kling V3. Existing signed-in Studio loaded and Seedream 5.5 remained selected. Exact merge Cloudflare Pages check succeeded before the DOM observation.",
+          "scope": "Model order only; no selection, generation or payment action",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "observedAt": "2026-11-15T18:13:04.510Z",
+          "limitations": [
+            "No output-quality or full billing-journey verification."
           ]
         }
       ],
