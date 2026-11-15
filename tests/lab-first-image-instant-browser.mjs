@@ -607,6 +607,10 @@ try{
   await field.fill('A quiet editorial portrait.');
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'The card-view input remains open while deliberately editing a short prompt');
+  const stationaryCards=await page.evaluate(()=>({
+    bottom:document.getElementById('lab-welcome-presets').getBoundingClientRect().bottom,
+    titleTop:document.getElementById('lab-welcome-title').getBoundingClientRect().top
+  }));
   await field.fill(('Realistic editorial atmosphere and tactile photographic details. ').repeat(18));
   await page.waitForFunction(()=>document.querySelector('#image-composer').getBoundingClientRect().height>105);
   assert.ok(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),
@@ -645,10 +649,10 @@ try{
     titleTop:document.querySelector('#lab-welcome-start h2').getBoundingClientRect().top,
     headerBottom:document.getElementById('studio-header').getBoundingClientRect().bottom
   }));
-  assert.ok(cardClearance.bottom<=cardClearance.deckTop-15,
-    'Expanded prompt keeps whole Mood cards and names above the deck: '+JSON.stringify(cardClearance));
+  for(const key of ['bottom','titleTop'])assert.ok(Math.abs(cardClearance[key]-stationaryCards[key])<1,
+    'Desktop Inspiration stays stationary while writing and choosing a Mood: '+key+' '+JSON.stringify({stationaryCards,cardClearance}));
   assert.ok(cardClearance.titleTop>=cardClearance.headerBottom+14,
-    'Moving the cards to clear the prompt preserves the navigation: '+JSON.stringify(cardClearance));
+    'The stationary desktop heading stays below navigation: '+JSON.stringify(cardClearance));
   assert.equal((await field.inputValue()).trimEnd(),enteredText.trimEnd(),'Selecting a Mood preserves the user text');
   assert.equal(await page.locator('#image-composer-resolution').inputValue(),'1k',
     'Applying a Mood to existing customer text does not override image resolution');
@@ -735,7 +739,7 @@ try{
       filter:back.filter,gradient:overlay.backgroundImage};
   });
   assert.equal(inspirationSurface.image,welcomeSurface.image,
-    'Inspiration must use the same blue/copper background as first-image welcome');
+    'Inspiration must use the same approved Chrome background as first-image welcome');
   assert.equal(inspirationSurface.filter,'none','Inspiration must not restore the saturated/blurred wallpaper');
   assert.equal(inspirationSurface.opacity,'1');
   assert.equal(inspirationSurface.gradient,welcomeSurface.gradient,
