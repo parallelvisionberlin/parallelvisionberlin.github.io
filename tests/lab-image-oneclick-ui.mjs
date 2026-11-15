@@ -728,19 +728,20 @@ try{
  x=await workspace({initial:moderatedVideos});await x.page.click('#tool-video');
  for(const record of moderatedVideos){
   const card=x.page.locator('#history .card[data-job="'+record.id+'"]');
-  assert.equal(await card.locator('.history-no-result.is-content-restricted strong').innerText(),'Not with this model.');
-  assert.equal(await card.locator('.content-restriction-edit').count(),1);
+  assert.equal(await card.locator('.history-no-result.pv-video-history-state strong').innerText(),'Generation failed');
+  assert.equal(await card.locator('.pv-video-history-details').count(),1,'Current Video failures retain the explicit details action');
+  assert.equal(await card.locator('.pv-video-history-credit').count(),0,'A refusal alone never establishes a returned-credit notice');
   assert.equal(await card.locator('.cardactions button').filter({hasText:'Download video'}).isDisabled(),true);
  }
  const seedanceCard=x.page.locator('#history .card[data-job="'+moderatedVideos[0].id+'"]');
  assert.match(await seedanceCard.innerText(),/Seedance/i,'Guidance must name the video model, not an image model');
  await seedanceCard.click();
  assert.equal(await x.page.locator('#video-detail-status').innerText(),'Restricted');
- await seedanceCard.locator('.content-restriction-edit').click();await ready(x.page);
+ await x.page.locator('#video-detail-reuse').click();await ready(x.page);
  assert.equal(await x.page.locator('#prompt').inputValue(),'Slow camera push toward the room.');
  assert.equal(x.accepted(),0,'Video prompt reuse must not submit a paid request');
  assert.deepEqual(x.errors,[]);
- ok('Seedance and FAL video refusals use the same card and restore the original prompt without generation');await x.context.close();
+ ok('Seedance and FAL video refusals retain the current details card and restore the original prompt without generation');await x.context.close();
 
  const inactive=n=>({id:id(1000+n),status:'failed',sourceId:id(1100+n),settings:{type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',soulProQuality:'medium',resolution:'source',prompt:''},createdAt:Date.now()-n,estimatedUsd:.06,error:'test failure',providerTaskId:'fal-'+n});
  x=await workspace({initial:[inactive(1),inactive(2),inactive(3),active(1040)]});await x.page.click('#tool-image');
