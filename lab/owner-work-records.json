@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-15T12:11:02.611Z",
+  "updatedAt": "2026-11-15T12:21:12.218Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4112,10 +4112,10 @@
       "title": "Stop phone Mood freezing, stabilize saved-character frame and restore regression coverage",
       "component": "Customer generation / regression coverage",
       "status": "needs_verification",
-      "summary": "Exact 809d203b verifies the phone observer fix, Full Editorial frame, guest/new/returning/owner 1064px parity, prompt paste, public visual/privacy comparisons and both account engines. Its 41 successful and 7 failed CI checks expose further old fixture assumptions after previously failing steps. Follow-up changes are tests/monitoring only: traverse all fourteen Inspiration cards, distinguish idle versus expanded Mood styling, explicitly load lazy Fashion examples, keep current desktop Video Generate size, and verify uncertain Queue actions without requiring a nonexistent poll.",
+      "summary": "Product code remains identical to 809d203b: phone Mood loop, Full Editorial header and role-parity fixes verified in hosted browsers. Exact 1c25297e also verifies lazy Fashion references and the uncertain-Queue no-write action. Follow-up fixture corrections complete reverse carousel traversal, wait for the existing Mood color transition, honor the current Video model-banner breakpoint and retain the independently tested optional Extend photo entry. The production monitor reads both current stylesheet versions instead of retired October tokens. All publication/customer behavior claims remain separate.",
       "nextAction": "Inspect the next exact draft #934 candidate browser results. All functional and live-monitoring failures must be understood before review. Do not merge or publish without a separate user decision; production Worker/migrations and real customer behavior remain unverified.",
       "baselineSha": "ecac340065516290d9b933eed84ab7f899e89ad6",
-      "reviewedSha": "809d203b4f906facbcd65778b44e8c3bc2f67c9d",
+      "reviewedSha": "1c25297e5ab0fe253a75854c7cdd26feb5089a2f",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
         ".github/workflows/lab-public-studio-tests.yml",
@@ -4281,6 +4281,12 @@
           "result": "failed",
           "scope": "41 passed, 7 failed. Product frame parity, phone/account flows, Full Editorial, strict public visual/privacy comparisons and approved Image pass. Remaining failures: one-card carousel fixture expected end after two clicks; open Mood expected idle fill; lazy Fashion decode; current 45px desktop Video action versus retired 52px expectation; test-added Queue poll wait; legacy production monitor expected an October 17 asset reference absent from current main.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/934/checks"
+        },
+        {
+          "label": "Exact 1c25297e fixture follow-up evidence",
+          "result": "failed",
+          "scope": "Fashion and uncertain-Queue fixes passed. Required first-image, Mood and Video suites reached new old assertions: reverse navigation still assumed two clicks; Mood transition was sampled before settling; 900px Video uses the current 110px model banner; legacy Assets hid the now-supported Extend photo entry. All are corroborated by unchanged application source and independent passing contracts. Public visual failed once on ten pixels (max channel delta 6); its one focused rerun passed the unchanged strict tolerance on the exact same commit.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43712761928/job/132808716491"
         }
       ],
       "deployment": {
@@ -4430,6 +4436,16 @@
             "Corrective fixture changes still require validation on the next exact remote commit.",
             "A direct production HTTP read timed out in this executor; this is not evidence of production outage or health."
           ]
+        },
+        {
+          "kind": "source",
+          "summary": "Current Studio links studio-finish-v2.css?v=20261107-quiet-image-progress1, while the legacy live monitor demanded the retired 20261016-generate-always3 reference. As with the other source asset references, extract this version from Studio rather than deleting its Generate/Exact content checks.",
+          "scope": "Remove a false stale-release signal while retaining existing live route, privacy, backend health and CORS assertions.",
+          "source": ".github/workflows/pvlab-domain-smoke.yml",
+          "limitations": [
+            "Required exact-candidate hosted browser and live-monitor results still must be inspected.",
+            "Read-only health and CORS checks do not establish applied migration state or real checkout/generation behavior."
+          ]
         }
       ],
       "blockers": [
@@ -4440,7 +4456,7 @@
         "Do not rewrite approved catalog/design to silence assertions. Reuse existing PR #934 for its test-fixture files.",
         "Do not overlap current Upscaler, Inspiration ordering, Seedream or Chrome Desert feature branches."
       ],
-      "updatedAt": "2026-11-15T12:11:02.611Z"
+      "updatedAt": "2026-11-15T12:21:12.218Z"
     }
   ]
 }

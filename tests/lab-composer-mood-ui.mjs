@@ -267,7 +267,8 @@ try{
   await x.page.mouse.move(0,0);
   await x.page.click('#image-composer-moods');
   await x.page.mouse.move(0,0);
-  await x.page.waitForFunction(()=>document.querySelector('#image-composer-moods').getAttribute('aria-expanded')==='true');
+  await x.page.waitForFunction(()=>document.querySelector('#image-composer-moods').getAttribute('aria-expanded')==='true'&&
+    getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(62, 64, 67)');
   const moodAppearance=await x.page.evaluate(()=>{
     const mood=document.querySelector('#image-composer-moods'),model=document.querySelector('#image-composer-model');
     const value=getComputedStyle(mood),neighbor=getComputedStyle(model);

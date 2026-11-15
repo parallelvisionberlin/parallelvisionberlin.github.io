@@ -93,7 +93,8 @@ try{
    }));
    assert.ok(spacing.gap>=0&&spacing.gap<=16,'Output controls stay close to Generate: '+JSON.stringify(spacing));
    assert.equal(spacing.inside,true,'Audio remains inside the expanded prompt surface');
-   assert.equal(Math.round((await preview.page.locator('#video-model-control').boundingBox()).height),124,'Fit must preserve the original model banner height');
+   assert.equal(Math.round((await preview.page.locator('#video-model-control').boundingBox()).height),height<=900?110:124,
+    'Fit preserves the approved compact-height breakpoint and full-height model banner');
   }
   await assertInputPanelFits();
   assert.equal(Math.round((await preview.page.locator('#generate').boundingBox()).height),width>=821?45:52,

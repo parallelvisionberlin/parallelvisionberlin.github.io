@@ -445,7 +445,8 @@ assert.ok((await page.locator('#video-model-control').boundingBox()).y<(await pa
 await page.click('#mode-extend');
 assert.equal(await page.locator('#video-media-drop').isVisible(),true);
 assert.equal(await page.locator('#start-mode').isVisible(),false);
-assert.equal(await page.locator('#reference-drop').isVisible(),false);
+assert.equal(await page.locator('#reference-drop').isVisible(),true,'Extend preserves its optional image-reference entry, as covered by the dedicated Extend contract');
+assert.equal(await page.evaluate(()=>window.__referenceSettings().mode),'extend','Showing optional references does not silently switch Extend into a new-shot Reference request');
 assert.equal(await page.locator('#generate').isEnabled(),true,'Missing media offers the approved preparation action');
 assert.equal(await page.locator('#generate').textContent(),'Add a video');
 const [videoPicker]=await Promise.all([page.waitForEvent('filechooser'),page.click('#generate')]);
