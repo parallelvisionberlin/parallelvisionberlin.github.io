@@ -298,7 +298,13 @@ try{
      const title=shadow.querySelector('#fashion-wardrobe-title');
      const story=shadow.querySelector('.wardrobe-empty-story');
      const images=[...shadow.querySelectorAll('.wardrobe-empty-example img')];
-     await Promise.all(images.map(img=>img.decode()));
+     await Promise.all(images.map(async img=>{
+       // These real editorial examples are lazy images. Explicitly request
+       // them before decoding instead of depending on viewport load timing.
+       img.loading='eager';
+       try{await img.decode();}
+       catch(error){throw new Error('Wardrobe example failed to decode: '+img.src,{cause:error});}
+     }));
      const disclos=shadow.querySelector('.wardrobe-empty-disclosure');
      return {headerHeight:header.getBoundingClientRect().height,
        titleSize:parseFloat(getComputedStyle(title).fontSize),

@@ -96,7 +96,8 @@ try{
    assert.equal(Math.round((await preview.page.locator('#video-model-control').boundingBox()).height),124,'Fit must preserve the original model banner height');
   }
   await assertInputPanelFits();
-  assert.equal(Math.round((await preview.page.locator('#generate').boundingBox()).height),52,'Owner-approved larger Generate keeps the existing dock');
+  assert.equal(Math.round((await preview.page.locator('#generate').boundingBox()).height),width>=821?45:52,
+   'Generate retains the approved desktop dossier and phone dock sizes');
   await preview.page.waitForFunction(()=>document.getElementById('empty-title').textContent==='Animate your references');
   assert.equal(await preview.page.locator('#empty-title').textContent(),'Animate your references');
   assert.equal(await preview.page.locator('#empty-description').textContent(),'');

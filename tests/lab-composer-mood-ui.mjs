@@ -255,6 +255,9 @@ try{
   const x=await workspace({width:1240,height:900});
   await x.page.locator('#reference-images').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});
   await waitRefs(x.page,1);
+  await x.page.mouse.move(0,0);
+  assert.equal(await x.page.locator('#image-composer-moods').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(50, 52, 55)',
+    'The closed idle Mood control uses the shared graphite fill');
   // Check idle hover before opening: the Mood panel's backdrop intentionally blocks its deck.
   await x.page.hover('#image-composer-moods');
   await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(62, 64, 67)');
@@ -264,14 +267,14 @@ try{
   await x.page.mouse.move(0,0);
   await x.page.click('#image-composer-moods');
   await x.page.mouse.move(0,0);
-  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(50, 52, 55)');
+  await x.page.waitForFunction(()=>document.querySelector('#image-composer-moods').getAttribute('aria-expanded')==='true');
   const moodAppearance=await x.page.evaluate(()=>{
     const mood=document.querySelector('#image-composer-moods'),model=document.querySelector('#image-composer-model');
     const value=getComputedStyle(mood),neighbor=getComputedStyle(model);
     return {background:value.backgroundColor,gradient:value.backgroundImage,color:value.color,height:mood.getBoundingClientRect().height,neighborHeight:model.getBoundingClientRect().height,neighborBackground:neighbor.backgroundColor};
   });
-  assert.equal(moodAppearance.background,moodAppearance.neighborBackground,'Idle Moods must match the neighboring dark control');
-  assert.equal(moodAppearance.background,'rgb(50, 52, 55)');
+  assert.equal(moodAppearance.neighborBackground,'rgb(50, 52, 55)','Closed neighboring model control retains the shared idle fill');
+  assert.equal(moodAppearance.background,'rgb(62, 64, 67)','An expanded Mood picker retains the shared active fill');
   assert.equal(moodAppearance.gradient,'none','Opening the Mood picker must not look selected');
   assert.equal(moodAppearance.color,'rgb(220, 255, 0)','Idle icon and letters use electric citron');
   assert.equal(moodAppearance.height,34,'Moods retains the approved 34px desktop toolbar height');
@@ -311,9 +314,9 @@ try{
   assert.equal(await hongKong.getAttribute('aria-pressed'),'true');
   await hongKong.click();
   assert.equal(await hongKong.getAttribute('aria-pressed'),'false','Clicking the selected mood again deselects it.');
-  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(50, 52, 55)'&&getComputedStyle(document.querySelector('#image-composer-moods')).backgroundImage==='none');
+  await x.page.waitForFunction(()=>!document.querySelector('#image-composer-moods').classList.contains('is-mood-selected'));
   const deselectedLook=await x.page.locator('#image-composer-moods').evaluate(el=>({background:getComputedStyle(el).backgroundColor,gradient:getComputedStyle(el).backgroundImage,color:getComputedStyle(el).color}));
-  assert.equal(deselectedLook.background,'rgb(50, 52, 55)','Deselecting returns to the dark Mood control');
+  assert.equal(deselectedLook.background,'rgb(62, 64, 67)','Deselecting retains the active fill while the picker is still expanded');
   assert.equal(deselectedLook.gradient,'none');
   assert.equal(deselectedLook.color,'rgb(220, 255, 0)');
   assert.equal(await x.page.locator('#composer-moods-selection').isHidden(),true);

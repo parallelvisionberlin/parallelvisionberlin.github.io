@@ -514,16 +514,18 @@ try{
   await welcomeNext.waitFor({state:'visible'});
   assert.equal(await welcomePrev.isVisible(),true,'Both gallery arrows remain in place');
   assert.equal(await welcomePrev.isDisabled(),true,'At the first look, previous is dimmed');
-  await welcomeNext.click();
-  // A second native smooth-scroll click must start after the first card lands.
-  // Waiting only for 30px of motion can merge both clicks into one snap.
-  await page.waitForFunction(()=>{
-    const track=document.getElementById('lab-welcome-presets');
-    const first=track.querySelector(':scope > button');
-    const step=first.getBoundingClientRect().width+(parseFloat(getComputedStyle(track).columnGap)||0);
-    return track.scrollLeft>=Math.min(step,track.scrollWidth-track.clientWidth)-4;
-  });
-  await welcomeNext.click();
+  // Each real navigation click advances one card, not a whole page. Traverse
+  // the fourteen-card catalog and let each native smooth scroll settle.
+  for(let advance=0;advance<14;advance++){
+    const frame=await page.locator('#lab-welcome-presets').evaluate(track=>({
+      left:track.scrollLeft,limit:track.scrollWidth-track.clientWidth,
+      step:track.firstElementChild.getBoundingClientRect().width+(parseFloat(getComputedStyle(track).columnGap)||0)
+    }));
+    if(frame.left>=frame.limit-4)break;
+    await welcomeNext.click();
+    await page.waitForFunction(target=>Math.abs(document.getElementById('lab-welcome-presets').scrollLeft-target)<2,
+      Math.min(frame.left+frame.step,frame.limit));
+  }
   await page.waitForFunction(()=>{
     const track=document.getElementById('lab-welcome-presets');
     return track.scrollWidth-track.clientWidth>30&&

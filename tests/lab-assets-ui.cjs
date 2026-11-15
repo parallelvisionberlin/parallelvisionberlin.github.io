@@ -293,10 +293,16 @@ assert.equal(await queueAction.getAttribute('aria-controls'),'active');
 const queueWrites=[];
 const trackQueueWrite=request=>{if(request.method()!=='GET'&&request.url().includes('parallel-vision-lab.parallelvision.workers.dev'))queueWrites.push(request.url());};
 page.on('request',trackQueueWrite);
-const queueRefresh=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/jobs'&&r.request().method()==='GET');
+await page.evaluate(()=>{
+  window.__queuePaidClicks=0;
+  document.getElementById('generate').addEventListener('click',()=>window.__queuePaidClicks++);
+});
 await queueAction.click();
 assert.equal(await page.locator('#active').getAttribute('open'),'','View queue opens the actual job queue');
-await queueRefresh;
+// Uncertain jobs are intentionally excluded from polling. The click must
+// return before the underlying paid handler, whether or not a poll can run.
+await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+assert.equal(await page.evaluate(()=>window.__queuePaidClicks),0,'View queue never delegates to the paid Generate handler');
 assert.deepEqual(queueWrites,[],'Inspecting an interrupted request never uploads, quotes or submits another paid job');
 page.off('request',trackQueueWrite);
 await page.evaluate(()=>window.__setTestJobs([{id:'unrelated-gemini',status:'uncertain',settings:{type:'image',engine:'gemini',provider:'gemini'}}]));

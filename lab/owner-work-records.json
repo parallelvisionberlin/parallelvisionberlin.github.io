@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-15T11:59:49.264Z",
+  "updatedAt": "2026-11-15T12:11:02.611Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4112,14 +4112,15 @@
       "title": "Stop phone Mood freezing, stabilize saved-character frame and restore regression coverage",
       "component": "Customer generation / regression coverage",
       "status": "needs_verification",
-      "summary": "Prepared the remaining #934 corrections from exact afd8a7e4: guest Image inherits the locked 1064px desktop frame; retired Retouch, current graphite Mood styling and original android-trio Video artwork are checked against current source. Interrupted Flash now verifies View queue opens the real Queue while the underlying paid action stays disabled and no upload, quote or job write occurs. The earlier phone observer and Full Editorial fixes are retained.",
-      "nextAction": "Use the latest exact-commit results in draft #934 to assess readiness. Required browser checks must pass before review; merge and production publication require a separate user decision. Production Worker, applied migrations and real customer behavior remain unverified.",
+      "summary": "Exact 809d203b verifies the phone observer fix, Full Editorial frame, guest/new/returning/owner 1064px parity, prompt paste, public visual/privacy comparisons and both account engines. Its 41 successful and 7 failed CI checks expose further old fixture assumptions after previously failing steps. Follow-up changes are tests/monitoring only: traverse all fourteen Inspiration cards, distinguish idle versus expanded Mood styling, explicitly load lazy Fashion examples, keep current desktop Video Generate size, and verify uncertain Queue actions without requiring a nonexistent poll.",
+      "nextAction": "Inspect the next exact draft #934 candidate browser results. All functional and live-monitoring failures must be understood before review. Do not merge or publish without a separate user decision; production Worker/migrations and real customer behavior remain unverified.",
       "baselineSha": "ecac340065516290d9b933eed84ab7f899e89ad6",
-      "reviewedSha": "afd8a7e4faadc75d0c542302d831e703f21a337a",
+      "reviewedSha": "809d203b4f906facbcd65778b44e8c3bc2f67c9d",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
         ".github/workflows/lab-public-studio-tests.yml",
         ".github/workflows/lab-tests.yml",
+        ".github/workflows/pvlab-domain-smoke.yml",
         "lab/full-editorial-identity-refresh.css",
         "lab/full-editorial-mobile-casting.css",
         "lab/full-editorial.html",
@@ -4274,6 +4275,12 @@
           "label": "Remaining-check repair source and safety validation",
           "result": "passed",
           "scope": "85 local source and isolated in-memory tests pass: approved Image, pricing, authentication, checkout/webhook-to-credit delivery, refunds/idempotency, Seedance and reference preparation. Local Chromium cannot create its process socket, so candidate browser results must be obtained from GitHub Actions."
+        },
+        {
+          "label": "Exact 809d203b hosted regression",
+          "result": "failed",
+          "scope": "41 passed, 7 failed. Product frame parity, phone/account flows, Full Editorial, strict public visual/privacy comparisons and approved Image pass. Remaining failures: one-card carousel fixture expected end after two clicks; open Mood expected idle fill; lazy Fashion decode; current 45px desktop Video action versus retired 52px expectation; test-added Queue poll wait; legacy production monitor expected an October 17 asset reference absent from current main.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/934/checks"
         }
       ],
       "deployment": {
@@ -4413,6 +4420,16 @@
             "The last recorded remote baseline afd8a7e4 has 41 successful and 5 failed checks. New browser evidence must be read from the draft PR before reporting completion.",
             "No production deployment or real customer verification is implied."
           ]
+        },
+        {
+          "kind": "source",
+          "summary": "poll deliberately excludes uncertain jobs and does not call /api/jobs. My first added Queue wait incorrectly required that response; corrected to assert the underlying paid Generate handler never receives a click and that no API write occurs. The current gallery moves one card per click; the fixture now traverses all fourteen with the original strict geometry tolerances. The live monitor now extracts the Moods-return asset version from actual Studio source, matching its five other versioned references, without removing any content/readiness check.",
+          "scope": "Correct test/monitor assumptions; preserve product and financial logic.",
+          "source": "lab/lab.js",
+          "limitations": [
+            "Corrective fixture changes still require validation on the next exact remote commit.",
+            "A direct production HTTP read timed out in this executor; this is not evidence of production outage or health."
+          ]
         }
       ],
       "blockers": [
@@ -4423,7 +4440,7 @@
         "Do not rewrite approved catalog/design to silence assertions. Reuse existing PR #934 for its test-fixture files.",
         "Do not overlap current Upscaler, Inspiration ordering, Seedream or Chrome Desert feature branches."
       ],
-      "updatedAt": "2026-11-15T11:59:49.264Z"
+      "updatedAt": "2026-11-15T12:11:02.611Z"
     }
   ]
 }
