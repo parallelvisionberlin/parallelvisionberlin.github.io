@@ -1,0 +1,72 @@
+name: Verify Seedream 5.5 production (read-only)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [verify/seedream-55-production]
+    paths: [.github/workflows/verify-seedream-55-production.yml]
+
+permissions:
+  contents: read
+  checks: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 59908c09a455a5422a583706aa8a75b3eeee1d1a
+          sparse-checkout: |
+            lab
+            .github/scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact Cloudflare deployment and production module bytes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {verifyRelease} from './.github/scripts/verify-pvlab-release.mjs';
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const sha='59908c09a455a5422a583706aa8a75b3eeee1d1a';
+          const hash=b=>createHash('sha256').update(b).digest('hex');
+          const expected=readFileSync('lab/lab.js');
+          let release;
+          for(let attempt=0;attempt<12;attempt++){
+            release=await verifyRelease({sha,asset:'lab/lab.js',version:'20261113-seedream55-1',sourceBytes:expected});
+            console.log(JSON.stringify(release));
+            if(release.state==='LIVE_VERIFIED')break;
+            if(!['CLOUDFLARE_UNKNOWN','CLOUDFLARE_PENDING','LIVE_VERSION_MISMATCH','LIVE_BYTES_MISMATCH'].includes(release.state))throw Error('Unexpected release state.');
+            await new Promise(resolve=>setTimeout(resolve,30000));
+          }
+          if(release.state!=='LIVE_VERIFIED')throw Error('Exact frontend release is not verified.');
+          async function text(url){const r=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error('Production fetch failed: '+r.status);return r.text();}
+          const html=await text('https://pvlab.studio/studio');
+          const picker=html.match(/<select id="image-engine">([\s\S]*?)<\/select>/)?.[1];
+          const order=[...(picker||'').matchAll(/<option value="([^"]+)"/g)].map(x=>x[1]);
+          if(order[0]!=='seedream55'||order.indexOf('seedream')!==order.indexOf('qwen3')+1||!picker.includes('value="seedream55" selected'))throw Error('Live model order or default differs from approved source.');
+          console.log('PASS: Seedream 5.5 is selected first; Seedream 5 Pro is directly below Qwen.');
+          const targets=new Set(['lab.js','film-finish.js','hong-kong-reference-policy.js','model-labels.js','mood-references.js','moods.js','prompt-quality.js','reference-guidance.js']);
+          const entry=[...html.matchAll(/<script\b[^>]*src="([^"]+)"/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'),'https://pvlab.studio/studio')).find(u=>u.pathname==='/lab.js'&&u.searchParams.get('v')==='20261113-seedream55-1');
+          const pending=[entry],visited=new Set();
+          while(pending.length){
+            const url=pending.shift(),name=url.pathname.slice(1);
+            if(visited.has(name))continue;
+            const source=await text(url);
+            if(hash(Buffer.from(source))!==hash(readFileSync('lab/'+name)))throw Error('Live module bytes differ: '+name);
+            visited.add(name);console.log('PASS: exact production module '+name+' '+hash(Buffer.from(source)));
+            for(const m of source.matchAll(/from\s*['"]([^'"]+)['"]/g)){
+              const dependency=new URL(m[1],url);
+              if(targets.has(dependency.pathname.slice(1))&&!visited.has(dependency.pathname.slice(1)))pending.push(dependency);
+            }
+          }
+          if(visited.size!==targets.size)throw Error('Not every changed module was verified through its real import URL.');
+          const health=JSON.parse(await text('https://parallel-vision-lab.parallelvision.workers.dev/health'));
+          if(!health.ok||health.seedream55!=='20261113-seedream55-1')throw Error('Backend Seedream 5.5 marker is missing.');
+          console.log('PASS: production backend Seedream 5.5 capability is live.');
+          console.log('No signed-in or paid generation was performed. This verifies publication and exact model routing source.');
+          NODE
