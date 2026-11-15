@@ -293,7 +293,7 @@ try{
     if(mobileNavigation){
       await page.locator('#owner-mobile-access>summary').click();
       await page.locator('.owner-mobile-partners>summary').click();
-    }
+    }else await page.locator('.owner-sidebar .owner-partners>summary').click();
     const privateLink=page.locator(mobileNavigation?'.owner-mobile-partners [data-owner-'+alias+']':'.owner-sidebar [data-owner-'+alias+']');
     assert.equal(await privateLink.isVisible(),true);checks++;
     await capture(page,'owner-navigation-'+width+'.png');

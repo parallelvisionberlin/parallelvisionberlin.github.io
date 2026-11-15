@@ -824,11 +824,13 @@ try{
   const mobileInspire=await page.locator('#history-moods-toggle').evaluate(button=>({
     width:button.getBoundingClientRect().width,
     visible:button.getBoundingClientRect().height>0,
-    label:getComputedStyle(button.querySelector('.mood-view-label'),'::after').content
+    label:button.querySelector('.mood-view-label').textContent.trim(),
+    labelFontSize:parseFloat(getComputedStyle(button.querySelector('.mood-view-label')).fontSize)
   }));
-  assert.ok(mobileInspire.visible&&mobileInspire.width>=72,
+  assert.ok(mobileInspire.visible&&mobileInspire.width>=106,
     'Mobile History keeps an identifiable Inspiration button: '+JSON.stringify(mobileInspire));
-  assert.equal(mobileInspire.label,'"Inspire"','The mobile sparkle carries its visible Inspire label');
+  assert.equal(mobileInspire.label,'Inspiration','The mobile button carries the current full Inspiration label');
+  assert.ok(mobileInspire.labelFontSize>=12,'The full label remains legible');
   await page.locator('#history-moods-toggle').click();
   assert.equal(await page.locator('#lab-welcome-start').isVisible(),true);
   const mobileDiscovery=await page.evaluate(()=>{
@@ -880,10 +882,10 @@ try{
     'Mobile Inspiration must not reserve the old viewport + 200px height: '+JSON.stringify(mobileSurface));
   assert.ok(mobileSurface.shellHeight<=mobileSurface.contentHeight+8,
     'Gallery height must follow actual visible content, without a black trailing void: '+JSON.stringify(mobileSurface));
-  assert.match(mobileSurface.backgroundImage,/image-hero-chrome-editorial-20261031\.jpg/,
-    'Keep the approved chrome editorial photograph');
-  assert.match(mobileSurface.backgroundSize,/cover/,
-    'On narrow phones crop the approved chrome portrait naturally rather than stretching it');
+  assert.match(mobileSurface.backgroundImage,/pvlab-subtle-cinematic-background-20261017\.webp/,
+    'Reopened private Inspiration keeps its existing cinematic plate');
+  assert.equal(mobileSurface.backgroundSize,'auto, auto, 100% 100%',
+    'Private mobile Inspiration retains both optical gradients and the full abstract color field');
   assert.ok(Math.abs(mobileSurface.backdropHeight-mobileSurface.shellHeight)<4,
     'Mobile backdrop must cover the whole actual gallery: '+JSON.stringify(mobileSurface));
   assert.equal(mobileSurface.footer,'none',

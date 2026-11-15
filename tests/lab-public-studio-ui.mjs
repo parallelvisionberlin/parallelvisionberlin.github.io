@@ -70,7 +70,11 @@ const server=http.createServer((req,res)=>{
 });
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
 const base='http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||undefined});
+// Pair snapshots on one software renderer. Recurring artifact differences are
+// confined to rounded card-edge antialias samples; text/image pixels match.
+// Keep the original strict comparison thresholds below.
+const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||undefined,
+  args:['--disable-gpu','--disable-gpu-rasterization']});
 mkdirSync('test-results',{recursive:true});
 const surfaces={image:'#pv-guest-composer',video:'#video-model-trigger',upscale:'#pv-upscale-dropzone',retouch:'#precision-demo',fashion:'#fashion-studio #fashion-form'};
 async function settled(page,route,signed=false){
@@ -106,6 +110,7 @@ async function capture(page,selector,path){
   await page.evaluate(async()=>{
     await document.fonts.ready;
     await Promise.all([...document.images].filter(img=>img.offsetWidth&&(img.loading!=='lazy'||img.complete)).map(img=>img.decode().catch(()=>{})));
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   });
   return page.locator(selector).screenshot({path,animations:'disabled',caret:'hide',style:'#studio-header{visibility:hidden!important}'});
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-15T12:43:07.052Z",
+  "updatedAt": "2026-11-15T12:54:46.103Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4233,10 +4233,10 @@
       "title": "Stop phone Mood freezing, stabilize saved-character frame and restore regression coverage",
       "component": "Customer generation / regression coverage",
       "status": "needs_verification",
-      "summary": "Exact 2227bcf0 passes all 1252 hosted Lab source tests, 283 focused isolated checks locally, both account engines, strict public visual/privacy, Full Editorial, legacy Assets upload/snapshot/Queue guards and the read-only domain/health/CORS monitor. Remaining six checks represent five fixture cases: duplicate first-image jobs assumed the chrome and private Inspiration plates match; owner fast-queue case implicitly selected new 5.5 instead of its explicitly scoped 5 Pro; customer first-image expected the retired default; Partner mobile links moved into two disclosures; retained Video Save draft is intentionally hidden. Follow-up changes only fixtures and this record; product code is unchanged from exact 2227bcf0. Required next-candidate hosted results must be inspected.",
-      "nextAction": "Read all required browser and live-monitor results for the next exact #934 candidate. Inspect failures before proposing review. No PR merge, production publication, migration, paid generation or Stripe change is authorized.",
+      "summary": "Draft #934 is consolidated directly against current main and includes the entire CI foundation. Superseded draft #1024 is closed without merge; branch/evidence preserved. Exact 950d3872 passes the full hosted source suite, financial/account safeguards, customer first-image 5.5 default, Assets submission snapshots and the public-domain monitor. Remaining browser failures are being corrected without application changes: my added hidden-select Playwright action was invalid and now uses the visible picker; owner partner navigation must open the existing desktop disclosure too; current mobile History uses the full Inspiration label; reopened private mobile Inspiration retains its existing abstract plate; Video intentionally restores latest History once without autoplay. Required exact next-candidate browser checks remain pending. Exact 950d3872 ultimately reports 45 successful / six failed checks, representing five fixture cases plus repeated rounded-edge pixel variance. The strict 320px image failure was investigated from the actual artifact: ten pixel deltas, max channel six, all on card corner/border samples; unchanged image/text pixels. Paired software rendering and two painted frames after decode are being tested, with the original <=1 channel threshold and changed-pixel limit intact. No mask, tolerance increase or product edit.",
+      "nextAction": "Inspect required exact-head browser and source CI in draft #934. If green, record validation and present one concrete user decision to merge/publish the frontend. No Worker deployment, migration, paid generation or Stripe mutation is needed for this repair.",
       "baselineSha": "29dbf29f4b429ac04debf373037d2a324311cc96",
-      "reviewedSha": "2227bcf0904158a061c91f3ea7f11ceff29917e8",
+      "reviewedSha": "950d3872376b1fb7752fd1cc070b21f0145aadcc",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
         ".github/workflows/lab-public-studio-tests.yml",
@@ -4289,7 +4289,7 @@
       ],
       "links": [
         {
-          "label": "CI foundation draft #1024",
+          "label": "Superseded CI foundation #1024 (closed, unmerged)",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1024"
         },
         {
@@ -4436,6 +4436,12 @@
           "result": "failed",
           "scope": "49 succeeded / six failed after all jobs completed. Five distinct old fixture assumptions are corroborated by unchanged application source. Video Reference authenticated preupload, sign-out, Start/Reference/Extend, customer confirmations, explicit paid review and reuse all passed before the retained hidden Save action stalled. No new application regression was established; the next corrected exact candidate still requires full affected browser checks.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43714747378/job/132813723630"
+        },
+        {
+          "label": "Own hidden-selector fixture mistake at exact 950d3872",
+          "result": "failed",
+          "scope": "The added page.selectOption on hidden #image-engine could not exercise the fast-queue flow. This was my test error, not an application regression. Correct it to use the visible existing model menu. Keep Seedream 5 Pro owner-only handoff scope, cooldown, slot accounting and duplicate guards unchanged.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43715360623/job/132815604605"
         }
       ],
       "deployment": {
@@ -4633,6 +4639,34 @@
           "limitations": [
             "The next exact commit must pass affected hosted browser flows."
           ]
+        },
+        {
+          "kind": "source",
+          "summary": "Current owner.html places desktop and mobile partner links in initially closed native details. The first fixture correction opened only mobile panels; the follow-up opens the existing desktop Partners disclosure too. Current Image CSS replaces pseudo-label Inspire with the visible full Inspiration label and retains the cinematic private Discovery plate. restoreLatestVideoSelection explicitly restores one latest completed original; validate actual playable media remains paused, no duplicate fetch and zero quote/job writes.",
+          "scope": "Current navigation and read-only History behavior, with all paid-route controls retained.",
+          "source": "lab/owner.html",
+          "limitations": [
+            "No product logic changes in this follow-up. Exact remote candidate must pass required browser checks."
+          ]
+        },
+        {
+          "kind": "source",
+          "summary": "Foundation head 4f4840dc is an ancestor of the prepared candidate. #934 now targets main and contains every foundation change; #1024 was closed unmerged to avoid overlapping review. All application deltas are visible against current main 29dbf29f.",
+          "scope": "Consolidation of existing draft work only; no branch deletion, code merge or production deployment.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/934",
+          "limitations": [
+            "Draft review state is not published customer behavior."
+          ]
+        },
+        {
+          "kind": "automated_test",
+          "summary": "Downloaded artifact 14162815535 from exact 950d3872 public Studio job. Actual/approved #pv-guest-cards are both 280x167. NumPy comparison finds exactly ten changed pixels, max channel delta six; they lie on the second card rounded border/corners (x 146 or 277/278, y 4-6 or 159-162). Photographs, labels and dimensions are identical. A prior unchanged-source rerun passed, but repeated variance is not dismissed; next candidate uses paired software rendering and two paint frames while preserving strict thresholds.",
+          "scope": "Diagnose and stabilize screenshot rendering without weakening visual assertions.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43715360677/job/132815604888",
+          "limitations": [
+            "Software capture normalization still requires exact-candidate hosted validation.",
+            "This visual artifact is not production customer behavior."
+          ]
         }
       ],
       "blockers": [
@@ -4643,7 +4677,7 @@
         "Do not rewrite approved catalog/design to silence assertions. Reuse existing PR #934 for its test-fixture files.",
         "Do not overlap current Upscaler, Inspiration ordering, Seedream or Chrome Desert feature branches."
       ],
-      "updatedAt": "2026-11-15T12:43:07.052Z"
+      "updatedAt": "2026-11-15T12:54:46.103Z"
     }
   ]
 }
