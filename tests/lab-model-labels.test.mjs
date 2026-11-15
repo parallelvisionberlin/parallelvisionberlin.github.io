@@ -7,6 +7,8 @@ import {imageModelLabel} from '../lab/model-labels.js';
 // The label must describe the model that generated the saved result,
 // not the current Studio selection and never a blanket Seedream Pro fallback.
 const cases=[
+  [{engine:'seedream55',model:'bytedance/seedream-5.5/edit'},'Seedream 5.5'],
+  [{engine:'seedream55',model:'bytedance/seedream-5.0-pro/edit'},'Seedream 5 Pro'],
   [{engine:'seedream',model:'bytedance/seedream-5.0-pro/edit'},'Seedream 5 Pro'],
   [{model:'bytedance/seedream-5.0-pro/edit'},'Seedream 5 Pro'], // early owner jobs
   [{engine:'seedreamlite',model:'bytedance/seedream-5.0-lite/text-to-image'},'Seedream 5 Lite'],
@@ -63,4 +65,14 @@ test('Pending result cards, History, Assets, viewer and price summary share exac
  assert.ok(source.includes('isImage?`${imageModelLabel(q.settings)}'),'Quote uses the selected model name');
  assert.match(studio,/modelLabels=\d+/);
  assert.doesNotMatch(source,/function detailModelName\(job\)[\s\S]{0,800}return 'Seedream 5 Pro'/);
+});
+
+test('Seedream 5.5 leads the picker and retained 5 Pro is immediately below Qwen',()=>{
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  const select=html.match(/<select id="image-engine">([\s\S]*?)<\/select>/)[1];
+  const models=[...select.matchAll(/<option value="([^"]+)"[^>]*>/g)].map(x=>x[1]);
+  assert.equal(models[0],'seedream55');
+  assert.equal(models.indexOf('seedream'),models.indexOf('qwen3')+1);
+  assert.equal(new Set(models).size,models.length);
+  assert.match(select,/<option value="seedream55" selected>Seedream 5\.5<\/option>/);
 });

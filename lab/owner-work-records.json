@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-14T18:57:53.488Z",
+  "updatedAt": "2026-11-15T12:04:00Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4105,6 +4105,102 @@
       "doNotRepeat": [
         "Preserve all eight original cards, upload tile, typography, card size and carousel behavior.",
         "Reuse existing casting assets; no generation required."
+      ]
+    },
+    {
+      "id": "image-seedream-55",
+      "title": "Seedream 5.5 primary model; retain 5 Pro below Qwen",
+      "component": "PV LAB Image / model routing",
+      "status": "needs_verification",
+      "updatedAt": "2026-11-15T12:04:00Z",
+      "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
+      "reviewedSha": "1d87b8881cd7611485860283d138f73a3b3a533c",
+      "branch": "feat/seedream-55",
+      "summary": "Seedream 5.5 first/default and retained 5 Pro below Qwen implemented in PR 1019. Reconciled current main, preserving homepage and upscale work. Existing repository Cloudflare token verified active with read access to production Worker settings and deployments; earlier unavailable-token assumption was incorrect. Backend and frontend publication remain pending.",
+      "nextAction": "Run release checks, publish reviewed Worker without migrations while preserving production configuration, verify seedream55 health capability, merge frontend and verify production bytes. No paid generation.",
+      "files": [
+        "lab-worker/image-replacement.mjs",
+        "lab-worker/worker.mjs",
+        "lab/film-finish.js",
+        "lab/hong-kong-reference-policy.js",
+        "lab/lab.js",
+        "lab/model-labels.js",
+        "lab/mood-references.js",
+        "lab/moods.js",
+        "lab/prompt-quality.js",
+        "lab/reference-guidance.js",
+        "lab/studio.html",
+        "tests/lab-model-labels.test.mjs",
+        "tests/lab-seedream-input-pixels.test.mjs",
+        "tests/lab-worker.test.mjs",
+        "tests/lab-flash-default-2k.test.mjs",
+        "tests/lab-image-submit-handoff.test.mjs",
+        "tests/lab-inspiration-rotation.test.mjs",
+        "tests/lab-moods.test.mjs",
+        ".github/workflows/verify-lab-cloudflare-access.yml",
+        ".github/workflows/release-seedream-55-worker.yml"
+      ],
+      "links": [
+        {
+          "label": "Seedream 5.5 implementation PR 1019",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1019"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Focused Image, Worker, quote, credit, finance, Mood and history regressions",
+          "scope": "159 tests including exact 5.5 text/edit models, all eight private references, no unsupported thinking flag, invalid settings rejected before provider access, 40-credit quote and exactly one mocked confirmed submission.",
+          "result": "passed"
+        },
+        {
+          "label": "Replacement, account lifecycle and reference prewarm",
+          "scope": "22 focused tests passed; no real generation or wallet mutations.",
+          "result": "passed"
+        },
+        {
+          "label": "Legacy pixel-preparation source assertion",
+          "scope": "One pre-existing cacheKey regex assumes the pre-Qwen implementation. Existing baseline code already uses the Qwen branch. No production logic or assertion was relaxed.",
+          "result": "documented"
+        },
+        {
+          "label": "Current-main integration checks",
+          "scope": "237 checks: 234 passed; three existing Mood catalogue assertions fail for the already-added Fallen Angel and changed Hong Kong cover. The new-model compatibility, prompt handling, old history, exact quote and wallet tests pass. Source assertion expectations updated for new model only.",
+          "result": "documented"
+        },
+        {
+          "label": "Release candidate focused safeguards",
+          "scope": "162 checks passed after integration with current main; approved Image contract, exact model order, routing, quotes, credits, finance, lifecycle and replacement.",
+          "result": "passed"
+        }
+      ],
+      "deployment": {
+        "state": "blocked",
+        "environment": "Cloudflare Worker parallel-vision-lab and Pages pvlab-studio",
+        "sourceSha": null,
+        "limitations": [
+          "Production health still lacks seedream55. No Worker or frontend publication for this feature has occurred.",
+          "Cloudflare GitHub sign-in reached device verification but returned 'Unable to sign in. Try again or use your email and password.' Automatic login attempts stopped."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "automated_test",
+          "summary": "Existing repository Cloudflare token is active and can read production Worker settings and deployments. Read-only workflow passed without deployment, migrations or account changes.",
+          "scope": "Current GitHub repository secret",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43711505075",
+          "observedAt": "2026-11-15T11:58:58Z",
+          "limitations": [
+            "Read access does not by itself verify deployment permission or customer generation."
+          ]
+        }
+      ],
+      "blockers": [
+        "Production release and exact asset verification remain pending. Existing token is active; no rotation is required."
+      ],
+      "doNotRepeat": [
+        "Do not relabel historical Seedream 5 Pro jobs or remove that model.",
+        "Do not hardcode estimated retail credits; keep exact live bound provider quote and existing wallet rules.",
+        "Do not run paid generations, grant credits or run migrations for verification."
       ]
     }
   ]

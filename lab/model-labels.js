@@ -4,6 +4,7 @@
 // Keep this independent of the DOM so older saved jobs can be tested unchanged.
 const exactModelNames=Object.freeze([
   [/^bytedance\/seedream-5\.0-lite\//,'Seedream 5 Lite'],
+  [/^bytedance\/seedream-5\.5\//,'Seedream 5.5'],
   [/^bytedance\/seedream-5\.0-pro\//,'Seedream 5 Pro'],
   [/^bytedance-seed\/seedream-5-0-flash(?:\/|$)/,'Seedream Flash'], // Historical OpenRouter records
   [/^bytedance\/seedream-5\.0-flash\//,'Seedream Flash'],
@@ -16,6 +17,7 @@ const exactModelNames=Object.freeze([
 ]);
 
 const engineNames=Object.freeze({
+  seedream55:'Seedream 5.5',
   seedream:'Seedream 5 Pro',
   seedreamlite:'Seedream 5 Lite',
   flash:'Seedream Flash',

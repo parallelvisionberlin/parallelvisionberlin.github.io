@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {seedreamFlashParameters,seedreamFlashInput,FLASH_TEXT,FLASH_EDIT} from '../lab-worker/seedream-flash.mjs';
 test('Seedream Flash defaults to 2K in Studio; Seedream Pro retains 1K for drafts',()=>{
   const src=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
-  assert.match(src,/\['fal','seedream','kling'\]\.includes\(imageEngine\)\?'1k':'2k'/);
+  assert.match(src,/\['fal','seedream55','seedream','kling'\]\.includes\(imageEngine\)\?'1k':'2k'/);
   assert.doesNotMatch(src,/\['fal','seedream','flash','kling'\]\.includes\(imageEngine\)\?'1k':'2k'/);
 });
 test('Flash uses the SpicyAPI text and edit endpoint and live bound pricing',()=>{

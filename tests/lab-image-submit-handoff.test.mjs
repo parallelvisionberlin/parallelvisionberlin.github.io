@@ -46,7 +46,7 @@ test('Only single-image owner Seedream or web PV Still submissions unlock before
   assert.match(source,/imageSubmissionPending=false;imageSubmissionStage='Sending…';update\(\)/);
   assert.match(source,/fastImageHandoff.has\(currentImageSubmissionKey\(\)\)/);
   assert.match(source,/fastImageHandoff.slots\('spicy'\)/);
-  assert.match(source,/const seedreamInput=\['seedream','seedreamlite'\]\.includes\(selectedEngine\)&&\(snapshot\?true:tool==='image'\)/);
+  assert.match(source,/const seedreamInput=\['seedream55','seedream','seedreamlite'\]\.includes\(selectedEngine\)&&\(snapshot\?true:tool==='image'\)/);
   assert.match(source,/if\(!fastImageHandoff.active\(\)\)cancelImagePreparation\(\)/);
   assert.match(source,/if\(!detached\)\{imageSubmissionPending=false/);
   // Asset revision dates change frequently; require the live studio script and wallet feature marker.

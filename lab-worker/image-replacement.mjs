@@ -2,7 +2,7 @@
 // the ordinary price quote/job. Final composition reuses the paid raw result.
 const UUID=/^[a-f\d]{8}-[a-f\d]{4}-4[a-f\d]{3}-[89ab][a-f\d]{3}-[a-f\d]{12}$/i;
 const SCOPES=new Set(['face','person','garment','outfit','object']);
-const ENGINES=new Set(['seedream','seedreamlite','gemini','gemini21','flash','qwen3','krea3']);
+const ENGINES=new Set(['seedream55','seedream','seedreamlite','gemini','gemini21','flash','qwen3','krea3']);
 const defaultFail=(status,message)=>{throw Object.assign(new Error(message),{status});};
 const imageMimes=new Set(['image/png','image/jpeg','image/webp']);
 
