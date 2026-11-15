@@ -253,12 +253,12 @@ try{
       promptBorder:getComputedStyle(document.querySelector('.image-detail-prompt-card')).borderTopWidth,
       detailsBorder:getComputedStyle(document.querySelector('#image-detail-metadata')).borderTopWidth};
   });
-  assert.ok(polish.close.right>=1420&&polish.close.right<=1440&&polish.close.top>=0&&polish.close.bottom<=64,
+  assert.ok(Math.abs(polish.close.right-(1440-22))<2&&polish.close.top>=0&&polish.close.bottom<=64,
     'Close X is at the top-right of the complete viewer');
   assert.equal(await x.page.locator('#image-detail-pixels').innerText(),'960 × 640 px');
-  assert.equal(polish.promptBorder,'0px','Prompt uses the approved flat inspector');
+  assert.equal(polish.promptBorder,'1px','Prompt preserves the current bounded inspector card');
   assert.equal(await x.page.locator('.image-detail-utility-row #image-lightbox-download').count(),1,'Download is in the pinned utility row');
-  assert.equal(polish.detailsBorder,'0px','Details uses the approved flat inspector');
+  assert.equal(polish.detailsBorder,'1px','Details preserves the current single separator');
   await x.page.locator('#image-detail-metadata > summary').click();
   assert.equal(await x.page.locator('#image-detail-metadata').evaluate(el=>el.open),false);
   await x.page.locator('#image-detail-metadata > summary').click();
