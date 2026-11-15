@@ -11,7 +11,7 @@ import { createHash } from 'node:crypto';
 const { chromium } = await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const source = readFileSync('lab/lab.js', 'utf8'), boot = source.indexOf("try{clerk=await loadLabAccount();");
 assert.ok(boot > 0);
-const injected = source.slice(0, boot) + source.slice(source.indexOf("\n// Soul composer:",boot)) + `clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock,refs:()=>references.map(r=>({name:r.file.name,size:r.file.size,type:r.file.type,width:r.width,height:r.height,role:r.role,note:r.note,target:r.target})),file:()=>file};`;
+const injected = source.slice(0, boot) + source.slice(source.indexOf("\n// Soul composer:",boot)) + `clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,seedream55Enabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock,refs:()=>references.map(r=>({name:r.file.name,size:r.file.size,type:r.file.type,width:r.width,height:r.height,role:r.role,note:r.note,target:r.target})),file:()=>file};`;
 const server = http.createServer((req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname;
   const file = resolve('.', '.' + path + (path.endsWith('/') ? 'index.html' : ''));
@@ -143,7 +143,7 @@ try{
   await choose(target(x.page,3),'pants');
   assert.equal(await target(x.page,1).count(),0);
   assert.equal(await x.page.locator('#reference-guidance details').evaluate(e=>e.open),false);
-  assert.match(await x.page.locator('#reference-provider').textContent(),/Seedream 5 Pro.*SpicyAPI/);
+  assert.match(await x.page.locator('#reference-provider').textContent(),/Seedream 5\.5.*SpicyAPI/);
   await x.page.locator('#reference-guidance summary').evaluate(el=>el.click());
   const preview=await x.page.locator('#reference-guidance-text').innerText();
   assert.match(preview,/Reference 1 \[Base image\]/);assert.match(preview,/Reference 2 \[Detail \/ Hands\]/);assert.match(preview,/Reference 3 \[Clothing \/ Pants\]/);
