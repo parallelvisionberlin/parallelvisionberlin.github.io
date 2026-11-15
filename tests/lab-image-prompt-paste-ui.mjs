@@ -396,7 +396,7 @@ try{
   // after long paste, photo attachment, viewport resize and returning to empty.
   // The separate History check verifies the deck without a welcome surface.
   const clearance=[];
-  for(const role of ['guest','signed-in','history']){
+  for(const role of ['guest','signed-in','owner-inspiration','history']){
     const context=await browser.newContext({viewport:{width:1920,height:900},reducedMotion:'reduce'});
     const page=await context.newPage();
     await page.route('https://**/*',route=>route.abort());
@@ -409,6 +409,8 @@ try{
         const app=document.getElementById('app'),gate=document.getElementById('gate');
         app.hidden=role==='guest';app.classList.toggle('image-studio-active',role!=='guest');
         gate.hidden=role!=='guest';gate.classList.add('pv-guest-image');gate.dataset.guestTool='image';
+        app.classList.toggle('pv-moods-discovery-open',role==='owner-inspiration');
+        document.querySelector('#lab-welcome-start .lab-welcome-balance').hidden=role==='owner-inspiration';
         document.getElementById('image-studio').hidden=false;
         document.getElementById('image-gallery-empty').hidden=role==='history';
         document.getElementById('lab-welcome-start').hidden=role==='history';
@@ -424,6 +426,7 @@ try{
         await page.setViewportSize(viewport);
         if(viewport.width<1180)continue;
         const selector=role==='guest'?'#pv-guest-prompt':'#image-composer-prompt';
+        let restingGeometry;
         for(const state of ['empty','long','references','cleared']){
           await page.locator(selector).evaluate((field,{state,text,role})=>{
             const refs=document.getElementById('image-composer-references');
@@ -450,12 +453,23 @@ try{
             const title=document.querySelector(guest?'#gate h1':'#lab-welcome-start h2').getBoundingClientRect();
             return {deckTop:deck.top,deckBottom:deck.bottom,deckHeight:deck.height,
               cardBottom:Math.max(...cards.map(el=>el.getBoundingClientRect().bottom)),
-              titleTop:title.top,headerBottom:document.getElementById('studio-header').getBoundingClientRect().bottom,
+              rowBottom:cards[0]?.closest('.inspiration-carousel-shell')?.getBoundingClientRect().bottom,
+              cardTop:Math.min(...cards.map(el=>el.getBoundingClientRect().top)),
+              cardHeight:cards[0]?.getBoundingClientRect().height,
+              baseCardHeight:parseFloat(getComputedStyle(document.querySelector(guest?'.pv-guest-content':'#lab-welcome-start')).getPropertyValue('--pv-welcome-card-height')),
+              titleBottom:title.bottom,titleTop:title.top,headerBottom:document.getElementById('studio-header').getBoundingClientRect().bottom,
               font:parseFloat(getComputedStyle(field).fontSize),promptHeight:field.getBoundingClientRect().height,
               scrollWidth:document.documentElement.scrollWidth,value:field.value};
           },role);
           const label=JSON.stringify({role,viewport,state,geometry});
-          if(role!=='history')assert.ok(geometry.cardBottom<=geometry.deckTop-15,'Card names and photos clear the actual prompt deck: '+label);
+          if(role!=='history'){
+            if(state==='empty')restingGeometry=geometry;
+            assert.ok(geometry.cardHeight>=geometry.baseCardHeight+20,'Desktop cards are visibly taller than the original row: '+label);
+            assert.ok(Math.abs(geometry.cardBottom-geometry.rowBottom)<1,'Taller cards retain the original row bottom: '+label);
+            assert.ok(geometry.cardTop>=geometry.titleBottom+23,'Taller cards keep a clear gap below the heading: '+label);
+            for(const key of ['titleTop','cardTop','cardBottom'])assert.ok(Math.abs(geometry[key]-restingGeometry[key])<1,
+              'Desktop heading/cards stay fixed while the prompt grows: '+key+' '+label);
+          }
           assert.ok(geometry.deckBottom<=viewport.height-28,'Generate stays above the browser bottom: '+label);
           assert.ok(geometry.promptHeight<=138,'Long desktop prompts stop at the smaller height: '+label);
           assert.equal(geometry.font,13,'Both desktop views use 13px prompt text: '+label);
@@ -471,7 +485,7 @@ try{
       }
     }finally{await context.close();}
   }
-  console.log('PASS measured Image deck clearance and compact text: '+JSON.stringify(clearance));
+  console.log('PASS stable desktop Inspiration and compact prompt text: '+JSON.stringify(clearance));
 
 }finally{
   await browser.close();
