@@ -113,6 +113,7 @@ try{
   const draft=x.requests.find(r=>r.path==='/api/drafts').data;assert.equal(draft.settings.outputFormat,'png');assert.equal(draft.referenceSourceIds.length,7);assert.equal(draft.settings.referenceRoles[0].role,'room');assert.equal(draft.settings.referenceRoles[0].note,'Use only the architecture.');
   assert.equal(x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length,0);pass('Save sends original bytes, ordered reference IDs, roles and notes, never the thumbnails');
   await x.page.locator('#image-composer-references .composer-reference-tile').nth(1).focus();await x.page.keyboard.press('Alt+ArrowLeft');assert.equal((await x.page.evaluate(()=>window.__labTest.refs()))[0].name,'architecture-reference-2.png');
+  await x.page.locator('#image-composer-references .composer-reference-tile').first().hover();
   await x.page.locator('#image-composer-references .composer-reference-remove').first().click();assert.equal(await x.page.locator('.reference-item').count(),6);pass('Reorder and remove still operate on the correct originals');
   assert.deepEqual(x.errors,[]);await x.context.close();
 
