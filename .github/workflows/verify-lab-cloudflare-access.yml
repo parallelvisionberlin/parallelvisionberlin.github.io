@@ -1,0 +1,48 @@
+name: Verify PV LAB Cloudflare access (read-only)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/seedream-55]
+    paths: [.github/workflows/verify-lab-cloudflare-access.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify existing credential and Worker access without deployment
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          node --input-type=module <<'NODE'
+          const token = (process.env.CLOUDFLARE_API_TOKEN || '').replace(/\s/g, '');
+          if (!token) throw new Error('Repository Cloudflare secret is empty.');
+          console.log('::add-mask::' + token);
+          const root = 'https://api.cloudflare.com/client/v4';
+          async function get(path) {
+            const response = await fetch(root + path, {
+              headers: { Authorization: 'Bearer ' + token },
+              signal: AbortSignal.timeout(30000),
+            });
+            const body = await response.json();
+            if (!response.ok || !body.success) {
+              const codes = (body.errors || []).map(error => error.code).join(',');
+              throw new Error('Read-only check failed: HTTP ' + response.status + '; codes=' + codes);
+            }
+            return body.result;
+          }
+          const verification = await get('/user/tokens/verify');
+          if (verification.status !== 'active') throw new Error('Token is not active.');
+          console.log('PASS: existing repository token is active.');
+          const account = '/accounts/a40ce1725295563a7b7db9fc3160480a';
+          const settings = await get(account + '/workers/scripts/parallel-vision-lab/settings');
+          if (!Array.isArray(settings.bindings)) throw new Error('Worker settings response is invalid.');
+          console.log('PASS: existing token can read production Worker settings.');
+          const deployments = await get(account + '/workers/scripts/parallel-vision-lab/deployments');
+          console.log('PASS: existing token can read production Worker deployments.');
+          console.log('No deployment, migration, generation or wallet change was performed.');
+          NODE
