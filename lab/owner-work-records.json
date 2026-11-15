@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-15T12:04:00Z",
+  "updatedAt": "2026-11-15T12:17:52.494Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4111,13 +4111,13 @@
       "id": "image-seedream-55",
       "title": "Seedream 5.5 primary model; retain 5 Pro below Qwen",
       "component": "PV LAB Image / model routing",
-      "status": "needs_verification",
-      "updatedAt": "2026-11-15T12:04:00Z",
+      "status": "deployed",
+      "updatedAt": "2026-11-15T12:17:52.494Z",
       "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
-      "reviewedSha": "1d87b8881cd7611485860283d138f73a3b3a533c",
+      "reviewedSha": "ab9e7fba3891cfb1bc6ae7c1b7c06e00cdbe5cbf",
       "branch": "feat/seedream-55",
-      "summary": "Seedream 5.5 first/default and retained 5 Pro below Qwen implemented in PR 1019. Reconciled current main, preserving homepage and upscale work. Existing repository Cloudflare token verified active with read access to production Worker settings and deployments; earlier unavailable-token assumption was incorrect. Backend and frontend publication remain pending.",
-      "nextAction": "Run release checks, publish reviewed Worker without migrations while preserving production configuration, verify seedream55 health capability, merge frontend and verify production bytes. No paid generation.",
+      "summary": "Seedream 5.5 is published first/default in Image, with Seedream 5 Pro retained directly below Qwen and historical jobs unchanged. Existing repository Cloudflare token was active and used successfully; earlier unavailable-token assumption was incorrect. Worker version 6eb0a678-f336-4420-9f9c-59243f733374 was released without migrations and with all live bindings, variables and secret names preserved. Frontend merged in 59908c09a455a5422a583706aa8a75b3eeee1d1a; Cloudflare production deployment 5538dd15-4671-445e-9034-293292c236f1 succeeded. Live verification passed for the exact production HTML picker order, all eight changed JavaScript modules through their real import URLs, and backend capability.",
+      "nextAction": "Release is published and verified. Refresh Studio. Real signed-in quoting and paid output quality remain separate checks; no token rotation or further setup is required.",
       "files": [
         "lab-worker/image-replacement.mjs",
         "lab-worker/worker.mjs",
@@ -4171,15 +4171,21 @@
           "label": "Release candidate focused safeguards",
           "scope": "162 checks passed after integration with current main; approved Image contract, exact model order, routing, quotes, credits, finance, lifecycle and replacement.",
           "result": "passed"
+        },
+        {
+          "label": "Purchase flow browser CI limitation",
+          "scope": "Pricing, quotes, finance, customer billing and approved Image Node checks passed. The browser fixture produced no completed scenarios and was cancelled by its ten-minute job timeout. Wider suite also retains existing catalogue, source and layout failures; this is not an all-green CI claim.",
+          "result": "documented"
         }
       ],
       "deployment": {
-        "state": "blocked",
+        "state": "verified",
         "environment": "Cloudflare Worker parallel-vision-lab and Pages pvlab-studio",
-        "sourceSha": null,
+        "sourceSha": "59908c09a455a5422a583706aa8a75b3eeee1d1a",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43712809467",
         "limitations": [
-          "Production health still lacks seedream55. No Worker or frontend publication for this feature has occurred.",
-          "Cloudflare GitHub sign-in reached device verification but returned 'Unable to sign in. Try again or use your email and password.' Automatic login attempts stopped."
+          "No real signed-in quote or paid generation performed.",
+          "Wider CI retains existing Mood catalogue, source and layout failures. Purchase browser fixture timed out; its quote/credit/finance Node checks passed."
         ]
       },
       "evidence": [
@@ -4192,15 +4198,34 @@
           "limitations": [
             "Read access does not by itself verify deployment permission or customer generation."
           ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Worker release succeeded. Exact Seedream 5.5 health marker verified and all production binding definitions, plain variables and secret names matched the pre-release snapshot. No migrations or paid actions.",
+          "scope": "Backend deployment and configuration preservation",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43711858963",
+          "observedAt": "2026-11-15T12:04:51Z",
+          "limitations": [
+            "Not a signed-in provider quote or output-quality test."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "LIVE_VERIFIED for frontend merge 59908c09a455a5422a583706aa8a75b3eeee1d1a; Cloudflare check 132807969192 matches pvlab-studio. Live picker selects Seedream 5.5 first and retains 5 Pro directly below Qwen. Exact SHA-256 matches for lab.js and all seven changed dependencies using their real import URLs. Live health reports Seedream 5.5.",
+          "scope": "Production publication, picker source and exact modules; lab.js SHA-256 d75c5f8cc32f62b435646af9969b0ab4f7667959a413f0619e98f39c7f4ba635",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43712809467",
+          "observedAt": "2026-11-15T12:16:21Z",
+          "limitations": [
+            "Not a real signed-in quote or paid output-quality test."
+          ]
         }
       ],
-      "blockers": [
-        "Production release and exact asset verification remain pending. Existing token is active; no rotation is required."
-      ],
+      "blockers": [],
       "doNotRepeat": [
         "Do not relabel historical Seedream 5 Pro jobs or remove that model.",
         "Do not hardcode estimated retail credits; keep exact live bound provider quote and existing wallet rules.",
-        "Do not run paid generations, grant credits or run migrations for verification."
+        "Do not run paid generations, grant credits or run migrations for verification.",
+        "Do not infer missing or invalid deployment credentials from an old workflow comment; the existing secret was verified active and deployed successfully."
       ]
     }
   ]

@@ -2,8 +2,9 @@ name: Deploy Parallel Vision Lab Worker
 
 on:
   workflow_dispatch:
-  # Automatic Worker deployment is paused while CLOUDFLARE_API_TOKEN is unavailable.
-  # Publish directly through Cloudflare; keep this workflow manual-only.
+  # Manual-only. The existing CLOUDFLARE_API_TOKEN was verified and used on 2026-11-15.
+  # This historical workflow includes D1 migrations. The Seedream 5.5 release
+  # uses release-seedream-55-worker.yml to preserve settings without migrations.
 
 permissions:
   contents: read
