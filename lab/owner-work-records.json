@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-15T12:17:52.494Z",
+  "updatedAt": "2026-11-15T18:06:18.601Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4109,15 +4109,15 @@
     },
     {
       "id": "image-seedream-55",
-      "title": "Seedream 5.5 primary model; retain 5 Pro below Qwen",
+      "title": "Seedream 5.5 primary model; retain 5 Pro below PV Still",
       "component": "PV LAB Image / model routing",
-      "status": "deployed",
-      "updatedAt": "2026-11-15T12:17:52.494Z",
+      "status": "needs_verification",
+      "updatedAt": "2026-11-15T18:06:18.601Z",
       "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
       "reviewedSha": "ab9e7fba3891cfb1bc6ae7c1b7c06e00cdbe5cbf",
-      "branch": "feat/seedream-55",
-      "summary": "Seedream 5.5 is published first/default in Image, with Seedream 5 Pro retained directly below Qwen and historical jobs unchanged. Existing repository Cloudflare token was active and used successfully; earlier unavailable-token assumption was incorrect. Worker version 6eb0a678-f336-4420-9f9c-59243f733374 was released without migrations and with all live bindings, variables and secret names preserved. Frontend merged in 59908c09a455a5422a583706aa8a75b3eeee1d1a; Cloudflare production deployment 5538dd15-4671-445e-9034-293292c236f1 succeeded. Live verification passed for the exact production HTML picker order, all eight changed JavaScript modules through their real import URLs, and backend capability.",
-      "nextAction": "Release is published and verified. Refresh Studio. Real signed-in quoting and paid output quality remain separate checks; no token rotation or further setup is required.",
+      "branch": "fix/seedream-pro-below-pv-still",
+      "summary": "Owner requested Seedream 5 Pro directly below PV Still. Moved only its picker option; Seedream 5.5 remains first/default. Backend, pricing, labels, model routes and every other relative model position are unchanged. Prior Seedream 5.5 release evidence remains below; this new order awaits publication.",
+      "nextAction": "Publish the reviewed picker reorder, verify Cloudflare and live model order, then update this record.",
       "files": [
         "lab-worker/image-replacement.mjs",
         "lab-worker/worker.mjs",
