@@ -396,7 +396,7 @@ try{
   // after long paste, photo attachment, viewport resize and returning to empty.
   // The separate History check verifies the deck without a welcome surface.
   const clearance=[];
-  for(const role of ['guest','signed-in','history']){
+  for(const role of ['guest','signed-in','owner-inspiration','history']){
     const context=await browser.newContext({viewport:{width:1920,height:900},reducedMotion:'reduce'});
     const page=await context.newPage();
     await page.route('https://**/*',route=>route.abort());
@@ -409,6 +409,8 @@ try{
         const app=document.getElementById('app'),gate=document.getElementById('gate');
         app.hidden=role==='guest';app.classList.toggle('image-studio-active',role!=='guest');
         gate.hidden=role!=='guest';gate.classList.add('pv-guest-image');gate.dataset.guestTool='image';
+        app.classList.toggle('pv-moods-discovery-open',role==='owner-inspiration');
+        document.getElementById('lab-welcome-balance').hidden=role==='owner-inspiration';
         document.getElementById('image-studio').hidden=false;
         document.getElementById('image-gallery-empty').hidden=role==='history';
         document.getElementById('lab-welcome-start').hidden=role==='history';
@@ -424,6 +426,7 @@ try{
         await page.setViewportSize(viewport);
         if(viewport.width<1180)continue;
         const selector=role==='guest'?'#pv-guest-prompt':'#image-composer-prompt';
+        let restingGeometry;
         for(const state of ['empty','long','references','cleared']){
           await page.locator(selector).evaluate((field,{state,text,role})=>{
             const refs=document.getElementById('image-composer-references');
@@ -455,7 +458,11 @@ try{
               scrollWidth:document.documentElement.scrollWidth,value:field.value};
           },role);
           const label=JSON.stringify({role,viewport,state,geometry});
-          if(role!=='history')assert.ok(geometry.cardBottom<=geometry.deckTop-15,'Card names and photos clear the actual prompt deck: '+label);
+          if(role!=='history'){
+            if(state==='empty')restingGeometry=geometry;
+            for(const key of ['titleTop','cardBottom'])assert.ok(Math.abs(geometry[key]-restingGeometry[key])<1,
+              'Desktop heading/cards stay fixed while the prompt grows: '+key+' '+label);
+          }
           assert.ok(geometry.deckBottom<=viewport.height-28,'Generate stays above the browser bottom: '+label);
           assert.ok(geometry.promptHeight<=138,'Long desktop prompts stop at the smaller height: '+label);
           assert.equal(geometry.font,13,'Both desktop views use 13px prompt text: '+label);
@@ -471,7 +478,7 @@ try{
       }
     }finally{await context.close();}
   }
-  console.log('PASS measured Image deck clearance and compact text: '+JSON.stringify(clearance));
+  console.log('PASS stable desktop Inspiration and compact prompt text: '+JSON.stringify(clearance));
 
 }finally{
   await browser.close();

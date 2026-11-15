@@ -45,27 +45,6 @@
     if(guestVisible)fitWelcomeCards(guestContent,guestCards,guestContent.getBoundingClientRect().height);
     else guestContent.style.removeProperty('--pv-welcome-card-height');
   }
-  function clearWelcomeDeck(surface,grid,deck,visible){
-    surface?.style.removeProperty('--pv-welcome-deck-lift');
-    if(!surface||!grid||!visible||!welcomeWidth.matches)return;
-    // The fixed deck grows upward. Keep the entire photo and its name above
-    // its measured top, first using spare heading space, then only the height
-    // that cannot fit in a short window. Never change card widths or imagery.
-    const title=surface.querySelector('h1,h2');
-    const header=document.getElementById('studio-header');
-    const top=(header?.getBoundingClientRect().bottom||0)+16;
-    const overlap=Math.max(0,grid.getBoundingClientRect().bottom-deck.getBoundingClientRect().top+16);
-    const lift=Math.min(overlap,Math.max(0,title.getBoundingClientRect().top-top));
-    if(overlap>lift){
-      const height=parseFloat(surface.style.getPropertyValue('--pv-welcome-card-height'));
-      surface.style.setProperty('--pv-welcome-card-height',Math.max(100,Math.floor(height-overlap+lift))+'px');
-    }
-    // Shorter cards recenter the content. Measure the final position before
-    // lifting, so that re-centering cannot consume the recovered clearance.
-    const finalOverlap=Math.max(0,grid.getBoundingClientRect().bottom-deck.getBoundingClientRect().top+16);
-    const finalLift=Math.min(finalOverlap,Math.max(0,title.getBoundingClientRect().top-top));
-    if(finalLift)surface.style.setProperty('--pv-welcome-deck-lift',Math.ceil(finalLift)+'px');
-  }
   // On phones a long prompt grows the fixed dock upward. Reposition only the
   // Inspiration entrance within the space beneath the header, then shorten
   // the photo if a short in-app browser leaves insufficient room. Neither
@@ -182,9 +161,6 @@
     update(real,realField,'real');
     fitDeckOrigin(real,real.classList.contains('pv-welcome-deck'));
     fitDeckOrigin(guest,!document.getElementById('gate').hidden);
-    clearWelcomeDeck(welcome,cards,real,real.classList.contains('pv-welcome-deck'));
-    clearWelcomeDeck(guestContent,guestCards,guest,!gate.hidden&&gate.dataset.guestTool==='image'&&
-      !gate.querySelector('#pv-guest-closed-state:not([hidden])'));
     fitPhoneInspiration(welcome,cards,real,!app.hidden&&app.classList.contains('image-studio-active')&&
       welcome&&!welcome.hidden&&empty&&!empty.hidden);
     fitPhoneInspiration(guestContent,guestCards,guest,!gate.hidden&&gate.dataset.guestTool==='image'&&
