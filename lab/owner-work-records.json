@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-15T18:06:18.601Z",
+  "updatedAt": "2026-11-15T18:13:04.510Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4111,13 +4111,13 @@
       "id": "image-seedream-55",
       "title": "Seedream 5.5 primary model; retain 5 Pro below PV Still",
       "component": "PV LAB Image / model routing",
-      "status": "needs_verification",
-      "updatedAt": "2026-11-15T18:06:18.601Z",
+      "status": "deployed",
+      "updatedAt": "2026-11-15T18:13:04.510Z",
       "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
-      "reviewedSha": "ab9e7fba3891cfb1bc6ae7c1b7c06e00cdbe5cbf",
+      "reviewedSha": "21cfbc55d6da547d0ccb3ca0545659496f92ce68",
       "branch": "fix/seedream-pro-below-pv-still",
-      "summary": "Owner requested Seedream 5 Pro directly below PV Still. Moved only its picker option; Seedream 5.5 remains first/default. Backend, pricing, labels, model routes and every other relative model position are unchanged. Prior Seedream 5.5 release evidence remains below; this new order awaits publication.",
-      "nextAction": "Publish the reviewed picker reorder, verify Cloudflare and live model order, then update this record.",
+      "summary": "Seedream 5 Pro is live directly below PV Still. The first three Image options are Seedream 5.5, PV Still and Seedream 5 Pro. Only the existing HTML option moved; all other relative positions and generation/pricing behavior are preserved. PR 1025 merged as 39825b4b70d53fec730026f8f4e39d0ec0f866c0; exact Cloudflare production check 132907013560 succeeded. Read-only signed-in production DOM observation confirmed the requested order.",
+      "nextAction": "Complete. Refresh Studio to load the published picker order. No backend redeployment or paid test was required.",
       "files": [
         "lab-worker/image-replacement.mjs",
         "lab-worker/worker.mjs",
@@ -4144,6 +4144,10 @@
         {
           "label": "Seedream 5.5 implementation PR 1019",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1019"
+        },
+        {
+          "label": "Move 5 Pro below PV Still PR 1025",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1025"
         }
       ],
       "tests": [
@@ -4176,16 +4180,20 @@
           "label": "Purchase flow browser CI limitation",
           "scope": "Pricing, quotes, finance, customer billing and approved Image Node checks passed. The browser fixture produced no completed scenarios and was cancelled by its ten-minute job timeout. Wider suite also retains existing catalogue, source and layout failures; this is not an all-green CI claim.",
           "result": "documented"
+        },
+        {
+          "label": "Model order follow-up",
+          "scope": "All 11 model-label/order and approved Image contract checks passed locally. Required approved-image-ui CI check 132905936398 and static validation passed.",
+          "result": "passed"
         }
       ],
       "deployment": {
         "state": "verified",
-        "environment": "Cloudflare Worker parallel-vision-lab and Pages pvlab-studio",
-        "sourceSha": "59908c09a455a5422a583706aa8a75b3eeee1d1a",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43712809467",
+        "environment": "PV LAB Cloudflare Pages pvlab-studio",
+        "sourceSha": "39825b4b70d53fec730026f8f4e39d0ec0f866c0",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=image",
         "limitations": [
-          "No real signed-in quote or paid generation performed.",
-          "Wider CI retains existing Mood catalogue, source and layout failures. Purchase browser fixture timed out; its quote/credit/finance Node checks passed."
+          "Verification covers model order in the signed-in production DOM; no paid request or billing action was performed."
         ]
       },
       "evidence": [
@@ -4217,6 +4225,16 @@
           "observedAt": "2026-11-15T12:16:21Z",
           "limitations": [
             "Not a real signed-in quote or paid output-quality test."
+          ]
+        },
+        {
+          "kind": "signed_in_production",
+          "summary": "Production model select options begin Seedream 5.5, PV Still, Seedream 5 Pro, Kling V3. Existing signed-in Studio loaded and Seedream 5.5 remained selected. Exact merge Cloudflare Pages check succeeded before the DOM observation.",
+          "scope": "Model order only; no selection, generation or payment action",
+          "source": "https://pvlab.studio/studio?tool=image",
+          "observedAt": "2026-11-15T18:13:04.510Z",
+          "limitations": [
+            "No output-quality or full billing-journey verification."
           ]
         }
       ],
