@@ -525,7 +525,9 @@ try{
       'Guest image preview is visible above the composer tools');
     assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
       'A chosen photograph opens the expanded composer without hiding its toolbar');
-    for(const id of ['pv-guest-library','pv-guest-model','pv-guest-retouch','pv-guest-ratio','pv-guest-resolution','pv-guest-count','pv-guest-exact']){
+    assert.equal(await page.locator('#pv-guest-retouch').isVisible(),false,
+      'Retouch stays retired from the Image toolbar');
+    for(const id of ['pv-guest-characters','pv-guest-library','pv-guest-model','pv-guest-ratio','pv-guest-resolution','pv-guest-count','pv-guest-exact']){
       const before=await page.evaluate(()=>window.__guestSignInClicks);
       await page.locator('#'+id).click();
       assert.equal(await page.evaluate(()=>window.__guestSignInClicks),before+1,

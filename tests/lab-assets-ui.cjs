@@ -285,12 +285,23 @@ for(const engine of ['flash','kling']){
 }
 await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="flash"]').click();
 await page.evaluate(()=>window.__setTestJobs([{id:'interrupted-flash',status:'uncertain',settings:{type:'image',engine:'flash',provider:'spicy'}}]));
-assert.equal(await page.locator('#image-composer-generate').isEnabled(),false);
-assert.match(await page.locator('#image-composer-generate').getAttribute('title'),/previous request.*Queue/);
-await page.locator('#active>summary').click();assert.equal(await page.locator('#active').getAttribute('open'),'');
+assert.equal(await page.locator('#generate').isEnabled(),false,'Interrupted Flash still blocks the underlying paid submission');
+const queueAction=page.locator('#image-composer-generate');
+assert.equal(await queueAction.isEnabled(),true,'The visible action remains usable to inspect Queue');
+assert.equal(await queueAction.getAttribute('aria-label'),'View queue');
+assert.equal(await queueAction.getAttribute('aria-controls'),'active');
+const queueWrites=[];
+const trackQueueWrite=request=>{if(request.method()!=='GET'&&request.url().includes('parallel-vision-lab.parallelvision.workers.dev'))queueWrites.push(request.url());};
+page.on('request',trackQueueWrite);
+const queueRefresh=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/jobs'&&r.request().method()==='GET');
+await queueAction.click();
+assert.equal(await page.locator('#active').getAttribute('open'),'','View queue opens the actual job queue');
+await queueRefresh;
+assert.deepEqual(queueWrites,[],'Inspecting an interrupted request never uploads, quotes or submits another paid job');
+page.off('request',trackQueueWrite);
 await page.evaluate(()=>window.__setTestJobs([{id:'unrelated-gemini',status:'uncertain',settings:{type:'image',engine:'gemini',provider:'gemini'}}]));
 assert.equal(await page.locator('#image-composer-generate').isEnabled(),true,'Unrelated Gemini interruption never blocks Flash');
-console.log('PASS SpicyAPI Flash interruption explains blocking; unrelated interruptions do not block Flash');
+console.log('PASS interrupted Flash blocks paid submission, opens Queue without writes, and leaves unrelated providers available');
 assert.deepEqual(errors,[]);console.log('PASS Flash defaults to 2K, Kling remains 1K, PNG, text-only submission and mobile geometry');
 await page.evaluate(()=>window.__setTestJobs([]));
 await page.click('#tool-upscale');

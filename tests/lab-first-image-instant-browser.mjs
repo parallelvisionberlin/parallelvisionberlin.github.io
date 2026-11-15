@@ -230,6 +230,7 @@ try{
           role+' reference icons stay inside the '+state+' deck');
       }
       assert.equal(states.idle.h,74,role+' starts with the approved compact row');
+      assert.equal(states.idle.w,1064,role+' uses the locked desktop Image width');
       for(const tool of ['add','library','model','moods','base','ratio','resolution','count','exact'])
         assert.ok(states.idle.controls[tool]?.w>0,role+' keeps '+tool+' visible while compact');
       assert.equal(states.idle.generate.w,128,role+' keeps Generate visible while compact');

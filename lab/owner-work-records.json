@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-14T19:16:57.222Z",
+  "updatedAt": "2026-11-15T11:59:49.264Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4112,10 +4112,10 @@
       "title": "Stop phone Mood freezing, stabilize saved-character frame and restore regression coverage",
       "component": "Customer generation / regression coverage",
       "status": "needs_verification",
-      "summary": "Both product fixes pass on exact integrated c2c2dd81: Chromium/WebKit account, guarded checkout, balances and Mood cases; full Full Editorial including 320/390/600px stable source-switch frames, private search, pinned upload and mocked submission boundaries. All 1256 local source/work-state tests and the complete public Studio visual/privacy suite also pass. Remaining fixture-only corrections wait for actual mocked responses/image decoding, include the catalog’s transitive road-scenes dependency, and retain approved current card ordering/28px Upscaler artwork/5px Video download inset without changing product design.",
-      "nextAction": "Hold the next exact candidate for final required browser results. Full Editorial and phone observer product behavior already pass on c2c2dd81; application bytes stay identical. No merge or production publication without a user decision.",
+      "summary": "Prepared the remaining #934 corrections from exact afd8a7e4: guest Image inherits the locked 1064px desktop frame; retired Retouch, current graphite Mood styling and original android-trio Video artwork are checked against current source. Interrupted Flash now verifies View queue opens the real Queue while the underlying paid action stays disabled and no upload, quote or job write occurs. The earlier phone observer and Full Editorial fixes are retained.",
+      "nextAction": "Use the latest exact-commit results in draft #934 to assess readiness. Required browser checks must pass before review; merge and production publication require a separate user decision. Production Worker, applied migrations and real customer behavior remain unverified.",
       "baselineSha": "ecac340065516290d9b933eed84ab7f899e89ad6",
-      "reviewedSha": "c2c2dd81b97d7de45b9dec9693e04ceaed5fff8d",
+      "reviewedSha": "afd8a7e4faadc75d0c542302d831e703f21a337a",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
         ".github/workflows/lab-public-studio-tests.yml",
@@ -4123,6 +4123,7 @@
         "lab/full-editorial-identity-refresh.css",
         "lab/full-editorial-mobile-casting.css",
         "lab/full-editorial.html",
+        "lab/image-deck-surface.css",
         "lab/image-editorial-deck.js",
         "lab/owner-work-records.json",
         "lab/studio.html",
@@ -4131,6 +4132,7 @@
         "tests/lab-assets-ui.cjs",
         "tests/lab-beauty-five-preview-fixes.test.mjs",
         "tests/lab-berlin-rave-signup-browser.mjs",
+        "tests/lab-composer-mood-ui.mjs",
         "tests/lab-customer-image-ui.mjs",
         "tests/lab-elements-smart-browser.mjs",
         "tests/lab-fashion-reference-layout-ui.mjs",
@@ -4154,6 +4156,7 @@
         "tests/lab-photobooth-all-moods.test.mjs",
         "tests/lab-photobooth-polish.test.mjs",
         "tests/lab-public-studio-ui.mjs",
+        "tests/lab-seedance-ui.mjs",
         "tests/lab-seedream-input-pixels.test.mjs",
         "tests/lab-studio-layout-ui.mjs",
         "tests/lab-sumi-e.test.mjs",
@@ -4266,6 +4269,11 @@
           "result": "passed",
           "scope": "c2c2dd81: 1256/1256 local tests; both account engines, full Full Editorial including source-frame stability at 320/390/600px, private search/pinned upload and guarded requests; complete public Studio visual and privacy suite.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43633931989/job/132566467526"
+        },
+        {
+          "label": "Remaining-check repair source and safety validation",
+          "result": "passed",
+          "scope": "85 local source and isolated in-memory tests pass: approved Image, pricing, authentication, checkout/webhook-to-credit delivery, refunds/idempotency, Seedance and reference preparation. Local Chromium cannot create its process socket, so candidate browser results must be obtained from GitHub Actions."
         }
       ],
       "deployment": {
@@ -4395,17 +4403,27 @@
           "limitations": [
             "The final exact test-only candidate still requires hosted validation."
           ]
+        },
+        {
+          "kind": "source",
+          "summary": "The approved deck contract locks desktop Image at 1064px; the current guest rule retained 1120px. Extend the existing private frame selector to guests without changing private/mobile sizes. The immutable public visual reference receives exactly this known selector correction only; original strict pixel tolerances and all other baseline bytes remain.",
+          "scope": "One desktop guest width correction and supported fixtures; no Worker, schema, authentication, pricing, provider, wallet or Stripe implementation change.",
+          "source": "lab/AGENTS.md",
+          "limitations": [
+            "The last recorded remote baseline afd8a7e4 has 41 successful and 5 failed checks. New browser evidence must be read from the draft PR before reporting completion.",
+            "No production deployment or real customer verification is implied."
+          ]
         }
       ],
       "blockers": [
-        "Remaining fixture-only corrections require the final exact hosted browser run.",
-        "Unchanged production redirect/direct-entry smoke check cannot establish production readiness or customer harm."
+        "Exact candidate browser CI must be inspected in draft #934; local Chromium is unavailable in this execution environment.",
+        "Production direct-entry, Worker version, applied migrations and real customer behavior remain separate verification gaps."
       ],
       "doNotRepeat": [
         "Do not rewrite approved catalog/design to silence assertions. Reuse existing PR #934 for its test-fixture files.",
         "Do not overlap current Upscaler, Inspiration ordering, Seedream or Chrome Desert feature branches."
       ],
-      "updatedAt": "2026-11-14T19:16:57.222Z"
+      "updatedAt": "2026-11-15T11:59:49.264Z"
     }
   ]
 }

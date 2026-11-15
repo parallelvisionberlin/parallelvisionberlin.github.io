@@ -257,24 +257,25 @@ try{
   await waitRefs(x.page,1);
   // Check idle hover before opening: the Mood panel's backdrop intentionally blocks its deck.
   await x.page.hover('#image-composer-moods');
-  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(45, 48, 44)');
+  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(62, 64, 67)');
   const idleHover=await x.page.locator('#image-composer-moods').evaluate(el=>({background:getComputedStyle(el).backgroundColor,gradient:getComputedStyle(el).backgroundImage}));
-  assert.equal(idleHover.background,'rgb(45, 48, 44)','Idle hover remains dark');
+  assert.equal(idleHover.background,'rgb(62, 64, 67)','Idle hover uses the shared graphite toolbar palette');
   assert.equal(idleHover.gradient,'none','Hover never activates an unselected Mood');
   await x.page.mouse.move(0,0);
   await x.page.click('#image-composer-moods');
   await x.page.mouse.move(0,0);
-  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(35, 37, 35)');
+  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(50, 52, 55)');
   const moodAppearance=await x.page.evaluate(()=>{
-    const mood=document.querySelector('#image-composer-moods'),retouch=document.querySelector('#image-composer-edit-area');
-    const value=getComputedStyle(mood),neighbor=getComputedStyle(retouch);
-    return {background:value.backgroundColor,gradient:value.backgroundImage,color:value.color,height:mood.getBoundingClientRect().height,retouchBackground:neighbor.backgroundColor};
+    const mood=document.querySelector('#image-composer-moods'),model=document.querySelector('#image-composer-model');
+    const value=getComputedStyle(mood),neighbor=getComputedStyle(model);
+    return {background:value.backgroundColor,gradient:value.backgroundImage,color:value.color,height:mood.getBoundingClientRect().height,neighborHeight:model.getBoundingClientRect().height,neighborBackground:neighbor.backgroundColor};
   });
-  assert.equal(moodAppearance.background,moodAppearance.retouchBackground,'Idle Moods must match the neighboring dark control');
-  assert.equal(moodAppearance.background,'rgb(35, 37, 35)');
+  assert.equal(moodAppearance.background,moodAppearance.neighborBackground,'Idle Moods must match the neighboring dark control');
+  assert.equal(moodAppearance.background,'rgb(50, 52, 55)');
   assert.equal(moodAppearance.gradient,'none','Opening the Mood picker must not look selected');
-  assert.equal(moodAppearance.color,'rgb(214, 255, 0)','Idle icon and letters use electric citron');
-  assert.ok(moodAppearance.height>=39&&moodAppearance.height<=43,'Moods must stay aligned with neighboring controls: '+JSON.stringify(moodAppearance));
+  assert.equal(moodAppearance.color,'rgb(220, 255, 0)','Idle icon and letters use electric citron');
+  assert.equal(moodAppearance.height,34,'Moods retains the approved 34px desktop toolbar height');
+  assert.equal(moodAppearance.height,moodAppearance.neighborHeight,'Moods stays aligned with the model control');
   const beforeMood=await x.page.evaluate(()=>{
     const modal=document.querySelector('#composer-moods');
     const card=document.querySelector('.moods-card-media');
@@ -297,21 +298,24 @@ try{
   const selectedLook=await x.page.evaluate(()=>{
     const mood=getComputedStyle(document.querySelector('#image-composer-moods'));
     const clear=getComputedStyle(document.querySelector('#image-composer-moods-clear'));
-    return {gradient:mood.backgroundImage,color:mood.color,removeColor:clear.color};
+    const button=document.querySelector('#image-composer-moods');
+    return {gradient:mood.backgroundImage,color:mood.color,removeColor:clear.color,selected:button.classList.contains('is-mood-selected'),label:button.textContent};
   });
-  assert.match(selectedLook.gradient,/linear-gradient/,'Selected Moods must retain citron visual prominence');
-  assert.equal(selectedLook.color,'rgb(24, 34, 14)');
-  assert.equal(selectedLook.removeColor,'rgb(27, 42, 9)','Clear X needs dark contrast on citron');
+  assert.equal(selectedLook.gradient,'none','The selected Mood retains the shared graphite surface');
+  assert.equal(selectedLook.color,'rgb(220, 255, 0)');
+  assert.equal(selectedLook.removeColor,'rgb(220, 255, 0)','Clear X retains citron contrast on graphite');
+  assert.equal(selectedLook.selected,true,'Selection is reflected by the real control state');
+  assert.match(selectedLook.label,/Hong Kong Nights/,'The selected Mood name replaces the generic label');
   assert.equal(await x.page.locator('#composer-moods-selection').isVisible(),true);
   assert.equal(await x.page.locator('#composer-moods-summary').innerText(),'Hong Kong Nights');
   assert.equal(await hongKong.getAttribute('aria-pressed'),'true');
   await hongKong.click();
   assert.equal(await hongKong.getAttribute('aria-pressed'),'false','Clicking the selected mood again deselects it.');
-  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(35, 37, 35)'&&getComputedStyle(document.querySelector('#image-composer-moods')).backgroundImage==='none');
+  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(50, 52, 55)'&&getComputedStyle(document.querySelector('#image-composer-moods')).backgroundImage==='none');
   const deselectedLook=await x.page.locator('#image-composer-moods').evaluate(el=>({background:getComputedStyle(el).backgroundColor,gradient:getComputedStyle(el).backgroundImage,color:getComputedStyle(el).color}));
-  assert.equal(deselectedLook.background,'rgb(35, 37, 35)','Deselecting returns to the dark Mood control');
+  assert.equal(deselectedLook.background,'rgb(50, 52, 55)','Deselecting returns to the dark Mood control');
   assert.equal(deselectedLook.gradient,'none');
-  assert.equal(deselectedLook.color,'rgb(214, 255, 0)');
+  assert.equal(deselectedLook.color,'rgb(220, 255, 0)');
   assert.equal(await x.page.locator('#composer-moods-selection').isHidden(),true);
   assert.equal(await x.page.locator('#composer-moods-summary').textContent(),'');
   assert.equal(await x.page.locator('#composer-moods-done').isDisabled(),true);
