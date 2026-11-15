@@ -10,9 +10,9 @@ import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
 import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261027-compact-f1&characterAllViews=20261103v1&extendCharacter=20261031-1&deckReturn=20261018v1&aboutElements=20261018v1&draftNavigation=20261018v1&geminiRepair=20261020v1&characterEditor=20261108-v1';
 import {normalizeImageReferenceOrder,assignImageBase} from './reference-order.js?v=20261103-base-replacement1';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
-import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3&hkPhoto=20261018v1&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10&eightiesFinish=20261024v1&hkCinema=20261025v1';
+import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3&hkPhoto=20261018v1&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10&eightiesFinish=20261024v1&hkCinema=20261025v1&seedream55=1';
 import {preparePhotoInput,prepareUpscaleInput,prepareElementPhoto} from './photo-input.js?v=20261027-character-working1';
-import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference,shouldOmitAutomaticMoodReferencesForInspiration} from './mood-references.js?hkPhotoOriginals=20261018v2&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2&refOnlyDreamBlurFix=20261018v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&fisheye=20261020v1&hkRefs=20261023two1&fisheyeY2K=20261024v1&hyperPopMaterial=20261024v1&eightiesStyle=20261024v1&dreamBlurInspirationRefs=20261102v1&dreamBlurExposure=20261102v2&fallenAngel=20261112a';
+import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference,shouldOmitAutomaticMoodReferencesForInspiration} from './mood-references.js?hkPhotoOriginals=20261018v2&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2&refOnlyDreamBlurFix=20261018v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&fisheye=20261020v1&hkRefs=20261023two1&fisheyeY2K=20261024v1&hyperPopMaterial=20261024v1&eightiesStyle=20261024v1&dreamBlurInspirationRefs=20261102v1&dreamBlurExposure=20261102v2&fallenAngel=20261112a&seedream55=1';
 import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-hidden-preset1&fisheye=20261020v1&hkRefs=20261023two1&fisheyeY2K=20261024v1&hyperPopMaterial=20261024v1&fallenAngel=20261112a';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount,accountBootstrapMessage} from './native-account.js?v=20261103-browser-bootstrap1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
@@ -31,10 +31,10 @@ import {mountVideoEffectsGallery,resolveVideoEffect} from './video-effects.js?v=
 import {createVideoModelPicker} from './video-model-picker.js?v=20261111-spicy-extend1';
 import {readProviderPolicyDetails} from './model-policy-preferences.js?v=20261028-1';
 import {videoCustomerQuoteLabels,videoCreditPreview} from './video-euro-pricing.js?creditPreview=20261029-1&v=20261024-credits1';
-import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
-import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,AUTO_IMAGE_REINTERPRET_PROMPT,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?characterAllViews=20261103v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1&fisheye=20261020v1&hkRefs=20261023two1&photoOnlyAuto=20261022v3&hkCinema=20261025v1&replaceCompact=20261108-v1&fallenAngel=20261112a';
+import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1&seedream55=1';
+import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,AUTO_IMAGE_REINTERPRET_PROMPT,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?characterAllViews=20261103v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1&fisheye=20261020v1&hkRefs=20261023two1&photoOnlyAuto=20261022v3&hkCinema=20261025v1&replaceCompact=20261108-v1&fallenAngel=20261112a&seedream55=1';
 import {createInspirationRotation,INSPIRATION_VARIATIONS,CHROME_COUTURE_DEFAULTS} from './inspiration-looks.js?v=20261019-chrome1&fisheyeCover=20261021v1&fisheyeY2K=20261024v1&chromeQwen20=20261031v1&dreamBlurExposure=20261102v2&sunFadeInspiration=20261104v1&promptSwitch=20261112v1';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?ownerNightFlashRelight=20261107v1&v=20261018-girard-originals2&20261011-midnight-reverie1&flashStyle=20261018-inspiration1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261024default80&filmCapture=20261016-preserve1&moodDefault2k=20261017v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&kreaMoods=20261020v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&fisheyeCover=20261021v1&hkRefs=20261023two1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&dreamBlurCover=20261024v1&hkCinema=20261025v1&dreamBlurExposure=20261102v2&nightFlashSoul=20261106v1&wonKarNight=20261106v1&nightFlashPreset=20261107v1&cinemaNatural=20261107v1&fallenAngel=20261112-syntaxfix1';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?ownerNightFlashRelight=20261107v1&v=20261018-girard-originals2&20261011-midnight-reverie1&flashStyle=20261018-inspiration1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261024default80&filmCapture=20261016-preserve1&moodDefault2k=20261017v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&kreaMoods=20261020v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&fisheyeCover=20261021v1&hkRefs=20261023two1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&dreamBlurCover=20261024v1&hkCinema=20261025v1&dreamBlurExposure=20261102v2&nightFlashSoul=20261106v1&wonKarNight=20261106v1&nightFlashPreset=20261107v1&cinemaNatural=20261107v1&fallenAngel=20261112-syntaxfix1&seedream55=1';
 import {HONG_KONG_VARIANTS} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2&hkRefs=20261023two1&hkCinema=20261025v1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&fisheye=20261020v1&fisheyeCover=20261021v1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&dreamBlurExposure=20261102v2';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
@@ -288,7 +288,7 @@ async function restoreStudioEntry(requestedRoute=studioRoute()){
         moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70,...(mood.id==='hong-kong-nights'?{moodVariant:query.get('variation')||'original'}:{})},true);
         title=mood.name;
       }
-      if(!ownerAccount&&imageEngine==='seedream')$('resolution').value='2k';
+      if(!ownerAccount&&['seedream','seedream55'].includes(imageEngine))$('resolution').value='2k';
       let hadPhoto=false,generation=null;
       if(query.has('handoff')){
         try{
@@ -350,7 +350,7 @@ async function submitMoodGeneration(generation,moodId){
 }
 let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[], mode='start';
 let lastVideoCreateMode='reference',initialVideoEntryConfigured=false;
-let engine='seedance', imageEngine='seedream', imageProcessing='normal', soulProModel='soul2', soulProQuality='medium', soulProIdentity={configured:false,count:0,refs:[]}, soulProPackSelection=[], soulProPackUrls=[], poseMapSourceId=null, repairTarget=null, repairImage=null, repairMaskCanvas=null, repairMaskDirty=false;
+let engine='seedance', imageEngine='seedream55', imageProcessing='normal', soulProModel='soul2', soulProQuality='medium', soulProIdentity={configured:false,count:0,refs:[]}, soulProPackSelection=[], soulProPackUrls=[], poseMapSourceId=null, repairTarget=null, repairImage=null, repairMaskCanvas=null, repairMaskDirty=false;
 let tool='image', packs=[],resultKind='video',resultExt='mp4';
 const videoModelPicker=createVideoModelPicker({select:$('video-engine'),getBusy:()=>busy,isActive:()=>tool==='video'&&owner&&!fashionActive&&!assetLibrary?.active(),getPolicyDetails:()=>readProviderPolicyDetails(userId)});
 let resultUrl=null, resultId=null, resultSettings=null, previewRevision=0, autoPreview=null, currentQuote=null, next=null, activeJob=null, timer=null, historyRevision=0;
@@ -371,14 +371,14 @@ const qwenPreparer=createSeedreamReferencePreparer({
 });
 function prewarmSeedreamReference(item){
   if(!owner||tool!=='image')return;
-  const preparer=imageEngine==='seedream'?seedreamPreparer:imageEngine==='qwen3'?qwenPreparer:null;
+  const preparer=['seedream','seedream55'].includes(imageEngine)?seedreamPreparer:imageEngine==='qwen3'?qwenPreparer:null;
   if(!preparer)return;
   const task=preparer.warm(item);
   // Speculative failures stay silent. Generate can retry the normal path.
   if(task)void task.catch(()=>{});
 }
 function prewarmSeedreamDeck(){
-  if(!owner||tool!=='image'||!['seedream','qwen3'].includes(imageEngine))return;
+  if(!owner||tool!=='image'||!['seedream55','seedream','qwen3'].includes(imageEngine))return;
   for(const item of references)prewarmSeedreamReference(item);
 }
 let upscaleQuote=null,upscaleQuoteNeedsCheck=false,upscaleQuoteTimer=null,upscalePriceMessage='',upscaleManualReviewRequired=false,upscaleManualReviewKey='';
@@ -464,7 +464,7 @@ const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-compo
     if(change?.selectedMood||!moodUI.active())inspirationMoodId=null;
     // Customer Moods retain their approved 2K default. Owner Moods keep
     // the deck's 1K default or the owner's explicit resolution selection.
-    if(change?.selectedMood&&moodUI.selected()&&imageEngine==='seedream'&&!ownerAccount&&!busy)
+    if(change?.selectedMood&&moodUI.selected()&&['seedream','seedream55'].includes(imageEngine)&&!ownerAccount&&!busy)
       $('resolution').value='2k';
     autoPreview=null;update();
     // Bypass the generic typing debounce on an intentional Mood selection.
@@ -761,7 +761,7 @@ function imageInputReferences(){return tool==='image'&&imageEngine==='zspicy'?[]
 function imageMoodOptions(){
   if(isSoul2())return {engine:'soul2',referenceCount:file?1:0,referenceMode:'base'};
   const inputs=imageInputReferences(),referenceMode=imageEngine==='zspicy'?'base':imageReferenceMode;
-  const ownerNightFlashBase=ownerAccount&&tool==='image'&&imageEngine==='seedream'&&moodUI.selected()==='night-flash'&&
+  const ownerNightFlashBase=ownerAccount&&tool==='image'&&['seedream','seedream55'].includes(imageEngine)&&moodUI.selected()==='night-flash'&&
     referenceMode==='base'&&inputs.length===1&&inputs[0].role==='base';
   return {engine:imageEngine,referenceCount:inputs.length,referenceMode,ownerNightFlashBase};
 }
@@ -772,7 +772,7 @@ function imageMood(){
 }
 function soulNightFlashUnavailable(){return customerMode&&isSoul2()&&moodUI.selected()==='night-flash'&&config.soulNightFlashEnabled!==true;}
 function imageMoodArguments(){const p=imageMoodOptions();return [p.engine,$('prompt').value,p.referenceCount,p.referenceMode];}
-function usesReferenceGuidance(){return tool==='image'&&['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3','krea3'].includes(imageEngine);}
+function usesReferenceGuidance(){return tool==='image'&&['seedream55','seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3','krea3'].includes(imageEngine);}
 function imageGuidance(){
   const labels=referenceRoles(),mood=imageMood();
   const current={type:'image',mode:'image',engine:imageEngine,referenceMode:imageReferenceMode,exactPrompt:$('composer-exact-prompt').checked,...mood.metadata,...(reviewedReplacement()?{replacement:reviewedReplacement()}: {})};
@@ -898,7 +898,7 @@ function validateUpscaleQuote(q,selected){
   const which=upscaleMode(selected),fal=which!=='spicy',p=q?.settings,wrong=!q||!p||q.provider!==(fal?'fal.ai':'SpicyAPI')||p.model!==UPSCALE_MODELS[which].model||p.type!=='image'||p.mode!=='upscale'||upscaleMode(p)!==which||p.outputFormat!==selected.outputFormat||!q.id||!Number.isFinite(q.estimatedUsd)||q.estimatedUsd<0||!Number.isFinite(q.maxUsd)||q.maxUsd<q.estimatedUsd||!Number.isFinite(q.expiresAt)||q.expiresAt<=Date.now();
   if(wrong||customerMode&&(!Number.isSafeInteger(q.creditCost)||q.creditCost<1)||fal&&(q.priceIsEstimate!==true||q.requiresPriceReview!==true||p.scale!==selected.scale||(which!=='seedvr2'&&p.topazModel!==selected.topazModel)||![p.sourceWidth,p.sourceHeight,p.targetWidth,p.targetHeight].every(n=>Number.isSafeInteger(n)&&n>0)||p.targetWidth!==p.sourceWidth*selected.scale||p.targetHeight!==p.sourceHeight*selected.scale)||!fal&&p.resolution!==selected.resolution)throw new Error('No usable upscale quote was returned for these settings. Nothing was submitted.');
 }
-function effectiveImagePrompt(){const typed=$('prompt').value.trim();if(typed)return typed;const base=tool==='image'&&imageReferenceMode==='base'&&imageInputReferences().length>0&&['seedream','seedreamlite','flash','kling','qwen3','gemini','gemini21','krea3'].includes(imageEngine);if(!base)return '';if(moodUI.active())return moodUI.selected()==='80s-film'&&moodUI.intensity()===100?'':'Create a natural photographic variation of the base image, preserving its subject and overall composition.';if(referenceRoles().filter(ref=>ref.elementCategory==='characters').length>=3)return 'Apply the assigned reference properties to the base image; preserve everything else.';return AUTO_IMAGE_REINTERPRET_PROMPT;}
+function effectiveImagePrompt(){const typed=$('prompt').value.trim();if(typed)return typed;const base=tool==='image'&&imageReferenceMode==='base'&&imageInputReferences().length>0&&['seedream55','seedream','seedreamlite','flash','kling','qwen3','gemini','gemini21','krea3'].includes(imageEngine);if(!base)return '';if(moodUI.active())return moodUI.selected()==='80s-film'&&moodUI.intensity()===100?'':'Create a natural photographic variation of the base image, preserving its subject and overall composition.';if(referenceRoles().filter(ref=>ref.elementCategory==='characters').length>=3)return 'Apply the assigned reference properties to the base image; preserve everything else.';return AUTO_IMAGE_REINTERPRET_PROMPT;}
 function replacementDraftKey(){
   if(tool!=='image')return '';
   return JSON.stringify([epoch,imageRevision,imageEngine,imageProcessing,imageReferenceMode,
@@ -925,7 +925,7 @@ function preserveReplacementRatio(){
   if(!matching)throw Error('This model cannot keep the Base photo crop. Choose a model with Auto aspect ratio.');
   $('ratio').value=matching;imageRatioExplicit=true;
 }
-function settings(){if(tool==='upscale')return isFalUpscale()?{type:'image',mode:'upscale',upscaleEngine,scale:Number($('upscale-scale').value),...(upscaleEngine==='topaz-precision'?{topazModel:$('upscale-topaz-model').value}:upscaleEngine==='topaz-wonder'?{topazModel:'Wonder 3.5'}:{}),prompt:'',resolution:$('upscale-scale').value+'x',aspectRatio:'source',outputFormat:$('output-format').value,referenceRoles:[]}:{type:'image',mode:'upscale',upscaleEngine:'spicy',prompt:'',resolution:$('resolution').value,aspectRatio:'auto',outputFormat:$('output-format').value,referenceRoles:[]};if(isSoul2()){const mood=moodUI.enrich($('prompt').value.trim(),imageMoodOptions());return {type:'image',provider:'higgsfield',engine:'soulpro',soulProModel:'soul2',mode:'identity-edit',prompt:mood.prompt,...mood.metadata,...hf.parameters(),seed:$('soul-pro-seed').value,aspectRatio:$('hf-bar-ratio').value,outputFormat:'png',referenceRoles:[]};}if(tool==='image'&&imageEngine==='soulpro')return {type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',soulProModel,soulProQuality,prompt:$('prompt').value.trim(),sourceWidth,sourceHeight,seed:$('soul-pro-seed').value,resolution:'source',aspectRatio:'source',outputFormat:'png',referenceRoles:[]};if(tool==='image'&&imageEngine==='fal')return {type:'image',provider:'fal',engine:'fal',mode:'controlled-pose',prompt:$('prompt').value.trim(),resolution:'1k',aspectRatio:$('ratio').value,outputFormat:'png',poseStrength:Number($('pose-strength').value),identityStrength:Number($('identity-strength').value),seed:$('controlled-pose-seed').value,referenceRoles:referenceRoles()};if(tool==='image'){const mood=imageMood();const base={type:'image',engine:imageEngine,processing:imageProcessing,referenceMode:imageEngine==='zspicy'?'base':imageReferenceMode,mode:'image',prompt:mood.prompt,...mood.metadata,...(mood.metadata?.moodId?{moodOriginalPrompt:$('prompt').value.trim()}:{}),resolution:imageEngine==='soul'?'native':$('resolution').value,aspectRatio:$('ratio').value,outputFormat:['seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy'].includes(imageEngine)?'png':$('output-format').value,referenceRoles:['soul','zspicy'].includes(imageEngine)?[]:referenceRoles(),exactPrompt:$('composer-exact-prompt').checked===true,...(reviewedReplacement()?{replacement:reviewedReplacement(),outputFormat:'png'}: {})};return imageEngine==='soul'?{...base,provider:soul.isKrea()?'fal':'spicy',trainer:soul.isKrea()?'krea2':'qwen2512',characterId:soul.selectedId(),identityStrength:soul.strength(),...(isReinterpret()?{...soul.reinterpretSettings(),resolution:$('resolution').value,aspectRatio:'source'}:{})}:base;}return {type:'video',engine,mode,...(mode==='transform'?{transformType:'replace-character'}:{}),...(mode==='transform'?{provider:'higgsfield'}:mode==='extend'?{provider:seedanceExtendHasExtraPhotos()?'higgsfield':'spicy'}:{}),referenceVideos:['reference','extend','transform'].includes(mode)?mediaRefs.labels('video'):[],referenceAudio:mode==='reference'?mediaRefs.labels('audio'):[],prompt:mode==='transform'?($('prompt').value.trim()||'Replace the person in the source video using the attached character identity. Preserve the original motion, setting and camera.'): $('prompt').value.trim(),duration:mode==='transform'?Math.max(4,Math.min(30,Math.round(mediaRefs.firstVideo()?.seconds||5))):Number($('duration').value),resolution:$('resolution').value,aspectRatio:['extend','transform'].includes(mode)?'auto':$('ratio').value,seed:['extend','transform'].includes(mode)||engine==='kling3'?null:$('seed').value,audio:$('audio').checked,cameraFixed:engine==='seedance15'&&$('video-camera-lock').checked,referenceRoles:referenceRoles(),referencePixels:engine==='h3maxfal'?references.map(r=>r.width*r.height):[]};}
+function settings(){if(tool==='upscale')return isFalUpscale()?{type:'image',mode:'upscale',upscaleEngine,scale:Number($('upscale-scale').value),...(upscaleEngine==='topaz-precision'?{topazModel:$('upscale-topaz-model').value}:upscaleEngine==='topaz-wonder'?{topazModel:'Wonder 3.5'}:{}),prompt:'',resolution:$('upscale-scale').value+'x',aspectRatio:'source',outputFormat:$('output-format').value,referenceRoles:[]}:{type:'image',mode:'upscale',upscaleEngine:'spicy',prompt:'',resolution:$('resolution').value,aspectRatio:'auto',outputFormat:$('output-format').value,referenceRoles:[]};if(isSoul2()){const mood=moodUI.enrich($('prompt').value.trim(),imageMoodOptions());return {type:'image',provider:'higgsfield',engine:'soulpro',soulProModel:'soul2',mode:'identity-edit',prompt:mood.prompt,...mood.metadata,...hf.parameters(),seed:$('soul-pro-seed').value,aspectRatio:$('hf-bar-ratio').value,outputFormat:'png',referenceRoles:[]};}if(tool==='image'&&imageEngine==='soulpro')return {type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',soulProModel,soulProQuality,prompt:$('prompt').value.trim(),sourceWidth,sourceHeight,seed:$('soul-pro-seed').value,resolution:'source',aspectRatio:'source',outputFormat:'png',referenceRoles:[]};if(tool==='image'&&imageEngine==='fal')return {type:'image',provider:'fal',engine:'fal',mode:'controlled-pose',prompt:$('prompt').value.trim(),resolution:'1k',aspectRatio:$('ratio').value,outputFormat:'png',poseStrength:Number($('pose-strength').value),identityStrength:Number($('identity-strength').value),seed:$('controlled-pose-seed').value,referenceRoles:referenceRoles()};if(tool==='image'){const mood=imageMood();const base={type:'image',engine:imageEngine,processing:imageProcessing,referenceMode:imageEngine==='zspicy'?'base':imageReferenceMode,mode:'image',prompt:mood.prompt,...mood.metadata,...(mood.metadata?.moodId?{moodOriginalPrompt:$('prompt').value.trim()}:{}),resolution:imageEngine==='soul'?'native':$('resolution').value,aspectRatio:$('ratio').value,outputFormat:['seedream55','seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy'].includes(imageEngine)?'png':$('output-format').value,referenceRoles:['soul','zspicy'].includes(imageEngine)?[]:referenceRoles(),exactPrompt:$('composer-exact-prompt').checked===true,...(reviewedReplacement()?{replacement:reviewedReplacement(),outputFormat:'png'}: {})};return imageEngine==='soul'?{...base,provider:soul.isKrea()?'fal':'spicy',trainer:soul.isKrea()?'krea2':'qwen2512',characterId:soul.selectedId(),identityStrength:soul.strength(),...(isReinterpret()?{...soul.reinterpretSettings(),resolution:$('resolution').value,aspectRatio:'source'}:{})}:base;}return {type:'video',engine,mode,...(mode==='transform'?{transformType:'replace-character'}:{}),...(mode==='transform'?{provider:'higgsfield'}:mode==='extend'?{provider:seedanceExtendHasExtraPhotos()?'higgsfield':'spicy'}:{}),referenceVideos:['reference','extend','transform'].includes(mode)?mediaRefs.labels('video'):[],referenceAudio:mode==='reference'?mediaRefs.labels('audio'):[],prompt:mode==='transform'?($('prompt').value.trim()||'Replace the person in the source video using the attached character identity. Preserve the original motion, setting and camera.'): $('prompt').value.trim(),duration:mode==='transform'?Math.max(4,Math.min(30,Math.round(mediaRefs.firstVideo()?.seconds||5))):Number($('duration').value),resolution:$('resolution').value,aspectRatio:['extend','transform'].includes(mode)?'auto':$('ratio').value,seed:['extend','transform'].includes(mode)||engine==='kling3'?null:$('seed').value,audio:$('audio').checked,cameraFixed:engine==='seedance15'&&$('video-camera-lock').checked,referenceRoles:referenceRoles(),referencePixels:engine==='h3maxfal'?references.map(r=>r.width*r.height):[]};}
 function hasInput(){if(tool==='video'&&mode==='extend')return mediaRefs.labels('video').length===1&&!!$('prompt').value.trim();if(tool==='video'&&mode==='transform')return mediaRefs.labels('video').length===1&&references.length>=1;if(tool==='upscale')return !!file;if(tool==='image'&&imageEngine==='soulpro')return isSoul2()?hf.ready()&&(!!file||!!$('prompt').value.trim()):!!file&&soulProIdentity.configured;if(tool==='image'&&imageEngine==='fal'){const roles=referenceRoles(),poses=roles.filter(r=>r.role==='pose').length,identities=roles.filter(r=>r.role==='identity').length;return !!$('prompt').value.trim()&&references.length>=2&&references.length<=5&&poses===1&&identities>=1&&identities<=4&&poses+identities===references.length;}if(tool==='image'&&imageEngine==='soul')return isReinterpret()?soul.reinterpretReady()&&!!file:soul.ready()&&!!$('prompt').value.trim();if(tool==='image'&&imageEngine==='zspicy')return !!$('prompt').value.trim();if(usesReferenceGuidance())return !imageGuidance().error&&(!!effectiveImagePrompt()||references.length>0);return tool==='image'||mode==='text'?(tool==='image'?!!effectiveImagePrompt():!!$('prompt').value.trim()):mode==='start'?!!file:references.length>0||(engine==='seedance'&&mediaRefs.count()>0);}
 function syncVideoFrameCards(){
   for(const [id,buttonId,url] of [['video-start-thumb','remove-start-frame',sourceUrl],['video-end-thumb','remove-end-frame',lastUrl]]){
@@ -1328,19 +1328,19 @@ function setTool(value){
   if(toolChanged){$('notice').textContent='';$('notice').classList.remove('error');}
   syncNoticePlacement();
   for(const name of ['image','video','upscale']){$('tool-'+name).classList.toggle('active',tool===name);$('tool-'+name).setAttribute('aria-pressed',String(tool===name));}$('soul-launch').hidden=!image;
-  $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-model-control').hidden=!image;$('engine-name').hidden=image;$('image-processing-control').hidden=!image||imageEngine!=='gemini';$('soul-pro-settings').hidden=!image||imageEngine!=='soulpro';$('controlled-pose-settings').hidden=!image||imageEngine!=='fal';$('image-count-control').hidden=!image||imageEngine==='fal'||imageEngine==='soulpro'&&!isSoul2()||imageEngine==='soul'&&soul.isKrea();$('video-utilities').hidden=!video;$('format-control').hidden=video||(image&&['seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy','gemini','gemini21','fal','soulpro'].includes(imageEngine));$('soul-controls').hidden=!image||imageEngine!=='soul';
+  $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-model-control').hidden=!image;$('engine-name').hidden=image;$('image-processing-control').hidden=!image||imageEngine!=='gemini';$('soul-pro-settings').hidden=!image||imageEngine!=='soulpro';$('controlled-pose-settings').hidden=!image||imageEngine!=='fal';$('image-count-control').hidden=!image||imageEngine==='fal'||imageEngine==='soulpro'&&!isSoul2()||imageEngine==='soul'&&soul.isKrea();$('video-utilities').hidden=!video;$('format-control').hidden=video||(image&&['seedream55','seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy','gemini','gemini21','fal','soulpro'].includes(imageEngine));$('soul-controls').hidden=!image||imageEngine!=='soul';
   $('start-mode').hidden=(image&&imageEngine!=='soulpro')||video&&mode!=='start';$('reference-mode').hidden=upscale||video&&mode!=='reference'||image&&['soul','soulpro','zspicy'].includes(imageEngine);
   $('last-upload').hidden=upscale||image&&imageEngine==='soulpro';$('start-label').textContent=upscale?'Image to upscale':image&&imageEngine==='soulpro'?'Base image':'Start frame';
   $('upscale-info').hidden=!upscale;$('prompt').hidden=upscale;$('prompt-label').hidden=upscale;$('resolution-control').hidden=image&&(imageEngine==='soul'&&!isReinterpret()||imageEngine==='fal'||imageEngine==='soulpro');$('ratio-control').hidden=upscale||image&&imageEngine==='soulpro';
   $('mode-heading').textContent=upscale?'03 / Image Upscale':image&&imageEngine==='soulpro'?'02 / PV Soul Pro · Nina Reinterpret':image?'02 / Text to Image + Reference Edit':'01 / Image to Video';
-  $('engine-name').textContent=upscale?'BYTEDANCE SEEDVR2':image?(imageEngine==='gemini21'?'NANO BANANA 2.1':imageEngine==='gemini'?'NANO BANANA PRO':imageEngine==='soulpro'?'PV SOUL PRO':imageEngine==='soul'?'PV SOUL':imageEngine==='fal'?'CONTROLLED POSE · FAL':imageEngine==='seedreamlite'?'SEEDREAM 5 LITE':imageEngine==='qwen3'?'QWEN IMAGE 3.0':imageEngine==='zspicy'?'Z-IMAGE SPICY':'SEEDREAM 5.0 PRO'):'WAN 3.0';
+  $('engine-name').textContent=upscale?'BYTEDANCE SEEDVR2':image?(imageEngine==='gemini21'?'NANO BANANA 2.1':imageEngine==='gemini'?'NANO BANANA PRO':imageEngine==='soulpro'?'PV SOUL PRO':imageEngine==='soul'?'PV SOUL':imageEngine==='fal'?'CONTROLLED POSE · FAL':imageEngine==='seedream55'?'SEEDREAM 5.5':imageEngine==='seedreamlite'?'SEEDREAM 5 LITE':imageEngine==='qwen3'?'QWEN IMAGE 3.0':imageEngine==='zspicy'?'Z-IMAGE SPICY':'SEEDREAM 5.0 PRO'):'WAN 3.0';
   $('prompt-label').textContent=image?'Image direction':'Motion direction';$('prompt').maxLength=image?(imageEngine==='seedreamlite'?3000:5000):6000;
   $('prompt').placeholder=image?(imageEngine==='zspicy'?'Describe an original image from words. This model does not accept photographs.':'Describe the image. Add references for identity, wardrobe, a room or an object, or start with text only.'):'One clear action, one camera move, light, atmosphere and sound.';
-  options('resolution',upscale?['2k','4k','8k']:image?(imageEngine==='soulpro'?['source']:imageEngine==='fal'?['1k']:['gemini','gemini21'].includes(imageEngine)?['1k','2k','4k']:imageEngine==='zspicy'?['1k','1.5k']:imageEngine==='seedreamlite'?['2k']:imageEngine==='soul'?(isReinterpret()?['1k','1.5k']:['native']):['1k','2k']):['480p','720p','1080p'],upscale?'4k':image?(imageEngine==='soulpro'?'source':imageEngine==='soul'?(isReinterpret()?'1.5k':'native'):imageEngine==='zspicy'?'1.5k':['fal','seedream','kling'].includes(imageEngine)?'1k':'2k'):engine==='seedance'?'720p':'1080p');
+  options('resolution',upscale?['2k','4k','8k']:image?(imageEngine==='soulpro'?['source']:imageEngine==='fal'?['1k']:['gemini','gemini21'].includes(imageEngine)?['1k','2k','4k']:imageEngine==='zspicy'?['1k','1.5k']:imageEngine==='seedream55'?['1k','1.5k','2k']:imageEngine==='seedreamlite'?['2k']:imageEngine==='soul'?(isReinterpret()?['1k','1.5k']:['native']):['1k','2k']):['480p','720p','1080p'],upscale?'4k':image?(imageEngine==='soulpro'?'source':imageEngine==='soul'?(isReinterpret()?'1.5k':'native'):imageEngine==='zspicy'?'1.5k':['fal','seedream55','seedream','kling'].includes(imageEngine)?'1k':'2k'):engine==='seedance'?'720p':'1080p');
   if(upscale)for(const option of $('resolution').options)option.textContent=option.value.toUpperCase()+' · ~'+({'2k':4,'4k':17,'8k':67}[option.value])+' MP';
   options('output-format',upscale&&!isFalUpscale()?['png','jpeg','webp']:['png','jpeg'],'png');
   if(!file)$('filemeta').textContent=sourceHelp();
-  options('ratio',image?(imageEngine==='soulpro'?['source']:['qwen3','zspicy','seedreamlite','krea3'].includes(imageEngine)?['1:1','16:9','9:16','4:3','3:4','3:2','2:3','21:9']:['flash','kling'].includes(imageEngine)?['auto','16:9','9:16','1:1','4:3','3:4','3:2','2:3','21:9']:imageEngine==='fal'?['1:1','4:3','3:4','16:9','9:16','21:9']:['gemini','gemini21'].includes(imageEngine)?['auto','1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9']:imageEngine==='soul'?(isReinterpret()?['source']:['1:1','16:9','9:16','4:3','3:4','3:2','2:3','21:9','9:21']):['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3']):['auto','16:9','9:16','1:1','4:3','3:4'],image&&imageEngine==='soulpro'?'source':image&&imageEngine==='soul'?(isReinterpret()?'source':'1:1'):image&&imageEngine==='fal'?'3:4':image&&['qwen3','zspicy','seedreamlite','krea3'].includes(imageEngine)?'16:9':'auto');
+  options('ratio',image?(imageEngine==='soulpro'?['source']:['seedream55','qwen3','zspicy','seedreamlite','krea3'].includes(imageEngine)?['1:1','16:9','9:16','4:3','3:4','3:2','2:3','21:9']:['flash','kling'].includes(imageEngine)?['auto','16:9','9:16','1:1','4:3','3:4','3:2','2:3','21:9']:imageEngine==='fal'?['1:1','4:3','3:4','16:9','9:16','21:9']:['gemini','gemini21'].includes(imageEngine)?['auto','1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9']:imageEngine==='soul'?(isReinterpret()?['source']:['1:1','16:9','9:16','4:3','3:4','3:2','2:3','21:9','9:21']):['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3']):['auto','16:9','9:16','1:1','4:3','3:4'],image&&imageEngine==='soulpro'?'source':image&&imageEngine==='soul'?(isReinterpret()?'source':'1:1'):image&&imageEngine==='fal'?'3:4':image&&['seedream55','qwen3','zspicy','seedreamlite','krea3'].includes(imageEngine)?'16:9':'auto');
   if(image){const values=isSoul2()?[1,2]:(imageEngine==='fal'||imageEngine==='soulpro'||imageEngine==='soul'&&soul.isKrea())?[1]:imageEngine==='gemini'&&imageProcessing==='batch'?[1,2,4,10,20]:[1,2,3,4],selected=Math.min(Number($('image-count').value)||1,values.at(-1));$('image-count').replaceChildren(...values.map(n=>new Option(n+' image'+(n===1?'':'s'),String(n))));$('image-count').value=String(values.includes(selected)?selected:1);}
   if(isReinterpret()){$('prompt-label').textContent='Optional changes';$('prompt').placeholder='Optional changes: black shirt, wet hair, warmer bedside lamp…';$('prompt').maxLength=3000;}
   if(image&&imageEngine==='soulpro'){
@@ -1694,12 +1694,13 @@ $('composer-exact-prompt').addEventListener('change',()=>{if(!busy){updateRefere
 $('composer-library-create').onclick=()=>{if(busy)return;if(isSoul2()){closeComposerLibrary();void hf.open({create:true});return;}if(imageEngine==='soul')$('soul-manage').click();else if(imageEngine==='soulpro')$('soul-pro-identity-manage').click();else $('pack-save').click();};
 $('composer-library-manage').onclick=()=>{if(busy)return;if(isSoul2()){closeComposerLibrary();void hf.open();return;}(imageEngine==='soulpro'?$('soul-pro-identity-manage'):$('soul-manage')).click();};
 function setModelIcon(element,engine){
-  const paths={seedream:'bytedance.svg',seedreamlite:'bytedance.svg',flash:'bytedance.svg',qwen3:'qwen.svg',zspicy:'z-image.svg',gemini:'google.svg',gemini21:'google.svg',soulpro:'pv-mark.png',soul:'pv-mark.png'};
+  const paths={seedream55:'bytedance.svg',seedream:'bytedance.svg',seedreamlite:'bytedance.svg',flash:'bytedance.svg',qwen3:'qwen.svg',zspicy:'z-image.svg',gemini:'google.svg',gemini21:'google.svg',soulpro:'pv-mark.png',soul:'pv-mark.png'};
   const path=paths[engine];element.replaceChildren();
   if(path){const img=document.createElement('img');img.src='./branding/'+path+(engine==='qwen3'?'?v=20261013-mono1':'');img.alt='';img.width=20;img.height=20;element.append(img);}
   else element.textContent='◈';
 }
 const imageModelDescriptions = Object.freeze({
+  seedream55:'Image creation and reference-guided edits · up to 10 references',
   seedream:'Image creation and reference-guided edits',
   seedreamlite:'2K · text or up to 10 reference images',
   flash:'Fast · from $0.029/image · up to 10 references',
@@ -1785,13 +1786,13 @@ function restoreGuestImageDraft(){
   // Keep the 16-Mood backend allowlist unchanged, including on public sign-in handoff.
   const draftMood=draft.mood==='chrome-couture'?'fashion-editorial':draft.mood;
   if(typeof draftMood==='string'&&moodById(draftMood)){
-    const draftEngine=draft.mood==='chrome-couture'?CHROME_COUTURE_DEFAULTS.engine:'seedream';
+    const draftEngine=draft.mood==='chrome-couture'?CHROME_COUTURE_DEFAULTS.engine:'seedream55';
     if(imageEngine!==draftEngine){$('image-engine').value=draftEngine;$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));}
     moodUI.restore({moodId:draftMood,moodIntensity:inspirationMoodDefaultIntensity(draftMood)},true);
     // A draft from the public six-card preview remains a visible-prompt-only Inspiration selection.
     inspirationMoodId=draftMood;
     if(draftMood==='fisheye-2000')inspirationMoodId=null;
-    $('resolution').value=ownerAccount&&imageEngine==='seedream'?'1k':'2k';
+    $('resolution').value=ownerAccount&&['seedream','seedream55'].includes(imageEngine)?'1k':'2k';
     if(draft.mood==='chrome-couture'&&!stagedFiles.length){$('ratio').value=CHROME_COUTURE_DEFAULTS.aspectRatio;$('image-count').value=String(CHROME_COUTURE_DEFAULTS.count);}
   }
   $('prompt').value=prompt;
@@ -1875,8 +1876,8 @@ function useWelcomeMood(id){
   });
   // Chrome Couture defaults to Qwen; other Inspiration looks keep Seedream.
   // Uploaded photos and a manually edited prompt still take precedence.
-  const preferredEngine=id==='chrome-couture'?CHROME_COUTURE_DEFAULTS.engine:'seedream';
-  const moodCompatible=['seedream','seedreamlite','gemini','gemini21','qwen3','zspicy'].includes(imageEngine);
+  const preferredEngine=id==='chrome-couture'?CHROME_COUTURE_DEFAULTS.engine:'seedream55';
+  const moodCompatible=['seedream55','seedream','seedreamlite','gemini','gemini21','qwen3','zspicy'].includes(imageEngine);
   if(imageEngine!==preferredEngine&&(!preserveWorkspace||!moodCompatible)){
     $('image-engine').value=preferredEngine;
     $('image-engine').dispatchEvent(new Event('change',{bubbles:true}));
@@ -1884,7 +1885,7 @@ function useWelcomeMood(id){
   // Keep customer settings and user-uploaded photographs when applying the aesthetic to their own work.
   if(!preserveWorkspace){
     imageProcessing='normal';$('image-processing').value='normal';
-    $('resolution').value=ownerAccount&&imageEngine==='seedream'?'1k':'2k';$('image-count').value='1';
+    $('resolution').value=ownerAccount&&['seedream','seedream55'].includes(imageEngine)?'1k':'2k';$('image-count').value='1';
     if(!references.length&&!file){$('ratio').value='16:9';imageRatioExplicit=false;}
   }
   // A seventh look can provide a distinct visible prompt without creating
@@ -2370,7 +2371,7 @@ function populateImageModelMenu(query=''){
     const heading=document.createElement('span');heading.className='composer-model-heading';heading.append(title);
     const caption=document.createElement('small');caption.textContent=detail;caption.title=detail;
     info.append(heading,caption);
-    if(readProviderPolicyDetails(userId)&&['seedream','seedreamlite','flash','zspicy'].includes(option.value)){
+    if(readProviderPolicyDetails(userId)&&['seedream55','seedream','seedreamlite','flash','zspicy'].includes(option.value)){
       const policy=document.createElement('small');policy.className='composer-model-policy';
       policy.textContent='No additional SpicyAPI content scan. Model rules still apply.';
       info.append(policy);
@@ -3374,7 +3375,7 @@ $('soul-mood-dialog').addEventListener('cancel',event=>{
 $('soul-mood-dialog').addEventListener('close',()=>{
   if(owner&&tool==='image')$('image-composer-model').focus({preventScroll:true});
 });
-$('image-engine').onchange=()=>{if(busy)return;closeComposerAddMenu();closeComposerLibrary();const value=$('image-engine').value;imageRatioExplicit=false;soulRatioExplicit=false;imageEngine=['flash','kling','qwen3','krea3','zspicy','seedreamlite','gemini21'].includes(value)?value:value==='gemini'?'gemini':value==='soulpro'?'soulpro':value==='soul'?'soul':value==='fal'?'fal':'seedream';if(imageEngine==='kling'&&imageReferenceMode==='references')imageReferenceMode='base';poseMapSourceId=null;$('pose-preview-status').textContent='';if(imageEngine==='gemini21')imageProcessing='normal';$('image-processing').value=imageProcessing;setTool('image');renderReferences();prewarmSeedreamDeck();if(ownerSoulMoodMismatch()){$('soul-mood-name').textContent=moodById(moodUI.selected()).name;moodUI.close();$('soul-mood-dialog').showModal();}if(imageEngine==='zspicy')$('image-composer-prompt').focus({preventScroll:true});};
+$('image-engine').onchange=()=>{if(busy)return;closeComposerAddMenu();closeComposerLibrary();const value=$('image-engine').value;imageRatioExplicit=false;soulRatioExplicit=false;imageEngine=['seedream55','flash','kling','qwen3','krea3','zspicy','seedreamlite','gemini21'].includes(value)?value:value==='gemini'?'gemini':value==='soulpro'?'soulpro':value==='soul'?'soul':value==='fal'?'fal':'seedream';if(imageEngine==='kling'&&imageReferenceMode==='references')imageReferenceMode='base';poseMapSourceId=null;$('pose-preview-status').textContent='';if(imageEngine==='gemini21')imageProcessing='normal';$('image-processing').value=imageProcessing;setTool('image');renderReferences();prewarmSeedreamDeck();if(ownerSoulMoodMismatch()){$('soul-mood-name').textContent=moodById(moodUI.selected()).name;moodUI.close();$('soul-mood-dialog').showModal();}if(imageEngine==='zspicy')$('image-composer-prompt').focus({preventScroll:true});};
 $('image-processing').onchange=()=>{if(busy)return;imageProcessing=$('image-processing').value==='batch'?'batch':'normal';setTool('image');};
 function updateSoulProModelUi(){
   $('hf-settings').hidden=soulProModel!=='soul2';$('soul-pro-reference-profile').hidden=soulProModel==='soul2';
@@ -3800,7 +3801,7 @@ async function addReferences(list,ids=[],labels=[]){
   }
 }
 
-function referenceLimit(){if(tool==='image'&&imageEngine==='seedream'&&moodUI.selected()==='80s-film'&&moodUI.intensity()===100&&imageReferenceMode==='base')return 9;if(tool==='image'&&moodUI.selected()==='hong-kong-nights'){const slots={seedream:7,seedreamlite:7,gemini:7,gemini21:7,krea3:1,qwen3:0};if(Object.hasOwn(slots,imageEngine))return slots[imageEngine];}if(tool==='image'&&(moodUI.selected()==='fisheye-2000'||(moodUI.selected()==='hyper-pop'&&moodUI.intensity()>34))&&['seedream','seedreamlite','gemini','gemini21'].includes(imageEngine))return 8;if(tool==='image'&&imageEngine==='krea3')return 4;if(tool==='image'&&imageEngine==='flash')return 10;if(tool==='image'&&imageEngine==='qwen3')return 3;if(tool==='image'&&imageEngine==='zspicy')return 0;if(tool==='image'&&imageEngine==='kling')return 1;return tool==='video'&&mode==='transform'?8:tool==='video'?VIDEO_MODELS[engine].maxImages:tool==='image'&&imageEngine==='soulpro'?4:tool==='image'&&imageEngine==='soul'?soul.referenceLimit():tool==='image'&&imageEngine==='fal'?5:10-builtInMoodReferenceCount({type:tool,mode:'image',engine:imageEngine,moodId:moodUI.selected()});}
+function referenceLimit(){if(tool==='image'&&['seedream','seedream55'].includes(imageEngine)&&moodUI.selected()==='80s-film'&&moodUI.intensity()===100&&imageReferenceMode==='base')return 9;if(tool==='image'&&moodUI.selected()==='hong-kong-nights'){const slots={seedream55:7,seedream:7,seedreamlite:7,gemini:7,gemini21:7,krea3:1,qwen3:0};if(Object.hasOwn(slots,imageEngine))return slots[imageEngine];}if(tool==='image'&&(moodUI.selected()==='fisheye-2000'||(moodUI.selected()==='hyper-pop'&&moodUI.intensity()>34))&&['seedream55','seedream','seedreamlite','gemini','gemini21'].includes(imageEngine))return 8;if(tool==='image'&&imageEngine==='krea3')return 4;if(tool==='image'&&imageEngine==='flash')return 10;if(tool==='image'&&imageEngine==='qwen3')return 3;if(tool==='image'&&imageEngine==='zspicy')return 0;if(tool==='image'&&imageEngine==='kling')return 1;return tool==='video'&&mode==='transform'?8:tool==='video'?VIDEO_MODELS[engine].maxImages:tool==='image'&&imageEngine==='soulpro'?4:tool==='image'&&imageEngine==='soul'?soul.referenceLimit():tool==='image'&&imageEngine==='fal'?5:10-builtInMoodReferenceCount({type:tool,mode:'image',engine:imageEngine,moodId:moodUI.selected()});}
 function configureVideoControls(){
   const isVideo=tool==='video',model=VIDEO_MODELS[engine],sd=engine==='seedance',sd15=engine==='seedance15',sd4k=engine==='seedance4k',kling3=engine==='kling3',
     h3=engine==='h3',h3max=engine==='h3max',h3spicy=engine==='h3spicy',h3maxfal=engine==='h3maxfal',omni=engine==='omni',minimax=h3||h3max||h3spicy||h3maxfal;
@@ -3942,7 +3943,7 @@ async function ensureReferences(){
   return selected.map(r=>r.id);
 }
 async function ensureInputs(){if(tool==='video'&&['extend','transform'].includes(mode)){const ids=references.length?await ensureReferences():[];const inputs=await mediaRefs.inputs();if(inputs.referenceVideoIds.length!==1)throw new Error(mode==='transform'?'Choose one original video to transform.':'Choose exactly one video to extend.');if(mode==='transform'&&!ids.length)throw new Error('Add character reference photographs before transforming.');return {sourceId:inputs.referenceVideoIds[0],lastSourceId:null,referenceSourceIds:ids,referenceVideoIds:inputs.referenceVideoIds,referenceAudioIds:[]};}if(imageEngine==='soulpro'&&tool==='image')return {sourceId:await ensureSource(),lastSourceId:null,referenceSourceIds:[]};if(isReinterpret())return {sourceId:await ensureSource(),lastSourceId:null,referenceSourceIds:[]};if(tool==='image'&&imageEngine==='soul'){if(references.length)throw new Error('This LoRA mode cannot edit an input photo. Nothing was submitted.');return {sourceId:null,lastSourceId:null,referenceSourceIds:[]};}if(tool==='video'&&engine==='kling3'&&mode==='text')return {sourceId:null,lastSourceId:null,referenceSourceIds:[]};if(tool==='video'&&['seedance','seedance15','h3','h3max','h3maxfal','omni'].includes(engine)){if(mode==='text')return {sourceId:null,lastSourceId:null,referenceSourceIds:[],referenceVideoIds:[],referenceAudioIds:[]};if(mode==='reference'){const ids=references.length?await ensureReferences():[];return {sourceId:ids[0]||null,lastSourceId:null,referenceSourceIds:ids,...(engine==='seedance'?await mediaRefs.inputs():{referenceVideoIds:[],referenceAudioIds:[]})};}}if(tool==='upscale')return {sourceId:await ensureSource(),lastSourceId:null,referenceSourceIds:[]};if(tool==='image'&&!imageInputReferences().length)return {sourceId:null,lastSourceId:null,referenceSourceIds:[]};if(tool==='image'||mode==='reference'){const ids=await ensureReferences();return {sourceId:ids[0],lastSourceId:null,referenceSourceIds:ids};}return {sourceId:await ensureSource(),lastSourceId:await ensureLast(),referenceSourceIds:[]};}
-function applyConfig(c){c={...config,...c};config=c;hf.configure(c.higgsfieldEnabled);updateSoulProModelUi();soul.configure(c);$('soul-launch-note').textContent=c.soulTrainingEnabled?'FAL training is ready. Train from 20–80 photos, then use the character in Image.':'FAL training is not available on this Worker.';$('soul-launch-manage').disabled=!c.soulTrainingEnabled;const soulOption=$('image-engine').querySelector('[value=soul]'),soulProOption=$('image-engine').querySelector('[value=soulpro]'),falOption=$('image-engine').querySelector('[value=fal]');if(soulOption){soulOption.hidden=!!c.customer||!owner;soulOption.disabled=!c.soulTrainingEnabled||!!c.customer;}if(soulProOption)soulProOption.disabled=false;if(falOption)falOption.disabled=!c.falEnabled;if((imageEngine==='soul'&&!c.soulTrainingEnabled)||((imageEngine==='fal'||imageEngine==='soulpro'&&!isSoul2())&&!c.falEnabled)){imageEngine='seedream';$('image-engine').value='seedream';setTool(tool);}for(const option of $('video-engine').options){option.disabled=!videoSelectionEngines().includes(option.value);}$('connection-status').textContent=(c.enabled?'SpicyAPI connected':'SpicyAPI disconnected')+(c.geminiEnabled?' · Gemini connected':'')+(c.openrouterEnabled?' · OpenRouter connected':'')+(c.soulTrainingEnabled?' · FAL training ready':'')+(c.falEnabled?' · FAL controls ready':'')+' / Private archive ready';update();}
+function applyConfig(c){c={...config,...c};config=c;const seedream55Option=$('image-engine').querySelector('[value=seedream55]');if(seedream55Option)seedream55Option.disabled=c.seedream55Enabled!==true;if(imageEngine==='seedream55'&&c.seedream55Enabled!==true){imageEngine='seedream';$('image-engine').value='seedream';setTool(tool);}hf.configure(c.higgsfieldEnabled);updateSoulProModelUi();soul.configure(c);$('soul-launch-note').textContent=c.soulTrainingEnabled?'FAL training is ready. Train from 20–80 photos, then use the character in Image.':'FAL training is not available on this Worker.';$('soul-launch-manage').disabled=!c.soulTrainingEnabled;const soulOption=$('image-engine').querySelector('[value=soul]'),soulProOption=$('image-engine').querySelector('[value=soulpro]'),falOption=$('image-engine').querySelector('[value=fal]');if(soulOption){soulOption.hidden=!!c.customer||!owner;soulOption.disabled=!c.soulTrainingEnabled||!!c.customer;}if(soulProOption)soulProOption.disabled=false;if(falOption)falOption.disabled=!c.falEnabled;if((imageEngine==='soul'&&!c.soulTrainingEnabled)||((imageEngine==='fal'||imageEngine==='soulpro'&&!isSoul2())&&!c.falEnabled)){imageEngine=c.seedream55Enabled===true?'seedream55':'seedream';$('image-engine').value=imageEngine;setTool(tool);}for(const option of $('video-engine').options){option.disabled=!videoSelectionEngines().includes(option.value);}$('connection-status').textContent=(c.enabled?'SpicyAPI connected':'SpicyAPI disconnected')+(c.geminiEnabled?' · Gemini connected':'')+(c.openrouterEnabled?' · OpenRouter connected':'')+(c.soulTrainingEnabled?' · FAL training ready':'')+(c.falEnabled?' · FAL controls ready':'')+' / Private archive ready';update();}
 function connection(){if(!owner||customerMode)return;$('api-key').value='';$('daily-limit').value=config.dailyLimitUsd||10;$('terms').checked=false;$('disconnect').hidden=!config.configured;$('key-note').textContent=config.configured?'A key is stored encrypted. Leave blank to keep it, or paste a replacement.':'Stored encrypted on your private backend. Never committed to GitHub or saved in browser storage.';$('connect-notice').textContent='';$('connect-dialog').showModal();}
 $('connect-form').addEventListener('submit',async e=>{e.preventDefault();$('connect-save').disabled=true;try{const data=await api('/api/settings',{method:'POST',body:{apiKey:$('api-key').value,dailyLimitUsd:Number($('daily-limit').value),enabled:true,termsConfirmed:$('terms').checked}});$('api-key').value='';applyConfig(data.config);$('connect-dialog').close();notify('Provider key connected. Images and Upscale start on click; Video keeps price review.');}catch(error){$('connect-notice').textContent=error.message;}finally{$('connect-save').disabled=false;}});
 $('disconnect').onclick=async()=>{if(!confirm('Remove the stored provider key? Your private history stays.'))return;try{applyConfig((await api('/api/settings',{method:'DELETE'})).config);$('api-key').value='';$('connect-dialog').close();notify('Generation disconnected.');}catch(e){$('connect-notice').textContent=e.message;}};
@@ -4324,7 +4325,7 @@ async function restore(job){
     $('upscale-scale').value=String(p.scale===4?4:2);
     $('upscale-topaz-model').value=p.topazModel==='High Fidelity V3'?'High Fidelity V3':'Standard V2';
   }else if(p.type==='image'){
-    imageEngine=['flash','kling','qwen3','zspicy','seedreamlite','gemini21'].includes(p.engine)?p.engine:p.engine==='gemini'||p.provider==='gemini'?'gemini':p.engine==='soulpro'?'soulpro':p.engine==='soul'?'soul':p.engine==='fal'||p.provider==='fal'?'fal':'seedream';
+    imageEngine=['seedream55','flash','kling','qwen3','zspicy','seedreamlite','gemini21'].includes(p.engine)?p.engine:p.engine==='gemini'||p.provider==='gemini'?'gemini':p.engine==='soulpro'?'soulpro':p.engine==='soul'?'soul':p.engine==='fal'||p.provider==='fal'?'fal':'seedream';
     imageProcessing=p.processing==='batch'?'batch':'normal';$('image-engine').value=imageEngine;$('image-processing').value=imageProcessing;
     if(imageEngine==='soul'){soul.setSelected(p.characterId||'');soul.restore(p);}
     if(imageEngine==='soulpro'){
@@ -4352,7 +4353,7 @@ async function restore(job){
   if(soulPro){$('soul-pro-model').value=soulProModel;$('soul-pro-seed').value=p.seed??'';}
   if(p.duration&&!([...$('duration').options].some(o=>Number(o.value)===p.duration)))$('duration').add(new Option(p.duration+' sec',String(p.duration)));
   $('duration').value=p.duration||15;
-  if(!isFalUpscale())$('resolution').value=p.resolution||(tool==='upscale'?'4k':tool==='image'?(imageEngine==='seedream'?'1k':'2k'):'1080p');
+  if(!isFalUpscale())$('resolution').value=p.resolution||(tool==='upscale'?'4k':tool==='image'?(['seedream','seedream55'].includes(imageEngine)?'1k':'2k'):'1080p');
   $('ratio').value=p.aspectRatio||'auto';$('seed').value=p.seed??'';$('audio').checked=p.audio!==false;$('video-camera-lock').checked=p.cameraFixed===true;$('output-format').value=p.outputFormat||'jpeg';
   if(controlledPose){$('pose-strength').value=String(p.poseStrength??1);$('identity-strength').value=String(p.identityStrength??0.7);$('controlled-pose-seed').value=p.seed??'';$('pose-strength-value').textContent=Number(p.poseStrength??1).toFixed(2);$('identity-strength-value').textContent=Number(p.identityStrength??0.7).toFixed(2);$('pose-preview-status').textContent=poseMapSourceId?'Saved pose map will be reused.':'';}
   if(p.engine==='seedance'||engineFor(p)==='seedance')await mediaRefs.restore(p);
@@ -4711,7 +4712,7 @@ async function applyMoodToImage(job){
   const base=await assetFile(job.outputId,'mood-base-image');
   if((references.length||file||$('prompt').value.trim())&&!confirm('Replace the current unsaved editor to apply a mood to this image?'))return;
   moodUI.clear(true);clearMedia();
-  if(!['seedream','seedreamlite','gemini','gemini21'].includes(imageEngine)){imageEngine='seedream';$('image-engine').value='seedream';}
+  if(!['seedream55','seedream','seedreamlite','gemini','gemini21'].includes(imageEngine)){imageEngine='seedream55';$('image-engine').value='seedream55';}
   setTool('image');await addReferences([base],[job.outputId]);
   $('prompt').value='';update();moodUI.open();
   notify('Image loaded as the base. Choose a mood, then press Generate. Nothing has been submitted.');
@@ -4720,7 +4721,7 @@ async function useImageAsReference(job){
   if(!hasResult(job))throw new Error('Choose a completed image first.');
   if(tool!=='image'||assetLibrary?.active())setTool('image');
   if(['soul','soulpro'].includes(imageEngine)){
-    imageEngine='seedream';$('image-engine').value='seedream';setTool('image');
+    imageEngine='seedream55';$('image-engine').value='seedream55';setTool('image');
   }
   const source=await assetFile(job.outputId,'image-reference');
   await addReferences([source],[job.outputId]);
@@ -4878,7 +4879,7 @@ async function stageViewerReplacement(selection){
   check();
   if(busy||imageSubmissionPending)throw Error('Finish the current Image action first.');
   if(!config.imageReplacementEnabled)throw Error('Reference replacement is unavailable.');
-  if(!['seedream','seedreamlite','flash','gemini','gemini21','qwen3','krea3'].includes(model))
+  if(!['seedream55','seedream','seedreamlite','flash','gemini','gemini21','qwen3','krea3'].includes(model))
     throw Error('This model does not support reference replacement. Choose Seedream, Nano Banana, Qwen or Krea in Image.');
   if(tool!=='image'||!customerImageProviderReady())throw Error('Open this image in Image Studio with an available model.');
   if(customerMode&&(!customerGenerationReady||customerCreditBalance<=0))throw Error('Add credits before generating. Your selection is saved.');
@@ -5200,7 +5201,7 @@ async function prepareQuoteInputs(inputs,snapshot=null){
     checkPreparation();
     // Dimensions are known from inspectImage. If a legacy input omitted them,
     // decode it before quoting rather than silently passing through an unsafe ID.
-    const seedreamInput=['seedream','seedreamlite'].includes(selectedEngine)&&(snapshot?true:tool==='image');
+    const seedreamInput=['seedream55','seedream','seedreamlite'].includes(selectedEngine)&&(snapshot?true:tool==='image');
     const qwenInput=selectedEngine==='qwen3'&&(snapshot?true:tool==='image');
     const hasDimensions=Number.isSafeInteger(Number(item.width))&&Number(item.width)>0
       &&Number.isSafeInteger(Number(item.height))&&Number(item.height)>0;
@@ -5276,7 +5277,7 @@ async function refineInSeedream(job,preset='full'){
     extremities:'Preserve the entire image exactly. Refine only hands, fingers, feet and toes for anatomically coherent realistic detail. Keep the exact adult identity, face, body proportions, pose, clothing, composition, room, camera and lighting unchanged. Do not reshape the body.',
     clothing:'Preserve the exact adult person, identity, body proportions, pose, composition, camera and lighting. Refine only garment construction and textile realism: clean seams, straps, hems, closures, fabric tension, folds and edges. Remove fused or impossible clothing artifacts. Do not redesign the outfit or body.'
   };
-  setTool('image');clearMedia();imageEngine='seedream';$('image-engine').value='seedream';setTool('image');
+  setTool('image');clearMedia();imageEngine='seedream55';$('image-engine').value='seedream55';setTool('image');
   const file=await assetFile(job.outputId,'pv-soul-refine-source');
   await addReferences([file],[job.outputId],[{name:file.name,role:'none',note:'Primary image. Preserve identity, body, pose, composition, camera and lighting; refine only requested defects.'}]);
   $('prompt').value=prompts[preset]||prompts.full;
@@ -5906,7 +5907,7 @@ if(window.__PV_LAB_NATIVE__===1&&window.ReactNativeWebView){
         if(command.action==='mood'){
           if(command.moodboard){await myMoods.refresh();const board=myMoods.find(command.moodboard);if(!board)throw Error('This Mood is unavailable.');moodUI.restore({moodId:'custom',customMoodBoardId:board.id,moodIntensity:board.intensity});}
           else {const mood=moodById(command.mood);if(!mood)throw Error('This Mood is unavailable.');moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70});}
-          if(!ownerAccount&&imageEngine==='seedream')$('resolution').value='2k';
+          if(!ownerAccount&&['seedream','seedream55'].includes(imageEngine))$('resolution').value='2k';
           update();
         }
         if(command.handoff){
@@ -5932,7 +5933,7 @@ try{clerk=await loadLabAccount();clerk.addListener(()=>void sync());await sync()
 
 // Soul composer: capabilities use the shared web Image deck. Legacy layout classes belong only to the native app.
 function syncSoulBar(){
-  const active=isSoul2(),native=window.__PV_LAB_NATIVE__===1;imageComposer.classList.toggle('is-pv-soul',active&&native);imageComposer.classList.toggle('is-seedream',tool==='image'&&['seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy','gemini','gemini21'].includes(imageEngine));imageComposer.classList.toggle('has-soul-source',active&&!!sourceUrl);
+  const active=isSoul2(),native=window.__PV_LAB_NATIVE__===1;imageComposer.classList.toggle('is-pv-soul',active&&native);imageComposer.classList.toggle('is-seedream',tool==='image'&&['seedream55','seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy','gemini','gemini21'].includes(imageEngine));imageComposer.classList.toggle('has-soul-source',active&&!!sourceUrl);
   imageComposer.classList.toggle('has-pv-still-character',active&&!native);
   if(!native){
     const character=$('composer-character'),controls=imageComposer.querySelector('.composer-controls');
@@ -5963,6 +5964,7 @@ window.visualViewport?.addEventListener('resize',()=>{if(!imageComposer.hidden)f
 
 // The editor stays interactive: a paid submission only reads this captured request.
 async function submitImageSnapshot(){
+  if(imageEngine==='seedream55'&&config.seedream55Enabled!==true){notify('Seedream 5.5 is awaiting its backend update. Choose Seedream 5 Pro for now.',true);return;}
   if(busy||imageSubmissionPending||customerPriceIntentPending||!owner||!hasInput()||submissionBlocked()||fastImageHandoff.has(currentImageSubmissionKey()))return;
   if(customerMode&&customerBillingReady&&window.__PV_LAB_NATIVE__!==1&&
      (customerCreditBalance<=0||customerTrialGenerationPaused&&!customerGenerationReady)){
@@ -5977,7 +5979,7 @@ async function submitImageSnapshot(){
     const reviewEpoch=epoch;
     replacementReviewPending=true;update();
     try{
-      if(!['seedream','seedreamlite','flash','gemini','gemini21','qwen3','krea3'].includes(imageEngine))
+      if(!['seedream55','seedream','seedreamlite','flash','gemini','gemini21','qwen3','krea3'].includes(imageEngine))
         throw Error('Choose Seedream, Nano Banana, Qwen or Krea for replacement references.');
       preserveReplacementRatio();
       const key=replacementDraftKey();
@@ -6181,7 +6183,7 @@ async function submitImageSnapshot(){
         inputs=bound.inputs;
       }else inputs=await prepareQuoteInputs(inputs,{originals,engine:selected.engine,detached,onProgress:(...args)=>feedback.phase(...args)});
       if(!inputs)return;
-      const batchSeedream=['seedream','flash'].includes(selected.engine)&&requested>1;
+      const batchSeedream=['seedream55','seedream','flash'].includes(selected.engine)&&requested>1;
       const refCount=inputs.referenceSourceIds?.length||0;
       const pricingTitle=refCount?'Preparing provider files':'Checking price';
       const priceDetail=refCount?refCount+' references · '+requested+' price'+(requested===1?'':'s')+' · no paid generation yet':requested+' live price'+(requested===1?'':'s')+' · no paid generation yet';

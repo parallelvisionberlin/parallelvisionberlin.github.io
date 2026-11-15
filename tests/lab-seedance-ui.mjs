@@ -10,7 +10,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{clerk=await loadLabAccount();");assert.ok(boot>0);
-const testSource=source.slice(0,boot)+source.slice(source.indexOf("\n// Soul composer:",boot))+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;ownerAccount=true;userId='test';config={enabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();syncVideoStudioMode();window.__labTest={lock,setCustomer:()=>{customerMode=true;ownerAccount=false;customerGenerationReady=true;config.customer=true;wallet.connect({customer:true,balanceCredits:1000,billingReady:true});update();}};`;
+const testSource=source.slice(0,boot)+source.slice(source.indexOf("\n// Soul composer:",boot))+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;ownerAccount=true;userId='test';config={enabled:true,seedream55Enabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();syncVideoStudioMode();window.__labTest={lock,setCustomer:()=>{customerMode=true;ownerAccount=false;customerGenerationReady=true;config.customer=true;wallet.connect({customer:true,balanceCredits:1000,billingReady:true});update();}};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg'})[extname(path)]||'application/octet-stream');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4183,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -179,7 +179,9 @@ try{
   const target=mode==='start'?plus:drop.page.locator('.canvas');
   await target.dispatchEvent('dragover',{dataTransfer:transfer});
   assert.equal(await drop.page.locator('.canvas').evaluate(el=>el.classList.contains('pv-video-file-drag')),true,'Canvas shows a file-drop hint');
+  const preupload=mode==='reference'?drop.page.waitForResponse(response=>new URL(response.url()).pathname==='/api/uploads'&&response.request().method()==='POST'):null;
   await target.dispatchEvent('drop',{dataTransfer:transfer});await transfer.dispose();
+  if(preupload)assert.equal((await preupload).status(),201,'Authenticated Reference selection stages its single private photo');
   await drop.page.waitForFunction(mode=>mode==='extend'?document.querySelector('#video-reference-list').children.length===1:mode==='reference'?document.querySelectorAll('#reference-list .reference-item').length===1:!document.querySelector('#video-start-thumb').hidden,mode);
   await ready(drop.page);
   assert.equal(await drop.page.locator('.canvas').evaluate(el=>el.classList.contains('pv-video-file-drag')),false);
@@ -192,8 +194,10 @@ try{
    await still(drop,'last-image');
    assert.equal(await drop.page.locator('#video-end-thumb').isVisible(),true,'Canvas upload preserves the optional end frame');
   }
-  assert.equal(count(drop,'/api/uploads'),0);assert.equal(count(drop,'/api/reference-uploads'),0);
-  assert.equal(count(drop,'/api/quotes'),0);assert.equal(count(drop,'/api/jobs'),0,'Drop only prepares local media');
+  assert.equal(count(drop,'/api/uploads'),mode==='reference'?1:0,
+   'Only authenticated Reference mode preuploads one selected private photo; Start and Extend remain deferred');
+  assert.equal(count(drop,'/api/reference-uploads'),0);
+  assert.equal(count(drop,'/api/quotes'),0);assert.equal(count(drop,'/api/jobs'),0,'Drop never requests a quote or generation');
   await drop.page.evaluate(()=>window.__labTest.lock());
   await drop.page.waitForFunction(()=>document.getElementById('app').dataset.guestPreview==='video');
   const blocked=await drop.page.evaluateHandle(()=>{const data=new DataTransfer();data.items.add(new File(['blocked'],'guest.png',{type:'image/png'}));return data;});

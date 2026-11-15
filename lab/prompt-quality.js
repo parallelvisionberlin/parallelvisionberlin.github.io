@@ -1,6 +1,6 @@
 // PV LAB image quality: deterministic, free, shared by UI preview and Worker.
 // User requests and explicitly assigned reference roles always win.
-const ENGINES=new Set(['seedream','seedreamlite','flash','gemini','gemini21','kling','qwen3','krea3']);
+const ENGINES=new Set(['seedream55','seedream','seedreamlite','flash','gemini','gemini21','kling','qwen3','krea3']);
 const product=/\b(product|packshot|e-commerce|handbag|watch|perfume|sneaker|bottle|jewell?ery|still.life product)\b/i;
 const art=/\b(illustration|painting|watercolou?r|sketch|drawing|anime|cartoon|pixel.art|vector.art|oil.paint|concept.art|3d.render|sculpture)\b/i;
 const fashion=/\b(fashion|editorial|lookbook|runway|couture|model|lingerie|underwear|outfit|wardrobe|garment|dress|lace|streetwear|bodysuit)\b/i;

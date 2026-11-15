@@ -13,7 +13,7 @@ const headerGutterOnly=process.env.PV_HEADER_GUTTER_ONLY==='1';
 // shared Image deck, full-height Video and focused Fashion changes. Serve every
 // local dependency from this same commit instead of mixing historical HTML
 // with current CSS. Pixel tolerances and functional/privacy guards stay strict.
-const baselineRef='ac4b4186bc15077c0992160e8983c22b3803ed4a';
+const baselineRef='29dbf29f4b429ac04debf373037d2a324311cc96';
 const baselineFiles=new Map();
 function baselineFile(path){
   if(!baselineFiles.has(path)){
@@ -122,7 +122,7 @@ try{
       const owner=await page.evaluate(()=>window.__publicAccount?.role==='owner');
       const payload=url.pathname==='/api/session'?{
         owner,customer:!owner,generationReady:true,billingReady:true,balanceCredits:500,
-        config:{enabled:true,customer:!owner,videoEngines:['seedance','wan'],falEnabled:true,upscaleEnabled:true}
+        config:{enabled:true,seedream55Enabled:true,customer:!owner,videoEngines:['seedance','wan'],falEnabled:true,upscaleEnabled:true}
       }:url.pathname==='/api/fashion/models'?{models:[{id:'fashnmax',available:true}]}:
         url.pathname==='/api/fashion/balance'?{connected:false}:url.pathname==='/api/jobs'?{jobs:[],nextCursor:null}:
         url.pathname==='/api/packs'?{packs:[]}:url.pathname==='/api/moods'?{boards:[]}:{items:[],jobs:[],models:[]};
@@ -174,7 +174,7 @@ try{
         const request=intercepted.request(),url=new URL(request.url());
         if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return intercepted.abort();
         assert.equal(request.method(),'GET','baseline is read-only');
-        const payload=url.pathname==='/api/session'?{owner:true,customer:false,config:{enabled:true,videoEngines:['seedance','wan'],falEnabled:true}}:
+        const payload=url.pathname==='/api/session'?{owner:true,customer:false,config:{enabled:true,seedream55Enabled:true,videoEngines:['seedance','wan'],falEnabled:true}}:
           url.pathname==='/api/fashion/models'?{models:[{id:'fashnmax',available:true}]}:
           url.pathname==='/api/jobs'?{jobs:[],nextCursor:null}:url.pathname==='/api/packs'?{packs:[]}:{items:[],jobs:[],models:[]};
         await intercepted.fulfill({status:200,contentType:'application/json',body:JSON.stringify(payload)});

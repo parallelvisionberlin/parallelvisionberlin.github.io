@@ -1,4 +1,4 @@
-import {compileImagePrompt,normalizeReferenceLabel,referenceGuidanceError} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1&refOnlyBudget=20261018v1&fisheye=20261020v1&hkBalanced=20261023v1&hkCinema=20261025v1&fallenAngel=20261112a';
+import {compileImagePrompt,normalizeReferenceLabel,referenceGuidanceError} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1&refOnlyBudget=20261018v1&fisheye=20261020v1&hkBalanced=20261023v1&hkCinema=20261025v1&fallenAngel=20261112a&seedream55=1';
 import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkCinema=20261025v1';
 
 // These are photographic treatment references, never a replacement Base.
@@ -88,13 +88,13 @@ export function shouldOmitAutomaticMoodReferencesForInspiration(inspirationMoodI
 }
 
 export function moodReferencePlan(settings){
-  if(settings?.type!=='image'||settings.mode!=='image'||!['hong-kong-nights','dream-blur','fisheye-2000','hyper-pop','80s-film','fallen-angel'].includes(settings.moodId)||!(['seedream','seedreamlite','gemini','gemini21'].includes(settings.engine)||(settings.moodId==='fallen-angel'&&['qwen3','krea3'].includes(settings.engine))))
+  if(settings?.type!=='image'||settings.mode!=='image'||!['hong-kong-nights','dream-blur','fisheye-2000','hyper-pop','80s-film','fallen-angel'].includes(settings.moodId)||!(['seedream55','seedream','seedreamlite','gemini','gemini21'].includes(settings.engine)||(settings.moodId==='fallen-angel'&&['qwen3','krea3'].includes(settings.engine))))
     return {settings,references:[]};
   const labels=(settings.referenceRoles||[]).map(normalizeReferenceLabel);
   const isHongKong=settings.moodId==='hong-kong-nights';
   const isEighties=settings.moodId==='80s-film';
   // Preserve all other 80s Film paths, engines and historical output references.
-  const useEightiesStyle=isEighties&&settings.engine==='seedream'&&
+  const useEightiesStyle=isEighties&&['seedream','seedream55'].includes(settings.engine)&&
     settings.referenceMode!=='references'&&Number(settings.moodIntensity)===100&&
     labels.some(label=>label.role==='base');
   if(isEighties&&!useEightiesStyle)return {settings,references:[]};

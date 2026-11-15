@@ -2625,3 +2625,38 @@ test('replacement upload recovery keeps the paid raw output when a duplicate upl
   const recovered=await finish();assert.equal(recovered.status,200,await recovered.clone().text());
   assert.equal((await recovered.json()).job.settings.replacementFinalized,true);
 });
+
+
+test('Seedream 5.5 binds exact text/edit models and eight references without a paid request before confirmation',async()=>{
+  const {env}=fixture();await setup(env);const oldPrice=maxPrice;
+  createMode='ok';createCount=0;providerState='queued';
+  try{
+    const settings={type:'image',engine:'seedream55',mode:'image',prompt:'Natural editorial portrait',resolution:'1k',aspectRatio:'3:4',outputFormat:'png',referenceRoles:[]};
+    const ids=[];for(let i=0;i<8;i++)ids.push(await seedreamTestReference(env,'seedream55-'+i+'.png',i+30));
+    for(const count of [0,1,8]){
+      maxPrice=String(.02+.008*count);
+      const response=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:ids.slice(0,count)}});
+      assert.equal(response.status,200,await response.clone().text());const q=await response.json();
+      assert.equal(q.settings.engine,'seedream55');
+      assert.equal(quotedRequest.model,'bytedance/seedream-5.5/'+(count?'edit':'text-to-image'));
+      assert.equal(quotedRequest.input.image_urls?.length||0,count);
+      assert.equal(quotedRequest.input.resolution,'1k');assert.equal(quotedRequest.input.aspect_ratio,'3:4');
+      assert.equal('enable_thinking' in quotedRequest.input,false,'5.5 must not inherit unsupported Pro settings');
+      assert.equal(createCount,0,'Quotes never create a paid provider job');
+      if(count===8){
+        assert.equal(q.creditCost,40);assert.equal(q.maxUsd,.084);
+        const submitted=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});
+        assert.equal(submitted.status,202,await submitted.clone().text());
+        assert.equal((await submitted.json()).job.settings.model,'bytedance/seedream-5.5/edit');
+        assert.equal(createCount,1);
+      }
+    }
+    const before=calls.length;
+    for(const bad of [{resolution:'4k'},{aspectRatio:'4:5'},{aspectRatio:'auto'}]){
+      const r=await req(env,'/api/quotes',{method:'POST',data:{settings:{...settings,...bad},referenceSourceIds:[]}});
+      assert.equal(r.status,400);
+    }
+    assert.equal(calls.length,before,'Unsupported model controls fail before provider requests');
+    assert.equal((await(await req(env,'/api/session')).json()).config.seedream55Enabled,true);
+  }finally{maxPrice=oldPrice;}
+});

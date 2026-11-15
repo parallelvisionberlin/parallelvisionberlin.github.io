@@ -4,7 +4,7 @@ export const HONG_KONG_REFERENCE_MANIFEST=Object.freeze([
   {name:'city-haze',file:'02-city-haze.jpg',mime:'image/jpeg',sha256:'f8d6373d71efd77128cf8a6b81b2ed604f55b5a7f91f539fa6c8648d31adbf0c'},
   {name:'wet-street',file:'03-shop-reflections.jpg',mime:'image/jpeg',sha256:'da4a5fb19618f206cf79b3a750928bfb5e5d421f3125298a00ce761130d50efb'}
 ].map(Object.freeze));
-const limits=Object.freeze({seedream:10,seedreamlite:10,gemini:10,gemini21:10,krea3:4,qwen3:3});
+const limits=Object.freeze({seedream55:10,seedream:10,seedreamlite:10,gemini:10,gemini21:10,krea3:4,qwen3:3});
 export const hongKongReferenceCount=(p={})=>p.type==='image'&&p.mode==='image'&&p.moodId==='hong-kong-nights'&&Object.hasOwn(limits,p.engine)?2:0;
 export const hongKongUserReferenceLimit=(p={})=>hongKongReferenceCount(p)?limits[p.engine]-2:null;
 export function hongKongReferenceError(p={},count=0){

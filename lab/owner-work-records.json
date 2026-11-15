@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-15T12:21:12.218Z",
+  "updatedAt": "2026-11-15T12:35:27.326Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4108,14 +4108,135 @@
       ]
     },
     {
+      "id": "image-seedream-55",
+      "title": "Seedream 5.5 primary model; retain 5 Pro below Qwen",
+      "component": "PV LAB Image / model routing",
+      "status": "deployed",
+      "updatedAt": "2026-11-15T12:17:52.494Z",
+      "baselineSha": "6492a4d681d6dccc67c0d14ab07d3418b59b771b",
+      "reviewedSha": "ab9e7fba3891cfb1bc6ae7c1b7c06e00cdbe5cbf",
+      "branch": "feat/seedream-55",
+      "summary": "Seedream 5.5 is published first/default in Image, with Seedream 5 Pro retained directly below Qwen and historical jobs unchanged. Existing repository Cloudflare token was active and used successfully; earlier unavailable-token assumption was incorrect. Worker version 6eb0a678-f336-4420-9f9c-59243f733374 was released without migrations and with all live bindings, variables and secret names preserved. Frontend merged in 59908c09a455a5422a583706aa8a75b3eeee1d1a; Cloudflare production deployment 5538dd15-4671-445e-9034-293292c236f1 succeeded. Live verification passed for the exact production HTML picker order, all eight changed JavaScript modules through their real import URLs, and backend capability.",
+      "nextAction": "Release is published and verified. Refresh Studio. Real signed-in quoting and paid output quality remain separate checks; no token rotation or further setup is required.",
+      "files": [
+        "lab-worker/image-replacement.mjs",
+        "lab-worker/worker.mjs",
+        "lab/film-finish.js",
+        "lab/hong-kong-reference-policy.js",
+        "lab/lab.js",
+        "lab/model-labels.js",
+        "lab/mood-references.js",
+        "lab/moods.js",
+        "lab/prompt-quality.js",
+        "lab/reference-guidance.js",
+        "lab/studio.html",
+        "tests/lab-model-labels.test.mjs",
+        "tests/lab-seedream-input-pixels.test.mjs",
+        "tests/lab-worker.test.mjs",
+        "tests/lab-flash-default-2k.test.mjs",
+        "tests/lab-image-submit-handoff.test.mjs",
+        "tests/lab-inspiration-rotation.test.mjs",
+        "tests/lab-moods.test.mjs",
+        ".github/workflows/verify-lab-cloudflare-access.yml",
+        ".github/workflows/release-seedream-55-worker.yml"
+      ],
+      "links": [
+        {
+          "label": "Seedream 5.5 implementation PR 1019",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1019"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Focused Image, Worker, quote, credit, finance, Mood and history regressions",
+          "scope": "159 tests including exact 5.5 text/edit models, all eight private references, no unsupported thinking flag, invalid settings rejected before provider access, 40-credit quote and exactly one mocked confirmed submission.",
+          "result": "passed"
+        },
+        {
+          "label": "Replacement, account lifecycle and reference prewarm",
+          "scope": "22 focused tests passed; no real generation or wallet mutations.",
+          "result": "passed"
+        },
+        {
+          "label": "Legacy pixel-preparation source assertion",
+          "scope": "One pre-existing cacheKey regex assumes the pre-Qwen implementation. Existing baseline code already uses the Qwen branch. No production logic or assertion was relaxed.",
+          "result": "documented"
+        },
+        {
+          "label": "Current-main integration checks",
+          "scope": "237 checks: 234 passed; three existing Mood catalogue assertions fail for the already-added Fallen Angel and changed Hong Kong cover. The new-model compatibility, prompt handling, old history, exact quote and wallet tests pass. Source assertion expectations updated for new model only.",
+          "result": "documented"
+        },
+        {
+          "label": "Release candidate focused safeguards",
+          "scope": "162 checks passed after integration with current main; approved Image contract, exact model order, routing, quotes, credits, finance, lifecycle and replacement.",
+          "result": "passed"
+        },
+        {
+          "label": "Purchase flow browser CI limitation",
+          "scope": "Pricing, quotes, finance, customer billing and approved Image Node checks passed. The browser fixture produced no completed scenarios and was cancelled by its ten-minute job timeout. Wider suite also retains existing catalogue, source and layout failures; this is not an all-green CI claim.",
+          "result": "documented"
+        }
+      ],
+      "deployment": {
+        "state": "verified",
+        "environment": "Cloudflare Worker parallel-vision-lab and Pages pvlab-studio",
+        "sourceSha": "59908c09a455a5422a583706aa8a75b3eeee1d1a",
+        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43712809467",
+        "limitations": [
+          "No real signed-in quote or paid generation performed.",
+          "Wider CI retains existing Mood catalogue, source and layout failures. Purchase browser fixture timed out; its quote/credit/finance Node checks passed."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "automated_test",
+          "summary": "Existing repository Cloudflare token is active and can read production Worker settings and deployments. Read-only workflow passed without deployment, migrations or account changes.",
+          "scope": "Current GitHub repository secret",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43711505075",
+          "observedAt": "2026-11-15T11:58:58Z",
+          "limitations": [
+            "Read access does not by itself verify deployment permission or customer generation."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Worker release succeeded. Exact Seedream 5.5 health marker verified and all production binding definitions, plain variables and secret names matched the pre-release snapshot. No migrations or paid actions.",
+          "scope": "Backend deployment and configuration preservation",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43711858963",
+          "observedAt": "2026-11-15T12:04:51Z",
+          "limitations": [
+            "Not a signed-in provider quote or output-quality test."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "LIVE_VERIFIED for frontend merge 59908c09a455a5422a583706aa8a75b3eeee1d1a; Cloudflare check 132807969192 matches pvlab-studio. Live picker selects Seedream 5.5 first and retains 5 Pro directly below Qwen. Exact SHA-256 matches for lab.js and all seven changed dependencies using their real import URLs. Live health reports Seedream 5.5.",
+          "scope": "Production publication, picker source and exact modules; lab.js SHA-256 d75c5f8cc32f62b435646af9969b0ab4f7667959a413f0619e98f39c7f4ba635",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43712809467",
+          "observedAt": "2026-11-15T12:16:21Z",
+          "limitations": [
+            "Not a real signed-in quote or paid output-quality test."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not relabel historical Seedream 5 Pro jobs or remove that model.",
+        "Do not hardcode estimated retail credits; keep exact live bound provider quote and existing wallet rules.",
+        "Do not run paid generations, grant credits or run migrations for verification.",
+        "Do not infer missing or invalid deployment credentials from an old workflow comment; the existing secret was verified active and deployed successfully."
+      ]
+    },
+    {
       "id": "customer-risk-ci-coverage-20261114",
       "title": "Stop phone Mood freezing, stabilize saved-character frame and restore regression coverage",
       "component": "Customer generation / regression coverage",
       "status": "needs_verification",
-      "summary": "Product code remains identical to 809d203b: phone Mood loop, Full Editorial header and role-parity fixes verified in hosted browsers. Exact 1c25297e also verifies lazy Fashion references and the uncertain-Queue no-write action. Follow-up fixture corrections complete reverse carousel traversal, wait for the existing Mood color transition, honor the current Video model-banner breakpoint and retain the independently tested optional Extend photo entry. The production monitor reads both current stylesheet versions instead of retired October tokens. All publication/customer behavior claims remain separate.",
-      "nextAction": "Inspect the next exact draft #934 candidate browser results. All functional and live-monitoring failures must be understood before review. Do not merge or publish without a separate user decision; production Worker/migrations and real customer behavior remain unverified.",
-      "baselineSha": "ecac340065516290d9b933eed84ab7f899e89ad6",
-      "reviewedSha": "1c25297e5ab0fe253a75854c7cdd26feb5089a2f",
+      "summary": "Phone Mood observer-loop fix, stable Full Editorial source header and the locked 1064px guest Image frame are prepared in existing draft #934. Integrate current main 29dbf29f, including the independently merged/deployed Seedream 5.5 release, without modifying its Worker, model routing, prices, source defaults or another owner record. Synthetic image sessions now advertise the current backend capability. Browser fixtures assert explicit Inspiration preset replacement and customer 2K default, choose 1K explicitly for quote-binding coverage, permit exactly one authenticated Reference preupload with zero quote/job writes, and observe the real Uploading references stage while uploads are held. Strict visual baseline uses immutable current main with only the documented guest-width correction; tolerances unchanged. Exact hosted CI remains required.",
+      "nextAction": "Read all required browser and live-monitor results for the next exact #934 candidate. Inspect failures before proposing review. No PR merge, production publication, migration, paid generation or Stripe change is authorized.",
+      "baselineSha": "29dbf29f4b429ac04debf373037d2a324311cc96",
+      "reviewedSha": "e29c78c79d8a715bef8c20ff8681855fa3ca00ca",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
         ".github/workflows/lab-public-studio-tests.yml",
@@ -4287,6 +4408,21 @@
           "result": "failed",
           "scope": "Fashion and uncertain-Queue fixes passed. Required first-image, Mood and Video suites reached new old assertions: reverse navigation still assumed two clicks; Mood transition was sampled before settling; 900px Video uses the current 110px model banner; legacy Assets hid the now-supported Extend photo entry. All are corroborated by unchanged application source and independent passing contracts. Public visual failed once on ten pixels (max channel delta 6); its one focused rerun passed the unchanged strict tolerance on the exact same commit.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43712761928/job/132808716491"
+        },
+        {
+          "label": "Current-main pre-change focused baseline",
+          "result": "failed",
+          "scope": "Exact 29dbf29f: 283 source/isolated tests, 280 passed and three pre-existing stale assertions failed (18th Mood, Qwen working-copy cache key, retired Video module version). Includes wallet, checkout/webhook delivery, auth, Seedream 5.5 0/1/8 references and confirmed submission, image/video lifecycle and schema-compatible Worker mocks."
+        },
+        {
+          "label": "Integrated focused candidate before commit",
+          "result": "passed",
+          "scope": "283/283 same tests; git diff --check and changed fixture syntax passed. All 37 owner records validate. Candidate exact commit will be revalidated after upload. No Worker or migration delta relative to current main 29dbf29f."
+        },
+        {
+          "label": "Sparse local broad source comparison",
+          "result": "failed",
+          "scope": "Exact 29dbf29f: 1256 tests, 1200 passed / 56 failed; integrated candidate: 1217 passed / 39 failed. Missing visual assets and site shells in the sparse worktree prevent full local validation. Baseline and candidate failures compared; no pass claim for the broad suite. Hosted checkout contains the complete assets and must validate the exact candidate."
         }
       ],
       "deployment": {
@@ -4446,17 +4582,36 @@
             "Required exact-candidate hosted browser and live-monitor results still must be inspected.",
             "Read-only health and CORS checks do not establish applied migration state or real checkout/generation behavior."
           ]
+        },
+        {
+          "kind": "automated_test",
+          "summary": "PR #1019 merged at 2026-11-15T12:13:30Z. Independent read-only production verification succeeded at 12:16:21Z: expected frontend commit 59908c09, exact lab.js and eight module bytes, 5.5 picker order, retained 5 Pro and backend capability marker. This is existing release evidence, not a deployment by the risk-watch repair.",
+          "scope": "Concurrent Seedream 5.5 release: preserve its implementation and publication record.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43712809467/job/132807868476",
+          "limitations": [
+            "No actual signed-in production quote, paid job, Stripe checkout or credit delivery was exercised.",
+            "No new database migration was authored by PR #1019; applied database state remains unverified."
+          ]
+        },
+        {
+          "kind": "source",
+          "summary": "Explicit Inspiration click replacement is independently locked by lab-inspiration-rotation tests; ordinary non-click custom-text protection is retained. Video Reference preupload is independently covered by video-reference-upload source tests. Uploading references precedes provider-copy pricing, so a fixture holding uploads cannot wait for the later Preparing image state.",
+          "scope": "Corroborated fixture synchronization, preserving paid-route and layout guards.",
+          "source": "tests/lab-inspiration-rotation.test.mjs",
+          "limitations": [
+            "All corrected browser fixtures still require the exact candidate CI result."
+          ]
         }
       ],
       "blockers": [
-        "Exact candidate browser CI must be inspected in draft #934; local Chromium is unavailable in this execution environment.",
-        "Production direct-entry, Worker version, applied migrations and real customer behavior remain separate verification gaps."
+        "Required hosted browser and live-monitor results for the integrated exact candidate must be inspected before calling the draft ready.",
+        "Applied migration state and real signed-in production payment/generation behavior remain unverified; existing read-only release evidence is narrower."
       ],
       "doNotRepeat": [
         "Do not rewrite approved catalog/design to silence assertions. Reuse existing PR #934 for its test-fixture files.",
         "Do not overlap current Upscaler, Inspiration ordering, Seedream or Chrome Desert feature branches."
       ],
-      "updatedAt": "2026-11-15T12:21:12.218Z"
+      "updatedAt": "2026-11-15T12:35:27.326Z"
     }
   ]
 }

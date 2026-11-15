@@ -4,6 +4,7 @@ import http from 'node:http';
 import {readFileSync,existsSync} from 'node:fs';
 import {resolve,extname,sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {INSPIRATION_VARIATIONS} from '../lab/inspiration-looks.js';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const start=source.indexOf('try{clerk=await loadLabAccount();');
@@ -14,7 +15,7 @@ clerk={isSignedIn:true,user:{id:'welcome-mock'},session:{id:'welcome-session',ge
 const mockRole=new URL(location.href).searchParams.get('mockRole')||'customer';
 const mockBalance=mockRole==='new'?0:200;
 owner=true;ownerAccount=mockRole==='owner';customerMode=!ownerAccount;customerGenerationReady=true;userId='welcome-mock';
-config={enabled:true,configured:true,geminiEnabled:true,falEnabled:true,higgsfieldEnabled:false,
+config={enabled:true,seedream55Enabled:true,configured:true,geminiEnabled:true,falEnabled:true,higgsfieldEnabled:false,
   concurrency:{image:4,video:1}};
 wallet.connect({customer:customerMode,balanceCredits:mockBalance,billingReady:true,products:[]});
 $('app').hidden=false;$('gate').hidden=true;
@@ -636,6 +637,13 @@ try{
     'Generate must remain visible when typing long prompts: '+JSON.stringify(expanded));
   const enteredText=await field.inputValue();
   await page.locator('[data-welcome-mood="hong-kong-nights"]').click();
+  assert.ok(INSPIRATION_VARIATIONS['hong-kong-nights'].includes(await field.inputValue()),
+    'An explicit Inspiration card click replaces the previous direction with its approved preset');
+  assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
+    'An Inspiration card without uploaded photos restores the current customer 2K default');
+  // Restore the long manual direction to verify its layout separately from
+  // the explicit preset replacement contract above.
+  await field.fill(enteredText);
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Choosing a Mood keeps the opened deck permanently expanded after blur');
   const bottomAfterMood=await deck.boundingBox();
@@ -651,14 +659,13 @@ try{
     'Expanded prompt keeps whole Mood cards and names above the deck: '+JSON.stringify(cardClearance));
   assert.ok(cardClearance.titleTop>=cardClearance.headerBottom+14,
     'Moving the cards to clear the prompt preserves the navigation: '+JSON.stringify(cardClearance));
-  assert.equal((await field.inputValue()).trimEnd(),enteredText.trimEnd(),'Selecting a Mood preserves the user text');
-  assert.equal(await page.locator('#image-composer-resolution').inputValue(),'1k',
-    'Applying a Mood to existing customer text does not override image resolution');
-  assert.equal(await button.isEnabled(),true,'Green Haze must enable Generate in the same click');
+  assert.equal((await field.inputValue()).trimEnd(),enteredText.trimEnd(),'Subsequent manual edits remain unchanged');
+  assert.equal(await button.isEnabled(),true,'Hong Kong Nights must enable Generate after editing');
   await page.locator('[data-welcome-mood="dream-blur"]').click();
-  assert.equal((await field.inputValue()).trimEnd(),enteredText.trimEnd(),'Changing Moods preserves the user text');
-  assert.equal(await page.locator('#image-composer-resolution').inputValue(),'1k',
-    'Switching Moods preserves a compatible current resolution');
+  assert.ok(INSPIRATION_VARIATIONS['dream-blur'].includes(await field.inputValue()),
+    'Explicitly choosing another Inspiration card replaces the prior direction');
+  assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
+    'Switching Inspiration cards keeps the current customer 2K default');
   assert.doesNotMatch(await button.getAttribute('data-credits')||'',/Confirming credits/i,
     'The preflight must not put Confirming credits inside Generate');
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
@@ -667,6 +674,7 @@ try{
   // provider prompt. Keep this deck expanded with a valid-length direction,
   // rather than submitting the intentionally overlong layout stress input.
   await field.fill(('Realistic editorial atmosphere and tactile photographic details. ').repeat(8));
+  await page.locator('#image-composer-resolution').selectOption('1k');
   await page.waitForFunction(()=>document.getElementById('image-composer')?.classList.contains('pv-deck-expanded'));
   // The previous Mood's asynchronous bound price may still be settling.
   // Wait for the new Mood's preflight before submitting the single paid job.
