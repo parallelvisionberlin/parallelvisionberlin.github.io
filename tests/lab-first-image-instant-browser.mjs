@@ -908,6 +908,11 @@ try{
     'The mobile background must not create horizontal scrolling');
   // The approved mobile deck has one tools row, a stable header and a real
   // secondary-options expander. No paid requests are made in this check.
+  // Earlier geometry deliberately kept a long direction. Clear it before
+  // asserting the resting deck; an expanded writing surface permits scrolling.
+  await field.fill('');
+  await page.locator('#lab-welcome-title').click();
+  await page.waitForFunction(()=>!document.getElementById('image-composer').classList.contains('pv-deck-expanded'));
   await page.waitForFunction(()=>document.getElementById('studio-header')?.classList.contains('pv-mobile-entry-condensed'));
   const compact=await page.evaluate(()=>{
     document.activeElement?.blur?.();
