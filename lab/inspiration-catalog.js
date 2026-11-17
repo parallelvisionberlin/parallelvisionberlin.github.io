@@ -1,8 +1,9 @@
 // Image Studio Inspiration expansion. Deliberately separate from Moods.
 // No automatic generation, credit changes, uploads or model/provider changes.
-import {INSPIRATION_SCENES} from './inspiration-catalog-data.js?v=20261112-road1';
+import {INSPIRATION_SCENES} from './inspiration-catalog-data.js?v=20261117-owner1';
+import {OWNER_ORIGINAL_HOVER_FRAMES} from './inspiration-owner-scenes.js?v=20261117-owner1';
 const categories=['All','Original','Cinema','After Hours','Fashion','Analog','Street','Future','Intimacy','Atmospheres'];
-const priority=['lost-highway','desert-stop','eros-lingerie','hotel-intimacy','post-human','desert-sculptures','chrome-skin','berlin-club','italian-1963','tokyo-4am','red-room'];
+const priority=['lost-highway','desert-stop','raver','eros-lingerie','hotel-intimacy','post-human','desert-sculptures','chrome-skin','berlin-club','italian-1963','tokyo-4am','red-room'];
 const rank=new Map(priority.map((id,index)=>[id,index]));
 const sorted=[...INSPIRATION_SCENES].sort((a,b)=>(rank.get(a.id)??100)-(rank.get(b.id)??100));
 const originals=[...document.querySelectorAll('#pv-guest-cards > [data-guest-mood]')].map(button=>({
@@ -26,7 +27,8 @@ const originalHoverFrames=Object.freeze({
   'fisheye-2000':'./mood-references/fisheye-2000/02-fisheye-flash.webp',
   'hong-kong-nights':'./mood-references/hong-kong-nights/plaza-grill.webp',
   'dreamcore':'./welcome-cards/cloud-spa.webp',
-  '80s-film':'./welcome-cards/sun-fade.webp'
+  '80s-film':'./welcome-cards/sun-fade.webp',
+  ...OWNER_ORIGINAL_HOVER_FRAMES
 });
 function installHoverPreview(button,cover){
   if(!cover||!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return;
@@ -155,7 +157,7 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   const guest=track.classList.contains('pv-guest-cards');
   const inTrack=new Set([...track.querySelectorAll(':scope > button')].map(button=>
     (button.querySelector('span,strong')?.firstChild?.textContent||'').trim().toLowerCase()));
-  for(const item of sorted.slice(0,6))if(!inTrack.has(item.title.toLowerCase()))track.append(carouselCard(item,guest));
+  for(const item of sorted.slice(0,7))if(!inTrack.has(item.title.toLowerCase()))track.append(carouselCard(item,guest));
   // Swap existing nodes so every card keeps its original selection behavior.
   for(const [mood,concept] of [['90s-cinema','desert-stop'],['hong-kong-nights','lost-highway']]){
     const original=track.querySelector('[data-'+(guest?'guest':'welcome')+'-mood="'+mood+'"]');
@@ -165,6 +167,10 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
     original.before(featured);
     track.insertBefore(original,following);
   }
+  // Keep the newly commissioned Raver card immediately after Lost Highway.
+  const raverCard=track.querySelector('[data-inspiration-concept="raver"]');
+  const highwayCard=track.querySelector('[data-inspiration-concept="lost-highway"]');
+  if(raverCard&&highwayCard)highwayCard.after(raverCard);
   // Attach only to the carousel, not the full Explore All catalog.
   for(const button of track.querySelectorAll(':scope > button')){
     const item=sorted.find(scene=>scene.id===button.dataset.inspirationConcept);
@@ -178,5 +184,5 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   viewAll.addEventListener('click',openAll);shell.append(viewAll);
 }
 const stylesheet=document.createElement('link');
-stylesheet.rel='stylesheet';stylesheet.href='./inspiration-catalog.css?v=20261117-hover1';
+stylesheet.rel='stylesheet';stylesheet.href='./inspiration-catalog.css?v=20261117-owner1';
 document.head.append(stylesheet);

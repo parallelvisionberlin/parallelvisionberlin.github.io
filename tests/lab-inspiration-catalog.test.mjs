@@ -12,7 +12,7 @@ test('Image Inspiration expands original eight cards without modifying Moods',()
   const guest=read('studio-guest-image.js');
   assert.equal((html.match(/data-guest-mood="/g)||[]).length,8);
   assert.equal((html.match(/data-welcome-mood="/g)||[]).length,8);
-  assert.equal(INSPIRATION_SCENES.length,47);
+  assert.equal(INSPIRATION_SCENES.length,48);
   assert.match(read('inspiration-carousel.js'),/import '.\/inspiration-catalog\.js/);
   assert.match(catalog,/\.inspiration-carousel-shell/);
   assert.match(catalog,/inspiration-view-all/);
@@ -27,15 +27,15 @@ test('Image Inspiration expands original eight cards without modifying Moods',()
   assert.doesNotMatch(catalog,/\/api\/|fetch\(|submitImage|createGeneration/);
 });
 
-test('catalog has 47 unique scene concepts, eight categories, valid covers and editable photographic prompts',()=>{
+test('catalog has 48 unique scene concepts, eight categories, valid covers and editable photographic prompts',()=>{
   const ids=new Set(),names=new Set(),categories=new Set();
   for(const scene of INSPIRATION_SCENES){
     assert.ok(!ids.has(scene.id),'duplicate id '+scene.id);
     assert.ok(!names.has(scene.title),'duplicate name '+scene.title);
     ids.add(scene.id);names.add(scene.title);categories.add(scene.category);
     assert.ok(scene.prompt.length>110&&scene.prompt.length<=5000,scene.title+' prompt length');
-    if(['eros-lingerie','hotel-intimacy'].includes(scene.id)){
-      assert.equal(new URL(scene.cover).origin,'https://d2ol7oe51mr4n9.cloudfront.net','preserve the two approved hosted previews');
+    if(scene.id==='eros-lingerie'){
+      assert.equal(new URL(scene.cover).origin,'https://d2ol7oe51mr4n9.cloudfront.net','preserve the approved EROS hosted cover');
     }else{
       assert.ok(scene.cover.startsWith('./'),'asset stays on PV LAB origin');
       assert.ok(existsSync(new URL('../lab/'+scene.cover.slice(2),import.meta.url)),'missing preview '+scene.cover);
@@ -94,6 +94,8 @@ test('Inspiration hover frames use verified alternative photographs, not generat
   assert.match(js,/overlay\.addEventListener\('load'/);
   assert.match(js,/button\.dataset\.hoverFrame=nextCover/);
   assert.match(js,/installHoverPreview\(button,cover\)/);
+  assert.match(js,/OWNER_ORIGINAL_HOVER_FRAMES/);
+  assert.match(js,/raverCard&&highwayCard/);
   assert.match(js,/hover:hover/);
   assert.doesNotMatch(js,/generateImage\(|fetch\(|\/api\//);
   assert.match(css,/pointer:fine/);
@@ -114,5 +116,5 @@ test('Inspiration gallery keeps complete portrait cards and scrolls within the d
   assert.match(css,/aspect-ratio:3\/4/);
   assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(js,/viewAll\.textContent='Explore all'/);
-  assert.match(js,/inspiration-catalog\.css\?v=20261117-hover1/);
+  assert.match(js,/inspiration-catalog\.css\?v=20261117-owner1/);
 });

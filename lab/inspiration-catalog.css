@@ -106,6 +106,10 @@
   width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;object-position:center;
   border-radius:5px;background:#202125;
 }
+/* Owner portrait crops favor the face when the wider Explore All grid trims them. */
+.pv-inspiration-catalog-card img[src*="/inspiration-sets/"]{
+  object-position:50% 28%;
+}
 .pv-inspiration-catalog-card strong{
   display:block;padding:12px 0 0;font:450 16px/1.25 "DM Sans",Arial,sans-serif;
   letter-spacing:-.03em;color:#f2f1ef;
