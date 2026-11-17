@@ -23,8 +23,8 @@ test('16 makeup cards use matching distinct high-resolution local images and bac
   assert.ok(html.includes(option.image));
   const settings=beautySettings({makeup:option.id});
   assert.ok(settings.prompt.includes(option.instruction));
-  const q={id:'test',creditCost:25,expiresAt:2000,settings:{...settings,referenceSourceIds:['source']}};
-  assert.equal(validateBeautyQuote(q,settings,'source',1000),q);
+  const q={id:'test',creditCost:25,expiresAt:2000,settings:{...settings,referenceSourceIds:['source','makeup-reference']}};
+  assert.equal(validateBeautyQuote(q,settings,'source',1000,'makeup-reference'),q);
  }
 });
 test('Makeup has internal vertical scroll, other four tabs and hero remain unchanged',()=>{

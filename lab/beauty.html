@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="./studios-menu.css?v=20261101-unified-reveal1">
 <link rel="stylesheet" href="./beauty-unified-header.css?v=20261027-unified1">
 <script defer src="./studios-menu.js?v=20261101-unified-reveal1"></script>
-<script type="module" src="./beauty.js?v=20261112-archive-photo1"></script>
+<script type="module" src="./beauty.js?v=20261118-background-handoff1"></script>
 <link rel="stylesheet" href="./beauty-approved-20261029.css?v=20261105-looks-clean-zoom1">
 <link rel="stylesheet" href="./beauty-editorial-final.css?v=20261106-atelier2"><script type="module" src="./beauty-approved-20261029.js?v=20261112-archive-photo1"></script><script defer src="./beauty-zoom.js?v=20261105-result-zoom2"></script>
 <link rel="stylesheet" href="./beauty-flow-refinement.css?v=20261106-flow1">
@@ -21,6 +21,8 @@
 <link rel="stylesheet" href="./beauty-panel-widen-20261107.css?v=20261107-panel1">
 <link rel="stylesheet" href="./beauty-gallery-20261107.css?v=20261107-gallery1">
 <link rel="stylesheet" href="./beauty-makeup-expansion-20261108.css?v=20261108-makeup2">
+<link rel="stylesheet" href="./beauty-processing-20261118.css?v=2">
+<script defer src="./beauty-processing-fabric.js?v=20261118-video-fabric1"></script>
 </head>
 <body>
 <a class="skip" href="#beauty-form">Skip to workspace</a>
@@ -53,7 +55,7 @@
     <p class="beauty-intro">Retouch, transform<br>or create a new look.</p>
     <p class="beauty-description">Professional portrait editing<br>for real photos. Natural to bold.<br>Designed for fashion, editorial<br>and creative work.</p>
     <div class="beauty-left-settings">
-     <label class="beauty-left-model" for="beauty-model"><span>Model</span><span class="beauty-model-control"><span class="beauty-model-thumb" aria-hidden="true"></span><select id="beauty-model"><option value="seedream" selected>Seedream 5 Pro</option><option value="flash">Seedream Flash</option></select></span><small>Photorealistic beauty &amp; detail</small></label>
+     <label class="beauty-left-model" for="beauty-model"><span>Model</span><span class="beauty-model-control"><span class="beauty-model-thumb" aria-hidden="true"></span><select id="beauty-model"><option value="seedream" selected>Seedream 5 Pro</option><option value="seedream55">Seedream 5.5</option><option value="flash">Seedream Flash</option></select></span><small>Photorealistic beauty &amp; detail</small></label>
      <label class="beauty-left-setting" for="beauty-resolution"><span>Resolution</span><select id="beauty-resolution"><option value="1k" selected>1K</option><option value="2k">2K</option></select></label>
      <label class="beauty-left-setting" for="beauty-ratio"><span>Aspect ratio</span><select id="beauty-ratio"><option value="auto" selected>Auto</option><option value="4:5">4:5</option><option value="1:1">1:1</option><option value="3:4">3:4</option><option value="9:16">9:16</option></select></label>
     </div>
@@ -63,6 +65,7 @@
     <input id="beauty-photo" type="file" accept="image/jpeg,image/png,image/webp" hidden>
     <div class="beauty-photo-caption"><strong>Use a source image.</strong><p>Upload a photo to retouch, transform or create a new look.</p><button id="beauty-change-photo" type="button">Upload image <span class="beauty-arrow" aria-hidden="true"></span></button><small>JPG, PNG or WebP · up to 10 MiB</small></div>
     <div id="beauty-result" class="beauty-result" hidden><img id="beauty-result-image" alt="Your ALTER result"><button id="beauty-zoom-open" class="beauty-zoom-open" type="button" aria-haspopup="dialog" aria-controls="beauty-zoom-dialog" aria-label="Expand generated image"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg><span>View full size</span></button><a id="beauty-download" download="pvlab-beauty.png">Download image <span class="beauty-arrow" aria-hidden="true"></span></a></div>
+    <div id="beauty-processing" class="beauty-processing" hidden role="status" aria-live="polite" aria-atomic="true"><div class="beauty-processing-visual" aria-hidden="true"><span class="beauty-processing-sweep"></span><span class="beauty-processing-track"></span></div><div class="beauty-processing-copy"><small>PV LAB / ALTER</small><strong id="beauty-processing-title">Preparing your edit</strong><span id="beauty-processing-note">Checking the request</span></div></div>
    </section>
    <aside class="beauty-edit-panel">
     <div class="beauty-edit-heading"><strong>Edit Look</strong><button id="beauty-reset-look" type="button"><span aria-hidden="true">↶</span> Reset</button></div>

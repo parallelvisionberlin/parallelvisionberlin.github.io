@@ -13,10 +13,11 @@ for(const [category,options] of Object.entries(catalog))test('ALTER '+category+'
   const selected=beautySettings({...defaults,[category]:o.id});
   if(o.instruction)assert.ok(selected.prompt.includes(o.instruction),'Missing exact '+category+'/'+o.id+' direction');
   for(const other of options)if(other.id!==o.id&&other.instruction)assert.equal(selected.prompt.includes(other.instruction),false,'No stale competing '+other.id);
-  const quote={id:'q',creditCost:25,expiresAt:2000,settings:{...selected,referenceSourceIds:['source']}};
-  assert.equal(validateBeautyQuote(quote,selected,'source',1000),quote);
+  const makeupRef=selected.referenceRoles.length===2?'makeup-reference':null;
+  const quote={id:'q',creditCost:25,expiresAt:2000,settings:{...selected,referenceSourceIds:['source',...(makeupRef?[makeupRef]:[])]}};
+  assert.equal(validateBeautyQuote(quote,selected,'source',1000,makeupRef),quote);
   const alternative=options.find(x=>x.id!==o.id);
-  assert.throws(()=>validateBeautyQuote(quote,beautySettings({...defaults,[category]:alternative.id}),'source',1000));
+  assert.throws(()=>validateBeautyQuote(quote,beautySettings({...defaults,[category]:alternative.id}),'source',1000,makeupRef));
  }
 });
 test('Presets correspond to visible category state and do not invent clothing replacement',()=>{

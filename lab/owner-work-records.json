@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18",
+  "updatedAt": "2026-11-17T23:44:37.754Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4352,6 +4352,61 @@
       ],
       "updatedAt": "2026-11-18",
       "evidence": []
+    },
+    {
+      "id": "alter-makeup-reference-transfer",
+      "title": "ALTER: makeup image references, Seedream 5.5, and Video-like accepted-job handoff",
+      "component": "ALTER Studio",
+      "status": "in_review",
+      "summary": "PR #1039 feature branch, not merged or deployed. 15 makeup presets attach their exact published WebP as reference 2 to the user's base photo. The separate Light/Hair/Skin/Color controls and explicit Creative Direction are preserved. Seedream 5.5 is selectable without changing 5 Pro default. Accepted jobs now show a full-canvas Video-inspired procedural animation while the photo fades away; the Generate button becomes an enabled New edit action. Clicking it clears only the draft while each confirmed job independently continues polling in authenticated Results with its preserved original. Pending Results cards show actual statuses; no fabricated percentages or automatic paid retries.",
+      "nextAction": "PR #1039 branch reconciled with newer main. GitHub CI and actual signed-in generation still require verification. Merge/release only after required checks pass, then verify Cloudflare Pages exact production commit.",
+      "baselineSha": "a618768b8b359ade058e344eb5a5e3c051e1e06e",
+      "reviewedSha": "459af76a20bd4e30a07abb1f898f5159c16b0444",
+      "branch": "feat/alter-makeup-reference-progress-20261118",
+      "files": [
+        "lab/beauty-settings.js",
+        "lab/beauty.js",
+        "lab/beauty.html",
+        "lab/beauty-processing-20261118.css",
+        "tests/lab-beauty.test.mjs",
+        "tests/lab-beauty-category-contract.test.mjs",
+        "tests/lab-beauty-makeup-expansion.test.mjs",
+        "tests/lab-beauty-ui.mjs",
+        "lab/beauty-processing-fabric.js"
+      ],
+      "links": [
+        {
+          "label": "PR #1039, changes and CI",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1039"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Source/syntax and flow sanity",
+          "result": "passed",
+          "scope": "V8 parsing of beauty.js, animation JS and browser test; 9/9 static handoff and safety contracts satisfied."
+        },
+        {
+          "label": "GitHub scoped browser, Lab tests and approved Image UI",
+          "result": "pending",
+          "scope": "Required CI still queued / no passing report at time of record; synthetic browser job handoff test added but not yet executed."
+        }
+      ],
+      "deployment": {
+        "status": "not_deployed",
+        "note": "Feature branch only; Cloudflare Pages production remains unchanged."
+      },
+      "evidence": [],
+      "blockers": [
+        "CI has not confirmed the new PR head; do not merge on unverified checks.",
+        "Two-reference makeup fidelity and signed-in paid job flow not yet exercised; no customer or payment action taken."
+      ],
+      "doNotRepeat": [
+        "Preserve approved 15 makeup images, hero and existing five-tab layout.",
+        "Never weaken exact quote validation, submit deduplication, credits or customer privacy to speed the UI.",
+        "Distinguish a GitHub merge from verified production and a real signed-in paid transfer test."
+      ],
+      "updatedAt": "2026-11-17T23:44:37.754Z"
     }
   ]
 }
