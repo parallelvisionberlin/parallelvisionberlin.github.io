@@ -514,6 +514,28 @@ try{
   await page.screenshot({path:'test-results/beauty-missing-original-'+width+'.png',fullPage:true});
   assert.equal(s.submits,2,'History selection never generates');await s.context.close();
  }
+ // The exact Makeup thumbnail is staged automatically as Reference 2, not just described by text.
+ {
+  const s=await scenario({role:'customer',width:1440}),{page}=s;
+  await page.locator('#beauty-photo').setInputFiles(input);
+  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
+  await page.locator('[data-beauty-choice="beauty-makeup"][data-value="bold"]').click();
+  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'));
+  const q=s.quotes.at(-1),references=q.settings.referenceSourceIds;
+  assert.deepEqual(references,['photo-1','photo-2'],'One uploaded person and one auto-staged makeup reference');
+  assert.deepEqual(q.settings.referenceRoles.map(r=>r.role),['base','custom']);
+  assert.match(q.settings.referenceRoles[1].note,/makeup colour, placement, shape/);
+  assert.equal(s.uploads,2);assert.equal(s.submits,0,'Preparing the reference never generates');
+  await page.locator('#beauty-model').selectOption('seedream55');
+  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'));
+  assert.equal(s.quotes.at(-1).settings.engine,'seedream55');
+  assert.deepEqual(s.quotes.at(-1).settings.referenceSourceIds,references,'Changing models reuses the makeup asset');
+  assert.equal(s.uploads,2,'Repeated quotes do not upload the same makeup twice');
+  await page.locator('#beauty-generate').click();
+  await page.locator('#beauty-result').waitFor({state:'visible'});
+  assert.equal(s.submits,1);assert.equal(await page.locator('#beauty-processing').isVisible(),false);
+  assert.deepEqual(s.errors,[]);await s.context.close();
+ }
  // The homepage uses the real new menu, retaining its original Fashion URL.
  {
   const s=await scenario({role:'guest'});await s.page.goto(base+'/lab/index.html');await s.page.locator('.pv-studios-trigger').click();
