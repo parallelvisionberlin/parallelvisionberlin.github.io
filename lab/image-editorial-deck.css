@@ -734,13 +734,3 @@ html:not(.pv-native-lab) #app.image-studio-active
     top:calc(-40px - var(--pv-welcome-card-growth,0px));
   }
 }
-
-/* Desktop Inspiration clearance: keep the approved card size, internal title
-   spacing, and fixed History-height prompt dock. Move the entire introductory
-   frame upward, rather than squeezing cards or changing the phone layout. */
-@media(min-width:1180px) and (min-height:680px){
-  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]:not(:has(#pv-guest-closed-state:not([hidden]))) .pv-guest-content,
-  html:not(.pv-native-lab) #app.image-studio-active:has(#image-composer.pv-welcome-deck) #lab-welcome-start:not([hidden]){
-    translate:0 calc(0px - clamp(16px,2.7dvh,24px));
-  }
-}

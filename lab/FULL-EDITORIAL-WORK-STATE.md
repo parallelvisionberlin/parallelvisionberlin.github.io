@@ -1,3 +1,9 @@
+## Mobile native swipe inertia, 2026-11-18
+- User-approved mobile-only feel: faster, free finger swipes across Casting References, My Characters and Composition, without compulsory card-by-card snapping. Original character order, photography, 4-character cap/toast, fixed footer and desktop scroll unchanged.
+- Scoped patch on PR #1040 (`fix/mobile-editorial-image-native-inertia-20261118`): `full-editorial-identity-refresh.css` adds <=800px native touch momentum and no enforced snap; `full-editorial.html` refreshes that CSS cache key.
+- Browser/source assertions added to `tests/lab-full-editorial-browser.mjs` and `tests/lab-full-editorial.test.mjs`. No model, reference, credit, payment or generation code touched.
+- As of authoring: source changes committed on PR branch. CI, Cloudflare publication and actual iPhone swipe feel remain **unverified**. Verify PR checks and exact production CSS before calling it live.
+
 ## 2026-11-11 / Production launch verified
 - PR #973 merged into main as `7cf3d1c63ad692b287df0468cacd05ddaf034738`: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/973
 - Five new owner-selected models SLATE, COBALT, PEARL, ACID and BLOSSOM are selectable alongside the five existing models, with identical card format and no changes to the original assets.

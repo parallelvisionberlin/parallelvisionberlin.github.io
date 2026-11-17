@@ -18,7 +18,7 @@ test('both Image Inspiration entrances share the approved Chrome Couture and Clo
   assert.equal((html.match(/data-welcome-mood="chrome-couture"/g)||[]).length,1);
   assert.equal((html.match(/data-inspiration-nav="prev"/g)||[]).length,2);
   assert.equal((html.match(/data-inspiration-nav="next"/g)||[]).length,2);
-  assert.match(html,/inspiration-carousel\.css\?v=20261117-inertia1/);
+  assert.match(html,/inspiration-carousel\.css\?v=20261118-mobile-inertia2/);
   assert.match(html,/inspiration-carousel\.js\?v=20261117-inertia1/);
   assert.match(html,/id="lab-welcome-presets"/);
   const guest=[...html.matchAll(/data-guest-mood="([^"]+)"/g)].map(match=>match[1]);
@@ -67,7 +67,7 @@ test('both Inspiration rows support mouse-wheel browsing without trapping page s
   assert.doesNotMatch(js,/lastWheelStep|230/);
   assert.match(read('inspiration-carousel.css'),/scroll-snap-type:none/);
   assert.match(js,/\},\{passive:false\}\)/);
-  assert.match(html,/inspiration-carousel\.js\?v=20261117-inertia1&inspirationCatalog=20261117-owner1/);
+  assert.match(html,/inspiration-carousel\.js\?v=20261117-inertia1&inspirationCatalog=20261117-owner1&noNativeTips=20261118v1/);
 });
 test('vertical wheel gestures glide by pixels, accumulate, and release the page at both ends',()=>{
   const code=read('inspiration-carousel.js').replace(/^import [^\n]+\n/,'');
@@ -150,4 +150,15 @@ test('Image welcome and reopened Inspiration fit the viewport, but real History 
     'Only the visible welcome/Discovery gallery is viewport-locked');
   assert.doesNotMatch(rules,/\.image-studio #history\s*\{/,
     'History image grid and paid jobs remain unaffected');
+});
+
+test('Phone Image Inspiration preserves kinetic free-scroll for both account states',()=>{
+ const css=read('inspiration-carousel.css');
+ const m=css.slice(css.indexOf('/* PVLAB_MOBILE_IMAGE_INERTIA_20261118'));
+ assert.match(m,/@media\(max-width:680px\)/);
+ assert.match(m,/#gate \.pv-guest-carousel \.pv-guest-cards/);
+ assert.match(m,/#app\.image-studio-active #lab-welcome-start \.lab-welcome-carousel \.lab-welcome-presets/);
+ assert.match(m,/scroll-snap-type:none!important/);
+ assert.match(m,/scroll-behavior:auto!important/);
+ assert.match(m,/-webkit-overflow-scrolling:touch/);
 });

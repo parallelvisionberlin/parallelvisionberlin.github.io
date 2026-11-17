@@ -55,6 +55,8 @@ let chosenCount=4,chosenRatio='3:4',castComposition='mixed',quote=null,quoteBusy
 let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0,progressBatchStart=0,progressBatchSize=4;
 const objectUrls=new Map(),sampleFiles=new Map(),savedCharacterThumbnails=new Map();
 const MAX_EDITORIAL_CHARACTERS=4;
+let castLimitNoticeTimer=null;
+let castLimitNoticeFrame=null;
 let modelGroups=[],modelGroupSerial=0,modelUploadTarget=null,charactersLoadSequence=0;
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
 function effectiveCastMode(){return modelGroups.length>1?'cast':'one';}
@@ -104,6 +106,14 @@ function renderIdentityFooter(){
  const footer=$('editorial-footer-cast'),selection=$('editorial-cast-selection');
  const actionDock=$('step-footer'),composition=$('editorial-casting-controls');
  const workspace=$('panel-model').querySelector('.atelier-workspace');
+ // Dismiss a stale cast-limit notice when a slot opens or Identity is left.
+ const limitNotice=selection.querySelector('.editorial-cast-limit-toast');
+ if(limitNotice&&(step!==1||modelGroups.length<MAX_EDITORIAL_CHARACTERS)){
+  clearTimeout(castLimitNoticeTimer);
+  if(castLimitNoticeFrame!==null){cancelAnimationFrame(castLimitNoticeFrame);castLimitNoticeFrame=null}
+  limitNotice.classList.remove('is-visible');
+  limitNotice.setAttribute('aria-hidden','true');
+ }
  footer.hidden=step!==1;
  // Composition follows the selection dock, matching the approved editorial reference.
  // Move back to its original panel when leaving Identity so other steps never expose it.
@@ -122,6 +132,32 @@ function renderIdentityFooter(){
  }
  add.hidden=modelGroups.length===0||modelGroups.length>=MAX_EDITORIAL_CHARACTERS;
  add.disabled=submitting||files.model.length+savedRefs.model.length>=8;
+}
+// Responsive casting feedback without changing the document height.
+function showCastLimitNotice(){
+ if(step!==1)return;
+ const selection=$('editorial-cast-selection');
+ let notice=selection.querySelector('.editorial-cast-limit-toast');
+ if(!notice){
+  notice=document.createElement('span');
+  notice.className='editorial-cast-limit-toast';
+  notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');
+  notice.setAttribute('aria-hidden','true');
+  notice.textContent='4 characters max. Remove one to select another.';
+  selection.append(notice);
+ }
+ clearTimeout(castLimitNoticeTimer);
+ if(castLimitNoticeFrame!==null)cancelAnimationFrame(castLimitNoticeFrame);
+ notice.classList.remove('is-visible');
+ notice.setAttribute('aria-hidden','false');
+ castLimitNoticeFrame=requestAnimationFrame(()=>{
+  notice.classList.add('is-visible');
+  castLimitNoticeFrame=null;
+ });
+ castLimitNoticeTimer=setTimeout(()=>{
+  notice.classList.remove('is-visible');
+  notice.setAttribute('aria-hidden','true');
+ },2600);
 }
 function createModelGroup(name,origin='upload'){
  if(modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return null;
@@ -177,7 +213,7 @@ function resetAll(){invalidateQuote();clearTimeout(pollTimeout);submitting=false
  renderFiles();renderDirections();updateOptions();refreshSliderLabels();setIdentitySource('casting');go(curatedWorld?1:0);status('');
  if(curatedWorld)void loadWorldReferences();
 }
-function go(next){step=next;const panels=['model','style','mood','generate','progress','results'];
+function go(next){if(next!==1)stopCastingWheelCoast();step=next;const panels=['model','style','mood','generate','progress','results'];
  for(let i=0;i<panels.length;i++)$('panel-'+panels[i]).hidden=i!==Math.max(0,next-1);
  $('editorial-hero').hidden=next!==0;$('editorial-flow').hidden=next===0;
  document.body.classList.toggle('editorial-is-generating',next===5);
@@ -282,7 +318,7 @@ function renderFiles(){
 }
 function openModelPicker(target=null){
  if(submitting)return;
- if(!target&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return;
+ if(!target&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS){showCastLimitNotice();return;}
  modelUploadTarget=target;$('model-files').click();
 }
 function addFiles(kind,list,groupId=null,label=null){
@@ -296,7 +332,7 @@ function addFiles(kind,list,groupId=null,label=null){
  if(kind==='model'&&accepted.length){
   const group=groupId?findModelGroup(groupId):createModelGroup(label||'Your model '+(modelGroups.length+1));
   if(!group){
-   if(!groupId&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return;
+   if(!groupId&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS){showCastLimitNotice();return;}
    status('The selected model is unavailable. Choose it again.',true);return;
   }
   group.files.push(...accepted);
@@ -341,7 +377,7 @@ async function toggleSample(button){
   }
   status(kind==='model'?'':'Reference removed.');return;
  }
- if(kind==='model'&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return;
+ if(kind==='model'&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS){showCastLimitNotice();return;}
  const limit={model:8,outfit:3}[kind],num=files[kind].length+savedRefs[kind].length;
  if(num>=limit){status('You can select up to '+limit+' '+(kind==='model'?'model photos':'wardrobe references')+'.',true);return}
  button.disabled=true;
@@ -581,7 +617,7 @@ function addSavedCharacter(pack,refs){
  if(submitting)return;
  const name=pack.name.split('|').slice(2).join('|');
  if(modelGroups.some(group=>group.origin===pack.name)){status('That character is already in your cast. Use Add reference for another photo.',true);return}
- if(modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return;
+ if(modelGroups.length>=MAX_EDITORIAL_CHARACTERS){showCastLimitNotice();return;}
  const available=4-files.model.length-savedRefs.model.length;
  const used=Object.values(files).reduce((n,part)=>n+part.length,0)+Object.values(savedRefs).reduce((n,part)=>n+part.length,0);
  if(Math.min(available,10-used)<=0){status('Four model reference photos maximum. Remove one before adding another model.',true);return}
@@ -825,24 +861,64 @@ function updateCastCarouselControls(){
   $(nextId).disabled=max<4||track.scrollLeft>=max-3;
  }
 }
+// Mouse-wheel momentum only. Trackpad and touch retain their native scrolling.
+const castingReducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+const castingWheelMotion={frame:0,velocity:0,lastFrame:0,lastInput:0};
+function stopCastingWheelCoast(){
+ if(castingWheelMotion.frame)cancelAnimationFrame(castingWheelMotion.frame);
+ castingWheelMotion.frame=0;castingWheelMotion.velocity=0;castingWheelMotion.lastFrame=0;
+}
+function coastCastingWheel(now){
+ castingWheelMotion.frame=0;
+ if(document.hidden||step!==1||$('panel-model').dataset.modelMode!=='casting'||castingReducedMotion.matches){
+  stopCastingWheelCoast();return;
+ }
+ const track=$('editorial-cast-track'),max=Math.max(0,track.scrollWidth-track.clientWidth);
+ if(max<=4){stopCastingWheelCoast();return}
+ const dt=castingWheelMotion.lastFrame?Math.min(40,Math.max(1,now-castingWheelMotion.lastFrame)):16;
+ castingWheelMotion.lastFrame=now;
+ const before=track.scrollLeft;
+ const next=Math.max(0,Math.min(max,before+castingWheelMotion.velocity*dt));
+ track.scrollLeft=next;
+ castingWheelMotion.velocity*=Math.exp(-dt/245);
+ if(Math.abs(castingWheelMotion.velocity)>.035&&Math.abs(next-before)>.05)
+  castingWheelMotion.frame=requestAnimationFrame(coastCastingWheel);
+ else stopCastingWheelCoast();
+}
 function moveCastCarousel(direction,source){
+ stopCastingWheelCoast();
  const track=$(source==='saved'?'saved-character-gallery':'editorial-cast-track');if(!track)return;
  const first=track.querySelector('.atelier-reference:not([hidden])');
  const gap=parseFloat(getComputedStyle(track).columnGap)||12;
  const distance=(first?.getBoundingClientRect().width||220)+gap;
- track.scrollBy({left:direction*distance,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+ track.scrollBy({left:direction*distance,behavior:castingReducedMotion.matches?'instant':'smooth'});
 }
 function handleCastingWheel(event){
- // Wheel browsing belongs only to the portrait rail, never the pinned Create Character card.
- // Trackpad horizontal gestures, browser zoom, touch swipes and normal page scroll still work.
- if(step!==1||$('panel-model').dataset.modelMode!=='casting'||event.ctrlKey)return;
+ // Vertical wheel browses the portrait rail; never hijack native horizontal
+ // trackpad gestures, touch swipes, browser zoom or normal page scroll.
+ if(step!==1||$('panel-model').dataset.modelMode!=='casting'||event.ctrlKey||event.metaKey||innerWidth<=800)return;
  if(!event.deltaY||Math.abs(event.deltaX)>=Math.abs(event.deltaY))return;
- const track=$('editorial-cast-track'),max=track.scrollWidth-track.clientWidth;
+ const track=$('editorial-cast-track'),max=Math.max(0,track.scrollWidth-track.clientWidth);
  if(max<=4)return;
  const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?track.clientWidth:1);
- if((delta>0&&track.scrollLeft>=max-2)||(delta<0&&track.scrollLeft<=2))return;
+ if((delta>0&&track.scrollLeft>=max-2)||(delta<0&&track.scrollLeft<=2)){
+  stopCastingWheelCoast();return;
+ }
  event.preventDefault();
- track.scrollTo({left:Math.max(0,Math.min(max,track.scrollLeft+delta)),behavior:'instant'});
+ track.scrollLeft=Math.max(0,Math.min(max,track.scrollLeft+delta));
+ // Small, frequent trackpad deltas already have OS-provided inertia.
+ if(castingReducedMotion.matches||(event.deltaMode===0&&Math.abs(event.deltaY)<36)){
+  stopCastingWheelCoast();return;
+ }
+ const impulse=Math.max(-1.25,Math.min(1.25,delta*.0032)),now=performance.now();
+ const recent=now-castingWheelMotion.lastInput<120;
+ const carry=recent&&Math.sign(impulse)===Math.sign(castingWheelMotion.velocity)?castingWheelMotion.velocity*.35:0;
+ castingWheelMotion.velocity=Math.max(-1.65,Math.min(1.65,carry+impulse));
+ castingWheelMotion.lastInput=now;
+ if(!castingWheelMotion.frame){
+  castingWheelMotion.lastFrame=0;
+  castingWheelMotion.frame=requestAnimationFrame(coastCastingWheel);
+ }
 }
 function setupCastCarousel(){
  for(const [source,trackId,prevId,nextId] of [
@@ -857,6 +933,13 @@ function setupCastCarousel(){
  }
  if('MutationObserver' in window)new MutationObserver(updateCastCarouselControls)
   .observe($('saved-character-gallery'),{childList:true});
+ // New pointer gestures and native horizontal scrolling cancel residual coast.
+ $('casting-reference-gallery').addEventListener('pointerdown',stopCastingWheelCoast,{passive:true});
+ $('editorial-cast-track').addEventListener('wheel',event=>{
+  if(Math.abs(event.deltaX)>Math.abs(event.deltaY))stopCastingWheelCoast();
+ },{passive:true});
+ castingReducedMotion.addEventListener('change',stopCastingWheelCoast);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopCastingWheelCoast()});
  // Wheel over the entire casting gallery advances portraits, not the pinned tile.
  $('casting-reference-gallery').addEventListener('wheel',handleCastingWheel,{passive:false});
  window.addEventListener('resize',updateCastCarouselControls);

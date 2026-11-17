@@ -106,7 +106,20 @@ try{
   assert.equal(await page.locator('.editorial-cast-pinned').count(),1,'One pinned Create Character and upload card');
   assert.match(await page.locator('.editorial-create-character').getAttribute('href'),/createCharacter=1/);
   const carouselState=await castTrack.evaluate(el=>({width:el.clientWidth,full:el.scrollWidth,count:el.querySelectorAll('.atelier-reference').length}));
-  assert.equal(carouselState.count,10,'Original five plus five approved new casting references');
+  assert.equal(carouselState.count,10,'All ten casting references remain available');
+  if(width<=800){
+   const rails=await page.evaluate(()=>['#editorial-cast-track','#editorial-composition-choices','#saved-character-gallery'].map(selector=>{
+    const computed=getComputedStyle(document.querySelector(selector));
+    return {selector,snap:computed.scrollSnapType,behavior:computed.scrollBehavior};
+   }));
+   for(const rail of rails){
+    assert.equal(rail.snap,'none','Phone rail must not snap: '+rail.selector);
+    assert.equal(rail.behavior,'auto','Phone rail uses native touch momentum: '+rail.selector);
+   }
+  }
+  assert.deepEqual(await castTrack.locator('.atelier-reference').evaluateAll(cards=>cards.map(card=>card.querySelector('span')?.textContent.trim())),
+   ['06 / SLATE','07 / COBALT','08 / PEARL','09 / ACID','10 / BLOSSOM','01 / SILVER','02 / BRONZE','03 / COPPER','04 / IVORY','05 / NIGHT'],
+   'Five featured portraits appear first, with all original numbers and remaining models retained');
   assert.ok(carouselState.full>carouselState.width+30,'The casting gallery scrolls horizontally');
   assert.equal(await page.locator('#editorial-cast-prev').isDisabled(),true);
   await page.locator('#editorial-cast-next').click();
@@ -151,6 +164,15 @@ try{
    const pinnedAfter=await page.locator('.editorial-cast-pinned').boundingBox();
    assert.ok(Math.abs(pinnedAfter.x-pinnedBefore.x)<1&&Math.abs(pinnedAfter.y-pinnedBefore.y)<1,'The Create Character tile remains fixed when wheel is over it');
    assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,'Wheel does not select any model');
+   const afterInput=await castTrack.evaluate(el=>el.scrollLeft);
+   await page.waitForTimeout(150);
+   const duringCoast=await castTrack.evaluate(el=>el.scrollLeft);
+   assert.ok(duringCoast>afterInput+8,'Wheel continues easing after the last input: '+JSON.stringify({afterInput,duringCoast}));
+   await page.waitForTimeout(900);
+   const beforeRest=await castTrack.evaluate(el=>el.scrollLeft);
+   await page.waitForTimeout(130);
+   const afterRest=await castTrack.evaluate(el=>el.scrollLeft);
+   assert.ok(Math.abs(afterRest-beforeRest)<2,'Wheel fades naturally to a stop: '+JSON.stringify({beforeRest,afterRest}));
    await castTrack.evaluate(el=>el.scrollTo({left:0,behavior:'instant'}));
    await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<3);
   }
@@ -436,12 +458,17 @@ try{
    compositionTop:document.getElementById('editorial-casting-controls').getBoundingClientRect().top}));
   await fifthPortrait.click();
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),4,'Fifth distinct model is blocked');
-  assert.equal(await page.locator('#editorial-status').textContent(),'','Four-character limit never creates an error line');
+  assert.equal(await page.locator('#editorial-status').textContent(),'','Four-character limit never creates a page-level error');
+  await page.waitForFunction(()=>document.querySelector('.editorial-cast-limit-toast')?.classList.contains('is-visible'));
+  assert.match(await page.locator('.editorial-cast-limit-toast').textContent(),/4 characters max.*Remove one/);
+  assert.equal(await page.locator('.editorial-cast-limit-toast').getAttribute('aria-hidden'),'false');
   const afterFifth=await page.evaluate(()=>({scrollY,documentHeight:document.documentElement.scrollHeight,
    footerTop:document.getElementById('step-footer').getBoundingClientRect().top,
    compositionTop:document.getElementById('editorial-casting-controls').getBoundingClientRect().top}));
   for(const key of Object.keys(beforeFifth))assert.ok(Math.abs(beforeFifth[key]-afterFifth[key])<2,
    'Fifth character must not move the page: '+key+' '+JSON.stringify({beforeFifth,afterFifth}));
+  await page.waitForFunction(()=>!document.querySelector('.editorial-cast-limit-toast')?.classList.contains('is-visible'),null,{timeout:5500});
+  assert.equal(await page.locator('.editorial-cast-limit-toast').getAttribute('aria-hidden'),'true','Notice fades away on its own');
   await page.locator('#casting-reference-gallery .atelier-reference').nth(2).click();
   await page.locator('#casting-reference-gallery .atelier-reference').nth(3).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);

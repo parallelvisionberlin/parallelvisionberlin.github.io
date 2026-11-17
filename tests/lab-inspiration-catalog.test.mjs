@@ -118,3 +118,17 @@ test('Inspiration gallery keeps complete portrait cards and scrolls within the d
   assert.match(js,/viewAll\.textContent='Explore all'/);
   assert.match(js,/inspiration-catalog\.css\?v=20261117-owner1/);
 });
+
+
+test('Inspiration cards do not expose native hover titles, while keeping screen-reader labels',()=>{
+  const html=read('studio.html');
+  const catalog=read('inspiration-catalog.js');
+  const chrome=[...html.matchAll(/<button\\b[^>]*data-(?:guest|welcome)-mood="chrome-couture"[^>]*>/g)].map(m=>m[0]);
+  assert.equal(chrome.length,2,'Public and signed-in Chrome Couture cards exist');
+  for(const card of chrome){
+    assert.doesNotMatch(card,/\\btitle=/,'No browser tooltip on the card');
+    assert.match(card,/\\baria-label=/,'Screen reader name remains');
+  }
+  assert.doesNotMatch(catalog,/button\\.title\\s*=/,'Dynamic Inspiration cards have no browser-native titles');
+  assert.match(catalog,/button\\.setAttribute\\('aria-label'/,'Dynamic cards keep accessible names');
+});

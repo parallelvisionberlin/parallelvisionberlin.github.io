@@ -71,3 +71,15 @@
   #app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-presets{scroll-behavior:auto}
   .inspiration-carousel-shell .inspiration-nav{transition:none}
 }
+
+/* PVLAB_MOBILE_IMAGE_INERTIA_20261118: frictionless native finger swipes.
+   Both guest and signed-in Inspiration cards retain their existing sizes. */
+@media(max-width:680px){
+ #gate .pv-guest-carousel .pv-guest-cards,
+ #app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-presets{
+  scroll-snap-type:none!important;
+  scroll-behavior:auto!important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;
+ }
+}

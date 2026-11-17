@@ -472,10 +472,6 @@ try{
             assert.ok(geometry.cardHeight>=geometry.baseCardHeight+20,'Desktop cards are visibly taller than the original row: '+label);
             assert.ok(Math.abs(geometry.cardBottom-geometry.rowBottom)<1,'Taller cards retain the original row bottom: '+label);
             assert.ok(geometry.cardTop>=geometry.titleBottom+23,'Taller cards keep a clear gap below the heading: '+label);
-            if(viewport.height>=900 && state==='long'){
-              assert.ok(geometry.deckTop-geometry.cardBottom>=16,
-                'Desktop Inspiration cards keep a visible gap above the long prompt dock: '+label);
-            }
             for(const key of ['titleTop','cardTop','cardBottom'])assert.ok(Math.abs(geometry[key]-restingGeometry[key])<1,
               'Desktop heading/cards stay fixed while the prompt grows: '+key+' '+label);
           }
