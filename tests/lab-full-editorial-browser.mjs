@@ -279,8 +279,33 @@ try{
   assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Back returns from Identity to hero');
   assert.equal(await page.locator('#editorial-flow').isVisible(),false);
   await page.locator('#editorial-start').click();
+  // Composition and the selected cast dock must remain immobile on first selection.
+  const beforeCastChoice=width>800?await page.evaluate(()=>{
+   const r=selector=>document.querySelector(selector).getBoundingClientRect();
+   return {compositionTop:r('#editorial-casting-controls').top,footerHeight:r('#step-footer').height,
+    pinnedHeight:r('.editorial-cast-pinned').height,photoHeight:r('#editorial-cast-track .atelier-reference').height};
+  }):null;
   await page.locator('#casting-reference-gallery .atelier-reference').first().click();
   await page.locator('#model-thumbs .thumb').waitFor({state:'visible'});
+  if(width>800){
+   const afterCastChoice=await page.evaluate(()=>{
+    const r=selector=>document.querySelector(selector).getBoundingClientRect();
+    const img=document.querySelector('#model-thumbs .editorial-model-cover img');
+    return {compositionTop:r('#editorial-casting-controls').top,footerHeight:r('#step-footer').height,
+     pinnedHeight:r('.editorial-cast-pinned').height,photoHeight:r('#editorial-cast-track .atelier-reference').height,
+     thumbnailHeight:img?.getBoundingClientRect().height||0};
+   });
+   assert.ok(afterCastChoice.photoHeight>=290&&afterCastChoice.photoHeight<=310,
+    'Desktop casting photos are moderately taller: '+JSON.stringify(afterCastChoice));
+   assert.ok(Math.abs(afterCastChoice.compositionTop-beforeCastChoice.compositionTop)<1,
+    'Selecting a portrait must not move Composition: '+JSON.stringify({beforeCastChoice,afterCastChoice}));
+   assert.ok(Math.abs(afterCastChoice.footerHeight-beforeCastChoice.footerHeight)<1,
+    'Selection dock height is constant');
+   assert.ok(Math.abs(afterCastChoice.pinnedHeight-afterCastChoice.photoHeight)<1,
+    'Create Character and casting cards stay aligned');
+   assert.ok(afterCastChoice.thumbnailHeight<=afterCastChoice.footerHeight-12,
+    'Selected model photo fits without resizing the dock');
+  }
   if(width>800){
    const sizes=await page.evaluate(()=>{
     const r=selector=>document.querySelector(selector).getBoundingClientRect();
