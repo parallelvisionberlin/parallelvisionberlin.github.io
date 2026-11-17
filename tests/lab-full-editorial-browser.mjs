@@ -183,7 +183,7 @@ try{
    });
    assert.equal(layout.heroBelowHeader,true,'Sticky header does not cover hero controls');
    assert.ok(layout.topGap<=13,'Hero begins immediately below the header');
-   assert.ok(layout.heroHeight>=236&&layout.heroHeight<=274,'Identity hero is only 12px shorter: '+JSON.stringify(layout));
+   assert.ok(layout.heroHeight>=216&&layout.heroHeight<=234,'Approved Identity hero makes room for taller portraits: '+JSON.stringify(layout));
    assert.ok(Math.abs(layout.compositionHeight-144)<1,'Composition cards gain 12px at 1440px without changing card widths: '+JSON.stringify(layout));
    for(const key of ['railHidden','backInside','cardsVisible'])assert.equal(layout[key],true,key);
    const emptyBounds=await page.evaluate(()=>{
@@ -193,7 +193,7 @@ try{
      buttonBackground:getComputedStyle(document.getElementById('step-next')).backgroundColor};
    });
    assert.ok(emptyBounds.footerBottom<=emptyBounds.viewportHeight-8,'Empty Identity action and cast all fit on the initial desktop screen: '+JSON.stringify(emptyBounds));
-   assert.ok(emptyBounds.cardHeight>=258&&emptyBounds.cardHeight<=295,'Casting references use the approved full-height portraits');
+   assert.ok(emptyBounds.cardHeight>=298&&emptyBounds.cardHeight<=325,'Approved casting portraits are taller');
    const textClearance=await page.evaluate(()=>{
     const box=selector=>document.querySelector(selector).getBoundingClientRect();
     const button=document.getElementById('step-next');
@@ -295,7 +295,7 @@ try{
      pinnedHeight:r('.editorial-cast-pinned').height,photoHeight:r('#editorial-cast-track .atelier-reference').height,
      thumbnailHeight:img?.getBoundingClientRect().height||0};
    });
-   assert.ok(afterCastChoice.photoHeight>=290&&afterCastChoice.photoHeight<=310,
+   assert.ok(afterCastChoice.photoHeight>=298&&afterCastChoice.photoHeight<=325,
     'Desktop casting photos are moderately taller: '+JSON.stringify(afterCastChoice));
    assert.ok(Math.abs(afterCastChoice.compositionTop-beforeCastChoice.compositionTop)<1,
     'Selecting a portrait must not move Composition: '+JSON.stringify({beforeCastChoice,afterCastChoice}));
@@ -399,19 +399,40 @@ try{
    assert.ok(addSize>=42&&addSize<=46,'Footer add control stays compact, never inherits the full CTA width: '+addSize);
   }
   await page.screenshot({path:'test-results/editorial/'+width+'-two-model-composition.png',fullPage:width===390});
-  assert.equal(await page.locator('#model-selection-count').textContent(),'2 models selected');
+  assert.equal(await page.locator('#model-selection-count').textContent(),'2 / 4 models selected');
   assert.equal(await page.locator('#editorial-footer-cast img').count(),2,'Footer shows the selected models');
   assert.equal(await page.locator('.editorial-footer-add').isVisible(),width>600,'Mobile upload stays in pinned tile');
   if(width<=600){
    const selectedPicker=page.waitForEvent('filechooser');
    await page.locator('#model-drop').click();await selectedPicker;
-   assert.equal(await page.locator('#model-selection-count').textContent(),'2 models selected','Opening another upload retains the cast');
+   assert.equal(await page.locator('#model-selection-count').textContent(),'2 / 4 models selected','Opening another upload retains the cast');
   }
   assert.equal(await page.locator('[data-cast-composition="mixed"]').getAttribute('aria-pressed'),'true','Mixed editorial is the default');
   await page.locator('[data-cast-composition="alternating"]').click();
   assert.equal(await page.locator('[data-cast-composition="alternating"]').getAttribute('aria-pressed'),'true');
   await page.locator('[data-cast-composition="together"]').click();
   assert.equal(await page.locator('[data-cast-composition="together"]').getAttribute('aria-pressed'),'true');
+  // Four character identities maximum; additional reference views remain permitted.
+  await page.locator('#casting-reference-gallery .atelier-reference').nth(2).click();
+  await page.locator('#casting-reference-gallery .atelier-reference').nth(3).click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===4);
+  assert.equal(await page.locator('#model-selection-count').textContent(),'4 / 4 models selected');
+  assert.equal(await page.locator('.editorial-footer-add').isVisible(),false,'The extra + is hidden at four');
+  if(width>800){
+   assert.equal(await page.locator('#editorial-footer-cast .editorial-cast-limit-note').isVisible(),true);
+   const fit=await page.evaluate(()=>({
+    last:document.querySelector('#model-thumbs .editorial-model-card:last-of-type').getBoundingClientRect().right,
+    right:document.querySelector('#model-thumbs').getBoundingClientRect().right
+   }));
+   assert.ok(fit.last<=fit.right+2,'All four selected thumbnails fit without clipping: '+JSON.stringify(fit));
+  }
+  await page.locator('#casting-reference-gallery .atelier-reference').nth(4).click();
+  assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),4,'Fifth distinct model is blocked');
+  assert.match(await page.locator('#editorial-status').textContent(),/Maximum 4 characters/);
+  await page.locator('#casting-reference-gallery .atelier-reference').nth(2).click();
+  await page.locator('#casting-reference-gallery .atelier-reference').nth(3).click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
+  assert.equal(await page.locator('.editorial-footer-add').isVisible(),width>600,'Add returns below the cap');
   await page.locator('[data-cast-composition="alternating"]').click();
   await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===1);
