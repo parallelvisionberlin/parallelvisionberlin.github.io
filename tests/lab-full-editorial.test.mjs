@@ -132,7 +132,7 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.ok(html.includes('full-editorial.js?v=20261118-wheel-coast2'),'Full Editorial loads the current casting gallery');
+ assert.ok(html.includes('full-editorial.js?v=20261118-one-curve3'),'Full Editorial loads the current casting gallery');
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);setIdentitySource\('casting'\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=step!==1/,'Composition remains visible throughout Identity');
@@ -336,11 +336,14 @@ test('Mobile Identity swipe rails have native inertia without snapping',()=>{
  assert.doesNotMatch(m,/touch-action:pan-x(?! pan-y)/);
 });
 
-test('Desktop casting wheel momentum decelerates after mouse input and respects reduced motion',()=>{
+test('Desktop casting wheel uses one exponential curve for every vertical delta',()=>{
  const source=read('lab/full-editorial.js');
  assert.match(source,/function coastCastingWheel\(now\)/);
- assert.match(source,/Math\.exp\(-dt\/245\)/);
+ assert.match(source,/Math\.exp\(-dt\/105\)/);
  assert.match(source,/requestAnimationFrame\(coastCastingWheel\)/);
  assert.match(source,/castingReducedMotion\.matches/);
  assert.match(source,/addEventListener\('pointerdown',stopCastingWheelCoast/);
+ assert.match(source,/event\.preventDefault\(\);\s*const delta=event\.deltaY/,'Wheel is contained at the gallery edge');
+ assert.doesNotMatch(source,/Math\.abs\(event\.deltaY\)<36/,'Small and large wheel ticks get the same easing');
+ assert.doesNotMatch(source,/castingWheelMotion\.velocity/,'No extra velocity layered on the immediate scroll');
 });
