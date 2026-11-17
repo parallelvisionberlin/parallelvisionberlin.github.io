@@ -741,6 +741,6 @@ html:not(.pv-native-lab) #app.image-studio-active
 @media(min-width:1180px) and (min-height:680px){
   html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]:not(:has(#pv-guest-closed-state:not([hidden]))) .pv-guest-content,
   html:not(.pv-native-lab) #app.image-studio-active:has(#image-composer.pv-welcome-deck) #lab-welcome-start:not([hidden]){
-    translate:0 calc(-1 * clamp(16px,2.7dvh,24px));
+    translate:0 calc(0px - clamp(16px,2.7dvh,24px));
   }
 }
