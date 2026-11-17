@@ -819,7 +819,7 @@ body.editorial-web #panel-model[data-model-mode="saved"] #casting-reference-gall
    space and taller unchanged photographic character cards, desktop only. */
 @media(min-width:801px) and (min-height:761px){
  body.editorial-web #panel-model .stage-visual{height:clamp(216px,calc(27svh - 14px),232px)!important}
- body.editorial-web #panel-model .stage-copy{bottom:clamp(44px,5.6svh,58px)!important}
+ body.editorial-web #panel-model .stage-copy{bottom:clamp(78px,9.2svh,88px)!important}
  body.editorial-web #panel-model .editorial-cast-pinned,
  body.editorial-web #panel-model .editorial-cast-rail{height:clamp(290px,calc(33svh + 10px),324px)!important}
 }
