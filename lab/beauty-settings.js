@@ -31,7 +31,7 @@ export function beautySettings({makeup:makeupId='editorial',hair:hairId='keep',s
  'Believable fashion photography, realistic skin and hair; no plastic smoothing or reshaped anatomy.',extra&&value>0?`Additional direction: ${extra}`:''].filter(Boolean).join('\n');
  // Resolve Auto before quoting so the provider's reference-edit fallback cannot silently force 16:9.
  const quotedAspectRatio=aspectRatio==='auto'?beautyAutoRatio(sourceWidth,sourceHeight,model):aspectRatio;
- const referenceRoles=[{name:String(filename).slice(0,160),role:makeupReference?'base':'identity',note:makeupReference?'This is the final photograph. Keep the exact person, facial features, skin tone, pose, framing, lighting, clothes and background.':'Preserve the identity and distinctive facial features of this person.'}];
+ const referenceRoles=[{name:String(filename).slice(0,160),role:makeupReference?'base':'identity',note:makeupReference?'This is the final photograph. Keep the exact person, facial features, skin tone, pose, framing, clothes and background. Preserve original lighting unless the Light control requests a change; apply only that selected lighting adjustment.':'Preserve the identity and distinctive facial features of this person.'}];
  if(makeupReference)referenceRoles.push({name:'ALTER makeup: '+makeupChoice.label,role:'custom',note:'Transfer only the precise makeup on this face onto Reference 1. Match makeup colour, placement, shape, edges, blending and finish. Never copy the reference face, anatomy, hair, skin, lighting or background.'});
  return {type:'image',mode:'image',engine:model==='seedream-pro'?'seedream':model,referenceMode:'references',prompt,resolution,aspectRatio:quotedAspectRatio,outputFormat:'png',referenceRoles};
 }
