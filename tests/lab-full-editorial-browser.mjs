@@ -419,16 +419,29 @@ try{
   assert.equal(await page.locator('#model-selection-count').textContent(),'4 / 4 models selected');
   assert.equal(await page.locator('.editorial-footer-add').isVisible(),false,'The extra + is hidden at four');
   if(width>800){
-   assert.equal(await page.locator('#editorial-footer-cast .editorial-cast-limit-note').isVisible(),true);
+   assert.equal(await page.locator('#editorial-footer-cast .editorial-cast-limit-note').count(),0,'No extra cast guidance in the selection bar');
    const fit=await page.evaluate(()=>({
     last:document.querySelector('#model-thumbs .editorial-model-card:last-of-type').getBoundingClientRect().right,
     right:document.querySelector('#model-thumbs').getBoundingClientRect().right
    }));
    assert.ok(fit.last<=fit.right+2,'All four selected thumbnails fit without clipping: '+JSON.stringify(fit));
   }
-  await page.locator('#casting-reference-gallery .atelier-reference').nth(4).click();
+  // Bring the fifth portrait into view before measuring so Playwright itself
+  // cannot create a page scroll while locating the button.
+  const fifthPortrait=page.locator('#casting-reference-gallery .atelier-reference').nth(4);
+  await fifthPortrait.scrollIntoViewIfNeeded();
+  // Four is a silent selection limit, not an error that expands the page.
+  const beforeFifth=await page.evaluate(()=>({scrollY,documentHeight:document.documentElement.scrollHeight,
+   footerTop:document.getElementById('step-footer').getBoundingClientRect().top,
+   compositionTop:document.getElementById('editorial-casting-controls').getBoundingClientRect().top}));
+  await fifthPortrait.click();
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),4,'Fifth distinct model is blocked');
-  assert.match(await page.locator('#editorial-status').textContent(),/Maximum 4 characters/);
+  assert.equal(await page.locator('#editorial-status').textContent(),'','Four-character limit never creates an error line');
+  const afterFifth=await page.evaluate(()=>({scrollY,documentHeight:document.documentElement.scrollHeight,
+   footerTop:document.getElementById('step-footer').getBoundingClientRect().top,
+   compositionTop:document.getElementById('editorial-casting-controls').getBoundingClientRect().top}));
+  for(const key of Object.keys(beforeFifth))assert.ok(Math.abs(beforeFifth[key]-afterFifth[key])<2,
+   'Fifth character must not move the page: '+key+' '+JSON.stringify({beforeFifth,afterFifth}));
   await page.locator('#casting-reference-gallery .atelier-reference').nth(2).click();
   await page.locator('#casting-reference-gallery .atelier-reference').nth(3).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
