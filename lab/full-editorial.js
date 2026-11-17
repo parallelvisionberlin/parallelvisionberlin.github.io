@@ -55,6 +55,8 @@ let chosenCount=4,chosenRatio='3:4',castComposition='mixed',quote=null,quoteBusy
 let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0,progressBatchStart=0,progressBatchSize=4;
 const objectUrls=new Map(),sampleFiles=new Map(),savedCharacterThumbnails=new Map();
 const MAX_EDITORIAL_CHARACTERS=4;
+let castLimitNoticeTimer=null;
+let castLimitNoticeFrame=null;
 let modelGroups=[],modelGroupSerial=0,modelUploadTarget=null,charactersLoadSequence=0;
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
 function effectiveCastMode(){return modelGroups.length>1?'cast':'one';}
@@ -104,6 +106,14 @@ function renderIdentityFooter(){
  const footer=$('editorial-footer-cast'),selection=$('editorial-cast-selection');
  const actionDock=$('step-footer'),composition=$('editorial-casting-controls');
  const workspace=$('panel-model').querySelector('.atelier-workspace');
+ // Dismiss a stale cast-limit notice when a slot opens or Identity is left.
+ const limitNotice=selection.querySelector('.editorial-cast-limit-toast');
+ if(limitNotice&&(step!==1||modelGroups.length<MAX_EDITORIAL_CHARACTERS)){
+  clearTimeout(castLimitNoticeTimer);
+  if(castLimitNoticeFrame!==null){cancelAnimationFrame(castLimitNoticeFrame);castLimitNoticeFrame=null}
+  limitNotice.classList.remove('is-visible');
+  limitNotice.setAttribute('aria-hidden','true');
+ }
  footer.hidden=step!==1;
  // Composition follows the selection dock, matching the approved editorial reference.
  // Move back to its original panel when leaving Identity so other steps never expose it.
@@ -122,6 +132,32 @@ function renderIdentityFooter(){
  }
  add.hidden=modelGroups.length===0||modelGroups.length>=MAX_EDITORIAL_CHARACTERS;
  add.disabled=submitting||files.model.length+savedRefs.model.length>=8;
+}
+// Responsive casting feedback without changing the document height.
+function showCastLimitNotice(){
+ if(step!==1)return;
+ const selection=$('editorial-cast-selection');
+ let notice=selection.querySelector('.editorial-cast-limit-toast');
+ if(!notice){
+  notice=document.createElement('span');
+  notice.className='editorial-cast-limit-toast';
+  notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');
+  notice.setAttribute('aria-hidden','true');
+  notice.textContent='4 characters max. Remove one to select another.';
+  selection.append(notice);
+ }
+ clearTimeout(castLimitNoticeTimer);
+ if(castLimitNoticeFrame!==null)cancelAnimationFrame(castLimitNoticeFrame);
+ notice.classList.remove('is-visible');
+ notice.setAttribute('aria-hidden','false');
+ castLimitNoticeFrame=requestAnimationFrame(()=>{
+  notice.classList.add('is-visible');
+  castLimitNoticeFrame=null;
+ });
+ castLimitNoticeTimer=setTimeout(()=>{
+  notice.classList.remove('is-visible');
+  notice.setAttribute('aria-hidden','true');
+ },2600);
 }
 function createModelGroup(name,origin='upload'){
  if(modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return null;
@@ -282,7 +318,7 @@ function renderFiles(){
 }
 function openModelPicker(target=null){
  if(submitting)return;
- if(!target&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return;
+ if(!target&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS){showCastLimitNotice();return;}
  modelUploadTarget=target;$('model-files').click();
 }
 function addFiles(kind,list,groupId=null,label=null){
@@ -296,7 +332,7 @@ function addFiles(kind,list,groupId=null,label=null){
  if(kind==='model'&&accepted.length){
   const group=groupId?findModelGroup(groupId):createModelGroup(label||'Your model '+(modelGroups.length+1));
   if(!group){
-   if(!groupId&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return;
+   if(!groupId&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS){showCastLimitNotice();return;}
    status('The selected model is unavailable. Choose it again.',true);return;
   }
   group.files.push(...accepted);
@@ -341,7 +377,7 @@ async function toggleSample(button){
   }
   status(kind==='model'?'':'Reference removed.');return;
  }
- if(kind==='model'&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return;
+ if(kind==='model'&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS){showCastLimitNotice();return;}
  const limit={model:8,outfit:3}[kind],num=files[kind].length+savedRefs[kind].length;
  if(num>=limit){status('You can select up to '+limit+' '+(kind==='model'?'model photos':'wardrobe references')+'.',true);return}
  button.disabled=true;
@@ -581,7 +617,7 @@ function addSavedCharacter(pack,refs){
  if(submitting)return;
  const name=pack.name.split('|').slice(2).join('|');
  if(modelGroups.some(group=>group.origin===pack.name)){status('That character is already in your cast. Use Add reference for another photo.',true);return}
- if(modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return;
+ if(modelGroups.length>=MAX_EDITORIAL_CHARACTERS){showCastLimitNotice();return;}
  const available=4-files.model.length-savedRefs.model.length;
  const used=Object.values(files).reduce((n,part)=>n+part.length,0)+Object.values(savedRefs).reduce((n,part)=>n+part.length,0);
  if(Math.min(available,10-used)<=0){status('Four model reference photos maximum. Remove one before adding another model.',true);return}

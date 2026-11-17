@@ -823,3 +823,45 @@ body.editorial-web #panel-model[data-model-mode="saved"] #casting-reference-gall
  body.editorial-web #panel-model .editorial-cast-pinned,
  body.editorial-web #panel-model .editorial-cast-rail{height:clamp(290px,calc(33svh + 10px),324px)!important}
 }
+
+/* PVLAB_IDENTITY_FEATURED_CAST_NOTICE_20261118: ephemeral 5th-character cue.
+   Position it beside selected portraits, not after Composition or in layout flow. */
+body.editorial-web #editorial-footer-cast #editorial-cast-selection{
+ position:relative!important;overflow:visible!important;
+}
+body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast{
+ position:absolute;z-index:8;left:calc(100% + 20px);top:50%;
+ display:inline-flex;align-items:center;gap:9px;max-width:280px;
+ white-space:nowrap;color:#c9c9c7;font-size:11px;
+ font-weight:500;letter-spacing:.005em;line-height:1.35;
+ opacity:0;visibility:hidden;pointer-events:none;
+ transform:translateY(calc(-50% + 5px));
+ transition:opacity .28s ease,transform .38s cubic-bezier(.2,.7,.2,1),visibility 0s linear .38s;
+}
+body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast::before{
+ content:'ⓘ';display:inline-block;color:#e5e4e0;font-size:16px;font-weight:400;
+}
+body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast.is-visible{
+ opacity:1;visibility:visible;transform:translateY(-50%);
+ transition:opacity .28s ease,transform .38s cubic-bezier(.2,.7,.2,1),visibility 0s;
+}
+@media(min-width:801px) and (max-width:1180px){
+ body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast{
+  left:auto;right:0;top:-8px;max-width:270px;
+  transform:translateY(calc(-100% + 5px));background:#0a0b0bdc;padding:6px 8px;
+ }
+ body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast.is-visible{transform:translateY(-100%)}
+}
+@media(max-width:800px){
+ body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast{
+  position:fixed;left:12px;right:12px;top:auto;
+  bottom:calc(77px + env(safe-area-inset-bottom));
+  width:max-content;max-width:calc(100vw - 24px);
+  padding:9px 12px;background:#151617;border:1px solid #414244;
+  transform:translateY(5px);font-size:11px;white-space:normal;
+ }
+ body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast.is-visible{transform:translateY(0)}
+}
+@media(prefers-reduced-motion:reduce){
+ body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast{transition:none!important}
+}
