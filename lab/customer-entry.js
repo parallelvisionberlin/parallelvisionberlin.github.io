@@ -148,7 +148,10 @@ async function signIn(destination,report=status){
     report('');
     await clerk.openSignIn({
       ...(destination?{forceRedirectUrl:destination,signUpForceRedirectUrl:destination}:{}),
-      appearance:{variables:{
+      appearance:{options:{
+        logoImageUrl:'https://pvlab.studio/branding/pvlab-wordmark-bold.svg',
+        logoLinkUrl:'https://pvlab.studio/'
+      },variables:{
         colorBackground:'#191919',colorForeground:'#f3f1ec',colorMutedForeground:'#b4b1a9',
         colorPrimary:'#eeeae2',colorPrimaryForeground:'#151515',colorNeutral:'#f3f1ec',
         colorInput:'#232323',colorInputForeground:'#f3f1ec',colorBorder:'#41413d',
