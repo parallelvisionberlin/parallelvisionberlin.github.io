@@ -19,6 +19,33 @@ function photo(item){
   img.src=item.cover;img.alt='';img.loading='lazy';img.decoding='async';
   return img;
 }
+// Only photographs verified in the existing PV LAB archive. A missing second
+// shot is intentionally left static rather than substituted with another mood.
+const originalHoverFrames=Object.freeze({
+  '90s-cinema':'./mood-previews/90s-cinema-record-shop-20261010.webp',
+  'fisheye-2000':'./mood-references/fisheye-2000/02-fisheye-flash.webp',
+  'hong-kong-nights':'./mood-references/hong-kong-nights/plaza-grill.webp',
+  'dreamcore':'./welcome-cards/cloud-spa.webp',
+  '80s-film':'./welcome-cards/sun-fade.webp'
+});
+function installHoverPreview(button,cover){
+  if(!cover||!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return;
+  button.dataset.hoverFrame=cover;
+  // Load only when a visitor first explores the card, avoiding a second
+  // background image request for every item on the landing surface.
+  button.addEventListener('pointerenter',()=>{
+    const overlay=document.createElement('img');
+    overlay.className='pv-inspiration-hover-shot';
+    overlay.alt='';
+    overlay.setAttribute('aria-hidden','true');
+    overlay.loading='lazy';
+    overlay.decoding='async';
+    overlay.addEventListener('load',()=>overlay.classList.add('is-ready'));
+    overlay.addEventListener('error',()=>overlay.remove());
+    button.insertBefore(overlay,button.querySelector('span,strong'));
+    overlay.src=button.dataset.hoverFrame;
+  },{once:true});
+}
 const selectedExamples=new Map();
 function select(item){
   const index=item.examples?((selectedExamples.get(item.id)??-1)+1)%item.examples.length:0;
@@ -31,6 +58,13 @@ function select(item){
     button.setAttribute('aria-pressed',String(button.dataset.inspirationConcept===item.id));
     if(item.examples&&button.dataset.inspirationConcept===item.id){
       button.querySelector('img').src=example.cover;
+      const nextCover=item.examples[(index+1)%item.examples.length].cover;
+      button.dataset.hoverFrame=nextCover;
+      const overlay=button.querySelector('.pv-inspiration-hover-shot');
+      if(overlay&&overlay.src!==new URL(nextCover,document.baseURI).href){
+        overlay.classList.remove('is-ready');
+        overlay.src=nextCover;
+      }
       button.title=item.title+' · '+(index+1)+' / '+item.examples.length+' · Select again for another frame';
     }
   }
@@ -131,11 +165,18 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
     original.before(featured);
     track.insertBefore(original,following);
   }
+  // Attach only to the carousel, not the full Explore All catalog.
+  for(const button of track.querySelectorAll(':scope > button')){
+    const item=sorted.find(scene=>scene.id===button.dataset.inspirationConcept);
+    const cover=item?.examples?.length>1?item.examples[1].cover:
+      originalHoverFrames[button.dataset.guestMood||button.dataset.welcomeMood];
+    installHoverPreview(button,cover);
+  }
   const viewAll=document.createElement('button');
   viewAll.type='button';viewAll.className='pv-inspiration-view-all';
   viewAll.textContent='Explore all';viewAll.setAttribute('aria-label','Explore all Inspiration looks');
   viewAll.addEventListener('click',openAll);shell.append(viewAll);
 }
 const stylesheet=document.createElement('link');
-stylesheet.rel='stylesheet';stylesheet.href='./inspiration-catalog.css?v=20261111-full-portrait1';
+stylesheet.rel='stylesheet';stylesheet.href='./inspiration-catalog.css?v=20261117-hover1';
 document.head.append(stylesheet);
