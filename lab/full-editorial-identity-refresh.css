@@ -823,12 +823,3 @@ body.editorial-web #panel-model[data-model-mode="saved"] #casting-reference-gall
  body.editorial-web #panel-model .editorial-cast-pinned,
  body.editorial-web #panel-model .editorial-cast-rail{height:clamp(290px,calc(33svh + 10px),324px)!important}
 }
-@media(min-width:801px){
- body.editorial-web #editorial-footer-cast .editorial-cast-limit-note{
-  flex:0 0 auto;align-self:center;margin-left:15px;
-  color:#b6b8b5;font-size:11px;font-weight:480;
-  letter-spacing:.005em;white-space:nowrap;
- }
-}
-body.editorial-web #editorial-footer-cast .editorial-cast-limit-note[hidden]{display:none!important}
-@media(max-width:800px){body.editorial-web #editorial-footer-cast .editorial-cast-limit-note{display:none!important}}
