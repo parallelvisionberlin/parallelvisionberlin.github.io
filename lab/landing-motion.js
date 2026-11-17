@@ -33,6 +33,7 @@
     }
     if (heroPausedByUser || document.hidden || !heroVisible) {
       hero.pause();
+      updateHeroToggle();
       return;
     }
     const next = narrow.matches ? hero.dataset.mobileSrc : hero.dataset.desktopSrc;
