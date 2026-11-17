@@ -9,30 +9,31 @@ const activeStates=new Set(['submitting','queued','running','saving','uncertain'
 const menu=createAccountMenu($('beauty-account')),pendingKey='pvlab-beauty-pending';
 let clerk=null,profile=null,sessionId='',epoch=0,revision=0,syncing=false,file=null,source=null,photoUrl='',resultUrl='',quote=null,photoWidth=0,photoHeight=0,compareUrl='';
 let photoSelectionRevision=0,preparing=false,submitting=false,activeId='',uncertain=false,quoteTimer=null,expiryTimer=null,pollTimer=null,resultRevision=0,historyRevision=0;
-const blobs=new Map(),makeupSources=new Map();
-let jobPhase='';
+const blobs=new Map(),makeupSources=new Map(),pendingJobs=new Map(),pollTimers=new Map();
+let jobPhase='',detachedFromJob=false,resultLoading=false;
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 // The main Studio exposes Effects only to the server-verified owner account.
 function syncHeaderAccess(){const effects=$('beauty-effects-link');if(effects)effects.hidden=!(profile?.owner===true&&profile?.customer!==true);}
 const status=(message='',error=false)=>{$('beauty-status').textContent=message;$('beauty-status').classList.toggle('error',error);};
 function readPending(){try{const p=JSON.parse(sessionStorage.getItem(pendingKey));return p?.sessionId===sessionId?p:null;}catch{return null;}}
 function savePending(value){try{if(value)sessionStorage.setItem(pendingKey,JSON.stringify({...value,sessionId}));else sessionStorage.removeItem(pendingKey);}catch{}}
-function busy(){return submitting||!!activeId||uncertain;}
+function busy(){return submitting||uncertain;}
+function currentJobInDeck(){return !!activeId&&!detachedFromJob;}
 function clearQuote(){quote=null;clearTimeout(expiryTimer);clearTimeout(quoteTimer);}
 function settings(){return beautySettings({makeup:$('beauty-makeup').value,hair:$('beauty-hair').value,skin:$('beauty-skin').value,light:$('beauty-light').value,color:$('beauty-color').value,strength:$('beauty-strength').value,direction:$('beauty-direction').value,model:$('beauty-model').value,resolution:$('beauty-resolution').value,aspectRatio:$('beauty-ratio').value,sourceWidth:photoWidth,sourceHeight:photoHeight,filename:file?.name});}
 function update(){
  $('beauty-strength-value').value=$('beauty-strength').value;
- const overlay=$('beauty-processing'),phase=uncertain?'uncertain':submitting?'submitting':activeId?jobPhase||'queued':'';
+ const overlay=$('beauty-processing'),phase=uncertain?'uncertain':submitting?'submitting':currentJobInDeck()?(resultLoading?'saving':jobPhase||'queued'):'';
  overlay.hidden=!phase;overlay.dataset.phase=phase;
  if(phase){
   $('beauty-processing-title').textContent=phase==='uncertain'?'Check image history':phase==='submitting'?'Sending your edit':phase==='saving'?'Saving your image':phase==='queued'?'Your edit is queued':'Creating your image';
   $('beauty-processing-note').textContent=phase==='uncertain'?'Review History before another request.':phase==='submitting'?'Confirming your request securely':phase==='queued'?'Accepted. You can return to this in History.':phase==='saving'?'Saving the result to your account':'Processing with the selected image model';
  }
- const button=$('beauty-generate');button.disabled=busy()||preparing;button.setAttribute('aria-busy',String(submitting||!!activeId||preparing));
- button.textContent=uncertain?'Check Image history':submitting?'Sending…':activeId?'Generating · progress on photo':preparing?'Checking price…':quote?`Generate · ${quote.creditCost.toLocaleString()} credits`:'Generate';
- if(!busy()&&!preparing&&!quote){const arrow=document.createElement('span');arrow.className='beauty-arrow';arrow.setAttribute('aria-hidden','true');button.append(arrow);}
+ const button=$('beauty-generate');button.disabled=busy()||preparing||resultLoading;button.setAttribute('aria-busy',String(submitting||preparing||resultLoading));
+ button.textContent=uncertain?'Check Image history':submitting?'Sending…':currentJobInDeck()?'New edit':preparing?'Checking price…':quote?`Generate · ${quote.creditCost.toLocaleString()} credits`:'Generate';
+ if(!busy()&&!preparing&&!quote&&!currentJobInDeck()){const arrow=document.createElement('span');arrow.className='beauty-arrow';arrow.setAttribute('aria-hidden','true');button.append(arrow);}
  $('beauty-refresh').hidden=!profile;$('beauty-check-history').hidden=!uncertain;
- const editBusy=submitting||!!activeId;
+ const editBusy=submitting||currentJobInDeck()||resultLoading;
  for(const element of $('beauty-form').querySelectorAll('select,textarea,input[type=range]'))element.disabled=editBusy;
  $('beauty-photo').disabled=editBusy;$('beauty-change-photo').disabled=editBusy;
 }
@@ -110,7 +111,9 @@ async function signIn(){
  catch(error){status('Sign-in could not load. '+error.message,true);}
 }
 async function generate(event){
- event.preventDefault();if(busy()||preparing)return;
+ event.preventDefault();
+ if(currentJobInDeck()&&!submitting&&!resultLoading&&!uncertain){beginNewEdit();return;}
+ if(busy()||preparing||resultLoading)return;
  if(!file){status('Add your photograph first.');$('beauty-photo').click();return;}
  if(!profile){await signIn();return;}
  if(!quote||quote.expiresAt<=Date.now()){await prepareQuote();if(quote)status('The credit price is ready. Press Generate to continue.');return;}
@@ -119,7 +122,7 @@ async function generate(event){
   const response=await api('/api/jobs',{method:'POST',body:{quoteId:frozen.id,confirm:true}});
   if(version!==epoch)return;
   if(!response.job?.id)throw Error('The server did not confirm a generation.');
-  confirmedJob=response.job;clearQuote();activeId=response.job.id;jobPhase=response.job.status||'queued';savePending({jobId:activeId,quoteId:frozen.id,at:Date.now()});
+  confirmedJob=response.job;clearQuote();activeId=response.job.id;detachedFromJob=false;jobPhase=response.job.status||'queued';pendingJobs.set(activeId,response.job.status);savePending({jobId:activeId,quoteId:frozen.id,at:Date.now()});
   // The paid request is now accepted. Hand off its actual progress immediately;
   // do not keep the interface in Sending while History or result bytes load.
   submitting=false;update();
@@ -145,33 +148,84 @@ async function showResult(job){
  $('beauty-download').download='pvlab-beauty-'+job.id+(blob.type==='image/jpeg'?'.jpg':blob.type==='image/webp'?'.webp':'.png');
  $('beauty-example-label').hidden=true;$('beauty-workspace').classList.add('has-result');
 }
+// Each confirmed job owns a background poll. The front editor never owns its lifetime.
+function schedulePoll(id,delay=4000){
+ clearTimeout(pollTimers.get(id));
+ if(!pendingJobs.has(id)||!profile)return;
+ pollTimers.set(id,setTimeout(()=>void poll(id),delay));
+}
 async function showJob(job){
  if(!job?.id)return;
- jobPhase=job.status||'queued';
- if(job.status==='completed'){
-  activeId='';uncertain=false;savePending(null);clearTimeout(pollTimer);status('Your beauty edit is ready.');
-  await showResult(job);await refreshProfile();
- }else if(job.status==='failed'){
-  activeId='';uncertain=false;savePending(null);clearTimeout(pollTimer);status(job.error||'The generation did not finish. Check Image history for its status.',true);await refreshProfile();
- }else if(job.status==='uncertain'){
-  activeId='';uncertain=true;clearTimeout(pollTimer);status('The generation needs review. Check Image history before starting another.',true);
- }else if(activeStates.has(job.status)){
-  activeId=job.id;status(job.status==='saving'?'Saving your result…':'Creating your beauty edit…');
-  clearTimeout(pollTimer);pollTimer=setTimeout(()=>void poll(job.id),4000);
+ const foreground=currentJobInDeck()&&job.id===activeId;
+ const state=job.status||'queued';
+ if(foreground)jobPhase=state;
+ if(state==='completed'||state==='failed'||state==='resolved'){
+  pendingJobs.delete(job.id);clearTimeout(pollTimers.get(job.id));pollTimers.delete(job.id);
+  if(readPending()?.jobId===job.id)savePending(null);
+  if(foreground){
+   if(state==='completed'){
+    resultLoading=true;update();
+    try{await showResult(job);status('Your beauty edit is ready.');}
+    finally{resultLoading=false;activeId='';}
+   }else{activeId='';status(job.error||'This edit did not finish. Check History before retrying.',true);}
+  }
+  await refreshProfile();
+ }else if(state==='uncertain'){
+  pendingJobs.delete(job.id);clearTimeout(pollTimers.get(job.id));pollTimers.delete(job.id);
+  uncertain=true;if(foreground)activeId='';
+  status('The generation needs review. Check Image history before starting another.',true);
+ }else if(activeStates.has(state)){
+  pendingJobs.set(job.id,state);
+  if(foreground)status(state==='saving'?'Saving your result…':'Creating your beauty edit…');
+  schedulePoll(job.id);
  }
  update();
 }
 async function poll(id){
- if(!profile||id!==activeId)return;
- try{const {job}=await api('/api/jobs/'+encodeURIComponent(id));if(id===activeId)await showJob(job);}
- catch(error){if(profile){status(error.message+' Use Refresh to check this generation.',true);$('beauty-check-history').hidden=false;}}
+ if(!profile||!pendingJobs.has(id))return;
+ try{
+  const {job}=await api('/api/jobs/'+encodeURIComponent(id));
+  if(!pendingJobs.has(id))return;
+  await showJob(job);
+  if(!activeStates.has(job.status))void loadHistory();
+ }catch(error){
+  if(profile&&pendingJobs.has(id)){
+   if(id===activeId)status(error.message+' Check History for the latest state.',true);
+   schedulePoll(id,15000);
+  }
+ }
+}
+function beginNewEdit(){
+ // A confirmed job remains in authenticated Results and keeps polling.
+ // This resets only the editing surface; no new paid request is submitted.
+ if(!currentJobInDeck()||submitting||resultLoading||uncertain)return;
+ const previousId=activeId;detachedFromJob=true;activeId='';jobPhase='';
+ const pending=readPending();
+ if(pending?.jobId===previousId)savePending({...pending,detached:true});
+ revision++;photoSelectionRevision++;clearQuote();
+ if(photoUrl)URL.revokeObjectURL(photoUrl);
+ photoUrl='';file=null;source=null;photoWidth=0;photoHeight=0;
+ $('beauty-form').reset();
+ $('beauty-ratio').querySelector('option[value="4:5"]').disabled=false;
+ $('beauty-ratio').querySelector('option[value="auto"]').textContent='Auto';
+ $('beauty-photo-preview').removeAttribute('src');$('beauty-photo-preview').hidden=true;
+ $('beauty-photo-empty').hidden=false;$('beauty-change-photo').textContent='Upload image';
+ $('beauty-result').hidden=true;$('beauty-example-label').hidden=false;
+ $('beauty-workspace').classList.remove('has-result');
+ $('beauty-direction').dataset.presetDirection='';
+ for(const id of ['beauty-makeup','beauty-hair','beauty-skin','beauty-light','beauty-color']){
+  $(id).dispatchEvent(new Event('change',{bubbles:true}));
+ }
+ $('beauty-strength').dispatchEvent(new Event('input',{bubbles:true}));
+ status('Your generation continues in Results. Add a photo to create another.');
+ update();
 }
 async function loadHistory(){
  if(!profile)return;const version=epoch,selection=++historyRevision;
  try{
   const data=await api('/api/jobs');if(version!==epoch||selection!==historyRevision)return;
   const jobs=(data.jobs||[]).filter(j=>j.settings?.type==='image'&&j.settings.prompt?.startsWith(BEAUTY_PROMPT_PREFIX));
-  const active=(data.activeJobs||[]).find(j=>j.settings?.prompt?.startsWith(BEAUTY_PROMPT_PREFIX));
+  const actives=(data.activeJobs||[]).filter(j=>j.settings?.prompt?.startsWith(BEAUTY_PROMPT_PREFIX));
   $('beauty-history').replaceChildren();for(const value of blobs.values())URL.revokeObjectURL(value);blobs.clear();
   $('beauty-empty-results').hidden=jobs.length>0;
   for(const job of jobs.slice(0,12)){
@@ -182,12 +236,15 @@ async function loadHistory(){
     void imageBlob(job.outputId,version).then(blob=>{if(version!==epoch||!button.isConnected)return;const url=URL.createObjectURL(blob);blobs.set(job.id,url);const image=new Image();image.alt='Saved Beauty Studio result';image.src=url;button.replaceChildren(image);}).catch(()=>{if(button.isConnected)label.textContent='Open result';});
    }else button.disabled=true;
   }
-  if(active&&!activeId&&!uncertain){activeId=active.id;await showJob(active);}
+  for(const active of actives){
+   if(!activeId&&!detachedFromJob&&!file&&!uncertain)activeId=active.id;
+   await showJob(active);
+  }
  }catch(error){if(version===epoch)status(error.message,true);}
 }
 async function refreshProfile(){if(!profile)return;try{const next=await api('/api/session');profile=next;menu.update({signed:true,user:clerk.user,profile});syncHeaderAccess();}catch{} }
 function clearPrivate(){
- epoch++;revision++;photoSelectionRevision++;clearQuote();clearTimeout(pollTimer);makeupSources.clear();jobPhase='';file=null;source=null;photoWidth=0;photoHeight=0;activeId='';submitting=false;uncertain=false;profile=null;preparing=false;
+ epoch++;revision++;photoSelectionRevision++;clearQuote();clearTimeout(pollTimer);for(const timer of pollTimers.values())clearTimeout(timer);pollTimers.clear();pendingJobs.clear();detachedFromJob=false;resultLoading=false;makeupSources.clear();jobPhase='';file=null;source=null;photoWidth=0;photoHeight=0;activeId='';submitting=false;uncertain=false;profile=null;preparing=false;
  if(photoUrl)URL.revokeObjectURL(photoUrl);if(resultUrl)URL.revokeObjectURL(resultUrl);if(compareUrl)URL.revokeObjectURL(compareUrl);photoUrl='';resultUrl='';compareUrl='';$('beauty-result').dataset.beforeUrl='';$('beauty-result').dataset.beforeSourceId='';
  for(const value of blobs.values())URL.revokeObjectURL(value);blobs.clear();$('beauty-history').replaceChildren();
  $('beauty-form').reset();$('beauty-ratio').querySelector('option[value="4:5"]').disabled=false;$('beauty-ratio').querySelector('option[value="auto"]').textContent='Auto';$('beauty-photo-preview').removeAttribute('src');$('beauty-photo-preview').hidden=true;$('beauty-photo-empty').hidden=false;$('beauty-change-photo').textContent='Add photo';
@@ -202,7 +259,7 @@ async function sync(){
  try{
   const data=await api('/api/session');if(version!==epoch)return;
   profile=data;$('beauty-signin').hidden=true;menu.update({signed:true,user:clerk.user,profile});syncHeaderAccess();
-  const pending=readPending();if(pending){if(pending.jobId){activeId=pending.jobId;void poll(activeId);}else{uncertain=true;status('A previous submission needs review. Check Image history before starting another.',true);}}
+  const pending=readPending();if(pending){if(pending.jobId){detachedFromJob=!!pending.detached;activeId=detachedFromJob?'':pending.jobId;pendingJobs.set(pending.jobId,'queued');void poll(pending.jobId);}else{uncertain=true;status('A previous submission needs review. Check Image history before starting another.',true);}}
   await loadHistory();scheduleQuote();
  }catch(error){if(version===epoch){status(error.message,true);menu.update({signed:false});}}
  finally{syncing=false;update();if(version!==epoch)void sync();}
@@ -221,12 +278,12 @@ $('beauty-model').addEventListener('change',()=>{
 });
 for(const id of ['beauty-strength','beauty-direction'])$(id).addEventListener('input',()=>{status('');invalidate();});
 $('beauty-form').addEventListener('submit',event=>void generate(event));$('beauty-signin').addEventListener('click',()=>void signIn());
-$('beauty-refresh').addEventListener('click',()=>{if(activeId)void poll(activeId);void loadHistory();});
+$('beauty-refresh').addEventListener('click',()=>{for(const id of pendingJobs.keys())void poll(id);void loadHistory();});
 $('beauty-account').querySelector('[data-account-signout]').addEventListener('click',async()=>{clearPrivate();await clerk?.signOut();});
 $('beauty-account').querySelector('[data-account-referrals]').addEventListener('click',()=>{location.href='./account.html';});
 for(const button of document.querySelectorAll('[data-open-studios]'))button.addEventListener('click',()=>document.querySelector('.pv-studios-trigger')?.click());
-window.addEventListener('pagehide',()=>{clearTimeout(pollTimer);clearTimeout(quoteTimer);clearTimeout(expiryTimer);});
-window.addEventListener('pageshow',event=>{if(event.persisted){void sync();if(activeId)void poll(activeId);else scheduleQuote();}});
+window.addEventListener('pagehide',()=>{clearTimeout(pollTimer);for(const timer of pollTimers.values())clearTimeout(timer);clearTimeout(quoteTimer);clearTimeout(expiryTimer);});
+window.addEventListener('pageshow',event=>{if(event.persisted){void sync();for(const id of pendingJobs.keys())void poll(id);if(!currentJobInDeck())scheduleQuote();}});
 // An ambiguous submit stays blocked across reloads. Reset is an explicit new
 // edit after opening History; it never retries the previous paid request.
 const reset=document.createElement('button');reset.type='button';reset.id='beauty-reset-pending';reset.className='beauty-reset-pending';reset.textContent='Reviewed history · start a new edit';reset.hidden=true;$('beauty-check-history').after(reset);
