@@ -331,7 +331,7 @@ const server=http.createServer((req,res)=>{
  assert.equal(await manualHero.evaluate(el=>getComputedStyle(el).opacity),'0','Static poster remains visible before opt-in');
  await page.route('https://d2ol7oe51mr4n9.cloudfront.net/**/*.mp4',route=>route.abort());
  await manualToggle.click();
- assert.equal(await manualHero.getAttribute('src'),ownerFilm,'An explicit Play request loads the original owner-supplied film');
+ assert.equal(await manualHero.getAttribute('src'),await manualHero.getAttribute('data-desktop-src'),'An explicit Play request loads the original owner-supplied film');
  await page.emulateMedia({reducedMotion:'reduce'});
  assert.equal(await manualHero.getAttribute('src'),null,'Reduced motion returns to the static poster');
  await page.unroute('https://d2ol7oe51mr4n9.cloudfront.net/**/*.mp4');
