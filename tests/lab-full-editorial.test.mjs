@@ -123,7 +123,7 @@ test('Identity casting uses the approved photographic layout rather than standal
  const identityCss=read('lab/full-editorial-identity-refresh.css');
  assert.match(identityCss,/scroll-snap-type:x mandatory/,'Casting supports a horizontal snap carousel');
  assert.match(identityCss,/position:sticky!important/,'Selection dock follows the active viewport');
- assert.match(html,/full-editorial-identity-refresh\.css\?v=20261118-cast-notice1/);
+ assert.match(html,/full-editorial-identity-refresh\.css\?v=20261118-mobile-inertia2/);
 
  const atelierCss=read('lab/full-editorial-atelier.css');
  assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
@@ -322,4 +322,16 @@ test('Identity features the approved five new faces first without removing the r
  assert.doesNotMatch(js,/Best results: up to 4 characters/);
  const styles=read('lab/full-editorial-identity-refresh.css');
  assert.match(styles,/\.editorial-cast-limit-toast\.is-visible/);
+});
+
+test('Mobile Identity swipe rails have native inertia without snapping',()=>{
+ const css=read('lab/full-editorial-identity-refresh.css');
+ const m=css.slice(css.indexOf('/* PVLAB_MOBILE_CAST_INERTIA_20261118'));
+ assert.match(m,/@media\(max-width:800px\)/);
+ for(const id of ['#editorial-cast-track.editorial-cast-track','#saved-character-gallery','#editorial-composition-choices.editorial-composition-grid'])
+  assert.ok(m.includes(id),'Mobile rail '+id);
+ assert.match(m,/scroll-snap-type:none!important/);
+ assert.match(m,/scroll-behavior:auto!important/);
+ assert.match(m,/-webkit-overflow-scrolling:touch/);
+ assert.doesNotMatch(m,/touch-action:pan-x(?! pan-y)/);
 });

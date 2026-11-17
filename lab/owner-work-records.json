@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-17T22:37:13.014Z",
+  "updatedAt": "2026-11-18",
   "handoffs": [
     {
       "id": "owner",
@@ -4287,6 +4287,71 @@
         "Do not run paid generations, grant credits or run migrations for verification.",
         "Do not infer missing or invalid deployment credentials from an old workflow comment; the existing secret was verified active and deployed successfully."
       ]
+    },
+    {
+      "id": "mobile-editorial-image-swipe-20261118",
+      "title": "PV LAB phone casting and Inspiration kinetic swipes",
+      "component": "PV LAB Full Editorial Identity / Image Studio Inspiration",
+      "status": "in_progress",
+      "summary": "Mobile-only adjustment removes mandatory card snapping in Full Editorial casting, saved characters, Composition and Image Studio guest/signed-in Inspiration. Native iPhone kinetic horizontal swipe remains; no artificial velocity handler. Approved card dimensions, fixed footer, selection, prompts, credit and generation logic unchanged.",
+      "nextAction": "Inspect scoped PR #1040 source/browser CI, merge when safe, verify Cloudflare Pages app check for the exact merge SHA, then confirm production CSS versions and actual iPhone/Instagram browser swipe feel. Do not claim deployment from merge.",
+      "baselineSha": "255f9dfae6fa55e178271f19bdfd170f1cbb258f",
+      "reviewedSha": null,
+      "branch": "fix/mobile-editorial-image-native-inertia-20261118",
+      "files": [
+        "lab/full-editorial-identity-refresh.css",
+        "lab/inspiration-carousel.css",
+        "lab/full-editorial.html",
+        "lab/studio.html",
+        "tests/lab-full-editorial.test.mjs",
+        "tests/lab-inspiration-carousel.test.mjs",
+        "tests/lab-full-editorial-browser.mjs",
+        "tests/lab-mobile-mood-entry.mjs"
+      ],
+      "links": [
+        {
+          "label": "PR #1040 mobile kinetic swipe",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1040"
+        },
+        {
+          "label": "Full Editorial scoped history",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/FULL-EDITORIAL-WORK-STATE.md"
+        },
+        {
+          "label": "Inspiration scoped history",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/INSPIRATION-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Full Editorial and Image source/mobile browser assertions",
+          "result": "not_run",
+          "scope": "Computed free-scroll/no snap at phone widths; unchanged presets, hero and controls."
+        },
+        {
+          "label": "Required approved Image UI contract",
+          "result": "not_run",
+          "scope": "GitHub Actions PR job, not yet confirmed passing."
+        }
+      ],
+      "deployment": {
+        "state": "unverified",
+        "sourceSha": null,
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "No Cloudflare release or exact served-byte check yet.",
+          "Actual native iOS inertia on Instagram in-app browser has not been physically tested."
+        ]
+      },
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not redesign the editor or Image deck, change photo order, sizes, captions, arrows, payment or generation.",
+        "Do not add JavaScript touch event prevention/drag simulation to obtain an artificial speed boost.",
+        "Do not confuse GitHub Pages with pvlab.studio production.",
+        "Test iOS swipe separately from CSS computed properties."
+      ],
+      "updatedAt": "2026-11-18",
+      "evidence": []
     }
   ]
 }
