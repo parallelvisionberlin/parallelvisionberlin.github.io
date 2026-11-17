@@ -862,11 +862,14 @@ function updateCastCarouselControls(){
  }
 }
 // Mouse-wheel momentum only. Trackpad and touch retain their native scrolling.
+// A single eased target for all desktop vertical wheel deltas. Unlike the
+// old double-movement path, no instant jump or size-dependent velocity tail.
 const castingReducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
-const castingWheelMotion={frame:0,velocity:0,lastFrame:0,lastInput:0};
+const castingWheelMotion={frame:0,target:0,lastFrame:0};
 function stopCastingWheelCoast(){
  if(castingWheelMotion.frame)cancelAnimationFrame(castingWheelMotion.frame);
- castingWheelMotion.frame=0;castingWheelMotion.velocity=0;castingWheelMotion.lastFrame=0;
+ castingWheelMotion.frame=0;castingWheelMotion.lastFrame=0;
+ castingWheelMotion.target=$('editorial-cast-track')?.scrollLeft||0;
 }
 function coastCastingWheel(now){
  castingWheelMotion.frame=0;
@@ -874,16 +877,19 @@ function coastCastingWheel(now){
   stopCastingWheelCoast();return;
  }
  const track=$('editorial-cast-track'),max=Math.max(0,track.scrollWidth-track.clientWidth);
- if(max<=4){stopCastingWheelCoast();return}
+ if(max<=4){stopCastingWheelCoast();return;}
  const dt=castingWheelMotion.lastFrame?Math.min(40,Math.max(1,now-castingWheelMotion.lastFrame)):16;
  castingWheelMotion.lastFrame=now;
- const before=track.scrollLeft;
- const next=Math.max(0,Math.min(max,before+castingWheelMotion.velocity*dt));
- track.scrollLeft=next;
- castingWheelMotion.velocity*=Math.exp(-dt/245);
- if(Math.abs(castingWheelMotion.velocity)>.035&&Math.abs(next-before)>.05)
-  castingWheelMotion.frame=requestAnimationFrame(coastCastingWheel);
- else stopCastingWheelCoast();
+ castingWheelMotion.target=Math.max(0,Math.min(max,castingWheelMotion.target));
+ const distance=castingWheelMotion.target-track.scrollLeft;
+ if(Math.abs(distance)<.65){
+  track.scrollLeft=castingWheelMotion.target;
+  stopCastingWheelCoast();return;
+ }
+ // Frame-rate-independent exponential approach: fast response, gentle finish.
+ const eased=track.scrollLeft+distance*(1-Math.exp(-dt/105));
+ track.scrollLeft=Math.max(0,Math.min(max,eased));
+ castingWheelMotion.frame=requestAnimationFrame(coastCastingWheel);
 }
 function moveCastCarousel(direction,source){
  stopCastingWheelCoast();
@@ -894,31 +900,25 @@ function moveCastCarousel(direction,source){
  track.scrollBy({left:direction*distance,behavior:castingReducedMotion.matches?'instant':'smooth'});
 }
 function handleCastingWheel(event){
- // Vertical wheel browses the portrait rail; never hijack native horizontal
- // trackpad gestures, touch swipes, browser zoom or normal page scroll.
+ // Vertical wheel input within the gallery moves portraits, not the page.
+ // Native horizontal trackpad gestures, touch and browser zoom remain untouched.
  if(step!==1||$('panel-model').dataset.modelMode!=='casting'||event.ctrlKey||event.metaKey||innerWidth<=800)return;
  if(!event.deltaY||Math.abs(event.deltaX)>=Math.abs(event.deltaY))return;
  const track=$('editorial-cast-track'),max=Math.max(0,track.scrollWidth-track.clientWidth);
  if(max<=4)return;
- const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?track.clientWidth:1);
- if((delta>0&&track.scrollLeft>=max-2)||(delta<0&&track.scrollLeft<=2)){
-  stopCastingWheelCoast();return;
- }
+ // Consume wheel at both edges too, preventing a sudden vertical page jump.
  event.preventDefault();
- track.scrollLeft=Math.max(0,Math.min(max,track.scrollLeft+delta));
- // Small, frequent trackpad deltas already have OS-provided inertia.
- if(castingReducedMotion.matches||(event.deltaMode===0&&Math.abs(event.deltaY)<36)){
-  stopCastingWheelCoast();return;
+ const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?track.clientWidth:1);
+ if(castingReducedMotion.matches){
+  stopCastingWheelCoast();
+  track.scrollLeft=Math.max(0,Math.min(max,track.scrollLeft+delta));return;
  }
- const impulse=Math.max(-1.25,Math.min(1.25,delta*.0032)),now=performance.now();
- const recent=now-castingWheelMotion.lastInput<120;
- const carry=recent&&Math.sign(impulse)===Math.sign(castingWheelMotion.velocity)?castingWheelMotion.velocity*.35:0;
- castingWheelMotion.velocity=Math.max(-1.65,Math.min(1.65,carry+impulse));
- castingWheelMotion.lastInput=now;
  if(!castingWheelMotion.frame){
+  castingWheelMotion.target=track.scrollLeft;
   castingWheelMotion.lastFrame=0;
-  castingWheelMotion.frame=requestAnimationFrame(coastCastingWheel);
  }
+ castingWheelMotion.target=Math.max(0,Math.min(max,castingWheelMotion.target+delta));
+ if(!castingWheelMotion.frame)castingWheelMotion.frame=requestAnimationFrame(coastCastingWheel);
 }
 function setupCastCarousel(){
  for(const [source,trackId,prevId,nextId] of [
