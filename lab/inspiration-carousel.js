@@ -16,6 +16,7 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   };
   const queue=()=>{if(!frame)frame=requestAnimationFrame(update)};
   const move=direction=>{
+    stopWheel();
     const first=track.querySelector(':scope > button');
     if(!first)return;
     const gap=parseFloat(getComputedStyle(track).columnGap)||0;
@@ -95,8 +96,6 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
       wheelFrame=requestAnimationFrame(wheelTick);
     }
   },{passive:false});
-  prev.addEventListener('click',stopWheel);
-  next.addEventListener('click',stopWheel);
   track.addEventListener('pointerdown',stopWheel,{passive:true});
   track.addEventListener('scroll',queue,{passive:true});
   if('ResizeObserver' in window)new ResizeObserver(queue).observe(track);
