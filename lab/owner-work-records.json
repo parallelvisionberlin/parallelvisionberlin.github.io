@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-17T22:37:13.014Z",
+  "updatedAt": "2026-11-17T23:16:05.852Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4287,6 +4287,55 @@
         "Do not run paid generations, grant credits or run migrations for verification.",
         "Do not infer missing or invalid deployment credentials from an old workflow comment; the existing secret was verified active and deployed successfully."
       ]
+    },
+    {
+      "id": "alter-makeup-reference-transfer",
+      "title": "ALTER: curated makeup visual transfer, Seedream 5.5 and visible generation progress",
+      "component": "ALTER Studio",
+      "status": "in_review",
+      "summary": "PR #1039 on a feature branch, not merged or deployed. For 15 non-Original makeup presets above zero strength, privately stages the exact approved WebP thumbnail as Reference 2 alongside the customer's authoritative Base photograph as Reference 1. Explicit makeup-only role and existing server-bound credit quote verify both IDs. Adds the already supported Seedream 5.5 model and visible actual queued/running/saving state over photo; shortens quote debounce. Existing image assets, 20 looks, four other tabs, output comparison, Worker and price tables unchanged.",
+      "nextAction": "Finish required GitHub CI, resolve failures if any, merge safely, verify exact Cloudflare Pages app SHA and public asset/behavior. An actual paid two-reference generation is not yet verified; user plans a controlled manual transfer-fidelity test. Do not claim live before deployment evidence.",
+      "baselineSha": "a618768b8b359ade058e344eb5a5e3c051e1e06e",
+      "reviewedSha": "861f1016e995f7feba3d04d07dd1f684a1601668",
+      "branch": "feat/alter-makeup-reference-progress-20261118",
+      "files": [
+        "lab/beauty-settings.js",
+        "lab/beauty.js",
+        "lab/beauty.html",
+        "lab/beauty-processing-20261118.css",
+        "tests/lab-beauty.test.mjs",
+        "tests/lab-beauty-category-contract.test.mjs",
+        "tests/lab-beauty-makeup-expansion.test.mjs",
+        "tests/lab-beauty-ui.mjs"
+      ],
+      "links": [
+        {
+          "label": "PR #1039, changes and CI",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1039"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Required GitHub Actions",
+          "result": "queued",
+          "scope": "Beauty Studio, Lab/approved Image contract, visual regressions and static checks. No local paid provider generation."
+        }
+      ],
+      "deployment": {
+        "status": "not_deployed",
+        "note": "Feature branch only; Cloudflare Pages production remains unchanged."
+      },
+      "evidence": [],
+      "blockers": [
+        "Required GitHub Actions had not finished at time of this handoff; do not merge on unverified checks.",
+        "Paid makeup-reference fidelity and exact preservation of original face/lighting still need a controlled real generation."
+      ],
+      "doNotRepeat": [
+        "Preserve approved 15 makeup images, hero and existing five-tab layout.",
+        "Never weaken exact quote validation, submit deduplication, credits or customer privacy to speed the UI.",
+        "Distinguish a GitHub merge from verified production and a real signed-in paid transfer test."
+      ],
+      "updatedAt": "2026-11-17T23:16:05.848Z"
     }
   ]
 }
