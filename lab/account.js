@@ -1,3 +1,4 @@
+import {openLabSignIn} from './auth-google.js?v=20261117-pv-google1';
 import {localizePrices} from './local-currency.js?v=20261102-1';
 import {metaConsentGranted,metaPixelIdentifiers,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261101-cookies1';
 import {readProviderPolicyDetails,setProviderPolicyDetails} from './model-policy-preferences.js?v=20261028-1';
@@ -225,8 +226,8 @@ async function loadReferrals(){
     $('referrals-status').textContent='';
   }catch(error){if(current===referralRevision&&accountRevision===revision){referralLoaded=false;$('referrals-status').textContent=error.message;}}
 }
-$('account-signin').onclick=()=>clerk?.openSignIn();
-$('account-gate-signin').onclick=()=>clerk?.isSignedIn?void refresh():clerk?.openSignIn();
+$('account-signin').onclick=()=>openLabSignIn(clerk);
+$('account-gate-signin').onclick=()=>clerk?.isSignedIn?void refresh():openLabSignIn(clerk);
 $('account-signout').onclick=async()=>{++revision;clearPrivateView();try{await clerk?.signOut();await refresh();}catch(error){status(error.message);}};
 $('account-refresh').onclick=()=>void refresh();
 $('account-portal').onclick=()=>void openPayment('/api/billing/portal');
