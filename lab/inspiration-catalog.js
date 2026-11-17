@@ -67,7 +67,6 @@ function select(item){
         overlay.classList.remove('is-ready');
         overlay.src=nextCover;
       }
-      button.title=item.title+' · '+(index+1)+' / '+item.examples.length+' · Select again for another frame';
     }
   }
   for(const button of document.querySelectorAll('[data-welcome-mood],[data-guest-mood]'))
@@ -80,7 +79,6 @@ function carouselCard(item,guest){
   button.className=guest?'pv-guest-card':'lab-welcome-preset';
   button.setAttribute('aria-pressed','false');
   button.setAttribute('aria-label','Select '+item.title+' Inspiration');
-  button.title=item.title+' · '+item.category+(item.examples?' · Select again for another frame':'');
   button.append(photo(item));
   if(guest){
     const caption=document.createElement('span');
@@ -120,7 +118,6 @@ function openAll(){
         const button=document.createElement('button');button.type='button';
         button.className='pv-inspiration-catalog-card';button.setAttribute('aria-label','Select '+item.title);
         if(!item.original){button.dataset.inspirationConcept=item.id;button.setAttribute('aria-pressed','false');}
-        if(item.examples)button.title=item.title+' · '+item.examples.length+' frames · Select again for another frame';
         button.append(photo(item));
         const name=document.createElement('strong');name.textContent=item.title;
         const sub=document.createElement('small');sub.textContent=item.category;

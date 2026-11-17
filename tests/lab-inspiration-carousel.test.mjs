@@ -67,7 +67,7 @@ test('both Inspiration rows support mouse-wheel browsing without trapping page s
   assert.doesNotMatch(js,/lastWheelStep|230/);
   assert.match(read('inspiration-carousel.css'),/scroll-snap-type:none/);
   assert.match(js,/\},\{passive:false\}\)/);
-  assert.match(html,/inspiration-carousel\.js\?v=20261117-inertia1&inspirationCatalog=20261117-owner1/);
+  assert.match(html,/inspiration-carousel\.js\?v=20261117-inertia1&inspirationCatalog=20261117-owner1&noNativeTips=20261118v1/);
 });
 test('vertical wheel gestures glide by pixels, accumulate, and release the page at both ends',()=>{
   const code=read('inspiration-carousel.js').replace(/^import [^\n]+\n/,'');
