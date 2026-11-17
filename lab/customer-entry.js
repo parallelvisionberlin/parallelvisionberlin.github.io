@@ -1,3 +1,4 @@
+import {openLabSignIn} from './auth-google.js?v=20261117-pv-google1';
 import {createAccountMenu} from './account-menu.js?v=20261030-robin-partner1';
 import {metaConsentGranted,metaPixelIdentifiers,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261101-cookies1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
@@ -146,7 +147,7 @@ async function signIn(destination,report=status){
     if(!clerk){report('Sign-in is loading.');clerk=await loadLabAccount();}
     if(clerk.isSignedIn){if(destination)location.assign(destination);return true;}
     report('');
-    await clerk.openSignIn({
+    await openLabSignIn(clerk,{
       ...(destination?{forceRedirectUrl:destination,signUpForceRedirectUrl:destination}:{}),
       appearance:{options:{
         logoImageUrl:'https://pvlab.studio/branding/pvlab-wordmark-bold.svg',
