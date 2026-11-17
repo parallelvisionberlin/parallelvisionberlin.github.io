@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-17T23:16:05.852Z",
+  "updatedAt": "2026-11-18T00:20:00Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4290,13 +4290,13 @@
     },
     {
       "id": "alter-makeup-reference-transfer",
-      "title": "ALTER: curated makeup visual transfer, Seedream 5.5 and visible generation progress",
+      "title": "ALTER: makeup image references, Seedream 5.5, and Video-like accepted-job handoff",
       "component": "ALTER Studio",
       "status": "in_review",
-      "summary": "PR #1039 on a feature branch, not merged or deployed. For 15 non-Original makeup presets above zero strength, privately stages the exact approved WebP thumbnail as Reference 2 alongside the customer's authoritative Base photograph as Reference 1. Explicit makeup-only role and existing server-bound credit quote verify both IDs. Adds the already supported Seedream 5.5 model and visible actual queued/running/saving state over photo; shortens quote debounce. Existing image assets, 20 looks, four other tabs, output comparison, Worker and price tables unchanged.",
-      "nextAction": "Finish required GitHub CI, resolve failures if any, merge safely, verify exact Cloudflare Pages app SHA and public asset/behavior. An actual paid two-reference generation is not yet verified; user plans a controlled manual transfer-fidelity test. Do not claim live before deployment evidence.",
+      "summary": "PR #1039 feature branch, not merged or deployed. 15 makeup presets attach their exact published WebP as reference 2 to the user's base photo. The separate Light/Hair/Skin/Color controls and explicit Creative Direction are preserved. Seedream 5.5 is selectable without changing 5 Pro default. Accepted jobs now show a full-canvas Video-inspired procedural animation while the photo fades away; the Generate button becomes an enabled New edit action. Clicking it clears only the draft while each confirmed job independently continues polling in authenticated Results with its preserved original. Pending Results cards show actual statuses; no fabricated percentages or automatic paid retries.",
+      "nextAction": "Review GitHub CI on PR #1039. If relevant checks pass, merge and verify exact Cloudflare deployment and live ALTER behavior; keep staging separate from production claims. The actual paid two-reference makeup result and account concurrency behavior still require an intentional real-user test. Do not re-upload / generate real photos for CI.",
       "baselineSha": "a618768b8b359ade058e344eb5a5e3c051e1e06e",
-      "reviewedSha": "861f1016e995f7feba3d04d07dd1f684a1601668",
+      "reviewedSha": "6b2635cd7913e1f48b1250be9aa69c4d3cc51a31",
       "branch": "feat/alter-makeup-reference-progress-20261118",
       "files": [
         "lab/beauty-settings.js",
@@ -4306,7 +4306,8 @@
         "tests/lab-beauty.test.mjs",
         "tests/lab-beauty-category-contract.test.mjs",
         "tests/lab-beauty-makeup-expansion.test.mjs",
-        "tests/lab-beauty-ui.mjs"
+        "tests/lab-beauty-ui.mjs",
+        "lab/beauty-processing-fabric.js"
       ],
       "links": [
         {
@@ -4316,9 +4317,14 @@
       ],
       "tests": [
         {
-          "label": "Required GitHub Actions",
-          "result": "queued",
-          "scope": "Beauty Studio, Lab/approved Image contract, visual regressions and static checks. No local paid provider generation."
+          "label": "Source/syntax and flow sanity",
+          "result": "passed",
+          "scope": "V8 parsing of beauty.js, animation JS and browser test; 9/9 static handoff and safety contracts satisfied."
+        },
+        {
+          "label": "GitHub scoped browser, Lab tests and approved Image UI",
+          "result": "pending",
+          "scope": "Required CI still queued / no passing report at time of record; synthetic browser job handoff test added but not yet executed."
         }
       ],
       "deployment": {
@@ -4327,15 +4333,15 @@
       },
       "evidence": [],
       "blockers": [
-        "Required GitHub Actions had not finished at time of this handoff; do not merge on unverified checks.",
-        "Paid makeup-reference fidelity and exact preservation of original face/lighting still need a controlled real generation."
+        "CI has not confirmed the new PR head; do not merge on unverified checks.",
+        "Two-reference makeup fidelity and signed-in paid job flow not yet exercised; no customer or payment action taken."
       ],
       "doNotRepeat": [
         "Preserve approved 15 makeup images, hero and existing five-tab layout.",
         "Never weaken exact quote validation, submit deduplication, credits or customer privacy to speed the UI.",
         "Distinguish a GitHub merge from verified production and a real signed-in paid transfer test."
       ],
-      "updatedAt": "2026-11-17T23:16:05.848Z"
+      "updatedAt": "2026-11-18T00:20:00Z"
     }
   ]
 }
