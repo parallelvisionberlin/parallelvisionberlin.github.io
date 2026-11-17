@@ -3,7 +3,8 @@ import {readGoogleReturn,clearGoogleReturn,openLabSignIn} from './auth-google.js
 const status=document.getElementById('auth-callback-status');
 const actions=document.getElementById('auth-callback-actions');
 const retry=document.getElementById('auth-callback-retry');
-const returnUrl=readGoogleReturn();
+let returnUrl=null;
+try{returnUrl=readGoogleReturn();}catch{} // Storage may be unavailable in private browsing.
 let clerk;
 function fail(message){status.textContent=message;actions.setAttribute('open','');}
 retry.addEventListener('click',async()=>{
