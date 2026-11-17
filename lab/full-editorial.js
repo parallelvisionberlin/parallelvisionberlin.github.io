@@ -106,6 +106,14 @@ function renderIdentityFooter(){
  const footer=$('editorial-footer-cast'),selection=$('editorial-cast-selection');
  const actionDock=$('step-footer'),composition=$('editorial-casting-controls');
  const workspace=$('panel-model').querySelector('.atelier-workspace');
+ // Dismiss a stale cast-limit notice when a slot opens or Identity is left.
+ const limitNotice=selection.querySelector('.editorial-cast-limit-toast');
+ if(limitNotice&&(step!==1||modelGroups.length<MAX_EDITORIAL_CHARACTERS)){
+  clearTimeout(castLimitNoticeTimer);
+  if(castLimitNoticeFrame!==null){cancelAnimationFrame(castLimitNoticeFrame);castLimitNoticeFrame=null}
+  limitNotice.classList.remove('is-visible');
+  limitNotice.setAttribute('aria-hidden','true');
+ }
  footer.hidden=step!==1;
  // Composition follows the selection dock, matching the approved editorial reference.
  // Move back to its original panel when leaving Identity so other steps never expose it.
