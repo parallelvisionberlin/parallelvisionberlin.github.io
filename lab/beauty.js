@@ -224,13 +224,15 @@ async function loadHistory(){
  if(!profile)return;const version=epoch,selection=++historyRevision;
  try{
   const data=await api('/api/jobs');if(version!==epoch||selection!==historyRevision)return;
-  const jobs=(data.jobs||[]).filter(j=>j.settings?.type==='image'&&j.settings.prompt?.startsWith(BEAUTY_PROMPT_PREFIX));
   const actives=(data.activeJobs||[]).filter(j=>j.settings?.prompt?.startsWith(BEAUTY_PROMPT_PREFIX));
+  const saved=(data.jobs||[]).filter(j=>j.settings?.type==='image'&&j.settings.prompt?.startsWith(BEAUTY_PROMPT_PREFIX));
+  const jobs=[...actives.filter(j=>!saved.some(item=>item.id===j.id)),...saved];
   $('beauty-history').replaceChildren();for(const value of blobs.values())URL.revokeObjectURL(value);blobs.clear();
   $('beauty-empty-results').hidden=jobs.length>0;
   for(const job of jobs.slice(0,12)){
    const button=document.createElement('button');button.type='button';button.setAttribute('aria-label','Open beauty result from '+new Date(job.createdAt||Date.now()).toLocaleDateString());
-   const label=document.createElement('span');label.textContent=job.status==='completed'?'Loading…':job.status;button.append(label);$('beauty-history').append(button);
+   const label=document.createElement('span');label.textContent=job.status==='completed'?'Loading…':job.status==='queued'?'Queued · generating':job.status==='running'?'Generating':job.status==='saving'?'Saving':job.status;button.append(label);$('beauty-history').append(button);
+   if(['submitting','queued','running','saving'].includes(job.status))button.dataset.beautyPending='true';
    if(job.status==='completed'&&job.outputId){
     button.addEventListener('click',()=>void showResult(job).catch(error=>status(error.message,true)));
     void imageBlob(job.outputId,version).then(blob=>{if(version!==epoch||!button.isConnected)return;const url=URL.createObjectURL(blob);blobs.set(job.id,url);const image=new Image();image.alt='Saved Beauty Studio result';image.src=url;button.replaceChildren(image);}).catch(()=>{if(button.isConnected)label.textContent='Open result';});
