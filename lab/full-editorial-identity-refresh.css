@@ -865,3 +865,15 @@ body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast.is-visible
 @media(prefers-reduced-motion:reduce){
  body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast{transition:none!important}
 }
+
+/* PVLAB_IDENTITY_CASTING_MOMENTUM_20261118
+   No stiff snap after native phone swipes. Desktop wheel uses JS ease-out. */
+@media(max-width:800px){
+ body.editorial-web #panel-model #editorial-cast-track.editorial-cast-track,
+ body.editorial-web #panel-model #casting-reference-gallery #saved-character-gallery{
+  scroll-snap-type:none!important;
+  scroll-behavior:auto!important;
+  -webkit-overflow-scrolling:touch;
+  touch-action:auto;
+ }
+}
