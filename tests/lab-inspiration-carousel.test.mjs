@@ -18,8 +18,8 @@ test('both Image Inspiration entrances share the approved Chrome Couture and Clo
   assert.equal((html.match(/data-welcome-mood="chrome-couture"/g)||[]).length,1);
   assert.equal((html.match(/data-inspiration-nav="prev"/g)||[]).length,2);
   assert.equal((html.match(/data-inspiration-nav="next"/g)||[]).length,2);
-  assert.match(html,/inspiration-carousel\.css\?v=20261019-editorial-chevrons2/);
-  assert.match(html,/inspiration-carousel\.js\?v=20261019-keyboard2/);
+  assert.match(html,/inspiration-carousel\.css\?v=20261117-inertia1/);
+  assert.match(html,/inspiration-carousel\.js\?v=20261117-inertia1/);
   assert.match(html,/id="lab-welcome-presets"/);
   const guest=[...html.matchAll(/data-guest-mood="([^"]+)"/g)].map(match=>match[1]);
   const signed=[...html.matchAll(/data-welcome-mood="([^"]+)"/g)].map(match=>match[1]);
@@ -59,15 +59,18 @@ test('both Inspiration rows support mouse-wheel browsing without trapping page s
   assert.match(js,/track\.addEventListener\('wheel',event=>/);
   assert.match(js,/Math\.abs\(event\.deltaY\)<=Math\.abs\(event\.deltaX\)/);
   assert.match(js,/event\.ctrlKey\|\|event\.metaKey/);
-  assert.match(js,/direction<0&&pos<=2/);
-  assert.match(js,/direction>0&&pos>=limit-2/);
+  assert.match(js,/direction<0&&track\.scrollLeft<=2&&base<=2/);
+  assert.match(js,/direction>0&&track\.scrollLeft>=limit-2&&base>=limit-2/);
   assert.match(js,/event\.preventDefault\(\)/);
-  assert.match(js,/move\(direction\)/);
+  assert.match(js,/wheelTarget=clamp/);
+  assert.match(js,/requestAnimationFrame/);
+  assert.doesNotMatch(js,/lastWheelStep|230/);
+  assert.match(read('inspiration-carousel.css'),/scroll-snap-type:none/);
   assert.match(js,/\},\{passive:false\}\)/);
-  assert.match(html,/inspiration-carousel\.js\?v=20261019-keyboard2&inspirationCatalog=20261113-road-order1&wheelScroll=20261112v1/);
+  assert.match(html,/inspiration-carousel\.js\?v=20261117-inertia1&inspirationCatalog=20261113-road-order1/);
 });
 test('vertical wheel gestures glide by pixels, accumulate, and release the page at both ends',()=>{
-  const code=read('inspiration-carousel.js').replace(/^import [^\\n]+\\n/,'');
+  const code=read('inspiration-carousel.js').replace(/^import [^\n]+\n/,'');
   const frames=new Map();
   let nextId=0,time=0;
   const nav=()=>({hidden:false,disabled:false,addEventListener(){}});
