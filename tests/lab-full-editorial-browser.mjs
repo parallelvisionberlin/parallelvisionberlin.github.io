@@ -106,7 +106,10 @@ try{
   assert.equal(await page.locator('.editorial-cast-pinned').count(),1,'One pinned Create Character and upload card');
   assert.match(await page.locator('.editorial-create-character').getAttribute('href'),/createCharacter=1/);
   const carouselState=await castTrack.evaluate(el=>({width:el.clientWidth,full:el.scrollWidth,count:el.querySelectorAll('.atelier-reference').length}));
-  assert.equal(carouselState.count,10,'Original five plus five approved new casting references');
+  assert.equal(carouselState.count,10,'All ten casting references remain available');
+  assert.deepEqual(await castTrack.locator('.atelier-reference').evaluateAll(cards=>cards.map(card=>card.querySelector('span')?.textContent.trim())),
+   ['06 / SLATE','07 / COBALT','08 / PEARL','09 / ACID','10 / BLOSSOM','01 / SILVER','02 / BRONZE','03 / COPPER','04 / IVORY','05 / NIGHT'],
+   'Five featured portraits appear first, with all original numbers and remaining models retained');
   assert.ok(carouselState.full>carouselState.width+30,'The casting gallery scrolls horizontally');
   assert.equal(await page.locator('#editorial-cast-prev').isDisabled(),true);
   await page.locator('#editorial-cast-next').click();
@@ -436,12 +439,17 @@ try{
    compositionTop:document.getElementById('editorial-casting-controls').getBoundingClientRect().top}));
   await fifthPortrait.click();
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),4,'Fifth distinct model is blocked');
-  assert.equal(await page.locator('#editorial-status').textContent(),'','Four-character limit never creates an error line');
+  assert.equal(await page.locator('#editorial-status').textContent(),'','Four-character limit never creates a page-level error');
+  await page.waitForFunction(()=>document.querySelector('.editorial-cast-limit-toast')?.classList.contains('is-visible'));
+  assert.match(await page.locator('.editorial-cast-limit-toast').textContent(),/4 characters max.*Remove one/);
+  assert.equal(await page.locator('.editorial-cast-limit-toast').getAttribute('aria-hidden'),'false');
   const afterFifth=await page.evaluate(()=>({scrollY,documentHeight:document.documentElement.scrollHeight,
    footerTop:document.getElementById('step-footer').getBoundingClientRect().top,
    compositionTop:document.getElementById('editorial-casting-controls').getBoundingClientRect().top}));
   for(const key of Object.keys(beforeFifth))assert.ok(Math.abs(beforeFifth[key]-afterFifth[key])<2,
    'Fifth character must not move the page: '+key+' '+JSON.stringify({beforeFifth,afterFifth}));
+  await page.waitForFunction(()=>!document.querySelector('.editorial-cast-limit-toast')?.classList.contains('is-visible'),null,{timeout:5500});
+  assert.equal(await page.locator('.editorial-cast-limit-toast').getAttribute('aria-hidden'),'true','Notice fades away on its own');
   await page.locator('#casting-reference-gallery .atelier-reference').nth(2).click();
   await page.locator('#casting-reference-gallery .atelier-reference').nth(3).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
