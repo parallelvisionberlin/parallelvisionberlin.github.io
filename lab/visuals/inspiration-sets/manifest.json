@@ -1,0 +1,468 @@
+{
+  "version": "2026-11-17-owner-edition1",
+  "purpose": "PV LAB Image Studio Inspiration cover, hover and full-frame editorial references",
+  "source": "Owner-supplied 20 original photographs and poster studies, upload order retained",
+  "notes": "Card WebP is subject-focused 3:5 crop; full WebP preserves the complete composition. Originals remain the owner-provided files outside this repo; do not use the example person as a generation Base.",
+  "frames": [
+    {
+      "index": 1,
+      "series": "dream-blur",
+      "slug": "blue-afterimage",
+      "usage": "hover",
+      "sourceFile": "Icy Eye Behind Train Glass-2(1).png",
+      "sourceSize": [
+        1122,
+        1402
+      ],
+      "sourceSha256": "e297e18b55c67aa3cfb0f667b3a5c2a34fb1d93363ddc2830adc4f5a145c3814",
+      "cardCropSourcePixels": [
+        281,
+        0,
+        1122,
+        1402
+      ],
+      "subjectFocalX": 0.65,
+      "full": "./visuals/inspiration-sets/dream-blur/full/01-blue-afterimage.webp",
+      "card": "./visuals/inspiration-sets/dream-blur/cards/01-blue-afterimage.webp",
+      "fullBytes": 259862,
+      "cardBytes": 103182
+    },
+    {
+      "index": 2,
+      "series": "flash-leather",
+      "slug": "velvet-leather",
+      "usage": "hover",
+      "sourceFile": "hf_20261011_023229_647572e6-6285-42f5-ab3e-a47df109acdf(1).png",
+      "sourceSize": [
+        2048,
+        1536
+      ],
+      "sourceSha256": "c9b9ba24ab7c31e53e50d01add52b8db9d8f24437b4f8a23393aba6e5bc3e92f",
+      "cardCropSourcePixels": [
+        174,
+        0,
+        1096,
+        1536
+      ],
+      "subjectFocalX": 0.31,
+      "full": "./visuals/inspiration-sets/flash-leather/full/02-velvet-leather.webp",
+      "card": "./visuals/inspiration-sets/flash-leather/cards/02-velvet-leather.webp",
+      "fullBytes": 167946,
+      "cardBytes": 62254
+    },
+    {
+      "index": 3,
+      "series": "flash-leather",
+      "slug": "bob-and-leather",
+      "usage": "backup",
+      "sourceFile": "hf_20261011_023229_9a4ad721-4916-46c6-bd99-a591758a8358(2).png",
+      "sourceSize": [
+        2048,
+        1536
+      ],
+      "sourceSha256": "9aeac4e1e7e5ad0675f241ef3568d99105a36d1b7b4124bb736512737fb09b49",
+      "cardCropSourcePixels": [
+        522,
+        0,
+        1444,
+        1536
+      ],
+      "subjectFocalX": 0.48,
+      "full": "./visuals/inspiration-sets/flash-leather/full/03-bob-and-leather.webp",
+      "card": "./visuals/inspiration-sets/flash-leather/cards/03-bob-and-leather.webp",
+      "fullBytes": 100682,
+      "cardBytes": 42048
+    },
+    {
+      "index": 4,
+      "series": "chrome-couture",
+      "slug": "silver-sculpture",
+      "usage": "hover",
+      "sourceFile": "hf_20261031_013939_d733c782-f115-4b9b-9e59-29aafce23fcd.png",
+      "sourceSize": [
+        2048,
+        1152
+      ],
+      "sourceSha256": "789e6ce08c6ba65789736b05e7841bd29fac54a9063e8bc1ef0bc2e828f781af",
+      "cardCropSourcePixels": [
+        678,
+        0,
+        1369,
+        1152
+      ],
+      "subjectFocalX": 0.5,
+      "full": "./visuals/inspiration-sets/chrome-couture/full/04-silver-sculpture.webp",
+      "card": "./visuals/inspiration-sets/chrome-couture/cards/04-silver-sculpture.webp",
+      "fullBytes": 65602,
+      "cardBytes": 55044
+    },
+    {
+      "index": 5,
+      "series": "eros",
+      "slug": "lingerie-editorial",
+      "usage": "hover",
+      "sourceFile": "Vintage Eros Lingerie Portrait-2(1).png",
+      "sourceSize": [
+        1086,
+        1448
+      ],
+      "sourceSha256": "7e419f75c5d22e524b509d2c8118bad31244f8b45fbe7bb44b56d883a8eef9c8",
+      "cardCropSourcePixels": [
+        108,
+        0,
+        977,
+        1448
+      ],
+      "subjectFocalX": 0.5,
+      "full": "./visuals/inspiration-sets/eros/full/05-lingerie-editorial.webp",
+      "card": "./visuals/inspiration-sets/eros/cards/05-lingerie-editorial.webp",
+      "fullBytes": 138772,
+      "cardBytes": 44778
+    },
+    {
+      "index": 6,
+      "series": "eros",
+      "slug": "studio-02-poster",
+      "usage": "design-reference",
+      "sourceFile": "02_The_World.jpg",
+      "sourceSize": [
+        1080,
+        1350
+      ],
+      "sourceSha256": "8bc3d2a72639075813da02387df9112d8a8e8e933c5f3b7e65da10418b7b2f98",
+      "cardCropSourcePixels": [
+        135,
+        0,
+        945,
+        1350
+      ],
+      "subjectFocalX": 0.5,
+      "full": "./visuals/inspiration-sets/eros/full/06-studio-02-poster.webp",
+      "card": "./visuals/inspiration-sets/eros/cards/06-studio-02-poster.webp",
+      "fullBytes": 97844,
+      "cardBytes": 38566
+    },
+    {
+      "index": 7,
+      "series": "hotel-intimacy",
+      "slug": "velvet-sofa",
+      "usage": "cover",
+      "sourceFile": "hf_20261111_164525_88ec9a81-3515-446f-968d-b76b078ac34e(1).png",
+      "sourceSize": [
+        1536,
+        2048
+      ],
+      "sourceSha256": "c2a344bb3ad6046a30c1db2ece33bab2794422c449d1549fac2ad4dc88b31ccc",
+      "cardCropSourcePixels": [
+        77,
+        0,
+        1306,
+        2048
+      ],
+      "subjectFocalX": 0.45,
+      "full": "./visuals/inspiration-sets/hotel-intimacy/full/07-velvet-sofa.webp",
+      "card": "./visuals/inspiration-sets/hotel-intimacy/cards/07-velvet-sofa.webp",
+      "fullBytes": 122714,
+      "cardBytes": 41904
+    },
+    {
+      "index": 8,
+      "series": "hotel-intimacy",
+      "slug": "sitting-after-hours",
+      "usage": "hover",
+      "sourceFile": "hf_20261111_162852_516ec85e-ca12-4966-b361-21cd1d502963(1).png",
+      "sourceSize": [
+        1536,
+        2048
+      ],
+      "sourceSha256": "0f6e20a570b97f9e291f3dd1e8294fd6562ef25a4860f08d974478c85ca0df3b",
+      "cardCropSourcePixels": [
+        184,
+        0,
+        1413,
+        2048
+      ],
+      "subjectFocalX": 0.52,
+      "full": "./visuals/inspiration-sets/hotel-intimacy/full/08-sitting-after-hours.webp",
+      "card": "./visuals/inspiration-sets/hotel-intimacy/cards/08-sitting-after-hours.webp",
+      "fullBytes": 117904,
+      "cardBytes": 37056
+    },
+    {
+      "index": 9,
+      "series": "hotel-intimacy",
+      "slug": "silk-sheets",
+      "usage": "backup",
+      "sourceFile": "hf_20261111_163648_4cc1ba8d-2cdd-4e90-a7a0-aed0ee5d5a3d(1).png",
+      "sourceSize": [
+        1536,
+        2048
+      ],
+      "sourceSha256": "70242f5ea47ed26af09797dfd6338ad5121eb0a94df8a94ce6f332bd126ea9d7",
+      "cardCropSourcePixels": [
+        138,
+        0,
+        1367,
+        2048
+      ],
+      "subjectFocalX": 0.49,
+      "full": "./visuals/inspiration-sets/hotel-intimacy/full/09-silk-sheets.webp",
+      "card": "./visuals/inspiration-sets/hotel-intimacy/cards/09-silk-sheets.webp",
+      "fullBytes": 125876,
+      "cardBytes": 32788
+    },
+    {
+      "index": 10,
+      "series": "raver",
+      "slug": "chrome-dj-collective",
+      "usage": "cover",
+      "sourceFile": "hf_20261012_180339_4e716a22-6b82-41a1-bf5a-8febe3f2fa3c.png",
+      "sourceSize": [
+        1536,
+        2048
+      ],
+      "sourceSha256": "f8ba21134cd033ea887ba83a8c0f52a2372dc435a627c623cf32e6edd372ba99",
+      "cardCropSourcePixels": [
+        154,
+        0,
+        1383,
+        2048
+      ],
+      "subjectFocalX": 0.5,
+      "full": "./visuals/inspiration-sets/raver/full/10-chrome-dj-collective.webp",
+      "card": "./visuals/inspiration-sets/raver/cards/10-chrome-dj-collective.webp",
+      "fullBytes": 131096,
+      "cardBytes": 51882
+    },
+    {
+      "index": 11,
+      "series": "raver",
+      "slug": "chrome-android-afterparty",
+      "usage": "hover",
+      "sourceFile": "hf_20261012_175917_1ad4caf7-4d45-4abd-bd27-1f32662847dd(1).png",
+      "sourceSize": [
+        1536,
+        2048
+      ],
+      "sourceSha256": "e1144269c53c14545eed1d7feecdaf51221ec60a45b4dc6b41d8ab07422b52fd",
+      "cardCropSourcePixels": [
+        154,
+        0,
+        1383,
+        2048
+      ],
+      "subjectFocalX": 0.5,
+      "full": "./visuals/inspiration-sets/raver/full/11-chrome-android-afterparty.webp",
+      "card": "./visuals/inspiration-sets/raver/cards/11-chrome-android-afterparty.webp",
+      "fullBytes": 224778,
+      "cardBytes": 84724
+    },
+    {
+      "index": 12,
+      "series": "hong-kong-nights",
+      "slug": "rain-window-profile",
+      "usage": "hover",
+      "sourceFile": "hf_20261110_122019_0683ef7c-aa7a-417d-aa59-e3a90f4aa423.png",
+      "sourceSize": [
+        1536,
+        2048
+      ],
+      "sourceSha256": "b4fe0bd58e2beb8d51b3bcc82fe1f6e5b1d19d690c98103a61efffb18aeb066c",
+      "cardCropSourcePixels": [
+        154,
+        0,
+        1383,
+        2048
+      ],
+      "subjectFocalX": 0.5,
+      "full": "./visuals/inspiration-sets/hong-kong-nights/full/12-rain-window-profile.webp",
+      "card": "./visuals/inspiration-sets/hong-kong-nights/cards/12-rain-window-profile.webp",
+      "fullBytes": 236974,
+      "cardBytes": 53054
+    },
+    {
+      "index": 13,
+      "series": "hong-kong-nights",
+      "slug": "rain-window-turn",
+      "usage": "backup",
+      "sourceFile": "hf_20261110_122019_cd426db7-b288-4354-ba8b-4611cc617ad0.png",
+      "sourceSize": [
+        1536,
+        2048
+      ],
+      "sourceSha256": "cc772de9ae07d139d7c50df6e3db69592d763de9c6a020a0f68bd9ad5f290f9e",
+      "cardCropSourcePixels": [
+        154,
+        0,
+        1383,
+        2048
+      ],
+      "subjectFocalX": 0.5,
+      "full": "./visuals/inspiration-sets/hong-kong-nights/full/13-rain-window-turn.webp",
+      "card": "./visuals/inspiration-sets/hong-kong-nights/cards/13-rain-window-turn.webp",
+      "fullBytes": 307514,
+      "cardBytes": 65076
+    },
+    {
+      "index": 14,
+      "series": "hong-kong-nights",
+      "slug": "neon-teahouse-quiet",
+      "usage": "backup",
+      "sourceFile": "hf_20261110_121921_645db427-df5b-4c90-abd7-bfa927123af6.png",
+      "sourceSize": [
+        1536,
+        2048
+      ],
+      "sourceSha256": "69da02d45265374a8195dbc968beac04648c421981aa10c5cfb113330551357f",
+      "cardCropSourcePixels": [
+        138,
+        0,
+        1367,
+        2048
+      ],
+      "subjectFocalX": 0.49,
+      "full": "./visuals/inspiration-sets/hong-kong-nights/full/14-neon-teahouse-quiet.webp",
+      "card": "./visuals/inspiration-sets/hong-kong-nights/cards/14-neon-teahouse-quiet.webp",
+      "fullBytes": 143256,
+      "cardBytes": 54460
+    },
+    {
+      "index": 15,
+      "series": "hong-kong-nights",
+      "slug": "neon-teahouse-cigarette",
+      "usage": "backup",
+      "sourceFile": "hf_20261110_121921_d701536c-2080-4bbd-b20b-6a4d55fc17fc.png",
+      "sourceSize": [
+        1536,
+        2048
+      ],
+      "sourceSha256": "b0ddccdb45e6b1e387cbc98e8bad0b93fbdb5697eca501db45f07a6693516401",
+      "cardCropSourcePixels": [
+        200,
+        0,
+        1429,
+        2048
+      ],
+      "subjectFocalX": 0.53,
+      "full": "./visuals/inspiration-sets/hong-kong-nights/full/15-neon-teahouse-cigarette.webp",
+      "card": "./visuals/inspiration-sets/hong-kong-nights/cards/15-neon-teahouse-cigarette.webp",
+      "fullBytes": 124832,
+      "cardBytes": 46074
+    },
+    {
+      "index": 16,
+      "series": "post-human",
+      "slug": "transmission-interface",
+      "usage": "backup",
+      "sourceFile": "transmission-interface-study.png",
+      "sourceSize": [
+        2048,
+        1152
+      ],
+      "sourceSha256": "70208dd1d120e3da0adb4260d0194a37ca3a18c7df8f5f22d9d7d183cf17f47d",
+      "cardCropSourcePixels": [
+        924,
+        0,
+        1615,
+        1152
+      ],
+      "subjectFocalX": 0.62,
+      "full": "./visuals/inspiration-sets/post-human/full/16-transmission-interface.webp",
+      "card": "./visuals/inspiration-sets/post-human/cards/16-transmission-interface.webp",
+      "fullBytes": 90828,
+      "cardBytes": 41834
+    },
+    {
+      "index": 17,
+      "series": "post-human",
+      "slug": "synthetic-lovers-wide",
+      "usage": "cover",
+      "sourceFile": "hf_20260730_221511_7e7f9619-505a-4d53-a876-767472bda2d8(2).png",
+      "sourceSize": [
+        2048,
+        1152
+      ],
+      "sourceSha256": "18185edabd986242076877fa920d2c34ade15daa4bfd091fa37086ebd7b6c150",
+      "cardCropSourcePixels": [
+        678,
+        0,
+        1369,
+        1152
+      ],
+      "subjectFocalX": 0.5,
+      "full": "./visuals/inspiration-sets/post-human/full/17-synthetic-lovers-wide.webp",
+      "card": "./visuals/inspiration-sets/post-human/cards/17-synthetic-lovers-wide.webp",
+      "fullBytes": 84200,
+      "cardBytes": 39678
+    },
+    {
+      "index": 18,
+      "series": "post-human",
+      "slug": "synthetic-lovers-close",
+      "usage": "hover",
+      "sourceFile": "hf_20260730_221609_d6541c23-9954-4896-a619-78a1525eed5b(1).png",
+      "sourceSize": [
+        2048,
+        1152
+      ],
+      "sourceSha256": "062a9ac26a80d8f181dc0b1d711f4e5b09b0d7b7595510cd853b6203f603dc23",
+      "cardCropSourcePixels": [
+        740,
+        0,
+        1431,
+        1152
+      ],
+      "subjectFocalX": 0.53,
+      "full": "./visuals/inspiration-sets/post-human/full/18-synthetic-lovers-close.webp",
+      "card": "./visuals/inspiration-sets/post-human/cards/18-synthetic-lovers-close.webp",
+      "fullBytes": 57992,
+      "cardBytes": 32186
+    },
+    {
+      "index": 19,
+      "series": "post-human",
+      "slug": "synthetic-lovers-film-burn",
+      "usage": "backup",
+      "sourceFile": "CANON DUST 1(8).png",
+      "sourceSize": [
+        2048,
+        1152
+      ],
+      "sourceSha256": "6e95809a9d6fd5b77327785e3f105918a18b759fa817bee7bdb64d9a6e9db935",
+      "cardCropSourcePixels": [
+        678,
+        0,
+        1369,
+        1152
+      ],
+      "subjectFocalX": 0.5,
+      "full": "./visuals/inspiration-sets/post-human/full/19-synthetic-lovers-film-burn.webp",
+      "card": "./visuals/inspiration-sets/post-human/cards/19-synthetic-lovers-film-burn.webp",
+      "fullBytes": 86664,
+      "cardBytes": 42180
+    },
+    {
+      "index": 20,
+      "series": "desert-sculptures",
+      "slug": "sculpture-desert-editorial",
+      "usage": "hover",
+      "sourceFile": "hf_20261028_233627_8e1dcf9a-0cb1-4975-88b7-c9d310e27c2d(20261117-222108).png",
+      "sourceSize": [
+        2048,
+        1152
+      ],
+      "sourceSha256": "851688ec3a6e896ff574afb9361ab963cf9481e160336ebb3f9959b5f9aafca7",
+      "cardCropSourcePixels": [
+        1129,
+        0,
+        1820,
+        1152
+      ],
+      "subjectFocalX": 0.72,
+      "full": "./visuals/inspiration-sets/desert-sculptures/full/20-sculpture-desert-editorial.webp",
+      "card": "./visuals/inspiration-sets/desert-sculptures/cards/20-sculpture-desert-editorial.webp",
+      "fullBytes": 161868,
+      "cardBytes": 43012
+    }
+  ]
+}
