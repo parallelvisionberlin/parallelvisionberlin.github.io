@@ -213,7 +213,7 @@ function resetAll(){invalidateQuote();clearTimeout(pollTimeout);submitting=false
  renderFiles();renderDirections();updateOptions();refreshSliderLabels();setIdentitySource('casting');go(curatedWorld?1:0);status('');
  if(curatedWorld)void loadWorldReferences();
 }
-function go(next){step=next;const panels=['model','style','mood','generate','progress','results'];
+function go(next){if(next!==1)stopCastingWheelCoast();step=next;const panels=['model','style','mood','generate','progress','results'];
  for(let i=0;i<panels.length;i++)$('panel-'+panels[i]).hidden=i!==Math.max(0,next-1);
  $('editorial-hero').hidden=next!==0;$('editorial-flow').hidden=next===0;
  document.body.classList.toggle('editorial-is-generating',next===5);
@@ -861,24 +861,64 @@ function updateCastCarouselControls(){
   $(nextId).disabled=max<4||track.scrollLeft>=max-3;
  }
 }
+// Mouse-wheel momentum only. Trackpad and touch retain their native scrolling.
+const castingReducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+const castingWheelMotion={frame:0,velocity:0,lastFrame:0,lastInput:0};
+function stopCastingWheelCoast(){
+ if(castingWheelMotion.frame)cancelAnimationFrame(castingWheelMotion.frame);
+ castingWheelMotion.frame=0;castingWheelMotion.velocity=0;castingWheelMotion.lastFrame=0;
+}
+function coastCastingWheel(now){
+ castingWheelMotion.frame=0;
+ if(document.hidden||step!==1||$('panel-model').dataset.modelMode!=='casting'||castingReducedMotion.matches){
+  stopCastingWheelCoast();return;
+ }
+ const track=$('editorial-cast-track'),max=Math.max(0,track.scrollWidth-track.clientWidth);
+ if(max<=4){stopCastingWheelCoast();return}
+ const dt=castingWheelMotion.lastFrame?Math.min(40,Math.max(1,now-castingWheelMotion.lastFrame)):16;
+ castingWheelMotion.lastFrame=now;
+ const before=track.scrollLeft;
+ const next=Math.max(0,Math.min(max,before+castingWheelMotion.velocity*dt));
+ track.scrollLeft=next;
+ castingWheelMotion.velocity*=Math.exp(-dt/245);
+ if(Math.abs(castingWheelMotion.velocity)>.035&&Math.abs(next-before)>.05)
+  castingWheelMotion.frame=requestAnimationFrame(coastCastingWheel);
+ else stopCastingWheelCoast();
+}
 function moveCastCarousel(direction,source){
+ stopCastingWheelCoast();
  const track=$(source==='saved'?'saved-character-gallery':'editorial-cast-track');if(!track)return;
  const first=track.querySelector('.atelier-reference:not([hidden])');
  const gap=parseFloat(getComputedStyle(track).columnGap)||12;
  const distance=(first?.getBoundingClientRect().width||220)+gap;
- track.scrollBy({left:direction*distance,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+ track.scrollBy({left:direction*distance,behavior:castingReducedMotion.matches?'instant':'smooth'});
 }
 function handleCastingWheel(event){
- // Wheel browsing belongs only to the portrait rail, never the pinned Create Character card.
- // Trackpad horizontal gestures, browser zoom, touch swipes and normal page scroll still work.
- if(step!==1||$('panel-model').dataset.modelMode!=='casting'||event.ctrlKey)return;
+ // Vertical wheel browses the portrait rail; never hijack native horizontal
+ // trackpad gestures, touch swipes, browser zoom or normal page scroll.
+ if(step!==1||$('panel-model').dataset.modelMode!=='casting'||event.ctrlKey||event.metaKey||innerWidth<=800)return;
  if(!event.deltaY||Math.abs(event.deltaX)>=Math.abs(event.deltaY))return;
- const track=$('editorial-cast-track'),max=track.scrollWidth-track.clientWidth;
+ const track=$('editorial-cast-track'),max=Math.max(0,track.scrollWidth-track.clientWidth);
  if(max<=4)return;
  const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?track.clientWidth:1);
- if((delta>0&&track.scrollLeft>=max-2)||(delta<0&&track.scrollLeft<=2))return;
+ if((delta>0&&track.scrollLeft>=max-2)||(delta<0&&track.scrollLeft<=2)){
+  stopCastingWheelCoast();return;
+ }
  event.preventDefault();
- track.scrollTo({left:Math.max(0,Math.min(max,track.scrollLeft+delta)),behavior:'instant'});
+ track.scrollLeft=Math.max(0,Math.min(max,track.scrollLeft+delta));
+ // Small, frequent trackpad deltas already have OS-provided inertia.
+ if(castingReducedMotion.matches||(event.deltaMode===0&&Math.abs(event.deltaY)<36)){
+  stopCastingWheelCoast();return;
+ }
+ const impulse=Math.max(-1.25,Math.min(1.25,delta*.0032)),now=performance.now();
+ const recent=now-castingWheelMotion.lastInput<120;
+ const carry=recent&&Math.sign(impulse)===Math.sign(castingWheelMotion.velocity)?castingWheelMotion.velocity*.35:0;
+ castingWheelMotion.velocity=Math.max(-1.65,Math.min(1.65,carry+impulse));
+ castingWheelMotion.lastInput=now;
+ if(!castingWheelMotion.frame){
+  castingWheelMotion.lastFrame=0;
+  castingWheelMotion.frame=requestAnimationFrame(coastCastingWheel);
+ }
 }
 function setupCastCarousel(){
  for(const [source,trackId,prevId,nextId] of [
@@ -893,6 +933,13 @@ function setupCastCarousel(){
  }
  if('MutationObserver' in window)new MutationObserver(updateCastCarouselControls)
   .observe($('saved-character-gallery'),{childList:true});
+ // New gestures, reduced motion and tab changes cancel the residual coast.
+ $('casting-reference-gallery').addEventListener('pointerdown',stopCastingWheelCoast,{passive:true});
+ $('editorial-cast-track').addEventListener('wheel',event=>{
+  if(Math.abs(event.deltaX)>Math.abs(event.deltaY))stopCastingWheelCoast();
+ },{passive:true});
+ castingReducedMotion.addEventListener('change',stopCastingWheelCoast);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopCastingWheelCoast()});
  // Wheel over the entire casting gallery advances portraits, not the pinned tile.
  $('casting-reference-gallery').addEventListener('wheel',handleCastingWheel,{passive:false});
  window.addEventListener('resize',updateCastCarouselControls);
