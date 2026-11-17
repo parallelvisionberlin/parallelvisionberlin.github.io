@@ -89,17 +89,17 @@ test('Inspiration hover frames use verified alternative photographs, not generat
     const scene=INSPIRATION_SCENES.find(item=>item.id===id);
     assert.ok(scene.examples.length>1&&scene.examples[0].cover!==scene.examples[1].cover);
   }
-  assert.match(js,/item\\?\\.examples\\?\\.length>1\\?item\\.examples\\[1\\]\\.cover/);
-  assert.match(js,/button\\.addEventListener\\('pointerenter'/);
-  assert.match(js,/overlay\\.addEventListener\\('load'/);
-  assert.match(js,/button\\.dataset\\.hoverFrame=nextCover/);
-  assert.match(js,/installHoverPreview\\(button,cover\\)/);
+  assert.match(js,/item\?\.examples\?\.length>1\?item\.examples\[1\]\.cover/);
+  assert.match(js,/button\.addEventListener\('pointerenter'/);
+  assert.match(js,/overlay\.addEventListener\('load'/);
+  assert.match(js,/button\.dataset\.hoverFrame=nextCover/);
+  assert.match(js,/installHoverPreview\(button,cover\)/);
   assert.match(js,/hover:hover/);
-  assert.doesNotMatch(js,/generateImage\\(|fetch\\(|\\/api\\//);
+  assert.doesNotMatch(js,/generateImage\(|fetch\(|\/api\//);
   assert.match(css,/pointer:fine/);
-  assert.match(css,/\\.pv-inspiration-hover-shot\\.is-ready/);
-  assert.match(css,/not\\(\\[aria-pressed="true"\\]\\)/);
-  assert.match(css,/transition-delay:\\.16s/);
+  assert.match(css,/\.pv-inspiration-hover-shot\.is-ready/);
+  assert.match(css,/not\(\[aria-pressed="true"\]\)/);
+  assert.match(css,/transition-delay:\.16s/);
   assert.match(css,/prefers-reduced-motion:reduce/);
 });
 
