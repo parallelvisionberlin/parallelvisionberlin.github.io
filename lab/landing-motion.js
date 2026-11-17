@@ -9,7 +9,9 @@
   const hoverDevice = window.matchMedia('(hover: hover) and (pointer: fine)');
   const cards = Array.from(document.querySelectorAll('.tool-card'));
   const heroToggle = document.getElementById('hero-motion-toggle');
-  let heroPausedByUser = Boolean(navigator.connection?.saveData);
+  // A cinematic still is the default. Load the Flesh Zero loop only after a visitor chooses Play.
+  // This avoids unsolicited motion and avoids downloading video on an ordinary page visit.
+  let heroPausedByUser = true;
   let heroVisible = true;
   let visibleCard = null;
   const reset = (video) => {
