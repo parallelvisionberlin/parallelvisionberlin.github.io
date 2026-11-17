@@ -122,9 +122,6 @@ function renderIdentityFooter(){
  }
  add.hidden=modelGroups.length===0||modelGroups.length>=MAX_EDITORIAL_CHARACTERS;
  add.disabled=submitting||files.model.length+savedRefs.model.length>=8;
- let note=footer.querySelector('.editorial-cast-limit-note');
- if(!note){note=document.createElement('span');note.className='editorial-cast-limit-note';note.textContent='Best results: up to 4 characters';footer.append(note)}
- note.hidden=modelGroups.length!==MAX_EDITORIAL_CHARACTERS;
 }
 function createModelGroup(name,origin='upload'){
  if(modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return null;
@@ -285,7 +282,7 @@ function renderFiles(){
 }
 function openModelPicker(target=null){
  if(submitting)return;
- if(!target&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS){status('Maximum 4 characters. Remove one to add another.',true);return}
+ if(!target&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return
  modelUploadTarget=target;$('model-files').click();
 }
 function addFiles(kind,list,groupId=null,label=null){
@@ -298,7 +295,10 @@ function addFiles(kind,list,groupId=null,label=null){
  const accepted=accept.slice(0,allowed);
  if(kind==='model'&&accepted.length){
   const group=groupId?findModelGroup(groupId):createModelGroup(label||'Your model '+(modelGroups.length+1));
-  if(!group){status('Maximum 4 characters. Remove one to add another.',true);return}
+  if(!group){
+   if(!groupId&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return;
+   status('The selected model is unavailable. Choose it again.',true);return;
+  }
   group.files.push(...accepted);
  }
  files[kind].push(...accepted);
@@ -341,7 +341,7 @@ async function toggleSample(button){
   }
   status(kind==='model'?'':'Reference removed.');return;
  }
- if(kind==='model'&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS){status('Maximum 4 characters. Remove one to add another.',true);return}
+ if(kind==='model'&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return
  const limit={model:8,outfit:3}[kind],num=files[kind].length+savedRefs[kind].length;
  if(num>=limit){status('You can select up to '+limit+' '+(kind==='model'?'model photos':'wardrobe references')+'.',true);return}
  button.disabled=true;
@@ -581,7 +581,7 @@ function addSavedCharacter(pack,refs){
  if(submitting)return;
  const name=pack.name.split('|').slice(2).join('|');
  if(modelGroups.some(group=>group.origin===pack.name)){status('That character is already in your cast. Use Add reference for another photo.',true);return}
- if(modelGroups.length>=MAX_EDITORIAL_CHARACTERS){status('Maximum 4 characters. Remove one to add another.',true);return}
+ if(modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return
  const available=4-files.model.length-savedRefs.model.length;
  const used=Object.values(files).reduce((n,part)=>n+part.length,0)+Object.values(savedRefs).reduce((n,part)=>n+part.length,0);
  if(Math.min(available,10-used)<=0){status('Four model reference photos maximum. Remove one before adding another model.',true);return}
