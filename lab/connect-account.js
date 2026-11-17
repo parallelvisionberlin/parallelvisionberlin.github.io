@@ -1,3 +1,4 @@
+import {openLabSignIn} from './auth-google.js?v=20261117-pv-google1';
 import {loadLabAccount} from './native-account.js?v=20261015-clerk-v2';
 import {createSessionRequest} from './session-request.js?v=20261015-direct-studio1';
 const $=id=>document.getElementById(id);
@@ -49,7 +50,7 @@ async function action(button,operation){
 }
 $('sign-in').addEventListener('click',()=>void action($('sign-in'),async()=>{
   if(!clerk)clerk=await loadLabAccount();
-  await clerk.openSignIn({
+  await openLabSignIn(clerk,{
     forceRedirectUrl:location.href,signUpForceRedirectUrl:location.href,
     appearance:{variables:{colorBackground:'#191919',colorForeground:'#f3f1ec',colorMutedForeground:'#b4b1a9'}}
   });
