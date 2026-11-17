@@ -1,4 +1,4 @@
-import './inspiration-catalog.js?v=20261117-hover1';
+import './inspiration-catalog.js?v=20261117-owner1';
 // Visual browsing only. No automatic Mood changes, uploads, credits or API calls.
 for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   const track=shell.querySelector('.pv-guest-cards,.lab-welcome-presets');
