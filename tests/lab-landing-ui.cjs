@@ -319,6 +319,22 @@ const server=http.createServer((req,res)=>{
   await page.evaluate(()=>scrollTo(0,0));
   if(width===1440&&height===1000||width===390)console.log('SILVER_LANDING_'+width+'='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
  }
+ // Normal-motion visitors should see the poster, with no background video request.
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.setViewportSize({width:1440,height:1000});
+ await page.goto('http://127.0.0.1:8766/lab/',{waitUntil:'networkidle'});
+ const manualHero=page.locator('#pv-hero-motion');
+ const manualToggle=page.locator('#hero-motion-toggle');
+ assert.equal(await manualHero.getAttribute('src'),null,'Homepage does not download or autoplay the Flesh Zero film by default');
+ assert.equal(await manualToggle.isVisible(),true,'Play control remains available for opted-in motion');
+ assert.equal(await manualToggle.getAttribute('aria-label'),'Play background video');
+ assert.equal(await manualHero.evaluate(el=>getComputedStyle(el).opacity),'0','Static poster remains visible before opt-in');
+ await page.route('https://d2ol7oe51mr4n9.cloudfront.net/**/*.mp4',route=>route.abort());
+ await manualToggle.click();
+ assert.equal(await manualHero.getAttribute('src'),ownerFilm,'An explicit Play request loads the original owner-supplied film');
+ await page.emulateMedia({reducedMotion:'reduce'});
+ assert.equal(await manualHero.getAttribute('src'),null,'Reduced motion returns to the static poster');
+ await page.unroute('https://d2ol7oe51mr4n9.cloudfront.net/**/*.mp4');
  await page.setViewportSize({width:1440,height:1000});
  await page.goto('http://127.0.0.1:8766/lab/',{waitUntil:'networkidle'});
  for(const card of await page.locator('.studio-tool-link').all()){
