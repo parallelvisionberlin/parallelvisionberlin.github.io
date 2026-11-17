@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="theme-color" content="#101114">
+<meta name="referrer" content="no-referrer"><title>Connecting · PV LAB</title>
+<link rel="icon" href="./branding/pv-mark.png" type="image/png">
+<style>
+html,body{margin:0;min-height:100%;background:#101114;color:#ededee;font-family:"Helvetica Neue",Arial,sans-serif}
+main{min-height:100dvh;display:flex;justify-content:center;align-items:center}
+.content{width:min(360px,calc(100vw - 56px));text-align:center;transform:translateY(-1.5vh)}
+.brand{width:clamp(114px,11vw,150px);height:auto;display:block;margin:0 auto}
+.byline{display:block;margin-top:9px;padding-left:.34em;font-size:7px;letter-spacing:.34em;font-weight:500;color:#9b9ba1}
+.track{width:min(152px,45vw);height:1px;margin:29px auto 0;background:#343538;overflow:hidden}
+.track:after{content:"";display:block;width:32%;height:100%;background:#d9dbdd;animation:pv-auth-loading 1.5s ease-in-out infinite alternate}
+.status{margin:22px auto 0;max-width:300px;font-size:11px;letter-spacing:.04em;line-height:1.65;color:#a8a8ac}
+.actions{display:none;margin-top:18px}.actions[open]{display:block}
+.actions a,.actions button{display:inline-block;margin:6px;padding:10px 14px;background:none;border:1px solid #666;color:#e5e4e2;border-radius:3px;text-decoration:none;font:12px Arial,sans-serif;cursor:pointer}
+@keyframes pv-auth-loading{from{transform:translateX(-100%)}to{transform:translateX(410%)}}
+@media(prefers-reduced-motion:reduce){.track:after{animation:none;width:100%}}
+</style>
+<script type="module" src="./auth-callback.js?v=20261117-pv-google1"></script>
+</head>
+<body><main><div class="content">
+<img class="brand" src="./branding/pvlab-wordmark-bold.svg" width="150" height="47" alt="PV LAB">
+<span class="byline">BY PARALLEL VISION</span>
+<div class="track" aria-hidden="true"></div>
+<p id="auth-callback-status" class="status" role="status" aria-live="polite">Completing secure sign-in…</p>
+<div id="auth-callback-actions" class="actions"><a href="./">Return to PV LAB</a><button id="auth-callback-retry" type="button">Sign in again</button></div>
+</div></main></body></html>
