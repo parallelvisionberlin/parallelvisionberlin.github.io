@@ -164,6 +164,15 @@ try{
    const pinnedAfter=await page.locator('.editorial-cast-pinned').boundingBox();
    assert.ok(Math.abs(pinnedAfter.x-pinnedBefore.x)<1&&Math.abs(pinnedAfter.y-pinnedBefore.y)<1,'The Create Character tile remains fixed when wheel is over it');
    assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,'Wheel does not select any model');
+   const afterInput=await castTrack.evaluate(el=>el.scrollLeft);
+   await page.waitForTimeout(150);
+   const duringCoast=await castTrack.evaluate(el=>el.scrollLeft);
+   assert.ok(duringCoast>afterInput+8,'Wheel continues easing after the last input: '+JSON.stringify({afterInput,duringCoast}));
+   await page.waitForTimeout(900);
+   const beforeRest=await castTrack.evaluate(el=>el.scrollLeft);
+   await page.waitForTimeout(130);
+   const afterRest=await castTrack.evaluate(el=>el.scrollLeft);
+   assert.ok(Math.abs(afterRest-beforeRest)<2,'Wheel fades naturally to a stop: '+JSON.stringify({beforeRest,afterRest}));
    await castTrack.evaluate(el=>el.scrollTo({left:0,behavior:'instant'}));
    await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<3);
   }
