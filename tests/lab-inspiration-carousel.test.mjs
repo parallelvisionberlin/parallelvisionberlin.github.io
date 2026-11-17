@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
 
 const read=path=>readFileSync(new URL('../lab/'+path,import.meta.url),'utf8');
 
@@ -65,6 +66,64 @@ test('both Inspiration rows support mouse-wheel browsing without trapping page s
   assert.match(js,/\},\{passive:false\}\)/);
   assert.match(html,/inspiration-carousel\.js\?v=20261019-keyboard2&inspirationCatalog=20261113-road-order1&wheelScroll=20261112v1/);
 });
+test('vertical wheel gestures glide by pixels, accumulate, and release the page at both ends',()=>{
+  const code=read('inspiration-carousel.js').replace(/^import [^\\n]+\\n/,'');
+  const frames=new Map();
+  let nextId=0,time=0;
+  const nav=()=>({hidden:false,disabled:false,addEventListener(){}});
+  const previous=nav(),next=nav();
+  const track={
+    clientWidth:600,scrollWidth:1500,scrollLeft:0,
+    style:{scrollBehavior:'',removeProperty(name){if(name==='scroll-behavior')this.scrollBehavior='';}},
+    events:{},
+    addEventListener(type,fn){this.events[type]=fn;},
+    querySelector(){return {getBoundingClientRect:()=>({width:220})};},
+    scrollBy({left}){this.scrollLeft+=left;}
+  };
+  const shell={
+    querySelector(selector){
+      if(selector==='.pv-guest-cards,.lab-welcome-presets')return track;
+      if(selector==='[data-inspiration-nav="prev"]')return previous;
+      if(selector==='[data-inspiration-nav="next"]')return next;
+      return null;
+    }
+  };
+  const document={querySelectorAll:()=>[shell],addEventListener(){}};
+  const requestAnimationFrame=fn=>{frames.set(++nextId,fn);return nextId;};
+  const cancelAnimationFrame=id=>frames.delete(id);
+  runInNewContext(code,{document,window:{addEventListener(){}},matchMedia:()=>({matches:false}),
+    requestAnimationFrame,cancelAnimationFrame,getComputedStyle:()=>({columnGap:'14px'}),
+    Element:class {},performance:{now:()=>time}});
+  const animate=(count=70)=>{
+    for(let i=0;i<count&&frames.size;i++){
+      const callbacks=[...frames.values()];frames.clear();time+=16.7;
+      for(const callback of callbacks)callback(time);
+    }
+  };
+  const wheel=(deltaY,deltaX=0)=>{
+    const event={deltaY,deltaX,deltaMode:0,defaultPrevented:false,ctrlKey:false,metaKey:false,
+      preventDefault(){this.defaultPrevented=true;}};
+    track.events.wheel(event);return event;
+  };
+  animate(1); // Initial arrow-state update.
+  assert.equal(wheel(100).defaultPrevented,true);
+  assert.equal(track.scrollLeft,0,'Wheel input initiates a frame, not an immediate card jump');
+  animate(1);
+  assert.ok(track.scrollLeft>0&&track.scrollLeft<100,'First frame is a partial easing step');
+  assert.equal(wheel(70).defaultPrevented,true);
+  animate();
+  assert.ok(Math.abs(track.scrollLeft-200.6)<1,'Two wheel inputs accumulate as pixel deltas');
+  assert.equal(frames.size,0,'Glide settles without a perpetual animation');
+  assert.equal(track.style.scrollBehavior,'','Native scroll behavior returns after the glide');
+  assert.equal(wheel(0,60).defaultPrevented,false,'Horizontal trackpad motion stays native');
+  track.scrollLeft=900;
+  assert.equal(wheel(80).defaultPrevented,false,'At right edge, wheel scrolls the page');
+  assert.equal(wheel(-80).defaultPrevented,true,'Wheel can return inward from right edge');
+  animate();
+  track.scrollLeft=0;
+  assert.equal(wheel(-80).defaultPrevented,false,'At left edge, wheel scrolls the page');
+});
+
 test('carousel navigation cannot invoke paid jobs or rewrite the current prompt',()=>{
   const code=read('inspiration-carousel.js'),looks=read('inspiration-looks.js');
   assert.doesNotMatch(code,/fetch\(|\/api\/|submit\(|dispatchEvent\(|\.click\(/);
