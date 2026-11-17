@@ -123,7 +123,7 @@ test('Identity casting uses the approved photographic layout rather than standal
  const identityCss=read('lab/full-editorial-identity-refresh.css');
  assert.match(identityCss,/scroll-snap-type:x mandatory/,'Casting supports a horizontal snap carousel');
  assert.match(identityCss,/position:sticky!important/,'Selection dock follows the active viewport');
- assert.match(html,/full-editorial-identity-refresh\.css\?v=20261118-cast-notice1/);
+ assert.match(html,/full-editorial-identity-refresh\.css\?v=20261118-inertial1/);
 
  const atelierCss=read('lab/full-editorial-atelier.css');
  assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
@@ -132,7 +132,7 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.ok(html.includes('full-editorial.js?v=20261118-cast-notice1'),'Full Editorial loads the current casting gallery');
+ assert.ok(html.includes('full-editorial.js?v=20261118-inertial1'),'Full Editorial loads the current casting gallery');
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);setIdentitySource\('casting'\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=step!==1/,'Composition remains visible throughout Identity');
@@ -322,4 +322,16 @@ test('Identity features the approved five new faces first without removing the r
  assert.doesNotMatch(js,/Best results: up to 4 characters/);
  const styles=read('lab/full-editorial-identity-refresh.css');
  assert.match(styles,/\.editorial-cast-limit-toast\.is-visible/);
+});
+
+test('Wheel momentum eases at desktop and native phone swipes do not snap',()=>{
+ const js=read('lab/full-editorial.js');
+ const css=read('lab/full-editorial-identity-refresh.css');
+ assert.match(js,/function coastCastingWheel\(now\)/);
+ assert.match(js,/Math\.exp\(-dt\/245\)/);
+ assert.match(js,/requestAnimationFrame\(coastCastingWheel\)/);
+ assert.match(js,/castingReducedMotion\.matches/);
+ assert.match(js,/addEventListener\('pointerdown',stopCastingWheelCoast/);
+ assert.match(css,/PVLAB_IDENTITY_CASTING_MOMENTUM_20261118/);
+ assert.match(css,/-webkit-overflow-scrolling:touch/);
 });
