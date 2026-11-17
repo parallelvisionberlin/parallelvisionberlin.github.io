@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-17T22:37:13.014Z",
+  "updatedAt": "2026-11-18",
   "handoffs": [
     {
       "id": "owner",
@@ -4292,7 +4292,7 @@
       "id": "mobile-editorial-image-swipe-20261118",
       "title": "PV LAB phone casting and Inspiration kinetic swipes",
       "component": "PV LAB Full Editorial Identity / Image Studio Inspiration",
-      "status": "in_review",
+      "status": "in_progress",
       "summary": "Mobile-only adjustment removes mandatory card snapping in Full Editorial casting, saved characters, Composition and Image Studio guest/signed-in Inspiration. Native iPhone kinetic horizontal swipe remains; no artificial velocity handler. Approved card dimensions, fixed footer, selection, prompts, credit and generation logic unchanged.",
       "nextAction": "Inspect scoped PR #1040 source/browser CI, merge when safe, verify Cloudflare Pages app check for the exact merge SHA, then confirm production CSS versions and actual iPhone/Instagram browser swipe feel. Do not claim deployment from merge.",
       "baselineSha": "255f9dfae6fa55e178271f19bdfd170f1cbb258f",
@@ -4325,12 +4325,12 @@
       "tests": [
         {
           "label": "Full Editorial and Image source/mobile browser assertions",
-          "result": "pending",
+          "result": "not_run",
           "scope": "Computed free-scroll/no snap at phone widths; unchanged presets, hero and controls."
         },
         {
           "label": "Required approved Image UI contract",
-          "result": "pending",
+          "result": "not_run",
           "scope": "GitHub Actions PR job, not yet confirmed passing."
         }
       ],
@@ -4350,7 +4350,8 @@
         "Do not confuse GitHub Pages with pvlab.studio production.",
         "Test iOS swipe separately from CSS computed properties."
       ],
-      "updatedAt": "2026-11-18T00:00:00+01:00"
+      "updatedAt": "2026-11-18",
+      "evidence": []
     }
   ]
 }
