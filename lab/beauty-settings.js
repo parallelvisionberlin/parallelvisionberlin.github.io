@@ -37,6 +37,8 @@ export function beautySettings({makeup:makeupId='editorial',hair:hairId='keep',s
 }
 export function validateBeautyQuote(quote,settings,sourceId,at=Date.now(),makeupSourceId=null){
  if(typeof quote?.id!=='string'||!quote.id||quote.id.length>100||!Number.isSafeInteger(quote.creditCost)||quote.creditCost<1||!Number.isFinite(quote.expiresAt)||quote.expiresAt<=at)throw Error('The server could not confirm a current credit price. Nothing was generated.');
+ const expectedCount=settings.referenceRoles?.length;
+ if(expectedCount!==(makeupSourceId?2:1))throw Error('The makeup reference did not match the selected look. Nothing generated.');
  const returned=quote.settings;
  if(!returned||returned.type!=='image'||returned.mode!=='image'||returned.engine!==settings.engine||returned.prompt!==settings.prompt||returned.resolution!==settings.resolution||returned.aspectRatio!==settings.aspectRatio||returned.referenceSourceIds?.length!==(makeupSourceId?2:1)||returned.referenceSourceIds[0]!==sourceId||(makeupSourceId&&returned.referenceSourceIds[1]!==makeupSourceId))throw Error('The price did not match this photograph and these settings. Nothing was generated.');
  return quote;
