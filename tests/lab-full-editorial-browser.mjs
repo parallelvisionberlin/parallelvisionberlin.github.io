@@ -426,11 +426,15 @@ try{
    }));
    assert.ok(fit.last<=fit.right+2,'All four selected thumbnails fit without clipping: '+JSON.stringify(fit));
   }
+  // Bring the fifth portrait into view before measuring so Playwright itself
+  // cannot create a page scroll while locating the button.
+  const fifthPortrait=page.locator('#casting-reference-gallery .atelier-reference').nth(4);
+  await fifthPortrait.scrollIntoViewIfNeeded();
   // Four is a silent selection limit, not an error that expands the page.
   const beforeFifth=await page.evaluate(()=>({scrollY,documentHeight:document.documentElement.scrollHeight,
    footerTop:document.getElementById('step-footer').getBoundingClientRect().top,
    compositionTop:document.getElementById('editorial-casting-controls').getBoundingClientRect().top}));
-  await page.locator('#casting-reference-gallery .atelier-reference').nth(4).click();
+  await fifthPortrait.click();
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),4,'Fifth distinct model is blocked');
   assert.equal(await page.locator('#editorial-status').textContent(),'','Four-character limit never creates an error line');
   const afterFifth=await page.evaluate(()=>({scrollY,documentHeight:document.documentElement.scrollHeight,
