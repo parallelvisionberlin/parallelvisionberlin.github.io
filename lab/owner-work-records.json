@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-15T18:29:13.917Z",
+  "updatedAt": "2026-11-17T22:37:13.014Z",
   "handoffs": [
     {
       "id": "owner",
@@ -64,6 +64,57 @@
     }
   ],
   "records": [
+    {
+      "id": "home-hero-still-first",
+      "title": "PV LAB homepage static hero by default",
+      "component": "PV LAB homepage hero",
+      "status": "needs_verification",
+      "summary": "Default hero is the existing approved Fashion After Fabric poster, not an automatically looping Flesh Zero video. The previously approved owner film remains available from the existing Play control.",
+      "nextAction": "Review focused landing/approved Image CI; merge after valid checks, then verify exact Cloudflare Pages production build and public homepage in normal-motion desktop and mobile browsers.",
+      "baselineSha": "02fedcf990e72b96ec8743f2892ff8619df95c00",
+      "branch": "fix/pvlab-static-hero-by-default-20261117",
+      "files": [
+        "lab/landing-motion.js",
+        "tests/lab-landing-ui.cjs",
+        "lab/WORK-STATE.md"
+      ],
+      "tests": [
+        {
+          "label": "Landing still-first, manual Play, reduced-motion regression",
+          "result": "not_run",
+          "scope": "New checks included in tests/lab-landing-ui.cjs. CI pending."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "This record describes a branch, not a merged commit, Cloudflare deployment or live browser verification."
+        ]
+      },
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not auto-play the Flesh Zero video on homepage entry or on scroll re-entry.",
+        "Do not alter the approved homepage copy, wordmark, navigation, gradient or CTA placements."
+      ],
+      "updatedAt": "2026-11-17T22:37:13.014Z",
+      "links": [
+        {
+          "label": "PR #1034",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1034"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "A reviewable branch changes only homepage hero autoplay default and focused landing UI assertions.",
+          "scope": "Public landing presentation and opt-in video loader; no customer data or payments.",
+          "limitations": [
+            "Not merged or verified in production."
+          ]
+        }
+      ]
+    },
     {
       "id": "owner-release-health-console-link",
       "title": "Owner navigation: Estado de PV LAB",
