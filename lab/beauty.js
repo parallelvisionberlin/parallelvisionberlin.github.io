@@ -120,6 +120,9 @@ async function generate(event){
   if(version!==epoch)return;
   if(!response.job?.id)throw Error('The server did not confirm a generation.');
   confirmedJob=response.job;clearQuote();activeId=response.job.id;jobPhase=response.job.status||'queued';savePending({jobId:activeId,quoteId:frozen.id,at:Date.now()});
+  // The paid request is now accepted. Hand off its actual progress immediately;
+  // do not keep the interface in Sending while History or result bytes load.
+  submitting=false;update();
   await showJob(response.job);void loadHistory();
  }catch(error){if(version===epoch){clearQuote();if(confirmedJob){activeId=activeStates.has(confirmedJob.status)?confirmedJob.id:'';if(!activeId)savePending(null);status('Your generation was received. '+error.message+' Use Refresh to check its result.',true);}else{uncertain=true;status(error.message+' Check Image history before starting another generation.',true);}}}
  finally{if(version===epoch){submitting=false;update();}}
