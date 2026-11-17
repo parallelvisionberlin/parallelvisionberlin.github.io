@@ -17,7 +17,7 @@ const server=http.createServer((req,res)=>{
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
 const base='http://127.0.0.1:'+server.address().port,browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox']});
 mkdirSync('test-results',{recursive:true});
-async function scenario({role='customer',width=1448,height=1086,malformed=false,delayed=false,submitFailure=false,motion='reduce'}={}){
+async function scenario({role='customer',width=1448,height=1086,malformed=false,delayed=false,submitFailure=false,pendingJob=false,motion='reduce'}={}){
  const context=await browser.newContext({viewport:{width,height},hasTouch:width<=390,reducedMotion:motion}),page=await context.newPage();
  page.setDefaultTimeout(10000);
  await context.addInitScript(value=>{window.__beautyRole=value},role);
@@ -49,7 +49,7 @@ async function scenario({role='customer',width=1448,height=1086,malformed=false,
   }else if(url.pathname==='/api/jobs'&&request.method()==='POST'){
    submits++;const body=request.postDataJSON();assert.equal(body.confirm,true);const q=quotes.find(q=>q.id===body.quoteId);assert.ok(q);
    if(submitFailure)return route.abort('failed');
-   const job={id:'job-'+submits,status:'completed',outputId:'output-'+submits,createdAt:Date.now(),settings:q.settings};jobs.unshift(job);result={job};
+   const job={id:'job-'+submits,status:pendingJob?'queued':'completed',outputId:pendingJob?null:'output-'+submits,createdAt:Date.now(),settings:q.settings};jobs.unshift(job);result={job};
   }else if(url.pathname==='/api/jobs')result={jobs,activeJobs:[]};
   else if(url.pathname.startsWith('/api/assets/')){
    const id=url.pathname.split('/').pop();
@@ -534,6 +534,40 @@ try{
   await page.locator('#beauty-generate').click();
   await page.locator('#beauty-result').waitFor({state:'visible'});
   assert.equal(s.submits,1);assert.equal(await page.locator('#beauty-processing').isVisible(),false);
+  assert.deepEqual(s.errors,[]);await s.context.close();
+ }
+
+ // Accepted jobs hand off to Results while the photo vanishes into a real-state
+ // cinematic stage. New edit cannot resubmit the prior quote or lose its source.
+ {
+  const s=await scenario({role:'customer',width:1440,pendingJob:true,motion:'no-preference'}),{page}=s;
+  await page.locator('#beauty-photo').setInputFiles(input);
+  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
+  await page.locator('#beauty-generate').click();
+  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent==='New edit');
+  assert.equal(await page.locator('#beauty-generate').isEnabled(),true,'Accepted job unlocks New edit');
+  assert.equal(await page.locator('#beauty-processing').isVisible(),true,'Live in-photo stage replaces source while generating');
+  assert.equal(await page.locator('#beauty-processing canvas.pv-beauty-fabric').count(),1,'Procedural textile mounts once');
+  await page.waitForTimeout(460);
+  assert.equal(await page.locator('#beauty-photo-preview').evaluate(node=>getComputedStyle(node).opacity),'0','Source photograph fades out behind stage');
+  await page.waitForFunction(()=>!!document.querySelector('#beauty-history button[data-beauty-pending]'));
+  await page.locator('#beauty-generate').click();
+  assert.equal(s.submits,1,'New edit does not send a second paid request');
+  assert.equal(await page.locator('#beauty-processing').isVisible(),false,'Stage leaves the photo deck after handoff');
+  assert.equal(await page.locator('#beauty-photo-preview').isVisible(),false,'New edit starts with empty photo canvas');
+  assert.equal(await page.locator('#beauty-history button[data-beauty-pending]').count(),1,'Old job remains in Results');
+  const newPhoto=await testPhoto(page,900,600,'#ad3020');
+  await page.locator('#beauty-photo').setInputFiles(newPhoto);
+  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'));
+  assert.equal(s.submits,1,'New photo price preparation is not another generation');
+  s.jobs[0].status='completed';s.jobs[0].outputId='output-1';
+  await page.locator('#beauty-refresh').click();
+  await page.waitForFunction(()=>!!document.querySelector('#beauty-history button img'));
+  assert.equal(await page.locator('#beauty-result').isVisible(),false,'Background completion does not replace new draft');
+  await page.locator('#beauty-history button').first().click();
+  await page.waitForFunction(()=>document.querySelector('#beauty-result').dataset.beforeSourceId==='photo-1');
+  assert.equal(await page.locator('#beauty-photo-preview').evaluate(el=>el.naturalWidth),900,'New draft is preserved independently of completed job');
+  assert.equal(s.submits,1);
   assert.deepEqual(s.errors,[]);await s.context.close();
  }
  // The homepage uses the real new menu, retaining its original Fashion URL.
