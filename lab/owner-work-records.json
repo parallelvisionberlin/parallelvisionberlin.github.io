@@ -86,7 +86,7 @@
         }
       ],
       "deployment": {
-        "state": "not_deployed",
+        "state": "not_started",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
         "limitations": [
           "This record describes a branch, not a merged commit, Cloudflare deployment or live browser verification."
@@ -97,7 +97,23 @@
         "Do not auto-play the Flesh Zero video on homepage entry or on scroll re-entry.",
         "Do not alter the approved homepage copy, wordmark, navigation, gradient or CTA placements."
       ],
-      "updatedAt": "2026-11-17T22:37:13.014Z"
+      "updatedAt": "2026-11-17T22:37:13.014Z",
+      "links": [
+        {
+          "label": "PR #1034",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1034"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "A reviewable branch changes only homepage hero autoplay default and focused landing UI assertions.",
+          "scope": "Public landing presentation and opt-in video loader; no customer data or payments.",
+          "limitations": [
+            "Not merged or verified in production."
+          ]
+        }
+      ]
     },
     {
       "id": "owner-release-health-console-link",
