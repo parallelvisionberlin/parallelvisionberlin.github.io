@@ -80,5 +80,5 @@ test('Inspiration gallery keeps complete portrait cards and scrolls within the d
   assert.match(css,/aspect-ratio:3\/4/);
   assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(js,/viewAll\.textContent='Explore all'/);
-  assert.match(js,/inspiration-catalog\.css\?v=20261111-full-portrait1/);
+  assert.match(js,/inspiration-catalog\.css\?v=20261117-hover1/);
 });
