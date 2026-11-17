@@ -69,6 +69,40 @@ test('approved road photographs form two coherent cards with five distinct edita
 });
 
 
+test('Inspiration hover frames use verified alternative photographs, not generated or reused card covers',()=>{
+  const js=read('inspiration-catalog.js');
+  const css=read('inspiration-catalog.css');
+  const original=read('studio.html');
+  const expected={
+    '90s-cinema':'mood-previews/90s-cinema-record-shop-20261010.webp',
+    'fisheye-2000':'mood-references/fisheye-2000/02-fisheye-flash.webp',
+    'hong-kong-nights':'mood-references/hong-kong-nights/plaza-grill.webp',
+    dreamcore:'welcome-cards/cloud-spa.webp',
+    '80s-film':'welcome-cards/sun-fade.webp'
+  };
+  for(const [id,file] of Object.entries(expected)){
+    assert.ok(js.includes("'"+id+"':'./"+file+"'"),id+' has a registered hover shot');
+    assert.ok(existsSync(new URL('../lab/'+file,import.meta.url)),id+' hover photo must exist');
+    assert.ok(!original.includes('src="./'+file+'"'),id+' cover and hover shot must differ');
+  }
+  for(const id of ['lost-highway','desert-stop']){
+    const scene=INSPIRATION_SCENES.find(item=>item.id===id);
+    assert.ok(scene.examples.length>1&&scene.examples[0].cover!==scene.examples[1].cover);
+  }
+  assert.match(js,/item\?\.examples\?\.length>1\?item\.examples\[1\]\.cover/);
+  assert.match(js,/button\.addEventListener\('pointerenter'/);
+  assert.match(js,/overlay\.addEventListener\('load'/);
+  assert.match(js,/button\.dataset\.hoverFrame=nextCover/);
+  assert.match(js,/installHoverPreview\(button,cover\)/);
+  assert.match(js,/hover:hover/);
+  assert.doesNotMatch(js,/generateImage\(|fetch\(|\/api\//);
+  assert.match(css,/pointer:fine/);
+  assert.match(css,/\.pv-inspiration-hover-shot\.is-ready/);
+  assert.match(css,/not\(\[aria-pressed="true"\]\)/);
+  assert.match(css,/transition-delay:\.16s/);
+  assert.match(css,/prefers-reduced-motion:reduce/);
+});
+
 test('Inspiration gallery keeps complete portrait cards and scrolls within the dialog',()=>{
   const css=read('inspiration-catalog.css');
   const js=read('inspiration-catalog.js');
@@ -80,5 +114,5 @@ test('Inspiration gallery keeps complete portrait cards and scrolls within the d
   assert.match(css,/aspect-ratio:3\/4/);
   assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(js,/viewAll\.textContent='Explore all'/);
-  assert.match(js,/inspiration-catalog\.css\?v=20261111-full-portrait1/);
+  assert.match(js,/inspiration-catalog\.css\?v=20261117-hover1/);
 });
