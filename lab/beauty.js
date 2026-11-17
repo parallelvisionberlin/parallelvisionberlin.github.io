@@ -190,7 +190,7 @@ function clearPrivate(){
  epoch++;revision++;photoSelectionRevision++;clearQuote();clearTimeout(pollTimer);makeupSources.clear();jobPhase='';file=null;source=null;photoWidth=0;photoHeight=0;activeId='';submitting=false;uncertain=false;profile=null;preparing=false;
  if(photoUrl)URL.revokeObjectURL(photoUrl);if(resultUrl)URL.revokeObjectURL(resultUrl);if(compareUrl)URL.revokeObjectURL(compareUrl);photoUrl='';resultUrl='';compareUrl='';$('beauty-result').dataset.beforeUrl='';$('beauty-result').dataset.beforeSourceId='';
  for(const value of blobs.values())URL.revokeObjectURL(value);blobs.clear();$('beauty-history').replaceChildren();
- $('beauty-form').reset();$('beauty-ratio').querySelector('option[value="auto"]').textContent='Auto';$('beauty-photo-preview').removeAttribute('src');$('beauty-photo-preview').hidden=true;$('beauty-photo-empty').hidden=false;$('beauty-change-photo').textContent='Add photo';
+ $('beauty-form').reset();$('beauty-ratio').querySelector('option[value="4:5"]').disabled=false;$('beauty-ratio').querySelector('option[value="auto"]').textContent='Auto';$('beauty-photo-preview').removeAttribute('src');$('beauty-photo-preview').hidden=true;$('beauty-photo-empty').hidden=false;$('beauty-change-photo').textContent='Add photo';
  $('beauty-result-image').removeAttribute('src');$('beauty-download').removeAttribute('href');$('beauty-result').hidden=true;$('beauty-example-label').hidden=false;$('beauty-workspace').classList.remove('has-result');$('beauty-empty-results').hidden=false;
  $('beauty-reset-pending')?.setAttribute('hidden','');status('');menu.update({signed:false});$('beauty-signin').hidden=false;syncHeaderAccess();update();
 }
