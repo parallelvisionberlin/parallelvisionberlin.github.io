@@ -456,7 +456,7 @@ try{
   await page.locator('#beauty-photo').setInputFiles(portrait);
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
   assert.equal(s.quotes.at(-1).settings.aspectRatio,'2:3');
-  assert.deepEqual(await page.locator('#beauty-model option').allTextContents(),['Seedream 5 Pro','Seedream Flash']);
+  assert.deepEqual(await page.locator('#beauty-model option').allTextContents(),['Seedream 5 Pro','Seedream 5.5','Seedream Flash']);
   const illustrative=page.getByText('Illustrative directions. Actual results may vary.',{exact:true});
   await illustrative.scrollIntoViewIfNeeded();assert.equal(await illustrative.isVisible(),true);
   await page.locator('#beauty-generate').click();await page.locator('#beauty-result').waitFor({state:'visible'});
