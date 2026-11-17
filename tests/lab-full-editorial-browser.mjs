@@ -107,6 +107,16 @@ try{
   assert.match(await page.locator('.editorial-create-character').getAttribute('href'),/createCharacter=1/);
   const carouselState=await castTrack.evaluate(el=>({width:el.clientWidth,full:el.scrollWidth,count:el.querySelectorAll('.atelier-reference').length}));
   assert.equal(carouselState.count,10,'All ten casting references remain available');
+  if(width<=800){
+   const rails=await page.evaluate(()=>['#editorial-cast-track','#editorial-composition-choices','#saved-character-gallery'].map(selector=>{
+    const computed=getComputedStyle(document.querySelector(selector));
+    return {selector,snap:computed.scrollSnapType,behavior:computed.scrollBehavior};
+   }));
+   for(const rail of rails){
+    assert.equal(rail.snap,'none','Phone rail must not snap: '+rail.selector);
+    assert.equal(rail.behavior,'auto','Phone rail uses native touch momentum: '+rail.selector);
+   }
+  }
   assert.deepEqual(await castTrack.locator('.atelier-reference').evaluateAll(cards=>cards.map(card=>card.querySelector('span')?.textContent.trim())),
    ['06 / SLATE','07 / COBALT','08 / PEARL','09 / ACID','10 / BLOSSOM','01 / SILVER','02 / BRONZE','03 / COPPER','04 / IVORY','05 / NIGHT'],
    'Five featured portraits appear first, with all original numbers and remaining models retained');
