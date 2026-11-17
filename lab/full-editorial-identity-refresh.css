@@ -788,3 +788,28 @@ body.editorial-web #panel-model[data-model-mode="saved"] #casting-reference-gall
   scroll-behavior:auto!important;
  }
 }
+
+/* PVLAB_IDENTITY_STABLE_COMPOSITION_20261117
+   Desktop Identity only: moderately taller portraits, steady selection dock.
+   Do not change mobile dimensions, photos, workflow or generation behavior. */
+@media (min-width:801px) and (min-height:761px) {
+ body.editorial-web #panel-model .editorial-cast-pinned,
+ body.editorial-web #panel-model .editorial-cast-rail {
+  height:clamp(274px,calc(31svh + 16px),310px)!important;
+ }
+ body.editorial-web .flow-main:has(#panel-model:not([hidden])) #step-footer {
+  box-sizing:border-box!important;
+  height:72px!important;min-height:72px!important;max-height:72px!important;
+  margin:8px 0 0!important;padding:8px 0!important;
+  align-items:center!important;overflow:visible!important;
+ }
+ body.editorial-web #editorial-footer-cast #editorial-cast-selection {
+  box-sizing:border-box!important;
+  height:56px!important;min-height:56px!important;max-height:56px!important;
+  align-items:center!important;overflow:visible!important;
+ }
+ body.editorial-web #editorial-footer-cast #model-thumbs.editorial-selected-cast {
+  box-sizing:border-box!important;height:56px!important;min-height:56px!important;
+  max-height:56px!important;align-items:center!important;
+ }
+}
