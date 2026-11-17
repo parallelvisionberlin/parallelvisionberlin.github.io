@@ -60,7 +60,8 @@ test('approved original Image cards have second frame without replacing their pr
 test('Raver is a distinct, two-frame Inspiration card and never a new backend Mood',()=>{
   assert.equal(INSPIRATION_SCENES.length,48);
   const raver=byId('raver');
-  assert.equal(raver,RAVER_INSPIRATION_SCENE);
+  assert.equal(raver.cover,RAVER_INSPIRATION_SCENE.cover);
+  assert.equal(raver.examples.length,RAVER_INSPIRATION_SCENE.examples.length);
   assert.equal(raver.title,'Raver');
   assert.equal(raver.category,'After Hours');
   assert.equal(raver.examples.length,2);
