@@ -78,7 +78,20 @@ async function createLabAccount(){
       ui:{ClerkUI:window.__internal_ClerkUICtor},
       signInFallbackRedirectUrl:location.href,
       signUpFallbackRedirectUrl:location.href,
-      ...(studioClerk?{appearance:{elements:{
+      ...(studioClerk?{appearance:{
+        // Keep the approved PV LAB identity visible in Clerk's sign-in UI.
+        // Removing Clerk's own badge is a separate paid Dashboard setting.
+        options:{
+          logoImageUrl:'https://pvlab.studio/branding/pvlab-wordmark-bold.svg',
+          logoLinkUrl:'https://pvlab.studio/'
+        },
+        variables:{
+          colorBackground:'#191919',colorForeground:'#f3f1ec',colorMutedForeground:'#b4b1a9',
+          colorPrimary:'#eeeae2',colorPrimaryForeground:'#151515',colorNeutral:'#f3f1ec',
+          colorInput:'#232323',colorInputForeground:'#f3f1ec',colorBorder:'#41413d',
+          fontFamily:'"DM Sans", Arial, sans-serif',borderRadius:'0.625rem'
+        },
+        elements:{
         socialButtonsBlockButton__github:{display:'none'},
         socialButtonsIconButton__github:{display:'none'},
         socialButtons:{gridTemplateColumns:'minmax(0,1fr)'}
