@@ -1,3 +1,4 @@
+import {openLabSignIn} from './auth-google.js?v=20261117-pv-google1';
 import {loadLabAccount} from './native-account.js?v=20261015-clerk-v2';
 import {createSessionRequest} from './session-request.js?v=20261015-first-login1';
 
@@ -65,7 +66,7 @@ $('sign-in').addEventListener('click',async()=>{
   if(busy)return;
   try{
     if(!clerk)clerk=await loadLabAccount();
-    await clerk.openSignIn({
+    await openLabSignIn(clerk,{
       forceRedirectUrl:location.href,signUpForceRedirectUrl:location.href,
       appearance:{variables:{colorBackground:'#191919',colorForeground:'#f3f1ec',colorMutedForeground:'#b4b1a9'}}
     });

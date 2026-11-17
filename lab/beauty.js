@@ -1,3 +1,4 @@
+import {openLabSignIn} from './auth-google.js?v=20261117-pv-google1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createSessionRequest} from './session-request.js?v=20261015-canonical-studio1';
 import {createAccountMenu} from './account-menu.js?v=20261030-robin-partner1';
@@ -76,7 +77,7 @@ async function prepareQuote(){
  finally{if(version===epoch){preparing=false;update();if(edit!==revision)scheduleQuote();}}
 }
 async function signIn(){
- try{clerk=clerk||await loadLabAccount();const url=location.href;clerk.openSignIn({forceRedirectUrl:url,signInForceRedirectUrl:url,signUpForceRedirectUrl:url});}
+ try{clerk=clerk||await loadLabAccount();const url=location.href;openLabSignIn(clerk,{forceRedirectUrl:url,signInForceRedirectUrl:url,signUpForceRedirectUrl:url});}
  catch(error){status('Sign-in could not load. '+error.message,true);}
 }
 async function generate(event){

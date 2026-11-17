@@ -1,3 +1,4 @@
+import {openLabSignIn} from './auth-google.js?v=20261117-pv-google1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {prepareMoodPrompt} from './moods.js?hkRealPhotos=20261018v2&filmOptics=2&app=5&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&hkRefs=20261023two1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&hkCinema=20261025v1&dreamBlurExposure=20261102v2&softPastelV2=20261111a&fallenAngel=20261112a';
@@ -58,7 +59,7 @@ export function createAppMoodGeneration(){
     previewBlob(id){return api('/api/jobs/'+encodeURIComponent(id)+'/preview',{blob:true});},
     cancel(){revision++;},
     async onAccountChange(listener){return (await identity()).addListener(listener);},
-    async signIn(){const user=await identity();if(!user.isSignedIn)user.openSignIn();return user.isSignedIn;},
+    async signIn(){const user=await identity();if(!user.isSignedIn)openLabSignIn(user);return user.isSignedIn;},
     async prepare(file,mood,direction,moodVariant='original'){
       const preparationStarted=performance.now();
       const stamp=++revision,user=await identity();

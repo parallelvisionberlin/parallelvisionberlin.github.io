@@ -1,3 +1,4 @@
+import {openLabSignIn} from './auth-google.js?v=20261117-pv-google1';
 // Browser-only casting presentation; native app keeps its existing layout.
 if(!window.__PV_LAB_NATIVE__)document.body.classList.add('editorial-web');
 import {takeModelPhotos} from './editorial-model-handoff.js?v=20261102-eight-photos1';
@@ -466,7 +467,7 @@ function editorialShotPlan(index,total,references,base){
  if(prompt.length>(base.engine==='seedreamlite'?3000:5000))throw Error('The combined shot brief exceeds the selected model prompt limit. Shorten the creative text.');
  return {references:shotReferences,settings:{...base,prompt,referenceRoles:shotReferences.map(({file,role})=>({role,name:nameFor(file),note:''}))}};
 }
-async function signIn(){if(!clerk)clerk=await loadLabAccount();const href=location.href;clerk.openSignIn({forceRedirectUrl:href,signInForceRedirectUrl:href,signUpForceRedirectUrl:href})}
+async function signIn(){if(!clerk)clerk=await loadLabAccount();const href=location.href;openLabSignIn(clerk,{forceRedirectUrl:href,signInForceRedirectUrl:href,signUpForceRedirectUrl:href})}
 async function sync(){
  const prev=sessionKey;const next=clerk?.session?.id||'';
  if(prev&&prev!==next){epoch++;uploaded.clear();quote=null;uncertain=false;submitting=false;wipeResults();resetAll();}

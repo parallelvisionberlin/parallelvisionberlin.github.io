@@ -1,3 +1,4 @@
+import {openLabSignIn} from './auth-google.js?v=20261117-pv-google1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {loadLabAccount} from './native-account.js?v=20261014-custom-domain1&studioAuth=20261015-1';
 export function createFashionStudio(root=document,{sessionClient=null,onNavigate=null,publicPreview=()=>false}={}){
@@ -407,7 +408,7 @@ async function wSelect(pack,ref,button,caption){
   }
 }
 wOpen.addEventListener('click',async()=>{
-  if(!authenticated){clerk?.openSignIn();return}
+  if(!authenticated){openLabSignIn(clerk);return}
   if(busy||preparing){status('Finish the current Fashion operation first.',true);return}
   if(wDialog.open)return;
   wPacks=[];wPack=null;wTab='collections';wCreating=false;wSearch.value='';wClearDraft();wClearThumbs();
@@ -771,7 +772,7 @@ $('fashion-more').addEventListener('click',()=>void loadHistory(true));
 $('download').addEventListener('click',()=>{
   if(!resultUrl)return;const a=document.createElement('a');a.href=resultUrl;a.download='pv-lab-fashion.png';document.body.append(a);a.click();a.remove();
 });
-$('signin').addEventListener('click',()=>clerk?.openSignIn());
+$('signin').addEventListener('click',()=>openLabSignIn(clerk));
 $('reload').addEventListener('click',()=>location.reload());
 function lock(){
   wClose();wSelected.hidden=true;wSelected.textContent='';
@@ -813,7 +814,7 @@ if(onNavigate)root.addEventListener('click',event=>{
 for(const type of ['click','submit'])root.addEventListener(type,event=>{
   if(!publicPreview())return;
   if(type==='click'&&!event.target.closest('#quote,#check-fashn,#refresh-history,#fashion-more'))return;
-  event.preventDefault();event.stopImmediatePropagation();clerk?.openSignIn();
+  event.preventDefault();event.stopImmediatePropagation();openLabSignIn(clerk);
 },true);
 update();
 const ready=(async()=>{

@@ -67,7 +67,9 @@ test('Studio and guest login both surface safe Clerk diagnostics without changin
 
 async function accountFixture(t,{ui='ok',session='ok'}={}){
   const saved={window:globalThis.window,document:globalThis.document,location:globalThis.location};
-  const client={isSignedIn:true,session:{id:'sess_Synthetic'},load:async()=>{
+  let loadConfig;
+  const client={isSignedIn:true,session:{id:'sess_Synthetic'},load:async config=>{
+    loadConfig=config;
     if(session==='error')throw Error('private session detail');
   }};
   const win={Clerk:client};
@@ -83,7 +85,7 @@ async function accountFixture(t,{ui='ok',session='ok'}={}){
   Object.assign(globalThis,{window:win,document:doc,location:{hostname:'pvlab.studio',href:'https://pvlab.studio/studio?tool=image'}});
   t.after(()=>{for(const [key,value]of Object.entries(saved)){if(value===undefined)delete globalThis[key];else globalThis[key]=value;}});
   const account=await import('../lab/native-account.js?fixture='+Math.random());
-  return {account,client};
+  return {account,client,getLoadConfig:()=>loadConfig};
 }
 test('account bootstrap shares the same initialized Clerk and preserves its existing session',async t=>{
   const {account,client}=await accountFixture(t);
@@ -91,6 +93,15 @@ test('account bootstrap shares the same initialized Clerk and preserves its exis
   assert.equal(one,two);
   assert.equal(await one,client);
   assert.equal((await two).session.id,'sess_Synthetic');
+});
+test('PV LAB uses the existing approved logo and dark appearance for its Clerk UI',async t=>{
+  const {account,getLoadConfig}=await accountFixture(t);
+  await account.loadLabAccount();
+  const appearance=getLoadConfig().appearance;
+  assert.equal(appearance.options.logoImageUrl,'https://pvlab.studio/branding/pvlab-wordmark-bold.svg');
+  assert.equal(appearance.options.logoLinkUrl,'https://pvlab.studio/');
+  assert.equal(appearance.variables.colorBackground,'#191919');
+  assert.equal(appearance.elements.socialButtonsBlockButton__github.display,'none');
 });
 for(const ui of ['error','empty'])test('UI '+ui+' is classified separately from SDK and session',async t=>{
   const {account}=await accountFixture(t,{ui});
