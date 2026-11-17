@@ -1,0 +1,57 @@
+/* ALTER only: cinematic progress over the user's existing source photo.
+   No crop, hero, editor geometry, credit or provider changes. */
+#beauty-processing[hidden]{display:none!important}
+#beauty-processing{
+ position:absolute;inset:0;z-index:9;pointer-events:none;overflow:hidden;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ gap:22px;padding:28px;text-align:center;color:#f4f4f1;
+ background:linear-gradient(155deg,rgba(8,9,10,.82),rgba(9,11,13,.64) 49%,rgba(7,8,9,.86));
+ isolation:isolate;
+}
+#beauty-processing::before{
+ content:"";position:absolute;inset:-10%;z-index:-1;
+ background:repeating-linear-gradient(180deg,transparent 0,transparent 5px,rgba(255,255,255,.025) 6px);
+ opacity:.65;pointer-events:none;
+}
+#beauty-processing .beauty-processing-visual{
+ position:relative;width:min(220px,72%);height:95px;overflow:hidden;
+ border:1px solid rgba(255,255,255,.18);border-radius:4px;
+ background:linear-gradient(100deg,rgba(255,255,255,.035),rgba(255,255,255,.01) 55%,rgba(255,255,255,.06));
+ box-shadow:0 22px 80px rgba(0,0,0,.25);
+}
+#beauty-processing .beauty-processing-visual::before,
+#beauty-processing .beauty-processing-visual::after{
+ content:"";position:absolute;left:10px;right:10px;height:1px;background:rgba(255,255,255,.3);
+}
+#beauty-processing .beauty-processing-visual::before{top:12px}
+#beauty-processing .beauty-processing-visual::after{bottom:12px}
+#beauty-processing .beauty-processing-sweep{
+ position:absolute;top:0;bottom:0;left:-42%;width:42%;
+ background:linear-gradient(90deg,transparent,rgba(255,255,255,.05) 25%,rgba(255,255,255,.28) 51%,rgba(255,255,255,.05) 75%,transparent);
+ filter:blur(8px);animation:alter-processing-sweep 3.3s ease-in-out infinite;
+}
+#beauty-processing .beauty-processing-track{
+ position:absolute;left:12px;right:12px;top:50%;height:1px;
+ background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);
+ box-shadow:0 0 9px rgba(255,255,255,.3);
+}
+#beauty-processing .beauty-processing-copy{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:370px}
+#beauty-processing .beauty-processing-copy small{
+ font-size:10px;font-weight:600;letter-spacing:.23em;color:rgba(255,255,255,.62)
+}
+#beauty-processing .beauty-processing-copy strong{
+ font-size:clamp(22px,2vw,32px);line-height:1.1;font-weight:550;letter-spacing:-.035em;
+}
+#beauty-processing .beauty-processing-copy span{
+ font-size:12px;line-height:1.5;color:rgba(255,255,255,.74);
+}
+#beauty-processing[data-phase="uncertain"] .beauty-processing-sweep{animation:none;left:29%;opacity:.25}
+@keyframes alter-processing-sweep{0%{transform:translateX(0);opacity:.12}48%{opacity:.9}100%{transform:translateX(620px);opacity:.12}}
+@media(max-width:640px){
+ #beauty-processing{gap:15px;padding:18px}
+ #beauty-processing .beauty-processing-visual{height:70px;width:min(175px,70%)}
+ #beauty-processing .beauty-processing-copy strong{font-size:23px}
+}
+@media(prefers-reduced-motion:reduce){
+ #beauty-processing .beauty-processing-sweep{animation:none;left:28%;opacity:.35}
+}
