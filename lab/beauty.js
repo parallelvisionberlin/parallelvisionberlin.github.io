@@ -204,7 +204,12 @@ function beginNewEdit(){
  if(pending?.jobId===previousId)savePending({...pending,detached:true});
  revision++;photoSelectionRevision++;clearQuote();
  if(photoUrl)URL.revokeObjectURL(photoUrl);
- photoUrl='';file=null;source=null;photoWidth=0;photoHeight=0;
+ if(resultUrl)URL.revokeObjectURL(resultUrl);
+ if(compareUrl)URL.revokeObjectURL(compareUrl);
+ photoUrl='';resultUrl='';compareUrl='';resultRevision++;
+ file=null;source=null;photoWidth=0;photoHeight=0;
+ $('beauty-result').dataset.beforeUrl='';$('beauty-result').dataset.beforeSourceId='';
+ $('beauty-result-image').removeAttribute('src');$('beauty-download').removeAttribute('href');
  $('beauty-form').reset();
  $('beauty-ratio').querySelector('option[value="4:5"]').disabled=false;
  $('beauty-ratio').querySelector('option[value="auto"]').textContent='Auto';
