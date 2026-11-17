@@ -154,6 +154,15 @@ try{
    const pinnedAfter=await page.locator('.editorial-cast-pinned').boundingBox();
    assert.ok(Math.abs(pinnedAfter.x-pinnedBefore.x)<1&&Math.abs(pinnedAfter.y-pinnedBefore.y)<1,'The Create Character tile remains fixed when wheel is over it');
    assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,'Wheel does not select any model');
+   const afterInput=await castTrack.evaluate(el=>el.scrollLeft);
+   await page.waitForTimeout(150);
+   const duringCoast=await castTrack.evaluate(el=>el.scrollLeft);
+   assert.ok(duringCoast>afterInput+8,'Wheel carries momentum after input stops: '+JSON.stringify({afterInput,duringCoast}));
+   await page.waitForTimeout(900);
+   const beforeRest=await castTrack.evaluate(el=>el.scrollLeft);
+   await page.waitForTimeout(130);
+   const afterRest=await castTrack.evaluate(el=>el.scrollLeft);
+   assert.ok(Math.abs(afterRest-beforeRest)<2,'Wheel eases to rest instead of abrupt halt: '+JSON.stringify({beforeRest,afterRest}));
    await castTrack.evaluate(el=>el.scrollTo({left:0,behavior:'instant'}));
    await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<3);
   }
@@ -245,6 +254,7 @@ try{
     assert.ok(Math.abs(geometry.captionLeft)<=2&&Math.abs(geometry.captionRight)<=2,'Caption shading reaches both card edges without an inset rectangle');
     assert.equal(geometry.imageBorder,'0px','No second border inside the portrait');
     assert.equal(geometry.columns,2,'Pinned tile and gallery make two tracks');assert.ok(geometry.secondLeft>geometry.firstLeft);
+    assert.equal(await page.locator('#editorial-cast-track').evaluate(el=>getComputedStyle(el).scrollSnapType),'none','Phone character carousel has no mandatory snap');
     assert.ok(Math.abs(geometry.thirdTop-geometry.top)<=3.5,'Casting portraits remain in one horizontal row, including the 3px hover lift');
     assert.ok(geometry.top<320,'Real casting appears near the top: '+JSON.stringify(geometry));
     assert.ok(Math.abs(geometry.footerBottom-844)<2,'Continue stays at viewport bottom');
