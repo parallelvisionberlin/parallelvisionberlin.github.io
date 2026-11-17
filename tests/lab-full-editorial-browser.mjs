@@ -168,11 +168,17 @@ try{
    await page.waitForTimeout(150);
    const duringCoast=await castTrack.evaluate(el=>el.scrollLeft);
    assert.ok(duringCoast>afterInput+8,'Wheel continues easing after the last input: '+JSON.stringify({afterInput,duringCoast}));
-   await page.waitForTimeout(900);
+   await page.waitForTimeout(700);
    const beforeRest=await castTrack.evaluate(el=>el.scrollLeft);
    await page.waitForTimeout(130);
    const afterRest=await castTrack.evaluate(el=>el.scrollLeft);
    assert.ok(Math.abs(afterRest-beforeRest)<2,'Wheel fades naturally to a stop: '+JSON.stringify({beforeRest,afterRest}));
+   await page.mouse.wheel(0,100000);
+   await page.waitForFunction(()=>{const el=document.getElementById('editorial-cast-track');return el.scrollWidth-el.clientWidth-el.scrollLeft<2});
+   const noPageScroll=await page.evaluate(()=>scrollY);
+   await page.mouse.wheel(0,240);
+   await page.waitForTimeout(100);
+   assert.ok(Math.abs(await page.evaluate(()=>scrollY)-noPageScroll)<1,'Wheel at right edge does not scroll the page');
    await castTrack.evaluate(el=>el.scrollTo({left:0,behavior:'instant'}));
    await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<3);
   }
