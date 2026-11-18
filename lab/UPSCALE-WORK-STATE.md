@@ -7,7 +7,12 @@
 - Browser and server read only container/index ranges, not whole camera files. Reuse, results and downloads use owner-issued expiring native streaming links instead of giant browser blobs. Large output copying retains private archive quota checks.
 - Reclaim abandoned upload reservations and abort unfinished multipart data on account closure. Auth, owner isolation, explicit quote confirmation and duplicate paid submission guards remain intact.
 - Local release check: 187/187 tests pass, including 21 MiB upload/31-second quote, quota concurrency, privacy, cleanup, same-resolution enhancement and 8K pricing. Virtual 20 GiB metadata fixture reads under 1 KB; this is not a physical 20 GiB upload/provider test.
-- Candidate publication, browser parity and live signed-in upload/quote still pending. No paid generation submitted.
+- PR #1050 candidate dadb4394fde684df326d70b56fe477a89a00afa9; merge 6c03c4002447fbed1c8f6104f92d8a482fdd3240. Candidate video/billing, approved Image and static checks passed. Desktop/phone parity and Assets steps 134830080206 passed, including native streamed History playback.
+- Separate compact-layout job timed out in Chromium dependency installation before tests; broad inline/full UI sequence retains documented baseline stall. No gate disabled. Shared CSS is unchanged and matches the previously verified release exactly.
+- Guarded Worker release 44312975419 succeeded: resources, variables and secret names preserved, no migrations. Exact public health marker videoUpscaleInputs=20261118-large-video-2.
+- Cloudflare Pages exact-merge check 134832282186 SUCCESS. Scoped verifier LIVE_VERIFIED for lab.js, SHA256 772d8a4d94fa074f9eb172aa2ddab6857f9ea22b82f5f27b2d291a23ad907bde. Native video module, metadata helper and multipart helper bytes match merged source.
+- Real signed-in owner session uploaded genuine synthetic QuickTime MOV: 22020096 bytes, 300 seconds, 640x360/30fps. Native preview reports duration=300. Proteus 1080p quote 3174 credits and ByteDance 8K quote 18219 credits both reached explicit confirmation; neither was confirmed. Test source cleared and 1080p restored.
+- Status: deployed and verified for interface, private upload and price review. No paid provider output or physical 20 GiB transfer tested. Existing tabs can refresh once. No further action for this repair.
 
 ## Shared design and MOV / 2026-11-18
 - Baseline main: 844dbc091464273f5e772232ed27b41c24de85c3. Branch fix/upscaler-shared-design-mov-20261118.

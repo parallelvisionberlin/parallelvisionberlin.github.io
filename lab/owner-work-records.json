@@ -4545,11 +4545,11 @@
       "id": "upscaler-maximum-video-capacity",
       "title": "Maximum provider video Upscaler capacity",
       "component": "PV LAB Upscaler",
-      "status": "needs_verification",
+      "status": "deployed",
       "summary": "Owner replaces the previous 20 MB and 30-second source restrictions: bounded multipart MP4/MOV uploads up to the existing 20 GiB private archive capacity; Topaz up to five minutes; ByteDance has no imposed duration cutoff and includes 6K/8K. Preserve the shared design, authoritative metadata, explicit quote confirmation and financial safeguards.",
-      "nextAction": "Publish the reviewed candidate, verify guarded Worker and exact Cloudflare Pages release, then test a real signed-in large upload and quote without paid submission.",
+      "nextAction": "None for this capacity repair. Refresh an existing tab once. No paid provider output has been tested.",
       "baselineSha": "db094023c73ba452ec73c30b971a05c59a836a78",
-      "reviewedSha": null,
+      "reviewedSha": "dadb4394fde684df326d70b56fe477a89a00afa9",
       "branch": "fix/upscaler-maximum-video-limits-20261118",
       "files": [
         ".github/workflows/pv-lab-video-upscale.yml",
@@ -4575,6 +4575,10 @@
         {
           "label": "Scoped work state",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
+        },
+        {
+          "label": "Merged capacity repair",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1050"
         }
       ],
       "tests": [
@@ -4590,20 +4594,59 @@
         },
         {
           "label": "Browser and production",
-          "scope": "New browser regression includes native streamed History playback. CI and real signed-in publication remain pending.",
-          "result": "not_run"
+          "scope": "Desktop/phone Image/Video parity, MOV and HEVC fallback, explicit quote locks and native streamed History passed in Actions. Real owner session uploaded a 21 MiB 300-second MOV, reached Proteus 1080p quote (3174 credits) and ByteDance 8K quote (18219 credits), then cleared the source. Neither paid confirmation was clicked.",
+          "result": "passed",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44312529645/job/134830080206"
+        },
+        {
+          "label": "Separate compact/full UI workflow limitations",
+          "scope": "The compact browser job timed out during Chromium dependency installation, before testing. The separate broad inline/full UI sequence retains its documented baseline stall. Shared CSS is byte-identical to the prior verified release; the new scoped desktop/phone parity and Assets steps passed. No gates were disabled.",
+          "result": "documented"
         }
       ],
       "deployment": {
-        "state": "pending",
+        "state": "verified",
         "environment": "Cloudflare Pages pvlab-studio and parallel-vision-lab Worker",
-        "sourceSha": null,
+        "sourceSha": "6c03c4002447fbed1c8f6104f92d8a482fdd3240",
         "limitations": [
           "No paid provider job submitted.",
           "A full 20 GiB physical upload is not tested."
-        ]
+        ],
+        "observedAt": "2026-11-18",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=upscale"
       },
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "deployment",
+          "summary": "Guarded migration-free Worker release succeeded; production bindings, variables and secret names preserved. Cloudflare Pages exact-merge check 134832282186 succeeded.",
+          "scope": "Frontend and backend publication",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44312975419/job/134831621426",
+          "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Read-only scoped verifier LIVE_VERIFIED for lab.js v20261118-large-video2, SHA256 772d8a4d94fa074f9eb172aa2ddab6857f9ea22b82f5f27b2d291a23ad907bde. Native video module, range reader, multipart helper and unchanged shared CSS all match merged source bytes.",
+          "scope": "pvlab.studio frontend bytes",
+          "source": "https://pvlab.studio/studio",
+          "limitations": []
+        },
+        {
+          "kind": "production_health",
+          "summary": "Public Worker health reports exact videoUpscaleInputs marker 20261118-large-video-2.",
+          "scope": "Published backend capability",
+          "source": "https://parallel-vision-lab.parallelvision.workers.dev/health",
+          "limitations": []
+        },
+        {
+          "kind": "signed_in_production",
+          "summary": "Owner session: genuine synthetic 640x360/30fps QuickTime MOV, 22020096 bytes and 300 seconds. Multipart source accepted and independently quoted at Proteus 1080p and ByteDance 8K. Native player duration=300. No paid confirmation; test source cleared from editor. Heading and 64px source box retain shared Image/Video geometry.",
+          "scope": "Actual large MOV upload, metadata and price-review behavior",
+          "source": "https://pvlab.studio/studio?tool=upscale",
+          "limitations": [
+            "No physical 20 GiB transfer or paid provider processing tested."
+          ]
+        }
+      ],
       "blockers": [],
       "doNotRepeat": [
         "Preserve the owner-locked Image/Video geometry and CSS.",
@@ -4611,7 +4654,7 @@
         "Do not claim a full legacy UI suite pass; its separate baseline stall remains documented.",
         "Preserve the unrelated invalid alter-makeup-reference-transfer work record."
       ],
-      "updatedAt": "2026-11-18T14:00:00Z"
+      "updatedAt": "2026-11-18"
     }
   ]
 }
