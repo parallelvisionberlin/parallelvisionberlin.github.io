@@ -53,7 +53,7 @@ import {NANO21_MODEL,NANO21_STANDARD_MICROS,nano21Request,nano21ImagePart} from 
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
 import {falUpscaleParameters,storedImageDimensions,setFalUpscaleDimensions,falUpscaleEstimateMicros,buildFalUpscaleInput} from './fal-upscale.mjs';
-import {videoSourceUploadRoute,abandonVideoUpload,VIDEO_UPLOAD_PENDING} from './video-source-upload.mjs';
+import {videoSourceUploadRoute,abandonVideoUpload,isVideoUploadReservation} from './video-source-upload.mjs';
 import {videoUpscaleParameters,inspectUpscaleMp4,inspectUpscaleVideoRanges,quotedVideoUpscale,videoUpscaleEstimateMicros,buildVideoUpscaleInput,VIDEO_UPSCALE_MAX_BYTES} from './video-upscale.mjs';
 import {SOUL_PRO_MODELS,soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
 import {findFalRequest} from './fal-recovery.mjs';
@@ -629,7 +629,7 @@ async function sourceReferenced(env,owner,id) {
 async function pruneSource(env,owner,id) {
   if(await sourceReferenced(env,owner,id))return;
   const a=await first(env,"SELECT * FROM assets WHERE id=? AND owner_id=? AND kind='source'",id,owner);if(!a)return;
-  if(a.mime===VIDEO_UPLOAD_PENDING){await abandonVideoUpload(env,a,{run});return;}
+  if(isVideoUploadReservation(a.mime)){await abandonVideoUpload(env,a,{run});return;}
   await env.LAB_MEDIA.delete(a.object_key);
   if(a.mime?.startsWith('image/'))await env.LAB_MEDIA.delete(galleryThumbnailKey(a));
   await run(env,'DELETE FROM assets WHERE id=? AND owner_id=?',id,owner);
