@@ -1,0 +1,30 @@
+name: PV LAB customer safety
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pvlab-customer-safety-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  customer-safety:
+    name: PV LAB customer safety
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify safety runner fails closed
+        run: node --test tests/pvlab-release-safety.test.mjs
+      - name: Check auth, payments, credits, uploads and generation with isolated fixtures
+        run: node scripts/pvlab-release-safety.mjs

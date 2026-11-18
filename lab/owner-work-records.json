@@ -4612,6 +4612,96 @@
         "Preserve the unrelated invalid alter-makeup-reference-transfer work record."
       ],
       "updatedAt": "2026-11-18T14:00:00Z"
+    },
+    {
+      "id": "pvlab-customer-safety-gate",
+      "title": "Require customer-safety checks before publishing changes",
+      "component": "PV LAB release safeguards",
+      "status": "needs_verification",
+      "summary": "Prepare one no-secret customer-safety check on every PR/main/merge-group, a fail-closed local runner and an unactivated main ruleset requiring that check and approved Image contract. Repair only the Google auth test fixture property setup; no application changes. Complete generation staging and browser integration remain separate prerequisites, not claimed complete. Integrated latest main 6c03c400 and its large-video/multipart contracts before publication of this draft.",
+      "nextAction": "Inspect exact-head hosted checks, then obtain a user decision before merge and activation of the prepared repository rules. Activation needs administration access unavailable through this connector. Follow .github/PVLAB-RELEASE-SAFETY.md for staged browser, isolated-environment and recovery work.",
+      "baselineSha": "6c03c4002447fbed1c8f6104f92d8a482fdd3240",
+      "reviewedSha": null,
+      "branch": "codex/pvlab-customer-safety-gate-20261118",
+      "files": [
+        ".github/workflows/pvlab-customer-safety.yml",
+        ".github/pvlab-customer-safety.json",
+        ".github/pvlab-main-ruleset.json",
+        ".github/PVLAB-RELEASE-SAFETY.md",
+        "scripts/pvlab-release-safety.mjs",
+        "tests/pvlab-release-safety.test.mjs",
+        "tests/lab-auth-google.test.mjs",
+        "lab/owner-work-records.json"
+      ],
+      "links": [
+        {
+          "label": "Prepared manual Worker release guard",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1049"
+        },
+        {
+          "label": "Existing phone/deck/browser repairs",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/934"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Relevant baseline",
+          "result": "failed",
+          "scope": "236 selected source/mock checks on exact db094023 fixtures: 235 pass, one Google fixture fails assigning getter-only crypto before reaching its assertions. Sparse-checkout omissions were completed before recording these results."
+        },
+        {
+          "label": "Customer-safety candidate",
+          "result": "passed",
+          "scope": "236 existing source/mock checks pass after descriptor-safe auth fixture setup; final exact candidate also adds a host descriptor-restoration regression. Repeat all checks on exact remote commit."
+        },
+        {
+          "label": "Runner fault propagation",
+          "result": "passed",
+          "scope": "Fails on test failure, launch error, signal, missing/empty/duplicate/unsafe tests; executes every listed test and checks prepared required-check configuration."
+        },
+        {
+          "label": "Activation status",
+          "result": "documented",
+          "scope": "main reports protected=false and repository rulesets is empty. Branch-protection administration read returns 403. No ruleset activation or deployment attempted."
+        },
+        {
+          "label": "Latest-main integration",
+          "result": "passed",
+          "scope": "Integrated 6c03c400 large-video/multipart contracts without application delta. Exact-main file fixtures: 245 total, 244 pass, same crypto fixture failure. Candidate adds descriptor-restoration regression: 246/246 pass. Runner checks: 4/4 pass. Exact remote commit revalidation remains required."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Proposed GitHub main protection; local/mocked safety checks",
+        "sourceSha": null,
+        "limitations": [
+          "Prepared JSON does not activate GitHub protection.",
+          "Existing billing sandbox is not a complete isolated generation backend.",
+          "No actual customer checkout, paid generation or production behavior validated by this change."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Workflow triggers every PR, main push and merge-group with read-only contents permission and no service secrets. Ruleset payload requires exact checks from GitHub Actions app 15368, no bypass actors, PRs and latest-main validation.",
+          "scope": "Reviewable release-control preparation, not activated production controls.",
+          "source": ".github/PVLAB-RELEASE-SAFETY.md",
+          "limitations": [
+            "Unrelated existing ALTER record prevents canonical full work-index validation/upsert; preserve it and validate this record individually."
+          ]
+        }
+      ],
+      "blockers": [
+        "Hosted exact-head safety validation and user merge decision remain required.",
+        "Applying repository rules needs separate user approval and GitHub administration access.",
+        "Browser and full isolated-generation staging remain incomplete; source/mock checks do not guarantee production behavior."
+      ],
+      "doNotRepeat": [
+        "Do not claim that adding a YAML/JSON file activates merge protection.",
+        "Do not deploy a staging Worker/database or change production settings without a user decision.",
+        "Reuse PR #934 and #1049 instead of overlapping their existing edits."
+      ],
+      "updatedAt": "2026-11-18T13:21:22Z"
     }
   ]
 }
