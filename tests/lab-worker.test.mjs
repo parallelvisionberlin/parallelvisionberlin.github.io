@@ -30,7 +30,7 @@ class DB {
  }
  async batch(statements){this.db.exec('BEGIN');try{const a=[];for(const s of statements)a.push(await s.run());this.db.exec('COMMIT');return a;}catch(e){this.db.exec('ROLLBACK');throw e;}}
 }
-function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',FAL_KEY:'fal-synthetic-test-key',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length};},async head(k){return objects.has(k)?{size:objects.get(k).length}:null;},async delete(k){objects.delete(k);}}};return{env,objects};}
+function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',FAL_KEY:'fal-synthetic-test-key',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length,arrayBuffer:async()=>v.slice().buffer};},async head(k){return objects.has(k)?{size:objects.get(k).length}:null;},async delete(k){objects.delete(k);}}};return{env,objects};}
 let calls=[],quotedRequest=null,createCount=0,providerState='queued',createMode='ok',maxPrice='2.700000';
 let samRequestCounter=0;
 let uploadedReference=null,falState='IN_QUEUE',falSubmitCount=0,falResult422=false,falSubmitMode='ok',falVideoReject=false;
@@ -2659,4 +2659,19 @@ test('Seedream 5.5 binds exact text/edit models and eight references without a p
     assert.equal(calls.length,before,'Unsupported model controls fail before provider requests');
     assert.equal((await(await req(env,'/api/session')).json()).config.seedream55Enabled,true);
   }finally{maxPrice=oldPrice;}
+});
+
+test('MOV and MP4 video-upscale uploads quote equally without dispatching or creating jobs',async()=>{
+  const {env}=fixture();const before=falSubmitCount;let mp4Quote;
+  for(const [extension,mime] of [['mp4','video/mp4'],['mov','video/quicktime']]){
+    const raw=readFileSync(new URL('./fixtures/video-upscale/valid-1s.'+extension,import.meta.url));
+    const upload=await req(env,'/api/reference-uploads',{method:'POST',raw,headers:{'Content-Type':mime,'X-Filename':'camera.'+extension}});
+    assert.equal(upload.status,201,await upload.clone().text());const sourceId=(await upload.json()).id;
+    assert.equal(env.LAB_DB.db.prepare('SELECT mime FROM assets WHERE id=?').get(sourceId).mime,mime);
+    const quote=await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:{type:'video',engine:'video-upscale',mode:'upscale',videoUpscaleEngine:'proteus',resolution:'1080p'}}});
+    assert.equal(quote.status,200,await quote.clone().text());const result=await quote.json();
+    assert.equal(result.settings.duration,1);assert.equal(result.requiresPriceReview,true);
+    if(mp4Quote)assert.equal(result.creditCost,mp4Quote.creditCost);else mp4Quote=result;
+  }
+  assert.equal(falSubmitCount,before);assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,0);
 });

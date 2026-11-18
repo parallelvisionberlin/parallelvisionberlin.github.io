@@ -1,5 +1,19 @@
 # PV LAB Premium Upscale work state
 
+## Shared design and MOV / 2026-11-18
+- Baseline main: 844dbc091464273f5e772232ed27b41c24de85c3. Branch fix/upscaler-shared-design-mov-20261118.
+- Owner supersedes the earlier Image-only compact sizing: one design in Image and Video, 44px desktop/36px phone heading, no kicker/intro paragraph, 60px model cards and 64px persistent source uploader.
+- Source sidebar and preview both accept the selected media type by drag/drop; keep media/settings on mode switches.
+- MOV was rejected by frontend format validation and an MP4-only backend quote check, although the existing reference upload and provider support MOV.
+- Accept modern QuickTime MOV with its original MIME, preserve it in History reuse/comparison, and read the existing authoritative ISO BMFF timing. No conversion/recompression is introduced.
+- Retain duration, size, upscale-factor, quote confirmation, ownership, safety and duplicate-submission safeguards.
+- Local genuine H.264 QuickTime fixture and owner upload/quote regression pass with the same metadata/credit quote as MP4, no provider dispatch.
+- Local combined backend/pricing/Image contracts: 135/137 initially; parser error wording expectation corrected. Remaining Beauty Studio quote test failure is in unrelated existing functionality.
+- Shared heading/source/card bounds visually inspected in the isolated browser; exact equality across mode switch.
+- Desktop/phone CI, release and real-account verification pending. No paid jobs submitted.
+- Next: pass affected browser checks, publish exact reviewed code, verify frontend bytes and Worker deployment separately.
+
+
 ## Interrupted request feedback / 2026-11-08
 - Objective: explain why a loaded Image Upscaler can have a disabled action and provide direct access to the existing Queue.
 - Verified source baseline: main `d004356feba9533693a38e8b43c7c8ba6e3a4177`.

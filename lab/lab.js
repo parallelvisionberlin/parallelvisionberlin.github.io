@@ -47,7 +47,7 @@ import { PROVIDER_IMAGE_LIMIT, QWEN_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSC
 import {modelImageInputIssue} from './image-model-limits.js?v=20261111-qwen-auto-copy1';
 import {createImageSubmitHandoff,IMAGE_SUBMIT_COOLDOWN_MS} from './image-submit-handoff.js?v=20261031-repeat-cooldown1';
 import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261111-restore-result-strip2';
-import {createVideoUpscaler} from './video-upscale.js?v=20261102-upload-validation1';
+import {createVideoUpscaler} from './video-upscale.js?v=20261118-mov-shared-source1';
 import {createSeedreamReferencePreparer,seedreamPrepKind} from './seedream-reference-prep.js?v=20261111-qwen-auto-copy1';
 import {createReferencePackStudio} from './reference-pack-studio.js?v=20261018-gallery-create2';
 import {createVideoStartFrameMaker,attachVideoReferenceBrowserDrop,attachVideoReferenceTileDrop} from './video-start-frame-maker.js?v=20261031-reference-tile-drop1';
@@ -3961,6 +3961,7 @@ function bindDrop(zone,input,handler,enabled=()=>true){for(const name of ['drage
 bindDrop('soul-base-drop','soul-base-image',async files=>{if(files.length!==1)throw new Error('Choose exactly one base image.');await setImage(files[0]);});
 bindDrop('drop','image',async files=>{if(files[0])await setImage(files[0]);});
 bindDrop('upscale-canvas','image',async files=>{if(tool==='upscale'&&videoUpscaler?.mode()!=='video'&&files[0])await setImage(files[0]);},()=>tool==='upscale'&&videoUpscaler?.mode()!=='video');
+bindDrop('pv-upscale-source-upload','image',async files=>{if(files[0])await setImage(files[0]);},()=>tool==='upscale'&&videoUpscaler?.mode()!=='video');
 bindDrop('last-drop','last-image',async files=>{if(files[0])await setLastImage(files[0]);});
 // Image keeps the shared upload handler. Video gets a dedicated tile drop
 // handler below, so one drop cannot create duplicate reference attachments.

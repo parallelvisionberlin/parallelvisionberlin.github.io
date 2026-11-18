@@ -1959,8 +1959,8 @@ async function route(request,env,ctx) {
       if(data.lastSourceId||data.referenceSourceIds?.length||data.transferSourceIds?.length)
         fail(400,'Choose one original video, without extra references.');
       const primary=await source(env,owner,data.sourceId);
-      if(primary.mime!=='video/mp4'||!primary.bytes||primary.bytes>VIDEO_UPSCALE_MAX_BYTES)
-        fail(400,'Choose an MP4 video no larger than 20 MiB.');
+      if(!['video/mp4','video/quicktime'].includes(primary.mime)||!primary.bytes||primary.bytes>VIDEO_UPSCALE_MAX_BYTES)
+        fail(400,'Choose an MP4 or MOV video no larger than 20 MiB.');
       const object=await env.LAB_MEDIA.get(primary.object_key);
       if(!object)fail(404,'Source video is missing from private storage.');
       const bytes=new Uint8Array(await object.arrayBuffer());
@@ -1975,7 +1975,7 @@ async function route(request,env,ctx) {
         'fal-video-upscale-v1',String(estimate/1000000),JSON.stringify({model:quoted.model,input,source:{id:primary.id,bytes:primary.bytes}}));
       return json({id,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,creditCost,expiresAt:expires,
         settings:quoted,provider:'fal.ai',priceIsEstimate:true,requiresPriceReview:true,
-        notice:'Estimated from verified MP4 duration, frame timing and output resolution. Includes provider-rounding allowance. No upscaling job has been submitted.'});
+        notice:'Estimated from verified video duration, frame timing and output resolution. Includes provider-rounding allowance. No upscaling job has been submitted.'});
     }
     if(p.provider==='fal'&&p.type==='image'&&p.mode==='upscale'){
       if(!env.FAL_KEY)fail(503,'fal.ai upscaling is not configured on this Worker.');

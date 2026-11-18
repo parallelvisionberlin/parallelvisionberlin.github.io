@@ -34,9 +34,10 @@ try{
    // lab.js is intentionally mocked in this test. Mirror setTool('upscale')
    // hiding of unrelated Video Studio inputs, otherwise their offscreen
    // content creates a fake scrollbar in BOTH Image and Video modes.
-   for(const id of ['video-model-control','video-modes','prompt','save','generation-help','upscale-price','upscale-notice-slot']){
+   for(const id of ['duration-control','resolution-control','ratio-control','prompt-label','video-model-control','video-modes','prompt','save','generation-help','upscale-price','upscale-notice-slot']){
      document.getElementById(id)?.style.setProperty('display','none','important');
    }
+   document.getElementById('upscale-scale-control').hidden=false;
    document.getElementById('upscale-model-display').hidden=false;
    document.getElementById('upscale-model-menu').hidden=false;
    const {createVideoUpscaler}=await import('/lab/video-upscale.js');
@@ -60,18 +61,22 @@ try{
   assert.equal(await page.locator('#upscale-canvas').isVisible(),true,label+': Image canvas visible');
   assert.equal(await page.locator('#upscale-model-menu [data-upscale-engine]').first().isVisible(),true,label+': original Image model cards');
   assert.equal(await page.locator('#upscale-model-menu [data-video-upscale-model]').first().isVisible(),false,label+': Video cards hidden in Image');
-  // Image now keeps its compact inspector in both source states. Video keeps
-  // its existing card design; switching back must restore each mode exactly.
+  // Owner-approved shared design: the same heading, source and model sizes in both modes.
   const emptyImageScroll=await page.evaluate(()=>{
     const body=document.querySelector('#app>.workspace>.controls>.controls-body');
     return {scrollHeight:body.scrollHeight,clientHeight:body.clientHeight};
   });
   const imageCard=await page.locator('#upscale-model-menu [data-upscale-engine]').first().boundingBox();
+  const heading=await page.locator('.pv-upscale-workspace-intro h2').boundingBox();
+  const sourceBox=await page.locator('#pv-upscale-source-upload').boundingBox();
   await page.locator('[data-video-upscale-tab="video"]').click();
   const videoCard=await page.locator('#upscale-model-menu [data-video-upscale-model]').first().boundingBox();
   assert.ok(imageCard&&videoCard,label+': both modes have a real model card');
-  assert.ok(imageCard.height>=44&&imageCard.height<55,label+': Image uses the approved compact card');
-  assert.ok(videoCard.height>=57,label+': Video retains its existing larger card');
+  assert.deepEqual(await page.locator('.pv-upscale-workspace-intro h2').boundingBox(),heading,label+': heading stays fixed');
+  assert.deepEqual(await page.locator('#pv-upscale-source-upload').boundingBox(),sourceBox,label+': source box stays fixed');
+  assert.equal(await page.locator('.pv-upscale-workspace-intro p').isVisible(),false,label+': no redundant intro text');
+  assert.ok(imageCard.height>=57,label+': Image uses the shared larger model card');
+  assert.ok(Math.abs(imageCard.height-videoCard.height)<=1,label+': modes use identical model card heights');
   assert.ok(Math.abs(imageCard.x-videoCard.x)<=2&&Math.abs(imageCard.width-videoCard.width)<=2,label+': modes retain the shared inspector bounds');
   assert.equal(await page.locator('.controls-body > .parameter-grid').isVisible(),false,label+': no Image enlargement row in Video');
   assert.equal(await page.locator('.controls-body > #format-control').isVisible(),false,label+': no Image format row in Video');
@@ -151,7 +156,7 @@ try{
   // A rejected source must report a visible error rather than looking inert.
   const rejectedChooser=page.waitForEvent('filechooser');
   await page.locator('#pv-upscale-hero-upload').click();
-  await (await rejectedChooser).setFiles({name:'unsupported.mov',mimeType:'video/quicktime',buffer:Buffer.alloc(256,1)});
+  await (await rejectedChooser).setFiles({name:'unsupported.avi',mimeType:'video/x-msvideo',buffer:Buffer.alloc(256,1)});
   assert.equal(await page.locator('#pv-video-upscale-message').isVisible(),true,label+': rejected upload has a visible message');
   assert.match(await page.locator('#pv-video-upscale-message').innerText(),/MP4/,label+': rejected upload explains accepted format');
   assert.equal(await page.locator('#pv-video-upscale-source').isVisible(),false,label+': invalid input did not load');
@@ -204,28 +209,28 @@ try{
   const mp4=[...readFileSync('tests/fixtures/video-upscale/valid-1s.mp4')];
   await page.evaluate(bytes=>{
     const data=new DataTransfer();data.items.add(new File([new Uint8Array(bytes)],'dropped.mp4',{type:'video/mp4'}));
-    document.getElementById('upscale-canvas').dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:data}));
+    document.getElementById('pv-upscale-source-upload').dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:data}));
   },mp4);
   await page.waitForFunction(()=>document.getElementById('pv-video-upscale-source').duration===1&&!document.getElementById('generate').disabled);
   assert.equal(await page.locator('#pv-video-upscale-source').isVisible(),true,label+': dropped MP4 preview');
   const droppedURL=await page.locator('#pv-video-upscale-source').getAttribute('src');
   await page.evaluate(()=>{
-    const data=new DataTransfer();data.items.add(new File([new Uint8Array(256)],'unsupported.mov',{type:'video/quicktime'}));
-    document.getElementById('upscale-canvas').dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:data}));
+    const data=new DataTransfer();data.items.add(new File([new Uint8Array(256)],'unsupported.avi',{type:'video/x-msvideo'}));
+    document.getElementById('pv-upscale-source-upload').dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:data}));
   });
   assert.match(await page.locator('#pv-video-upscale-message').innerText(),/MP4/);
   assert.equal(await page.locator('#pv-video-upscale-source').getAttribute('src'),droppedURL,label+': rejected drop preserves original');
   await page.locator('#clear').click();
-  await selectVideo('tests/fixtures/video-upscale/valid-1s.mp4');
+  await selectVideo('tests/fixtures/video-upscale/valid-1s.mov');
   await page.waitForFunction(()=>document.getElementById('pv-video-upscale-source').duration===1&&!document.getElementById('generate').disabled);
   assert.equal(await page.locator('#pv-video-upscale-message').textContent(),'',label+': same file can be selected again');
   // Isolated API stubs verify the existing two-click price review and the
   // uncertain-response lock. No network/provider generation can occur here.
   await page.evaluate(()=>{
     window.__upscaleApiCalls=[];
-    window.__upscaleApiMock=async(path)=>{
+    window.__upscaleApiMock=async(path,options)=>{
       window.__upscaleApiCalls.push(path);
-      if(path==='/api/reference-uploads')return {id:'mock-source'};
+      if(path==='/api/reference-uploads'){if(options.headers['Content-Type']!=='video/quicktime')throw Error('MOV must keep its real MIME');return {id:'mock-source'};}
       if(path==='/api/quotes')return {id:'mock-quote',provider:'fal.ai',creditCost:10,
         settings:{engine:'video-upscale',videoUpscaleEngine:'bytedance',resolution:'1080p',duration:1},
         expiresAt:Date.now()+60000,priceIsEstimate:true,requiresPriceReview:true};

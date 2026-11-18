@@ -27,12 +27,12 @@ export function videoUpscaleParameters(value,{fail}){
     referenceSourceIds:[],referenceRoles:[]};
 }
 
-// MP4 containers contain authoritative video duration, sample timing and
+// MP4 and modern QuickTime MOV share ISO BMFF boxes for video duration, sample timing and
 // dimensions. Do not price an arbitrary client-provided duration or frame rate.
 // Reject unsupported/fragmented media instead of guessing and undercharging.
 export function inspectUpscaleMp4(data){
   const bytes=data instanceof Uint8Array?data:new Uint8Array(data);
-  if(bytes.byteLength<128||text4(bytes,4)!=='ftyp')throw Error('Use a valid, unfragmented MP4 video.');
+  if(bytes.byteLength<128||text4(bytes,4)!=='ftyp')throw Error('Use a valid, unfragmented MP4 or MOV video.');
   const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
   const u32=p=>view.getUint32(p);
   const boxes=(from,to)=>{
@@ -50,7 +50,7 @@ export function inspectUpscaleMp4(data){
   };
   const inside=(parent,type)=>parent?boxes(parent.start,parent.end).find(b=>b.type===type):null;
   const root=boxes(0,bytes.length),moov=root.find(b=>b.type==='moov');
-  if(!moov||inside(moov,'mvex'))throw Error('This MP4 has no readable video index. Export as a standard MP4 (H.264).');
+  if(!moov||inside(moov,'mvex'))throw Error('This video has no readable index. Export as a standard MP4 (H.264).');
   let found=null;
   for(const trak of boxes(moov.start,moov.end).filter(b=>b.type==='trak')){
     const mdia=inside(trak,'mdia'),hdlr=inside(mdia,'hdlr');
@@ -80,7 +80,7 @@ export function inspectUpscaleMp4(data){
     !Number.isFinite(found.fps)||found.fps<8||found.fps>60.1||found.frames>2000||
     !Number.isInteger(found.width)||!Number.isInteger(found.height)||
     found.width<160||found.height<160||found.width>7680||found.height>7680)
-    throw Error('Choose an MP4 between 0.5 and 30 seconds, 8 to 60 fps, with a valid video track.');
+    throw Error('Choose an MP4 or MOV between 0.5 and 30 seconds, 8 to 60 fps, with a valid video track.');
   return found;
 }
 
