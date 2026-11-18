@@ -10,7 +10,7 @@ test('both Image Inspiration entrances share the approved Chrome Couture and Clo
   assert.equal((html.match(/class="inspiration-carousel-shell/g)||[]).length,2);
   assert.equal((html.match(/data-guest-mood=/g)||[]).length,8);
   assert.equal((html.match(/data-welcome-mood=/g)||[]).length,8);
-  for(const id of ['dream-blur','90s-cinema','fashion-editorial','fisheye-2000','dreamcore','hong-kong-nights','80s-film']){
+  for(const id of ['dream-blur','soft-pastel-film','fashion-editorial','fisheye-2000','dreamcore','hong-kong-nights','80s-film']){
     assert.match(html,new RegExp('data-guest-mood="'+id+'"'));
     assert.match(html,new RegExp('data-welcome-mood="'+id+'"'));
   }
@@ -23,7 +23,7 @@ test('both Image Inspiration entrances share the approved Chrome Couture and Clo
   assert.match(html,/id="lab-welcome-presets"/);
   const guest=[...html.matchAll(/data-guest-mood="([^"]+)"/g)].map(match=>match[1]);
   const signed=[...html.matchAll(/data-welcome-mood="([^"]+)"/g)].map(match=>match[1]);
-  const expected=['dream-blur','90s-cinema','fashion-editorial','fisheye-2000','chrome-couture','hong-kong-nights','dreamcore','80s-film'];
+  const expected=['dream-blur','soft-pastel-film','fashion-editorial','fisheye-2000','chrome-couture','hong-kong-nights','dreamcore','80s-film'];
   assert.deepEqual(guest,expected);
   assert.deepEqual(signed,expected);
   const arrows=[...html.matchAll(/<button\b[^>]*class="inspiration-nav [^"]+"[^>]*>[\s\S]*?<\/button>/g)].map(match=>match[0]);
@@ -67,7 +67,7 @@ test('both Inspiration rows support mouse-wheel browsing without trapping page s
   assert.doesNotMatch(js,/lastWheelStep|230/);
   assert.match(read('inspiration-carousel.css'),/scroll-snap-type:none/);
   assert.match(js,/\},\{passive:false\}\)/);
-  assert.match(html,/inspiration-carousel\.js\?v=20261117-inertia1&inspirationCatalog=20261117-owner1&noNativeTips=20261118v1/);
+  assert.match(html,/inspiration-carousel\.js\?v=20261117-inertia1&inspirationCatalog=20261117-owner1&noNativeTips=20261118v1&pastelDream=20261118a/);
 });
 test('vertical wheel gestures glide by pixels, accumulate, and release the page at both ends',()=>{
   const code=read('inspiration-carousel.js').replace(/^import [^\n]+\n/,'');

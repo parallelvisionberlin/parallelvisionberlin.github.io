@@ -1,4 +1,4 @@
-import './inspiration-catalog.js?v=20261118-no-native-titles1';
+import './inspiration-catalog.js?v=20261118-no-native-titles1&pastelDream=20261118a';
 // Visual browsing only. No automatic Mood changes, uploads, credits or API calls.
 for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   const track=shell.querySelector('.pv-guest-cards,.lab-welcome-presets');

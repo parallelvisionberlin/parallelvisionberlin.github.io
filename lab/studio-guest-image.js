@@ -1,5 +1,5 @@
 import {openLabSignIn} from './auth-google.js?v=20261117-pv-google1';
-import {INSPIRATION_VARIATIONS,createInspirationRotation,CHROME_COUTURE_DEFAULTS} from './inspiration-looks.js?v=20261019-chrome1&fisheyeCover=20261021v1&fisheyeY2K=20261024v1&chromeQwen20=20261031v1&dreamBlurExposure=20261102v2&sunFadeInspiration=20261104v1&promptSwitch=20261112v1';
+import {INSPIRATION_VARIATIONS,createInspirationRotation,CHROME_COUTURE_DEFAULTS} from './inspiration-looks.js?v=20261118-pastel-dream1&old=20261019-chrome1&fisheyeCover=20261021v1&fisheyeY2K=20261024v1&chromeQwen20=20261031v1&dreamBlurExposure=20261102v2&sunFadeInspiration=20261104v1&promptSwitch=20261112v1';
 // Public-only Image Studio preview. No authentication, wallet or generation API calls.
 const gate=document.getElementById('gate');
 const composer=document.getElementById('pv-guest-composer');

@@ -12,6 +12,9 @@ test('Image Inspiration expands original eight cards without modifying Moods',()
   const guest=read('studio-guest-image.js');
   assert.equal((html.match(/data-guest-mood="/g)||[]).length,8);
   assert.equal((html.match(/data-welcome-mood="/g)||[]).length,8);
+  assert.match(html,/data-welcome-mood="soft-pastel-film"/);
+  assert.match(html,/data-guest-mood="soft-pastel-film"/);
+  assert.doesNotMatch(html,/Choose Vinyl Heat/);
   assert.equal(INSPIRATION_SCENES.length,48);
   assert.match(read('inspiration-carousel.js'),/import '.\/inspiration-catalog\.js/);
   assert.match(catalog,/\.inspiration-carousel-shell/);
@@ -120,15 +123,29 @@ test('Inspiration gallery keeps complete portrait cards and scrolls within the d
 });
 
 
-test('Inspiration cards do not expose native hover titles, while keeping screen-reader labels',()=>{
-  const html=read('studio.html');
-  const catalog=read('inspiration-catalog.js');
-  const chrome=[...html.matchAll(/<button\\b[^>]*data-(?:guest|welcome)-mood="chrome-couture"[^>]*>/g)].map(m=>m[0]);
-  assert.equal(chrome.length,2,'Public and signed-in Chrome Couture cards exist');
-  for(const card of chrome){
-    assert.doesNotMatch(card,/\\btitle=/,'No browser tooltip on the card');
-    assert.match(card,/\\baria-label=/,'Screen reader name remains');
+test('Inspiration cards preserve accessible labels without native hover titles',()=>{
+  const html=read('studio.html'),catalog=read('inspiration-catalog.js');
+  const cards=html.split('<button').slice(1).filter(tag=>
+    tag.split('>')[0].includes('data-guest-mood="chrome-couture"') ||
+    tag.split('>')[0].includes('data-welcome-mood="chrome-couture"'));
+  assert.equal(cards.length,2);
+  for(const card of cards){
+    const tag=card.split('>')[0];
+    assert.ok(!tag.includes(' title='),'No browser-native tooltips on Chrome Couture');
+    assert.ok(tag.includes('aria-label='),'Keep accessible card names');
   }
-  assert.doesNotMatch(catalog,/button\\.title\\s*=/,'Dynamic Inspiration cards have no browser-native titles');
-  assert.match(catalog,/button\\.setAttribute\\('aria-label'/,'Dynamic cards keep accessible names');
+  assert.ok(!catalog.includes('button.title='),'Dynamic cards have no native tooltip');
+  assert.ok(catalog.includes("button.setAttribute('aria-label'"),'Dynamic cards keep accessible names');
+});
+
+test('Explore All publishes only visually vetted worlds, with no screenshot-based cards',()=>{
+  const catalog=read('inspiration-catalog.js');
+  const approved=catalog.split("const APPROVED_CATALOG_IDS=new Set([")[1]?.split("]);")[0];
+  assert.ok(approved,'Published card IDs must be curated separately from draft concepts');
+  const ids=[...approved.matchAll(/'([^']+)'/g)].map(x=>x[1]);
+  assert.equal(ids.length,20,'Curated concepts, plus eight original Inspiration entry cards');
+  for(const id of ['midnight-cinema','dressing-room','blue-hour','velvet-corridor','italian-1963','hiroshima-room','berlin-winter','private-cinema'])
+    assert.ok(!ids.includes(id),id+' uses an embedded-UI screenshot or a mismatched placeholder photograph');
+  assert.ok(catalog.includes('.filter(item=>APPROVED_CATALOG_IDS.has(item.id))'));
+  assert.ok(catalog.includes('const categories=categoryOrder.filter'),'No empty category tabs');
 });

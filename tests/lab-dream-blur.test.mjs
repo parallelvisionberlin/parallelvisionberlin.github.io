@@ -24,7 +24,8 @@ test('Dream Blur is a curated Mood with actual user reference photography and a 
 });
 test('both Studio Inspiration entry points inherit Dream Blur 80% without changing other presets',()=>{
   const studio=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
-  assert.match(studio,/function inspirationMoodDefaultIntensity\(id\)\{return id==='dream-blur'\?moodById\(id\)\.defaultIntensity:id==='fisheye-2000'\?75:60;\}/);
+  assert.match(studio,/function inspirationMoodDefaultIntensity\(id\)\{return \['dream-blur','soft-pastel-film'\]\.includes\(id\)\?moodById\(id\)\.defaultIntensity:id==='fisheye-2000'\?75:60;\}/);
+  assert.equal(moodById('soft-pastel-film').defaultIntensity,70,'Pastel Dream keeps its canonical 70% strength');
   assert.match(studio,/moodIntensity:inspirationMoodDefaultIntensity\(draftMood\)/);
   assert.match(studio,/moodIntensity:inspirationMoodDefaultIntensity\(underlyingMood\)/);
   assert.equal(moodById('dream-blur').defaultIntensity,80);

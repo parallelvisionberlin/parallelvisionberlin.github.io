@@ -1,4 +1,5 @@
 import {compileImagePrompt,normalizeReferenceLabel,referenceGuidanceError} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1&refOnlyBudget=20261018v1&fisheye=20261020v1&hkBalanced=20261023v1&hkCinema=20261025v1&fallenAngel=20261112a&seedream55=1';
+import {PASTEL_DREAM_PHOTOS} from './pastel-dream-gallery.js?v=20261118-collection1';
 import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkCinema=20261025v1';
 
 // These are photographic treatment references, never a replacement Base.
@@ -40,6 +41,11 @@ const DREAM_BLUR_REFERENCES=Object.freeze([
 ].map(ref=>Object.freeze({...ref,url:'/lab/mood-references/dream-blur/'+ref.file,
   label:Object.freeze({name:'Dream Blur style - '+ref.file,role:'style',note:ref.note})})));
 
+const PASTEL_DREAM_REFERENCES=Object.freeze(PASTEL_DREAM_PHOTOS.map(ref=>Object.freeze({
+  file:ref.name+'.png',url:ref.url,type:'image/png',note:ref.note,
+  label:Object.freeze({name:'Pastel Dream style - '+ref.name,role:'style',note:ref.note})
+})));
+
 const FISHEYE_2000_REFERENCES=Object.freeze([
   {file:'01-analog-daylight.webp',note:'STYLE / ERA AND OPTICS: circa-2000 Japanese shopfronts/signs, muted film color, tactile grain. Borrow context at Mood strength; user location locks win. Never copy people, clothes, pose or layout.'},
   {file:'02-fisheye-flash.webp',note:'STYLE / ERA AND OPTICS: real 15mm depth, curved edges, raw flash, dark ambient and Y2K print texture. Borrow context at Mood strength; location locks win. Never copy faces, bodies, clothes, pose or layout.'}
@@ -78,17 +84,17 @@ const FALLEN_ANGEL_REFERENCES=Object.freeze([
 ].map(ref=>Object.freeze({...ref,label:Object.freeze({name:'Fallen Angel style - '+ref.file,role:'style',note:ref.note})})));
 
 export function isMoodStyleReference(label){
-  return label?.role==='style'&&(DREAM_BLUR_REFERENCES.some(ref=>ref.label.name===label.name)||FISHEYE_2000_REFERENCES.some(ref=>ref.label.name===label.name)||EIGHTIES_FILM_REFERENCES.some(ref=>ref.label.name===label.name)||HYPER_POP_REFERENCES.some(ref=>ref.label.name===label.name)||HONG_KONG_REFERENCE_LABELS.has(label.name)||FALLEN_ANGEL_REFERENCES.some(ref=>ref.label.name===label.name));
+  return label?.role==='style'&&(DREAM_BLUR_REFERENCES.some(ref=>ref.label.name===label.name)||PASTEL_DREAM_REFERENCES.some(ref=>ref.label.name===label.name)||FISHEYE_2000_REFERENCES.some(ref=>ref.label.name===label.name)||EIGHTIES_FILM_REFERENCES.some(ref=>ref.label.name===label.name)||HYPER_POP_REFERENCES.some(ref=>ref.label.name===label.name)||HONG_KONG_REFERENCE_LABELS.has(label.name)||FALLEN_ANGEL_REFERENCES.some(ref=>ref.label.name===label.name));
 }
 
-// Inspiration previews normally omit invisible Style photographs. Dream Blur is
-// the exception: its four curated optical references are essential to the look.
+// Inspiration normally skips hidden Style photos. Dream Blur and Pastel Dream
+// explicitly retain their curated style-only references (never identity Bases).
 export function shouldOmitAutomaticMoodReferencesForInspiration(inspirationMoodId, selectedMoodId){
-  return inspirationMoodId!==null&&selectedMoodId===inspirationMoodId&&selectedMoodId!=='dream-blur';
+  return inspirationMoodId!==null&&selectedMoodId===inspirationMoodId&&!['dream-blur','soft-pastel-film'].includes(selectedMoodId);
 }
 
 export function moodReferencePlan(settings){
-  if(settings?.type!=='image'||settings.mode!=='image'||!['hong-kong-nights','dream-blur','fisheye-2000','hyper-pop','80s-film','fallen-angel'].includes(settings.moodId)||!(['seedream55','seedream','seedreamlite','gemini','gemini21'].includes(settings.engine)||(settings.moodId==='fallen-angel'&&['qwen3','krea3'].includes(settings.engine))))
+  if(settings?.type!=='image'||settings.mode!=='image'||!['hong-kong-nights','dream-blur','soft-pastel-film','fisheye-2000','hyper-pop','80s-film','fallen-angel'].includes(settings.moodId)||!(['seedream55','seedream','seedreamlite','gemini','gemini21'].includes(settings.engine)||(settings.moodId==='fallen-angel'&&['qwen3','krea3'].includes(settings.engine))))
     return {settings,references:[]};
   const labels=(settings.referenceRoles||[]).map(normalizeReferenceLabel);
   const isHongKong=settings.moodId==='hong-kong-nights';
@@ -108,10 +114,10 @@ export function moodReferencePlan(settings){
     if(over>0)throw Error('Direction, Mood and reference instructions exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction or optional reference notes.');
     return {settings,references:[]};
   }
-  const isFisheye=settings.moodId==='fisheye-2000',isHyperPop=settings.moodId==='hyper-pop',isFallenAngel=settings.moodId==='fallen-angel';
+  const isFisheye=settings.moodId==='fisheye-2000',isPastel=settings.moodId==='soft-pastel-film',isHyperPop=settings.moodId==='hyper-pop',isFallenAngel=settings.moodId==='fallen-angel';
   // At low strength, omit the visual pack to avoid overriding source wardrobe.
-  const source=isFallenAngel?FALLEN_ANGEL_REFERENCES:isEighties?EIGHTIES_FILM_REFERENCES:isHyperPop?(Number(settings.moodIntensity??75)>34?HYPER_POP_REFERENCES:[]):isHongKong?HONG_KONG_REFERENCES[hongKongVariant(settings.moodVariant)]:isFisheye?FISHEYE_2000_REFERENCES:DREAM_BLUR_REFERENCES;
-  const moodLabel=isFallenAngel?'Fallen Angel':isEighties?'80s Film':isHyperPop?'Hyper Pop':isHongKong?'Hong Kong Nights':isFisheye?'Fisheye 2000':'Dream Blur';
+  const source=isFallenAngel?FALLEN_ANGEL_REFERENCES:isPastel?PASTEL_DREAM_REFERENCES:isEighties?EIGHTIES_FILM_REFERENCES:isHyperPop?(Number(settings.moodIntensity??75)>34?HYPER_POP_REFERENCES:[]):isHongKong?HONG_KONG_REFERENCES[hongKongVariant(settings.moodVariant)]:isFisheye?FISHEYE_2000_REFERENCES:DREAM_BLUR_REFERENCES;
+  const moodLabel=isFallenAngel?'Fallen Angel':isPastel?'Pastel Dream':isEighties?'80s Film':isHyperPop?'Hyper Pop':isHongKong?'Hong Kong Nights':isFisheye?'Fisheye 2000':'Dream Blur';
   // Saved older jobs retain their original four Style sources. Never silently
   // append another pack of four to a reused result or duplicate user uploads.
   const preservedHistoricStyle=isHongKong&&labels.some(label=>label.role==='style'&&HONG_KONG_REFERENCE_LABELS.has(label.name));
@@ -148,7 +154,7 @@ export function createMoodReferenceLoader({upload,fetchFile=fetch}){
         check();
         if(cache.has(ref.url))return null;
         const response=await fetchFile(ref.url,{credentials:'omit',signal:AbortSignal.timeout(30000)});
-        if(!response.ok)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':ref.label.name.startsWith('80s Film')?'80s Film':ref.label.name.startsWith('Fallen Angel')?'Fallen Angel':'Hong Kong Nights')+' Style reference could not load. Please try again.');
+        if(!response.ok)throw Error('A '+(ref.label.name.startsWith('Pastel Dream')?'Pastel Dream':ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':ref.label.name.startsWith('80s Film')?'80s Film':ref.label.name.startsWith('Fallen Angel')?'Fallen Angel':'Hong Kong Nights')+' Style reference could not load. Please try again.');
         const blob=await response.blob();
         if(!blob.size)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':ref.label.name.startsWith('80s Film')?'80s Film':ref.label.name.startsWith('Fallen Angel')?'Fallen Angel':'Hong Kong Nights')+' Style reference is empty. Please try again.');
         check();

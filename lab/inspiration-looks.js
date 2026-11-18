@@ -55,6 +55,16 @@ export const INSPIRATION_VARIATIONS=Object.freeze({
     "Empty rain-soaked bus shelter at 2 a.m., a single abandoned scarf fluttering as a vehicle passes in warm-headlight motion blur, long exposure with physically believable light trails.",
     "Two people dance in a cramped kitchen at night, the handheld camera blurring their movements while cool window light and deep amber lamp light register together on imperfect film."
   ],
+  "soft-pastel-film": [
+    "A candid portrait of an adult woman beside a large apartment window in early spring, pale pink blossoms outside, softly wrinkled cotton and vintage knitwear, creamy daylight passing naturally across her face, fine 35mm negative grain, blush and ivory film tones, real texture and delicately imperfect focus.",
+    "An adult photographer in a small sunlit bedroom lowers a compact vintage film camera, flowers and unmade bed in the periphery, candid documentary fashion composition, dappled afternoon light, quiet peach and milk-rose film color, tactile natural skin, no beauty retouching.",
+    "An adult model sitting sideways in the back seat of an old car with blossoming trees visible outside, a small pale floral dress, unfussy late-1990s magazine photography, pastel spring daylight filtered through glass, honest film halation and natural facial details.",
+    "A close photographic portrait of an adult man with tousled fair hair among cherry blossoms in soft golden backlight, washed pink petals, subtle colored-negative grain, skin pores and realistic contrast; gentle spring atmosphere rather than a high-key digital beauty advertisement.",
+    "An intimate editorial still of a young adult couple in pale linen and ivory cotton walking through a quiet sunlit apartment, their faces distinct, blossoms just outside the window, slightly accidental 35mm framing, soft cream and natural blush shadow separation.",
+    "A softly lit editorial still life of a folded pale-pink silk blouse, compact silver camera, scattered blossom petals and a small glass vase on an old bedside table, real creased fabrics and wood grain, tactile early-2000s film negative with restrained bloom.",
+    "An adult woman in a lightly textured knitted cardigan rests her head against a train window while flowering trees move past outside, pale rose and warm ivory natural window light, an imperfect 35mm color photograph with believable contact shadows and fine grain.",
+    "A quiet cinematic portrait of an adult dark-haired model in an antique cream slip dress seated on a wooden floor near an open bedroom window, pink blossoms outside, a soft breeze moving the sheer curtain, natural film texture and warm delicate highlights with readable shadows."
+  ],
   "90s-cinema": [
     "Two friends browse vinyl records in a small independent record shop on an overcast afternoon, warm window light, lived-in wooden shelves, unposed gestures and grainy 1990s color-negative photography.",
     "A woman in her fifties listens to a record behind a shop counter, faded posters and handwritten price tags around her, soft tungsten lamps, slight 35mm focus falloff and unretouched skin.",

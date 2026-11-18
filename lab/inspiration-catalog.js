@@ -2,10 +2,20 @@
 // No automatic generation, credit changes, uploads or model/provider changes.
 import {INSPIRATION_SCENES} from './inspiration-catalog-data.js?v=20261117-owner1';
 import {OWNER_ORIGINAL_HOVER_FRAMES} from './inspiration-owner-scenes.js?v=20261117-owner1';
-const categories=['All','Original','Cinema','After Hours','Fashion','Analog','Street','Future','Intimacy','Atmospheres'];
+// The creative archive contains 48 draft concepts. Only photographically vetted,
+// semantically matching images are published in Explore All. This keeps UI
+// screenshots, mismatched covers and placeholder artwork out of the customer UI.
+// Source prompts and archived files remain untouched for future re-curation.
+const APPROVED_CATALOG_IDS=new Set([
+  'lost-highway','desert-stop','raver','eros-lingerie','hotel-intimacy','post-human',
+  'desert-sculptures','chrome-skin','berlin-club','tokyo-4am','night-flash',
+  'chrome-oracle','silver-uniform','brutalist-runway','archive-2001','tape-memory',
+  'city-haze','cloud-line','hotel-afterparty','backstage-02'
+]);
+const categoryOrder=['All','Original','Cinema','After Hours','Fashion','Analog','Street','Future','Intimacy','Atmospheres'];
 const priority=['lost-highway','desert-stop','raver','eros-lingerie','hotel-intimacy','post-human','desert-sculptures','chrome-skin','berlin-club','italian-1963','tokyo-4am','red-room'];
 const rank=new Map(priority.map((id,index)=>[id,index]));
-const sorted=[...INSPIRATION_SCENES].sort((a,b)=>(rank.get(a.id)??100)-(rank.get(b.id)??100));
+const sorted=[...INSPIRATION_SCENES].filter(item=>APPROVED_CATALOG_IDS.has(item.id)).sort((a,b)=>(rank.get(a.id)??100)-(rank.get(b.id)??100));
 const originals=[...document.querySelectorAll('#pv-guest-cards > [data-guest-mood]')].map(button=>({
   id:button.dataset.guestMood,
   title:button.querySelector('span')?.firstChild?.textContent?.trim()||'Inspiration',
@@ -15,6 +25,7 @@ const originals=[...document.querySelectorAll('#pv-guest-cards > [data-guest-moo
 }));
 const existingNames=new Set(originals.map(item=>item.title.toLowerCase()));
 const entries=[...originals,...sorted.filter(item=>!existingNames.has(item.title.toLowerCase()))];
+const categories=categoryOrder.filter(name=>name==='All'||entries.some(item=>item.category===name));
 function photo(item){
   const img=document.createElement('img');
   img.src=item.cover;img.alt='';img.loading='lazy';img.decoding='async';
