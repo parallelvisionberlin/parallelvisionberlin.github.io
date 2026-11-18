@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-17T23:44:37.754Z",
+  "updatedAt": "2026-11-18T00:01:00Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4357,11 +4357,11 @@
       "id": "alter-makeup-reference-transfer",
       "title": "ALTER: makeup image references, Seedream 5.5, and Video-like accepted-job handoff",
       "component": "ALTER Studio",
-      "status": "in_review",
-      "summary": "PR #1039 feature branch, not merged or deployed. 15 makeup presets attach their exact published WebP as reference 2 to the user's base photo. The separate Light/Hair/Skin/Color controls and explicit Creative Direction are preserved. Seedream 5.5 is selectable without changing 5 Pro default. Accepted jobs now show a full-canvas Video-inspired procedural animation while the photo fades away; the Generate button becomes an enabled New edit action. Clicking it clears only the draft while each confirmed job independently continues polling in authenticated Results with its preserved original. Pending Results cards show actual statuses; no fabricated percentages or automatic paid retries.",
-      "nextAction": "PR #1039 branch reconciled with newer main. GitHub CI and actual signed-in generation still require verification. Merge/release only after required checks pass, then verify Cloudflare Pages exact production commit.",
+      "status": "deployed",
+      "summary": "MERGED TO PRODUCTION: ALTER retains all existing approved photos/hero/layout and 20-look archive. All 15 non-Original Makeup cards inject their exact approved makeup WebP as Reference 2 with an explicit makeup-only role, keeping user's photo as authoritative Base Reference 1. Hair/Light/Skin/Color continue as independent prompt options with one shared global Look strength. Seedream 5.5 added; 5 Pro remains default. On Generate the source photo fades into a full-deck Video-inspired optical textile. After provider acceptance, New edit is enabled and cannot resubmit the old quote; confirmed jobs continue polling in Results with an animated status card, private original preserved for Before/After.",
+      "nextAction": "No further code change or merge remains. Cloudflare production deployment completed successfully for merge SHA f4362ccbf2e7087597282b98756fdf4767fb126b. GitHub Actions remained queued globally, and external browser fetch returned inaccessible; do not label UI or paid provider fidelity as independently tested. Optional controlled signed-in user test: makeup reference exactness, hair color, identity, and second draft while prior job runs.",
       "baselineSha": "a618768b8b359ade058e344eb5a5e3c051e1e06e",
-      "reviewedSha": "459af76a20bd4e30a07abb1f898f5159c16b0444",
+      "reviewedSha": "f4362ccbf2e7087597282b98756fdf4767fb126b",
       "branch": "feat/alter-makeup-reference-progress-20261118",
       "files": [
         "lab/beauty-settings.js",
@@ -4382,31 +4382,51 @@
       ],
       "tests": [
         {
-          "label": "Source/syntax and flow sanity",
+          "label": "Independent code assertions",
           "result": "passed",
-          "scope": "V8 parsing of beauty.js, animation JS and browser test; 9/9 static handoff and safety contracts satisfied."
+          "scope": "102/102 checks across all 15 makeup image mappings, exact two-reference quotes, mismatch rejection, model selector, on-photo handoff, New edit, and parallel results state. These are static/pure-function checks; not a full browser suite."
         },
         {
-          "label": "GitHub scoped browser, Lab tests and approved Image UI",
-          "result": "pending",
-          "scope": "Required CI still queued / no passing report at time of record; synthetic browser job handoff test added but not yet executed."
+          "label": "Cloudflare Pages build",
+          "result": "passed",
+          "scope": "GitHub Cloudflare Workers and Pages app checked exact merge commit f4362ccbf2e7087597282b98756fdf4767fb126b: completed success at 2026-11-18T00:00:24Z."
+        },
+        {
+          "label": "GitHub Actions",
+          "result": "queued",
+          "scope": "Beauty Studio, approved Image UI, Lab integration and other repository Actions remained queued; no pass claimed."
         }
       ],
       "deployment": {
-        "status": "not_deployed",
-        "note": "Feature branch only; Cloudflare Pages production remains unchanged."
+        "status": "cloudflare_success",
+        "sourceSha": "f4362ccbf2e7087597282b98756fdf4767fb126b",
+        "project": "pvlab-studio",
+        "checkUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/f5fb9d95-9bfd-4cfc-897a-671035b90f58",
+        "completedAt": "2026-11-18T00:00:24Z",
+        "verifiedVia": "Cloudflare Pages GitHub check-run; direct public-domain browser/byte verification unavailable"
       },
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "production_app_check",
+          "summary": "Cloudflare Pages deployment completed successfully for exact merge f4362cc",
+          "url": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/f5fb9d95-9bfd-4cfc-897a-671035b90f58"
+        },
+        {
+          "kind": "source_pr",
+          "summary": "PR #1039 merged",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1039"
+        }
+      ],
       "blockers": [
-        "CI has not confirmed the new PR head; do not merge on unverified checks.",
-        "Two-reference makeup fidelity and signed-in paid job flow not yet exercised; no customer or payment action taken."
+        "Full GitHub Actions browser/integration tests remain queued across the repository. No evidence of a failing ALTER test, but no passing run either.",
+        "Direct read-only browser of pvlab.studio is inaccessible; real signed-in and paid two-reference generation not independently executed."
       ],
       "doNotRepeat": [
         "Preserve approved 15 makeup images, hero and existing five-tab layout.",
         "Never weaken exact quote validation, submit deduplication, credits or customer privacy to speed the UI.",
         "Distinguish a GitHub merge from verified production and a real signed-in paid transfer test."
       ],
-      "updatedAt": "2026-11-17T23:44:37.754Z"
+      "updatedAt": "2026-11-18T00:01:00Z"
     }
   ]
 }
