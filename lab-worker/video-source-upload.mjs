@@ -50,8 +50,11 @@ export async function videoSourceUploadRoute(request,env,owner,url,d){
   const asset=await first(env,"SELECT * FROM assets WHERE id=? AND owner_id=? AND kind='source'",id,owner);
   if(!asset)fail(404,'Video upload not found.');
   if(asset.mime!==VIDEO_UPLOAD_PENDING){
-    if(action==='complete')return json({id,filename:asset.filename,bytes:asset.bytes},201);
-    fail(409,'This upload is already complete.');
+    // Only a fully committed video is an idempotent completion. An aborting
+    // reservation is also non-pending, but must never be reported as success.
+    if(action==='complete'&&['video/mp4','video/quicktime'].includes(asset.mime))
+      return json({id,filename:asset.filename,bytes:asset.bytes},201);
+    fail(409,'This upload is already complete or no longer available.');
   }
   if(action==='abort'){await abandonVideoUpload(env,asset,d);return json({ok:true});}
   const saved=await env.LAB_MEDIA.get(sessionKey(owner,id));
