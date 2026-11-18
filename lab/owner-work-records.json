@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T20:40:34Z",
+  "updatedAt": "2026-11-18T20:44:28Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4662,7 +4662,7 @@
       "component": "PV LAB Upscaler",
       "status": "needs_verification",
       "summary": "Prevent multipart completion retries from claiming an upload that is already aborting, and keep interrupted abort cleanup reclaimable after transient private-storage failures.",
-      "nextAction": "Review draft PR #1052 after the broader Video browser check completes. If approved, merge it and separately authorize the guarded Worker release; verify the published health marker and upload/quote behavior without confirming a paid generation.",
+      "nextAction": "Review draft PR #1052. The focused upload/quote/billing suite passes; the separate Video browser layout assertion matches the production baseline and is outside this backend fix. If approved, merge it and separately authorize the guarded Worker release.",
       "baselineSha": "4181f5687bd47dced7c6ca20acd4540813e8bb4d",
       "reviewedSha": "a55b6ebbc53cb4bd6f1d12c2bbe278678e10c03a",
       "branch": "fix/pvlab-video-upload-abort-idempotency-20261118",
@@ -4720,6 +4720,12 @@
           "scope": "The full owner dashboard test fails on the unchanged alter-makeup-reference-transfer.tests[2].result unsupported value. The new record parses as JSON and uses existing accepted status/result values; full-index validation remains blocked by that unrelated record.",
           "result": "documented",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44393329070"
+        },
+        {
+          "label": "Broader Video browser baseline comparison",
+          "scope": "The Video browser job fails on the same 54px-versus-64px Generate dock assertion as the production merge baseline 6c03c400, job 134831621326. This PR changes no UI; no new video browser failure is attributed to the upload fix. Transform-browser remains in progress.",
+          "result": "documented",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44393328925"
         }
       ],
       "deployment": {
@@ -4754,7 +4760,7 @@
       ],
       "blockers": [
         "Draft PR #1052 needs review and merge approval.",
-        "The broader Video browser workflow was still in progress at the last check; no claim of full browser validation.",
+        "The broader Video browser job has a 54px-versus-64px layout failure that also exists on the production merge baseline; transform-browser remains in progress.",
         "A guarded production Worker release is a separate decision after merge; it has not been run.",
         "Full owner work-index validation remains blocked by the pre-existing alter-makeup-reference-transfer.tests[2].result schema error."
       ],
@@ -4763,7 +4769,7 @@
         "Do not use paid generations or checkout transactions to verify this fix.",
         "Preserve the existing 20 GiB capacity, pricing and provider choices."
       ],
-      "updatedAt": "2026-11-18T20:40:34Z"
+      "updatedAt": "2026-11-18T20:44:28Z"
     }
   ]
 }
