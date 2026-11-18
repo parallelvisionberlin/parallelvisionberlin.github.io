@@ -123,7 +123,7 @@ test('Identity casting uses the approved photographic layout rather than standal
  const identityCss=read('lab/full-editorial-identity-refresh.css');
  assert.match(identityCss,/scroll-snap-type:x mandatory/,'Casting supports a horizontal snap carousel');
  assert.match(identityCss,/position:sticky!important/,'Selection dock follows the active viewport');
- assert.match(html,/full-editorial-identity-refresh\.css\?v=20261118-mobile-inertia2/);
+ assert.match(html,/full-editorial-identity-refresh\.css\?v=20261118-comp-face1/);
 
  const atelierCss=read('lab/full-editorial-atelier.css');
  assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
@@ -132,7 +132,7 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.ok(html.includes('full-editorial.js?v=20261118-one-curve3'),'Full Editorial loads the current casting gallery');
+ assert.ok(html.includes('full-editorial.js?v=20261118-comp-face1'),'Full Editorial loads the current casting gallery');
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);setIdentitySource\('casting'\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=step!==1/,'Composition remains visible throughout Identity');
@@ -346,4 +346,15 @@ test('Desktop casting wheel uses one exponential curve for every vertical delta'
  assert.match(source,/event\.preventDefault\(\);\s*const delta=event\.deltaY/,'Wheel is contained at the gallery edge');
  assert.doesNotMatch(source,/Math\.abs\(event\.deltaY\)<36/,'Small and large wheel ticks get the same easing');
  assert.doesNotMatch(source,/castingWheelMotion\.velocity/,'No extra velocity layered on the immediate scroll');
+});
+
+test('Dynamic Composition previews use image-specific face framing',()=>{
+ const source=read('lab/full-editorial.js');
+ const styles=read('lab/full-editorial-identity-refresh.css');
+ assert.match(source,/const compositionFaceFocals=\{/);
+ for(const asset of ['slate-cast-20261111.jpg','cobalt-cast-20261111.jpg','pearl-cast-20261111.jpg','acid-cast-20261111.jpg','blossom-cast-20261111.jpg'])
+  assert.ok(source.includes("'"+asset+"':{group:"),'Approved face focal for '+asset);
+ assert.match(source,/\{fit:'contain',focus:'50%'\}/,'Unknown user image is never severely cropped');
+ assert.match(styles,/PVLAB_COMPOSITION_FACE_SAFE_20261118/);
+ assert.match(styles,/object-position:center var\(--composition-portrait-focus,28%\)!important/);
 });

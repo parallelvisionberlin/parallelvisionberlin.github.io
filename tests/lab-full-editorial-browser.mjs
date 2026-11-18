@@ -415,6 +415,18 @@ try{
   const compositionPreview=await page.locator('[data-cast-composition="mixed"] .editorial-composition-art img').evaluateAll(images=>images.map(img=>img.currentSrc||img.src));
   const selectedCovers=await page.locator('#model-thumbs .editorial-model-cover img').evaluateAll(images=>images.map(img=>img.currentSrc||img.src));
   assert.deepEqual(compositionPreview,selectedCovers.slice(0,2),'Composition uses selected identities');
+  const frames=await page.locator('#editorial-composition-choices').evaluate(root=>({
+   pair:[...root.querySelectorAll('[data-cast-composition="mixed"] .editorial-composition-art img')].map(img=>({
+    focus:getComputedStyle(img).objectPosition,fit:getComputedStyle(img).objectFit
+   })),
+   solo:[...root.querySelectorAll('[data-cast-composition="alternating"] .editorial-composition-art img')].map(img=>({
+    focus:getComputedStyle(img).objectPosition,fit:getComputedStyle(img).objectFit
+   }))
+  }));
+  assert.deepEqual(frames.pair,[{focus:'50% 24%',fit:'cover'},{focus:'50% 6%',fit:'cover'}],
+   'Both selected faces have individually focused group crops: '+JSON.stringify(frames));
+  assert.deepEqual(frames.solo,[{focus:'50% 24%',fit:'cover'}],
+   'Solo preview focuses the selected Slate face');
   await page.locator('#editorial-composition-toggle').click();
   assert.equal(await page.locator('#editorial-composition-toggle').getAttribute('aria-expanded'),'false');
   assert.equal(await page.locator('#editorial-composition-choices').isVisible(),false,'Composition folds');
