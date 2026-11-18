@@ -19,7 +19,7 @@ function memoryStorage(){
 }
 
 test('existing looks keep eight examples; Chrome Couture has twenty and Fisheye keeps its recipe',()=>{
-  const names=['fisheye-2000','dream-blur','90s-cinema','fashion-editorial','chrome-couture','dreamcore','hong-kong-nights','80s-film'];
+  const names=['fisheye-2000','dream-blur','90s-cinema','soft-pastel-film','fashion-editorial','chrome-couture','dreamcore','hong-kong-nights','80s-film'];
   assert.deepEqual(Object.keys(INSPIRATION_VARIATIONS).sort(),names.sort());
   const all=[];
   for(const [id,scenes] of Object.entries(INSPIRATION_VARIATIONS)){
@@ -31,7 +31,7 @@ test('existing looks keep eight examples; Chrome Couture has twenty and Fisheye 
       all.push(scene);
     }
   }
-  assert.equal(new Set(all).size,69,'No repeated scenes across different Moods');
+  assert.equal(new Set(all).size,77,'No repeated scenes across different Moods');
   assert.ok(INSPIRATION_VARIATIONS['fashion-editorial'].some(scene=>/older woman/i.test(scene)));
   assert.ok(INSPIRATION_VARIATIONS['fashion-editorial'].some(scene=>/male fashion model/i.test(scene)));
   assert.ok(INSPIRATION_VARIATIONS['fashion-editorial'].some(scene=>/two adult models/i.test(scene)));
