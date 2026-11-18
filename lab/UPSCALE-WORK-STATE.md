@@ -11,11 +11,17 @@
 - Local genuine H.264 QuickTime fixture and owner upload/quote regression pass with the same metadata/credit quote as MP4, no provider dispatch.
 - Final local release set: 178/178 passed. The pre-existing Beauty quote test used one reference while its updated default needs two; its fixture now supplies the actual makeup reference, retaining idempotency and quote guards.
 - Shared heading/source/card bounds visually inspected in the isolated browser; exact equality across mode switch.
-- Initial CI: desktop/phone MOV upload/drop/quote, shared geometry, source retention, uncertain-response lock and Assets checks passed. Short-window expanded Precision needed tighter row gaps; final compact run pending.
+- Final candidate c6733aaca62c60b8bf700e4a3d165ac29ea11bd1 / PR #1048. All eight photographic desktop/phone cases, shared geometry, MOV picker/drop, no-decoder fallback, source retention, uncertain-response lock and Assets checks passed.
+- The broader legacy inline-notice/full UI sequence still stalls; do not claim its full pass or disable its gates.
+- Existing high-specificity Image source-state CSS was overriding shared padding. Final selector matches source-state specificity; expanded Precision action fits a 1440x740 viewport.
 - Migration-free Worker release workflow clones the existing resource/settings snapshot guards and financial tests; exact health marker videoUpscaleInputs=20261118-mp4-mov-1.
 - Existing unrelated alter-makeup-reference-transfer record uses unsupported test/deployment fields; full index validation remains blocked. Preserve it; the new Upscaler record validates individually.
-- Release and real-account verification pending. No paid jobs submitted.
-- Next: pass affected browser checks, publish exact reviewed code, verify frontend bytes and Worker deployment separately.
+- Merged as 6f9fd7bff5f252351f8a7bc780df2a82ef6c6d99. Cloudflare Pages exact-commit check 134784008672 SUCCESS.
+- Scoped verifier LIVE_VERIFIED: shared CSS SHA256 a3ec9d378b9b7dd486304945cfb384eedc2657a70efd1b6bb9c8bcb0dee487be. Live lab.js, video-upscale.js and metadata helper bytes match merged source.
+- Guarded Worker release 44298983700 SUCCESS; all live resources/settings preserved. Public health confirms exact MOV capability marker.
+- Actual signed-in production: Image/Video title, source and model rectangles match exactly. HEVC MOV reached explicit Proteus quote review (11 credits / 1.0s / 1080p) despite unsupported browser preview.
+- No paid confirmation, enhancement, migration or credit grant. Cleared the test source after reviewing its quote.
+- Status: deployed and verified for interface and real-account MOV price review. No paid output tested. Next: none; existing tabs may refresh once.
 
 
 ## Interrupted request feedback / 2026-11-08

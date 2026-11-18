@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T11:36:20Z",
+  "updatedAt": "2026-11-18T11:59:43Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4432,11 +4432,11 @@
       "id": "upscaler-shared-design-mov",
       "title": "One Upscaler design and MOV support",
       "component": "PV LAB Upscaler",
-      "status": "needs_verification",
+      "status": "deployed",
       "summary": "One shared Image/Video layout, medium-large heading, larger cards and persistent source drop box; accept MOV with preserved MIME and existing authoritative quote checks. Valid MOV can reach quote review even when the browser cannot decode its preview.",
-      "nextAction": "Finish final-candidate browser CI, merge, then verify Pages bytes and the migration-free Worker release with exact MOV capability marker.",
+      "nextAction": "None for this repair. Refresh an existing browser tab once to load the published design and MOV support.",
       "baselineSha": "844dbc091464273f5e772232ed27b41c24de85c3",
-      "reviewedSha": "7b80cce58e47df3049009effdcaeae1d9526d743",
+      "reviewedSha": "c6733aaca62c60b8bf700e4a3d165ac29ea11bd1",
       "branch": "fix/upscaler-shared-design-mov-20261118",
       "files": [
         "lab/video-upscale.js",
@@ -4454,48 +4454,83 @@
         {
           "label": "Scoped Upscaler state",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
+        },
+        {
+          "label": "Merged MOV and shared-design fix",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1048"
         }
       ],
       "tests": [
         {
-          "label": "Real MOV metadata and upload/quote",
-          "scope": "QuickTime fixture equals MP4; owner route retains MIME; no jobs/provider dispatch",
+          "label": "Release and financial safeguards",
+          "scope": "178 local model, Image-contract, quote, credit, finance, lifecycle, replacement and video-input tests; same guarded release tests passed in Actions.",
           "result": "passed",
-          "source": "tests/lab-worker.test.mjs"
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44298983700"
         },
         {
-          "label": "Shared inspector visual check",
-          "scope": "44px heading, 64px source and 60px model cards have identical rectangles across media switch in isolated browser",
+          "label": "Loaded photographic layout",
+          "scope": "Standard V2 and High Fidelity V3 at 1920x910, 1440x740, 1024x520 and 390x844; upload/Clear geometry, output fields, reachable action, no inner scroll/overflow or billable calls.",
+          "result": "passed",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44298271098/job/134780909934"
+        },
+        {
+          "label": "Image/Video parity and Assets",
+          "scope": "Final candidate passed desktop/phone MOV picker/drop, no-decoder fallback, thumbnail icon, source retention, heading/source/card geometry, quote and uncertain-submit lock plus Assets navigation.",
+          "result": "passed",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44298271098/job/134780909420"
+        },
+        {
+          "label": "Broader legacy browser matrix",
+          "scope": "The same workflow subsequently stalls in the existing inline-notice/full UI sequence; no full-suite pass is claimed. Similar baseline limitation is documented in upscaler-compact-loaded-deck. No test or guard disabled.",
+          "result": "documented"
+        },
+        {
+          "label": "Real signed-in production",
+          "scope": "Live HEVC MOV selected through source box; browser playback unsupported, local metadata accepted; explicit first-click upload/quote returned 11 credits for 1.0s Proteus 1080p. Confirmation was not clicked; source cleared.",
           "result": "passed"
-        },
-        {
-          "label": "Backend and release safeguards",
-          "scope": "178 Image/model/quote/credit/finance/lifecycle/replacement tests pass. Existing Beauty single-input test fixture updated to supply its default makeup reference; production guards unchanged.",
-          "result": "passed"
-        },
-        {
-          "label": "Desktop/phone parity and Assets",
-          "scope": "Initial candidate CI passed MOV selection/drop/quote, media-state retention, identical heading/source/model bounds, uncertain-submit lock and Assets visibility. Short-viewport expanded model options required tighter spacing; repeat compact suite on final candidate.",
-          "result": "documented",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44295062674"
         }
       ],
       "deployment": {
-        "state": "not_started",
-        "environment": "Cloudflare Pages pvlab-studio and PV LAB Worker",
-        "sourceSha": null,
+        "state": "verified",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio and parallel-vision-lab Worker",
+        "sourceSha": "6f9fd7bff5f252351f8a7bc780df2a82ef6c6d99",
+        "observedAt": "2026-11-18T11:59:43Z",
+        "evidenceUrl": "https://pvlab.studio/studio?tool=upscale",
         "limitations": [
-          "Browser tests use synthetic media; actual owner MOV is not attached.",
-          "No paid provider job was submitted."
+          "No paid enhancement or provider output was tested.",
+          "Owner original 28-second video is not attached; validation used genuine synthetic H.264 and HEVC MOV fixtures."
         ]
       },
       "evidence": [
         {
-          "kind": "source",
-          "summary": "Provider supports MOV; PV LAB general reference upload supports video/quicktime; Upscaler-only format and quote checks blocked it.",
-          "scope": "MOV upload and quote path",
-          "source": "lab-worker/worker.mjs",
+          "kind": "deployment",
+          "summary": "Cloudflare Pages check 134784008672 succeeded for exact merge; guarded Worker release 44298983700 succeeded, preserving all live resource bindings, variables and secret names with no migrations.",
+          "scope": "Frontend and backend publication",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44298983700",
           "limitations": []
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Scoped verifier LIVE_VERIFIED for upscale-single-editor.css v20261118-shared-design1, SHA256 a3ec9d378b9b7dd486304945cfb384eedc2657a70efd1b6bb9c8bcb0dee487be. Live lab.js, video-upscale.js and metadata helper match exact merged source bytes.",
+          "scope": "Custom-domain frontend bytes",
+          "source": "https://pvlab.studio/studio?tool=upscale",
+          "limitations": []
+        },
+        {
+          "kind": "production_health",
+          "summary": "HTTP 200 /health reports ok:true and videoUpscaleInputs=20261118-mp4-mov-1.",
+          "scope": "Exact MOV Worker capability",
+          "source": "https://parallel-vision-lab.parallelvision.workers.dev/health",
+          "limitations": []
+        },
+        {
+          "kind": "signed_in_production",
+          "summary": "Image and Video heading, source box and model card rectangles match exactly (44px title, 64px source, 60px card). HEVC MOV price review succeeds in actual owner session. No Confirm & upscale click or paid job; editor cleared after verification.",
+          "scope": "Live mode parity and genuine MOV quote review",
+          "source": "https://pvlab.studio/studio?tool=upscale",
+          "limitations": [
+            "Actual paid output quality was not tested."
+          ]
         }
       ],
       "blockers": [],
@@ -4504,7 +4539,7 @@
         "Do not submit paid jobs as a layout test.",
         "Worker deployment must preserve live bindings/vars/secrets; use release-upscaler-mov-worker.yml with no migrations."
       ],
-      "updatedAt": "2026-11-18T11:36:20Z"
+      "updatedAt": "2026-11-18T11:59:43Z"
     }
   ]
 }
