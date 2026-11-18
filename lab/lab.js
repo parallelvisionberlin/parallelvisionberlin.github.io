@@ -3829,7 +3829,7 @@ function configureVideoControls(){
   $('video-media-label').textContent=mode==='transform'?'Original video':mode==='extend'?'Video to extend':'Video references';
   $('video-media-title').textContent=mode==='transform'?'Drop video or browse':mode==='extend'?'Add a video':'Add motion or camera references';
   $('video-references').multiple=!['extend','transform'].includes(mode);
-  $('video-media-drop').querySelector('small').textContent=mode==='transform'?'MP4 / MOV · 4–30 sec · up to 20 MiB':'MP4 / MOV · 2–30 sec · up to 20 MiB';
+  $('video-media-drop').querySelector('small').textContent=mode==='transform'?'MP4 · 4–30 sec · up to 20 MiB':'MP4 / MOV · 2–30 sec · up to 20 MiB';
   $('video-model-control').hidden=!isVideo;$('video-engine').value=engine;
   $('mode-start').hidden=!isVideo||!model.modes.includes('start');
   $('mode-reference').hidden=!isVideo||!model.modes.includes('reference');
