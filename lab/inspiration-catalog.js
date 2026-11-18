@@ -1,7 +1,6 @@
 // Image Studio Inspiration expansion. Deliberately separate from Moods.
 // No automatic generation, credit changes, uploads or model/provider changes.
 import {INSPIRATION_SCENES} from './inspiration-catalog-data.js?v=20261117-owner1';
-import {PASTEL_DREAM_CARD_HOVER} from './pastel-dream-gallery.js?v=20261118-collection1';
 import {OWNER_ORIGINAL_HOVER_FRAMES} from './inspiration-owner-scenes.js?v=20261117-owner1';
 // The creative archive contains 48 draft concepts. Only photographically vetted,
 // semantically matching images are published in Explore All. This keeps UI
@@ -35,7 +34,6 @@ function photo(item){
 // Only photographs verified in the existing PV LAB archive. A missing second
 // shot is intentionally left static rather than substituted with another mood.
 const originalHoverFrames=Object.freeze({
-  'soft-pastel-film':PASTEL_DREAM_CARD_HOVER,
   '90s-cinema':'./mood-previews/90s-cinema-record-shop-20261010.webp',
   'fisheye-2000':'./mood-references/fisheye-2000/02-fisheye-flash.webp',
   'hong-kong-nights':'./mood-references/hong-kong-nights/plaza-grill.webp',
