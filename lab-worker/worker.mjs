@@ -14,7 +14,7 @@ import {allowedLabParty} from './native-auth.mjs';
 import {BROWSER_ORIGINS,LEGACY_ISSUER,STUDIO_ISSUER,originsForClerkSession} from './clerk-issuer-policy.mjs';
 import {linkedStudioIdentity,migrationRoute} from './clerk-migration.mjs';
 import {prepareVideoExtension,quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
-import {prepareCharacterTransform,quoteCharacterTransform,submitCharacterTransform} from './higgsfield-video-transform.mjs';
+import {prepareCharacterTransform,characterTransformPrompt,TRANSFORM_MAX_ESTIMATE_MICROS} from './higgsfield-video-transform.mjs';
 import {klingSpicyParameters,prepareKlingSpicyInput} from './kling-spicy.mjs';
 import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd,verifyClosureBilling} from './customer-billing.mjs';
 import {recordMoodOfferEvent,pruneMoodOfferEvents} from './mood-offer-funnel.mjs';
@@ -407,7 +407,14 @@ function assembledPrompt(p) {
 async function prepareInput(env,owner,data,p,url) {
   await validateImageReplacement(env,owner,data,p,{fail,source,falImageBytes,storedImageDimensions});
   if(p.engine==='seedance'&&p.mode==='extend'&&data.referenceSourceIds?.length)return prepareVideoExtension(env,owner,data,p,{fail,source,sources});
-  if(p.engine==='seedance'&&p.mode==='transform'){const {original}=await prepareCharacterTransform(env,owner,data,p,{fail,source,sources});return {primary:original,input:{}};}
+  if(p.engine==='seedance'&&p.mode==='transform'){
+    const {original,images}=await prepareCharacterTransform(env,owner,data,p,{fail,source,sources});
+    return {primary:original,input:{
+      video_url:await signedInput(env,url,original.id,3600),
+      reference_image_urls:await Promise.all(images.map(a=>signedInput(env,url,a.id,3600))),
+      prompt:characterTransformPrompt(p),resolution:p.resolution,generate_audio:p.audio,output_format:'mp4'
+    }};
+  }
   if(p.engine==='kling'){if(url)fail(400,'Use the Kling image generation route.');const ids=data.referenceSourceIds||[],refs=ids.length?await sources(env,owner,ids,1):[];p.referenceSourceIds=refs.map(a=>a.id);return {primary:refs[0]||null,input:{}};}
   if(p.engine==='kling3')return prepareKlingSpicyInput(env,owner,data,p,url,{fail,source,signedInput});
   if(p.provider==='higgsfield'){if(url)fail(400,'Use the Soul 2 generation route.');const primary=await source(env,owner,data.sourceId);return {primary,input:{}};}
@@ -1410,7 +1417,7 @@ async function route(request,env,ctx) {
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range,X-PV-Lab-Client,X-Replacement-Job-Id','Access-Control-Max-Age':'600'}});
   if(url.pathname==='/api/public/local-currency'&&request.method==='GET')return localCurrency(request);
-  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1',seedanceExtendReferences:'20261112-extend-refs1',seedream55:'20261113-seedream55-1',videoUpscaleInputs:'20261118-large-video-2'});
+  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1',seedanceExtendReferences:'20261112-extend-refs1',seedream55:'20261113-seedream55-1',videoUpscaleInputs:'20261118-large-video-2',videoTransformProvider:'spicyapi-seedance25-edit-20261119'});
   if(url.pathname.startsWith('/api/music/public/'))return musicPublicRoute(request,env);
   // PV LAB anonymous traffic uses its own origin-checked, bounded payload.
   if(url.pathname==='/api/public/traffic'&&request.method==='POST')return recordLabTraffic(request,env);
@@ -1966,9 +1973,10 @@ async function route(request,env,ctx) {
     const quoteCount=data.count===undefined?1:Number(data.count);
     if(!Number.isInteger(quoteCount)||quoteCount<1||quoteCount>4)fail(400,'Choose 1 to 4 images for one price check.');
     if(quoteCount>1&&!(p.type==='image'&&['seedream55','seedream','seedreamlite','flash','qwen3','zspicy'].includes(p.engine)&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for SpicyAPI image generation.');
-    if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0))fail(400,'Add a prompt or at least one reference photograph.');
+    if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(p.engine==='seedance'&&p.mode==='transform')&&!(supportsReferenceGuidance(p)&&Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0))fail(400,'Add a prompt or at least one reference photograph.');
     if(p.engine==='seedance'&&p.mode==='extend'&&data.referenceSourceIds?.length)return json(await quoteVideoExtension(env,owner,data,p,url,hfDeps()));
-    if(p.provider==='higgsfield'&&p.mode==='transform')return json(await quoteCharacterTransform(env,owner,data,p,url,hfDeps()));
+    if(p.engine==='seedance'&&p.mode==='transform'&&customer&&env.LAB_CUSTOMER_VIDEO_TRANSFORM_ENABLED!=='true')
+      fail(403,'Transform customer billing is not enabled. Nothing submitted.');
     if(p.provider==='fal'&&p.engine==='video-upscale'){
       if(!env.FAL_KEY)fail(503,'fal.ai video upscaling is not configured on this Worker.');
       if(data.lastSourceId||data.referenceSourceIds?.length||data.transferSourceIds?.length)
@@ -2066,6 +2074,8 @@ async function route(request,env,ctx) {
     const time=now(),payloadJson=JSON.stringify(payload);
     const priced=replies.map(q=>{
       const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
+      if(p.engine==='seedance'&&p.mode==='transform'&&maximum>TRANSFORM_MAX_ESTIMATE_MICROS)
+        fail(409,'SpicyAPI Transform quote exceeds the $20 provider safety limit. Choose a shorter MP4 or lower resolution. Nothing submitted.');
       if(q.currency!=='USD'||typeof q.quoteId!=='string'||!q.quoteId||maximum<estimate||
          (customer&&maximum===0)||!Number.isFinite(expiry)||expiry<=time)
         fail(502,'Provider did not return a usable, bounded quote. Nothing submitted.');
@@ -2114,7 +2124,16 @@ async function route(request,env,ctx) {
     }
     if(params.engine==='klinghf'||/^kling-video\/v3\.0\/pro\//.test(params.model||''))
       fail(409,'Legacy Higgsfield Kling quotes are disabled. Select Kling 3.0 and review a fresh SpicyAPI price. Nothing submitted.');
-    if(params.provider==='higgsfield'&&params.mode==='transform')return json({job:jobView(await submitCharacterTransform(env,owner,q,params,savedPayload,hfDeps()))},202);
+    if(params.engine==='seedance'&&params.mode==='transform'){
+      if(params.provider!=='spicy'||q.vendor_quote_id==='higgsfield-video-transform-character-v1')
+        fail(409,'This is an old Higgsfield Transform quote. Review a new SpicyAPI price; nothing submitted.');
+      if(customer&&env.LAB_CUSTOMER_VIDEO_TRANSFORM_ENABLED!=='true')
+        fail(403,'Transform customer billing is not enabled. Nothing submitted.');
+      if(q.estimate_microusd>TRANSFORM_MAX_ESTIMATE_MICROS||savedPayload.model!=='bytedance/seedance-2.5/video-edit'||
+         !savedPayload.input?.video_url||!Array.isArray(savedPayload.input.reference_image_urls)||
+         savedPayload.input.reference_image_urls.length!==params.referenceSourceIds?.length)
+        fail(409,'Transform input or quoted cost is invalid. Review a fresh SpicyAPI price; nothing submitted.');
+    }
     if(params.provider==='higgsfield'&&params.mode==='extend')return json({job:jobView(await submitVideoExtension(env,owner,q,params,savedPayload,hfDeps()))},202);
     if(params.provider==='fal'&&params.type==='image'&&params.mode==='upscale')return json({job:jobView(await submitFalUpscaleQuote(env,owner,q,params,savedPayload))},202);
     if(params.provider==='fal'&&params.type==='video'){

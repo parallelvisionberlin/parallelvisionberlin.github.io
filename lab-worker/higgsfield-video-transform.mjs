@@ -8,16 +8,16 @@ import {hfRequest,submitHiggsfieldJob} from './higgsfield.mjs';
 export const TRANSFORM_MODEL='bytedance/seedance-2.5/video-edit';
 export const TRANSFORM_MAX_ESTIMATE_MICROS=20000000; // $20 provider quote safety ceiling for v1.
 const IMAGE_MIME=new Set(['image/jpeg','image/png','image/webp']);
-const VIDEO_MIME=new Set(['video/mp4','video/quicktime']);
+const VIDEO_MIME=new Set(['video/mp4']);
 
 export function characterTransformPrompt(p){
   const images=p.referenceSourceIds||[],roles=p.referenceRoles||[];
   const lines=[
-    'VIDEO EDIT: Replace only the subject specified in the Additional direction with the character identity shown in the attached reference images. If no subject is specified, target the central or most prominent subject and leave other people unchanged.',
+    'VIDEO EDIT: In @Video1, replace only the subject specified in the Additional direction with the character identity shown in @Image1'+(images.length>1?' through @Image'+images.length:'')+'. If no subject is specified, target the central or most prominent subject and leave other people unchanged.',
     'Preserve the original video timeline, gestures, body movement, posing, camera movement, framing, lens perspective, location, background, props, wardrobe, scene lighting and editing rhythm. Keep the motion continuous and physically plausible.',
     'Use the identity references for recognizable face structure, hairstyle, skin texture and stable visible traits only. Do not import their clothing, setting, poses or lighting into the video.',
     'Do not add or remove other people, change the environment, invent a new shot, or turn the clip into a slideshow.',
-    ...roles.slice(0,images.length).map((r,i)=>'Identity reference '+(i+1)+((r.elementName||r.name)?' ('+String(r.elementName||r.name).slice(0,80)+')':'')+': '+[r.note||r.elementNote||''].filter(Boolean).join(' ')).filter(Boolean),
+    ...roles.slice(0,images.length).map((r,i)=>'Identity reference @Image'+(i+1)+((r.elementName||r.name)?' ('+String(r.elementName||r.name).slice(0,80)+')':'')+': '+[r.note||r.elementNote||''].filter(Boolean).join(' ')).filter(Boolean),
     p.prompt?'Additional direction: '+p.prompt:''
   ];
   const result=lines.join('\n');
@@ -37,7 +37,7 @@ export async function prepareCharacterTransform(env,owner,data,p,d){
   if(data.sourceId&&data.sourceId!==videos[0])fail(400,'The original video does not match the selected source.');
   const original=await source(env,owner,videos[0]);
   if(!VIDEO_MIME.has(original.mime)||!original.bytes||original.bytes>20*1048576)
-    fail(400,'Use an MP4 or MOV source video up to 20 MiB.');
+    fail(400,'SpicyAPI Video Edit requires an MP4 source video up to 20 MiB in PV LAB. Convert MOV to MP4 before checking the price.');
   const seconds=Number(p.referenceVideos[0].seconds);
   if(!Number.isFinite(seconds)||seconds<4||seconds>30)
     fail(400,'Transform requires an original video between 4 and 30 seconds.');
@@ -45,12 +45,13 @@ export async function prepareCharacterTransform(env,owner,data,p,d){
   if(!Array.isArray(ids)||ids.length<1||ids.length>8||new Set(ids).size!==ids.length)
     fail(400,'Add 1 to 8 different reference photographs of the replacement character.');
   const images=await sources(env,owner,ids,8);
-  if(images.some(item=>!IMAGE_MIME.has(item.mime)))fail(400,'Replacement character references must be JPG, PNG or WebP.');
+  if(images.some(item=>!IMAGE_MIME.has(item.mime)||!item.bytes||item.bytes>10*1048576))
+    fail(400,'SpicyAPI Transform reference images must be JPG, PNG or WebP, at most 10 MiB each.');
   if(p.referenceRoles.length&&p.referenceRoles.length!==images.length)
     fail(400,'Reference roles and photographs must match in order.');
   if(!['480p','720p','1080p'].includes(p.resolution))
     fail(400,'Choose 480p, 720p or 1080p for Seedance Video Edit.');
-  p.provider='higgsfield';
+  p.provider='spicy';
   p.referenceSourceIds=images.map(x=>x.id);
   p.referenceVideoIds=[original.id];p.referenceAudioIds=[];
   p.lastSourceId=null;p.seed=null;p.aspectRatio='source';

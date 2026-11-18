@@ -13,7 +13,7 @@ const clip={id:'private-video',mime:'video/mp4',bytes:128*1024};
 const photos=[{id:'character-1',mime:'image/jpeg',bytes:2024},{id:'character-2',mime:'image/png',bytes:4096}];
 const selected={
   type:'video',engine:'seedance',mode:'transform',model:TRANSFORM_MODEL,
-  transformType:'replace-character',provider:'higgsfield',
+  transformType:'replace-character',provider:'spicy',
   prompt:'Keep the source outfit and original performance',
   resolution:'720p',aspectRatio:'auto',duration:8,seed:null,audio:true,
   referenceVideos:[{name:'source.mp4',seconds:8,note:''}],
@@ -39,7 +39,7 @@ test('Transform is a real separate Seedance mode; Create and Extend endpoints st
     referenceVideos:selected.referenceVideos,referenceAudio:[],referenceRoles:selected.referenceRoles},
     {fail,referenceLabels:values=>values||[]});
   assert.equal(p.mode,'transform');
-  assert.equal(p.provider,'higgsfield');
+  assert.equal(p.provider,'spicy');
   assert.equal(p.transformType,'replace-character');
   assert.equal(p.model,TRANSFORM_MODEL);
   assert.equal(p.referenceVideos[0].seconds,8);
@@ -49,8 +49,10 @@ test('Transform is a real separate Seedance mode; Create and Extend endpoints st
 test('identity-transfer instruction preserves the film scene, camera and performance',()=>{
   const prompt=characterTransformPrompt({...selected,referenceSourceIds:data.referenceSourceIds});
   for(const phrase of ['Replace only the subject','original video timeline','camera movement',
-    'wardrobe','background','character identity','Identity reference 1','Profile view','Additional direction'])
+    'wardrobe','background','character identity','Identity reference @Image1','Profile view','Additional direction'])
     assert.match(prompt,new RegExp(phrase,'i'));
+  assert.match(prompt,/@Video1/);
+  assert.match(prompt,/@Image1/);
   assert.doesNotMatch(prompt,/https:\/\/|data:image/);
   assert.throws(()=>characterTransformPrompt({...selected,referenceSourceIds:data.referenceSourceIds,prompt:'x'.repeat(5001)}),/too long/i);
 });
@@ -62,7 +64,7 @@ test('source video and identity photographs are validated before any paid action
   assert.deepEqual(p.referenceVideoIds,[clip.id]);
   assert.equal(p.duration,8);
   assert.equal(p.sourceDurationSeconds,8);
-  assert.equal(p.provider,'higgsfield');
+  assert.equal(p.provider,'spicy');
   assert.equal(p.aspectRatio,'source');
   const bad=[
     [{...data,referenceVideoIds:[]},selected,/exactly one/i],
@@ -177,4 +179,32 @@ test('Video Transform has its own entry and keeps the existing source-only film 
   assert.doesNotMatch(css,/\bfetch\s*\(|\/api\/jobs|\/api\/quotes|providerKey/);
   assert.match(read('video-compact-studio.css'),/visuals\/video-android-trio-original\.png/);
   assert.doesNotThrow(()=>new Function(scene),'scene presentation code remains valid JavaScript');
+});
+
+test('new Transform quotes and submits ONLY through the existing SpicyAPI lifecycle',()=>{
+  const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
+  const studio=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  assert.match(studio,/mode==='transform'\?\{provider:'spicy'\}/);
+  assert.match(worker,/const \{original,images\}=await prepareCharacterTransform/);
+  assert.match(worker,/reference_image_urls:await Promise\.all\(images\.map\(a=>signedInput/);
+  assert.match(worker,/prompt:characterTransformPrompt\(p\)/);
+  assert.match(worker,/vendorRequest\('\/jobs\/quote',key,payload\)/);
+  assert.match(worker,/vendorRequest\('\/jobs\/createTask',key,payload,id\)/);
+  assert.match(worker,/Transform customer billing is not enabled/);
+  assert.match(worker,/maximum>TRANSFORM_MAX_ESTIMATE_MICROS/);
+  assert.match(worker,/old Higgsfield Transform quote/);
+  assert.doesNotMatch(worker,/quoteCharacterTransform\(/);
+  assert.doesNotMatch(worker,/submitCharacterTransform\(/);
+  assert.doesNotMatch(worker,/p\.provider==='higgsfield'&&p\.mode==='transform'/);
+});
+
+test('SpicyAPI Transform rejects unsupported MOV, while the existing mode remains unchanged',async()=>{
+  await assert.rejects(
+    prepareCharacterTransform({},'owner',data,structuredClone(selected),{
+      ...deps,source:async()=>({...clip,mime:'video/quicktime'})
+    }),/requires an MP4 source/i);
+  const p=seedanceParameters({mode:'extend',duration:8,resolution:'720p',aspectRatio:'auto'},
+    {fail,referenceLabels:()=>[]});
+  assert.equal(p.provider,'spicy');
+  assert.equal(VIDEO_MODELS.seedance.endpoints.extend,'bytedance/seedance-2.5/video-extend');
 });
