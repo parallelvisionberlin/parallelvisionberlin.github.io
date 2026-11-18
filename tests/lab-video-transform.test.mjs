@@ -51,8 +51,8 @@ test('identity-transfer instruction preserves the film scene, camera and perform
   for(const phrase of ['Replace only the subject','original video timeline','camera movement',
     'wardrobe','background','character identity','Identity reference 1','Profile view','Additional direction'])
     assert.match(prompt,new RegExp(phrase,'i'));
-  assert.match(prompt,/@Video 1/);
-  assert.match(prompt,/@Image 1/);
+  assert.match(prompt,/@Video1/);
+  assert.match(prompt,/@Image1/);
   assert.doesNotMatch(prompt,/https:\/\/|data:image/);
   assert.throws(()=>characterTransformPrompt({...selected,referenceSourceIds:data.referenceSourceIds,prompt:'x'.repeat(5001)}),/too long/i);
 });
