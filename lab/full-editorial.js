@@ -60,6 +60,29 @@ let castLimitNoticeFrame=null;
 let modelGroups=[],modelGroupSerial=0,modelUploadTarget=null,charactersLoadSequence=0;
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
 function effectiveCastMode(){return modelGroups.length>1?'cast':'one';}
+// The approved portraits need different focal points in very wide Composition
+// previews. This never changes the actual identity image or generation input.
+const compositionFaceFocals={
+ 'slate-cast-20261111.jpg':{group:24,solo:24},
+ 'cobalt-cast-20261111.jpg':{group:6,solo:6},
+ 'pearl-cast-20261111.jpg':{group:10,solo:15},
+ 'acid-cast-20261111.jpg':{group:2,solo:5},
+ 'blossom-cast-20261111.jpg':{group:6,solo:4},
+ 'plum-cast03.webp':{group:12,solo:12},
+ 'bronze-cast03.webp':{group:7,solo:4},
+ 'copper-inertia.webp':{group:8,solo:5},
+ 'ivory-cast03.webp':{group:10,solo:9},
+ 'night-cast03.webp':{group:5,solo:3}
+};
+function compositionPortraitFraming(group,kind){
+ if(!group)return {fit:'cover',focus:'28%'};
+ const sample=[...sampleFiles].find(([,file])=>group.files.includes(file))?.[0];
+ const imageName=sample?.dataset.sampleSrc?.split('/').pop();
+ const preset=compositionFaceFocals[imageName];
+ // Do not guess a crop for an unfamiliar user upload or private character.
+ return preset?{fit:'cover',focus:(kind==='alternating'?preset.solo:preset.group)+'%'}:
+  {fit:'contain',focus:'50%'};
+}
 function renderCastingControls(){
  const count=modelGroups.length,ready=count>=2;
  const region=$('editorial-casting-controls'),wasHidden=region.hidden;
@@ -81,6 +104,10 @@ function renderCastingControls(){
    if(!img.dataset.originalSrc)img.dataset.originalSrc=img.getAttribute('src')||'';
    const next=count===0?img.dataset.originalSrc:(photos[i]||covers[0]||img.dataset.originalSrc);
    if(next&&img.getAttribute('src')!==next)img.src=next;
+   const group=count?modelGroups[kind==='alternating'?0:Math.min(i,modelGroups.length-1)]:null;
+   const frame=compositionPortraitFraming(group,kind);
+   img.style.setProperty('--composition-portrait-focus',frame.focus);
+   img.style.setProperty('--composition-portrait-fit',frame.fit);
   });
  }
  $('editorial-cast-summary').textContent=count===0?'Select a model to begin. Composition options become available when you select two or more.':
