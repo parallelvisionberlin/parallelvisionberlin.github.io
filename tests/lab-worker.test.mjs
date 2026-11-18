@@ -2753,6 +2753,27 @@ test('multipart completion retry does not report an upload in the aborting state
   assert.equal(uploads.size,1,'The completion retry must not claim or mutate the abort operation');
 });
 
+test('a transient storage failure during multipart abort leaves the reservation retryable',async()=>{
+  const {env,uploads}=multipartFixture();
+  const init=await req(env,'/api/video-uploads',{method:'POST',data:{mime:'video/mp4',filename:'retry-abort.mp4',bytes:21*1024*1024}});
+  assert.equal(init.status,201,await init.clone().text());const session=await init.json();
+  const owner=env.LAB_DB.db.prepare('SELECT owner_id FROM assets WHERE id=?').get(session.id).owner_id;
+  const key=owner+'/video-uploads/'+session.id+'.json',get=env.LAB_MEDIA.get.bind(env.LAB_MEDIA);
+  let failOnce=true;
+  env.LAB_MEDIA.get=async objectKey=>{
+    if(objectKey===key&&failOnce){failOnce=false;throw Error('Temporary R2 read failure');}
+    return get(objectKey);
+  };
+  const first=await req(env,'/api/video-uploads/'+session.id+'/abort',{method:'POST'});
+  assert.equal(first.status,500,'A failed storage cleanup is not reported as complete');
+  const stranded=env.LAB_DB.db.prepare('SELECT mime FROM assets WHERE id=?').get(session.id);
+  assert.match(stranded.mime,/^application\/x-pv-video-upload-aborting:/,'The durable abort state remains discoverable for retry');
+  const retry=await req(env,'/api/video-uploads/'+session.id+'/abort',{method:'POST'});
+  assert.equal(retry.status,200,await retry.clone().text());
+  assert.equal(uploads.size,0,'The retry aborts the original multipart upload');
+  assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM assets WHERE id=?').get(session.id).n,0,'The retry releases the archive reservation');
+});
+
 test('signed video playback and download URLs stay private, owner-bound and separate from provider inputs',async()=>{
   const {env,objects}=fixture(),id=crypto.randomUUID(),key='owner-internal/results/'+id;
   const bytes=new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]);objects.set(key,bytes);
