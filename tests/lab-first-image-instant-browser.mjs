@@ -506,8 +506,10 @@ try{
   assert.ok(!hovered.boxShadow.includes('0.87')&&!hovered.boxShadow.includes('0.33'),
     'The earlier overbright halo must be removed: '+hovered.boxShadow);
   await page.mouse.move(2,2);
-  assert.equal(await page.locator('.lab-welcome-preset').count(),14,
-    'The original eight welcome cards remain mounted ahead of six featured Inspiration scenes');
+  assert.equal(await page.locator('.lab-welcome-preset').count(),15,
+    'The original eight welcome cards remain mounted ahead of seven featured Inspiration scenes, including Raver');
+  assert.equal(await page.locator('#lab-welcome-presets > [data-inspiration-concept="raver"]').count(),1,
+    'The released Raver scene remains in the signed-in Inspiration catalog');
   // Navigate the real gallery before submitting a job, so queue callbacks
   // cannot close the Inspiration view during the click regression.
   const welcomeNext=page.locator('.lab-welcome-carousel .inspiration-nav-next');
@@ -516,9 +518,9 @@ try{
   assert.equal(await welcomePrev.isVisible(),true,'Both gallery arrows remain in place');
   assert.equal(await welcomePrev.isDisabled(),true,'At the first look, previous is dimmed');
   // Each real navigation click advances one card, not a whole page. Traverse
-  // the fourteen-card catalog and let each native smooth scroll settle.
+  // the fifteen-card catalog and let each native smooth scroll settle.
   async function browseWelcome(button,direction){
-    for(let advance=0;advance<14;advance++){
+    for(let advance=0;advance<15;advance++){
       const frame=await page.locator('#lab-welcome-presets').evaluate(track=>({
         left:track.scrollLeft,limit:track.scrollWidth-track.clientWidth,
         step:track.firstElementChild.getBoundingClientRect().width+(parseFloat(getComputedStyle(track).columnGap)||0)

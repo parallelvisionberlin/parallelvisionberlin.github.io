@@ -4433,8 +4433,8 @@
       "title": "Stop phone Mood freezing, stabilize saved-character frame and restore regression coverage",
       "component": "Customer generation / regression coverage",
       "status": "needs_verification",
-      "summary": "Current main 844dbc09 integrated locally into the existing phone-freeze fix after confirmed merge conflicts. Preserve released authentication, ALTER references/job handoff, Inspiration photographs, Editorial casting and all other work records. The six application-file deltas remain the original phone observer guard, cache tags and saved-character frame stability. This integration is not ready: required browser checks remain unrun and seven focused failures also exist on current main.",
-      "nextAction": "Run required browser validation on the exact integrated draft head, compare failures with current-main baseline and correct any attributable regression before proposing publication. Preserve other work. No Worker deployment or migration is required for the phone guard.",
+      "summary": "Main remains 844dbc09. Exact draft 72d83b6 completed hosted checks: 28 successful, 14 failed, 2 cancelled. The previous Raver correction missed two browser fixtures still requiring 14 instead of the released 15 cards; correct both exact counts, retain explicit Raver assertions, traverse all 15 cards and serve the real auth-google import in the isolated phone harness. Application code is unchanged in this follow-up. Required browser verification remains incomplete; do not merge.",
+      "nextAction": "Inspect hosted checks on the next exact candidate. Required phone/deck/role browser tests must pass or receive an evidenced baseline comparison; never infer customer behavior from preview success. Preserve other work; no Worker deployment or migration required.",
       "baselineSha": "844dbc091464273f5e772232ed27b41c24de85c3",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
@@ -4677,6 +4677,12 @@
           "label": "November 18 current-main integration baseline comparison",
           "result": "failed",
           "scope": "Exact local integration 9fd528f0: 326 focused tests, 319 passed and 7 failed. Exact baseline 844dbc09: same 326 tests, 316 passed and 10 failed. All 7 candidate failures also occur on baseline: Google crypto mock, stale ALTER source assertion, five existing ALTER work-index schema failures. No new focused failure observed. Local browser cannot start because Playwright Chromium is absent. Historical hosted tests do not validate this integration."
+        },
+        {
+          "label": "72d83b6 completed hosted checks and fixture follow-up",
+          "result": "failed",
+          "scope": "28 success, 14 failure, 2 cancelled. Phone test timed out at obsolete length===14; shared deck asserted actual 15!==14. Correct both counts and missing auth-google module allowlist without changing product code. Local system Chromium also cannot launch because process-singleton socket is denied; browser behavior not validated.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44216111900/job/134506248755"
         }
       ],
       "deployment": {
@@ -4946,8 +4952,8 @@
         }
       ],
       "blockers": [
-        "Required phone/deck/role browser validation is pending; local Playwright Chromium is absent.",
-        "Seven focused failures persist from current main, including authentication mock, ALTER fixture and unrelated work-index schema. Candidate is not ready.",
+        "Required phone/deck/role browser validation has not passed on the new candidate; local Chromium launch is blocked by process-singleton socket permission.",
+        "Seven focused failures persist from current main; further hosted layout, visual, auth and ALTER assertions remain unresolved. Candidate is not ready.",
         "User decision required before merge/frontend publication; no production actions performed."
       ],
       "doNotRepeat": [
@@ -4956,8 +4962,8 @@
         "Keep strict visual thresholds. Use captured geometry/style and same-source controls when narrow rounded-edge variance recurs; do not declare production health or weaken the gate.",
         "Use current exact job IDs, nested saved-video Actions, uniform Video failure cards and inspector reuse; do not restore retired status prefixes, Liquid Metal templates or Image-only refusal markup to satisfy stale fixtures."
       ],
-      "updatedAt": "2026-11-18T01:25:00Z",
-      "reviewedSha": "9fd528f04bfa78235d2e4684812ebe7e4031a09f"
+      "updatedAt": "2026-11-18T02:43:56Z",
+      "reviewedSha": "72d83b6fb89f8c13ced1a71afe605f7a2a576ef6"
     }
   ]
 }

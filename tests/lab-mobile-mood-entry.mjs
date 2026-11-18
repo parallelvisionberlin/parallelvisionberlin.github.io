@@ -41,6 +41,7 @@ async function openViewport(width,height){
   await page.route(/\/lab\/[^/]+\.js(?:\?.*)?$/,route=>{
     const pathname=new URL(route.request().url()).pathname;
     if(pathname.endsWith('/studio-guest-image.js')||
+       pathname.endsWith('/auth-google.js')||
        pathname.endsWith('/inspiration-looks.js')||
        pathname.endsWith('/inspiration-carousel.js')||
        pathname.endsWith('/inspiration-catalog.js')||
@@ -62,7 +63,9 @@ async function openViewport(width,height){
     document.getElementById('app').hidden=true;
   });
   await page.locator('[data-guest-mood="90s-cinema"]').waitFor({state:'visible'});
-  await page.waitForFunction(()=>document.querySelectorAll('#pv-guest-cards > .pv-guest-card').length===14);
+  await page.waitForFunction(()=>document.querySelectorAll('#pv-guest-cards > .pv-guest-card').length===15);
+  assert.equal(await page.locator('#pv-guest-cards > [data-inspiration-concept="raver"]').count(),1,
+    'The released Raver scene remains in the public Inspiration catalog');
   return {page,context,errors};
 }
 try{
@@ -337,7 +340,7 @@ try{
   }
   let {page,context,errors}=await openViewport(390,844);
   try{
-    assert.equal(await page.locator('.pv-guest-card').count(),14,'Eight original cards plus six featured Inspiration scenes');
+    assert.equal(await page.locator('.pv-guest-card').count(),15,'Eight original cards plus seven featured Inspiration scenes, including Raver');
     const motion=await page.locator('#pv-guest-cards').evaluate(track=>({
      snap:getComputedStyle(track).scrollSnapType,behavior:getComputedStyle(track).scrollBehavior,
      scrollable:track.scrollWidth>track.clientWidth
