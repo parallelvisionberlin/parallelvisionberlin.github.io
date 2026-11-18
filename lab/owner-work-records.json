@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T11:59:43Z",
+  "updatedAt": "2026-11-18T20:36:02Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4655,6 +4655,107 @@
         "Preserve the unrelated invalid alter-makeup-reference-transfer work record."
       ],
       "updatedAt": "2026-11-18"
+    },
+    {
+      "id": "pvlab-video-upload-abort-idempotency-20261118",
+      "title": "Make large video upload aborts safe to retry",
+      "component": "PV LAB Upscaler",
+      "status": "needs_verification",
+      "summary": "Prevent multipart completion retries from claiming an upload that is already aborting, and keep interrupted abort cleanup reclaimable after transient private-storage failures.",
+      "nextAction": "Review draft PR #1052. If approved, merge it and separately authorize the guarded Worker release; verify the published health marker and upload/quote behavior without confirming a paid generation.",
+      "baselineSha": "4181f5687bd47dced7c6ca20acd4540813e8bb4d",
+      "reviewedSha": "7c45e58a071b20484bd8bf94944f188e764d9daa",
+      "branch": "fix/pvlab-video-upload-abort-idempotency-20261118",
+      "files": [
+        ".github/workflows/pv-lab-video-upscale.yml",
+        "lab-worker/video-source-upload.mjs",
+        "lab-worker/worker.mjs",
+        "tests/lab-worker.test.mjs",
+        "lab/UPSCALE-WORK-STATE.md",
+        "lab/owner-work-records.json"
+      ],
+      "links": [
+        {
+          "label": "Draft abort/idempotency fix",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1052"
+        },
+        {
+          "label": "Upscaler work state",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Original completion-race regression",
+          "scope": "Test-only baseline commit b4606666 reproduced the false 201 response for an aborting reservation: 129/130 Worker/Upscaler tests passed and the new regression failed as expected.",
+          "result": "documented",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44391135804/job/135108777901"
+        },
+        {
+          "label": "Interrupted-abort regression",
+          "scope": "Test-only intermediate commit 9ab5a0ed reproduced the stranded legacy abort marker after a transient R2 read error: 130/131 tests passed and the new retry test failed as expected.",
+          "result": "documented",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44392378209/job/135113158574"
+        },
+        {
+          "label": "Focused final candidate",
+          "scope": "Exact code candidate 7c45e58a passed 131/131 Worker/Upscaler and billing regression tests with zero skips, including both new abort-state regressions, completed-upload idempotency, private upload isolation, credit quotes, refunds and job lifecycle.",
+          "result": "passed",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44392612510/job/135113968706"
+        },
+        {
+          "label": "Adjacent UI and static checks",
+          "scope": "Approved Image UI contract and static-site validation passed on the exact code candidate.",
+          "result": "passed",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44392612517"
+        },
+        {
+          "label": "Broad private-lab baseline comparison",
+          "scope": "The broad private-lab job still fails 23 tests; all 23 failure names exactly match the base job 134831621593. No new failure names were introduced by this candidate.",
+          "result": "documented",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44392612797"
+        }
+      ],
+      "deployment": {
+        "state": "pending",
+        "environment": "Cloudflare parallel-vision-lab Worker",
+        "sourceSha": null,
+        "limitations": [
+          "PR #1052 remains draft and is not merged or deployed.",
+          "The production Worker still contains the pre-fix code; whether either race has occurred for a customer is unknown.",
+          "No production migration, customer data/credits, Stripe operation or paid provider generation was performed."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "The deployed capacity-release source contains the original non-pending completion shortcut and one-way abort marker. The candidate narrows success to final video MIME and adds retryable compare-and-swap abort markers.",
+          "scope": "Worker upload state machine",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/6c03c4002447fbed1c8f6104f92d8a482fdd3240/lab-worker/video-source-upload.mjs",
+          "limitations": [
+            "Source-level exposure is confirmed; production occurrence is not."
+          ]
+        },
+        {
+          "kind": "ci",
+          "summary": "The exact candidate passes the focused 131-test Worker/Upscaler/billing suite.",
+          "scope": "Mocked upload, quote, credit, refund and lifecycle behavior",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44392612510/job/135113968706",
+          "limitations": [
+            "No paid provider job or real customer transaction was submitted."
+          ]
+        }
+      ],
+      "blockers": [
+        "Draft PR #1052 needs review and merge approval.",
+        "A guarded production Worker release is a separate decision after merge; it has not been run."
+      ],
+      "doNotRepeat": [
+        "Do not rerun the unchanged 23-failure broad private-lab suite without new evidence.",
+        "Do not use paid generations or checkout transactions to verify this fix.",
+        "Preserve the existing 20 GiB capacity, pricing and provider choices."
+      ],
+      "updatedAt": "2026-11-18T20:36:02Z"
     }
   ]
 }
