@@ -49,7 +49,7 @@ test('Transform is a real separate Seedance mode; Create and Extend endpoints st
 test('identity-transfer instruction preserves the film scene, camera and performance',()=>{
   const prompt=characterTransformPrompt({...selected,referenceSourceIds:data.referenceSourceIds});
   for(const phrase of ['Replace only the subject','original video timeline','camera movement',
-    'wardrobe','background','character identity','Identity reference 1','Profile view','Additional direction'])
+    'wardrobe','background','character identity','Identity reference @Image1','Profile view','Additional direction'])
     assert.match(prompt,new RegExp(phrase,'i'));
   assert.match(prompt,/@Video1/);
   assert.match(prompt,/@Image1/);
