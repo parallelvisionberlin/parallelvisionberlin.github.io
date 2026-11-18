@@ -81,8 +81,10 @@ test('CLI read is deterministic and scoped; upsert keeps unrelated records and r
 });
 
 test('production Worker Actions remains manual-only while direct Cloudflare is the release path',async()=>{
-  const workflow=await readFile(new URL('../.github/workflows/deploy-lab-worker.yml',import.meta.url),'utf8');
-  const events=workflow.slice(workflow.indexOf('\non:')+4,workflow.indexOf('\npermissions:'));
-  assert.match(events,/^  workflow_dispatch:/m);
-  assert.doesNotMatch(events,/^  (push|pull_request|schedule|workflow_run):/m);
+  for(const name of ['deploy-lab-worker.yml','release-upscaler-mov-worker.yml']){
+    const workflow=await readFile(new URL('../.github/workflows/'+name,import.meta.url),'utf8');
+    const events=workflow.slice(workflow.indexOf('\non:')+4,workflow.indexOf('\npermissions:'));
+    assert.match(events,/^  workflow_dispatch:/m,name+' retains explicit manual release');
+    assert.doesNotMatch(events,/^  (push|pull_request|schedule|workflow_run):/m,name+' must not release production automatically');
+  }
 });

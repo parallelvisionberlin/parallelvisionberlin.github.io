@@ -4540,6 +4540,76 @@
         "Worker deployment must preserve live bindings/vars/secrets; use release-upscaler-mov-worker.yml with no migrations."
       ],
       "updatedAt": "2026-11-18T11:59:43Z"
+    },
+    {
+      "id": "worker-release-manual-guard",
+      "title": "Require manual dispatch for Upscaler Worker release",
+      "component": "Production Worker release control",
+      "status": "needs_verification",
+      "summary": "PR #1048 merged as 6f9fd7bf and its push trigger deployed production Worker version eca886a9 at 11:56 UTC. Remove only that push trigger and extend the existing manual-release regression to cover the scoped MOV workflow. No application, pricing, provider, wallet, schema or release-step changes.",
+      "nextAction": "Review the exact tested draft and decide whether to merge the manual-dispatch guard. Do not dispatch a release. Existing production customer behavior remains unverified by this review.",
+      "baselineSha": "db094023c73ba452ec73c30b971a05c59a836a78",
+      "reviewedSha": null,
+      "branch": "codex/manual-upscaler-worker-release-20261118",
+      "files": [
+        ".github/workflows/release-upscaler-mov-worker.yml",
+        "tests/owner-work-state.test.mjs",
+        "lab/owner-work-records.json"
+      ],
+      "links": [
+        {
+          "label": "Merged MOV feature",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1048"
+        },
+        {
+          "label": "Observed production Worker release",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44298983700/job/134783386907"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Manual trigger regression",
+          "scope": "Existing test passes on base but omits the MOV workflow. Extended assertion fails on base workflow and passes after removing its push event.",
+          "result": "passed"
+        },
+        {
+          "label": "Workflow semantic comparison",
+          "scope": "Parsed YAML differs only by removal of push event; manual dispatch, permissions, concurrency and every release/test/settings-check step are identical.",
+          "result": "passed"
+        },
+        {
+          "label": "Canonical index",
+          "scope": "Base validation already rejects alter-makeup-reference-transfer.tests[2].result. Preserve all other records; validate this record individually.",
+          "result": "documented"
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Future GitHub Actions production Worker release trigger",
+        "sourceSha": null,
+        "limitations": [
+          "Prepared code only; no merge, workflow dispatch or production deployment performed."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "deployment",
+          "summary": "Release log reports Worker eca886a9-4754-44b4-a6aa-3345057d9b49 at 11:56:23 UTC, exact MOV health marker at 11:56:28 UTC and unchanged production settings.",
+          "scope": "Observed existing release, not deployment of this guard.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44298983700/job/134783386907",
+          "limitations": [
+            "Customer checkout, credits and paid generation were not independently exercised."
+          ]
+        }
+      ],
+      "blockers": [
+        "User decision required before merging. Full work-index validation has an unchanged pre-existing incompatible ALTER record."
+      ],
+      "doNotRepeat": [
+        "Do not change released MOV behavior, providers, prices, media limits or deployment steps while repairing the trigger.",
+        "Never dispatch this production release as a test."
+      ],
+      "updatedAt": "2026-11-18T12:50:41Z"
     }
   ]
 }
