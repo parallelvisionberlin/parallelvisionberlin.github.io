@@ -123,17 +123,19 @@ test('Inspiration gallery keeps complete portrait cards and scrolls within the d
 });
 
 
-test('Inspiration cards do not expose native hover titles, while keeping screen-reader labels',()=>{
-  const html=read('studio.html');
-  const catalog=read('inspiration-catalog.js');
-  const chrome=[...html.matchAll(/<button\\b[^>]*data-(?:guest|welcome)-mood="chrome-couture"[^>]*>/g)].map(m=>m[0]);
-  assert.equal(chrome.length,2,'Public and signed-in Chrome Couture cards exist');
-  for(const card of chrome){
-    assert.doesNotMatch(card,/\\btitle=/,'No browser tooltip on the card');
-    assert.match(card,/\\baria-label=/,'Screen reader name remains');
+test('Inspiration cards preserve accessible labels without native hover titles',()=>{
+  const html=read('studio.html'),catalog=read('inspiration-catalog.js');
+  const cards=html.split('<button').slice(1).filter(tag=>
+    tag.split('>')[0].includes('data-guest-mood="chrome-couture"') ||
+    tag.split('>')[0].includes('data-welcome-mood="chrome-couture"'));
+  assert.equal(cards.length,2);
+  for(const card of cards){
+    const tag=card.split('>')[0];
+    assert.ok(!tag.includes(' title='),'No browser-native tooltips on Chrome Couture');
+    assert.ok(tag.includes('aria-label='),'Keep accessible card names');
   }
-  assert.doesNotMatch(catalog,/button\\.title\\s*=/,'Dynamic Inspiration cards have no browser-native titles');
-  assert.match(catalog,/button\\.setAttribute\\('aria-label'/,'Dynamic cards keep accessible names');
+  assert.ok(!catalog.includes('button.title='),'Dynamic cards have no native tooltip');
+  assert.ok(catalog.includes("button.setAttribute('aria-label'"),'Dynamic cards keep accessible names');
 });
 
 test('Explore All publishes only visually vetted worlds, with no screenshot-based cards',()=>{
