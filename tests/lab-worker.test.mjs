@@ -2774,6 +2774,28 @@ test('a transient storage failure during multipart abort leaves the reservation 
   assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM assets WHERE id=?').get(session.id).n,0,'The retry releases the archive reservation');
 });
 
+test('expired upload sweep retries an interrupted abort before reserving new archive space',async()=>{
+  const {env,uploads}=multipartFixture();
+  const init=await req(env,'/api/video-uploads',{method:'POST',data:{mime:'video/mp4',filename:'expired.mp4',bytes:21*1024*1024}});
+  assert.equal(init.status,201,await init.clone().text());const session=await init.json();
+  const owner=env.LAB_DB.db.prepare('SELECT owner_id FROM assets WHERE id=?').get(session.id).owner_id;
+  const key=owner+'/video-uploads/'+session.id+'.json',get=env.LAB_MEDIA.get.bind(env.LAB_MEDIA);
+  let failOnce=true;
+  env.LAB_MEDIA.get=async objectKey=>{
+    if(objectKey===key&&failOnce){failOnce=false;throw Error('Temporary R2 read failure');}
+    return get(objectKey);
+  };
+  const abort=await req(env,'/api/video-uploads/'+session.id+'/abort',{method:'POST'});
+  assert.equal(abort.status,500,'The failed cleanup remains visible rather than claiming success');
+  env.LAB_DB.db.prepare('UPDATE assets SET created_at=? WHERE id=?').run(Date.now()-86400001,session.id);
+  const replacement=await req(env,'/api/video-uploads',{method:'POST',data:{mime:'video/mp4',filename:'replacement.mp4',bytes:21*1024*1024}});
+  assert.equal(replacement.status,201,await replacement.clone().text());
+  const next=await replacement.json();
+  assert.notEqual(next.id,session.id);
+  assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM assets WHERE id=?').get(session.id).n,0,'The expiry sweep releases the old reservation');
+  assert.equal(uploads.size,1,'Only the new multipart upload remains open');
+});
+
 test('signed video playback and download URLs stay private, owner-bound and separate from provider inputs',async()=>{
   const {env,objects}=fixture(),id=crypto.randomUUID(),key='owner-internal/results/'+id;
   const bytes=new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]);objects.set(key,bytes);
