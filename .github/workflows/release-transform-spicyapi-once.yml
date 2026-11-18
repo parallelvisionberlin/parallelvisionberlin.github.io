@@ -1,0 +1,88 @@
+name: One-time PV LAB Transform SpicyAPI Worker release
+
+on:
+  pull_request:
+    types: [synchronize]
+    paths:
+      - .github/workflows/release-transform-spicyapi-once.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: parallel-vision-lab-production
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/transform-spicyapi-video-edit-20261119'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CLOUDFLARE_ACCOUNT_ID: a40ce1725295563a7b7db9fc3160480a
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Transform, billing, customer credits and syntax
+        run: |
+          set -euo pipefail
+          node --check lab-worker/worker.mjs
+          node --check lab-worker/seedance.mjs
+          node --check lab-worker/higgsfield-video-transform.mjs
+          node --check lab/lab.js
+          node --test tests/lab-video-transform.test.mjs tests/lab-worker.test.mjs tests/lab-pricing-integrity.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-generation-finance.test.mjs tests/lab-customer-lifecycle.test.mjs
+      - name: Verify existing Cloudflare bindings and capture original configuration
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {writeFileSync,appendFileSync} from 'node:fs';
+          const token=(process.env.CLOUDFLARE_API_TOKEN||'').replace(/\s/g,'');
+          if(!token)throw Error('Cloudflare deployment credential unavailable.');
+          console.log('::add-mask::'+token);
+          appendFileSync(process.env.GITHUB_ENV,'CLOUDFLARE_API_TOKEN='+token+'\n');
+          const endpoint='https://api.cloudflare.com/client/v4/accounts/'+process.env.CLOUDFLARE_ACCOUNT_ID+'/workers/scripts/parallel-vision-lab/settings';
+          const res=await fetch(endpoint,{headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(25000)});
+          const response=await res.json();
+          if(!res.ok||!response.success||!Array.isArray(response.result?.bindings))throw Error('Could not verify existing production bindings; deploy blocked.');
+          const bindings=response.result.bindings;
+          for(const name of ['LAB_DB','LAB_MEDIA','OWNER_DB'])if(!bindings.some(b=>b.name===name))throw Error('Required production binding missing: '+name);
+          const canon=JSON.stringify(bindings.map(b=>Object.fromEntries(Object.entries(b).sort())).sort((a,b)=>a.name.localeCompare(b.name)));
+          writeFileSync(process.env.RUNNER_TEMP+'/transform-worker-bindings.json',canon);
+          console.log('PASS: production Worker resources and configuration captured before release.');
+          NODE
+      - name: Deploy reviewed Worker with no migrations and preserved vars
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          accountId: a40ce1725295563a7b7db9fc3160480a
+          workingDirectory: lab-worker
+          wranglerVersion: '4'
+          command: deploy --keep-vars
+      - name: Verify live Transform version and configuration unchanged
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          let found=false;
+          for(let attempt=0;attempt<8;attempt++){
+            const res=await fetch('https://parallel-vision-lab.parallelvision.workers.dev/health',{signal:AbortSignal.timeout(15000)});
+            const payload=await res.json();
+            if(res.ok&&payload.ok&&payload.videoTransformProvider==='spicyapi-seedance25-edit-20261119'){found=true;break;}
+            await new Promise(resolve=>setTimeout(resolve,3500));
+          }
+          if(!found)throw Error('Production health does not confirm SpicyAPI Transform version.');
+          const token=(process.env.CLOUDFLARE_API_TOKEN||'').replace(/\s/g,'');
+          const endpoint='https://api.cloudflare.com/client/v4/accounts/'+process.env.CLOUDFLARE_ACCOUNT_ID+'/workers/scripts/parallel-vision-lab/settings';
+          const res=await fetch(endpoint,{headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(25000)});
+          const response=await res.json();
+          if(!res.ok||!response.success)throw Error('Cannot verify post-deployment Cloudflare bindings.');
+          const canon=JSON.stringify(response.result.bindings.map(b=>Object.fromEntries(Object.entries(b).sort())).sort((a,b)=>a.name.localeCompare(b.name)));
+          if(canon!==readFileSync(process.env.RUNNER_TEMP+'/transform-worker-bindings.json','utf8'))throw Error('Production bindings changed during release.');
+          console.log('LIVE VERIFIED: SpicyAPI Transform Worker is deployed; Cloudflare settings match prior configuration. No D1 migrations, checkout or paid generation executed.');
+          NODE
