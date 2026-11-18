@@ -2742,6 +2742,17 @@ test('multipart reservations remain bounded under concurrent requests and unfund
   const response=await req(account.env,'/api/video-uploads',{method:'POST',authToken:account.authToken,data:{mime:'video/mp4',bytes:21*1024*1024}});
   assert.equal(response.status,402,'Existing credit/storage gate remains active');
 });
+test('multipart completion retry does not report an upload in the aborting state as complete',async()=>{
+  const {env,uploads}=multipartFixture();
+  const init=await req(env,'/api/video-uploads',{method:'POST',data:{mime:'video/mp4',filename:'cancelled.mp4',bytes:21*1024*1024}});
+  assert.equal(init.status,201,await init.clone().text());const session=await init.json();
+  env.LAB_DB.db.prepare('UPDATE assets SET mime=? WHERE id=?').run('application/x-pv-video-upload-aborting',session.id);
+  const retry=await req(env,'/api/video-uploads/'+session.id+'/complete',{method:'POST',data:{parts:[]}});
+  assert.equal(retry.status,409,'An aborting upload is not a completed source');
+  assert.equal(env.LAB_DB.db.prepare('SELECT mime FROM assets WHERE id=?').get(session.id).mime,'application/x-pv-video-upload-aborting');
+  assert.equal(uploads.size,1,'The completion retry must not claim or mutate the abort operation');
+});
+
 test('signed video playback and download URLs stay private, owner-bound and separate from provider inputs',async()=>{
   const {env,objects}=fixture(),id=crypto.randomUUID(),key='owner-internal/results/'+id;
   const bytes=new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]);objects.set(key,bytes);
