@@ -12,6 +12,9 @@ test('Image Inspiration expands original eight cards without modifying Moods',()
   const guest=read('studio-guest-image.js');
   assert.equal((html.match(/data-guest-mood="/g)||[]).length,8);
   assert.equal((html.match(/data-welcome-mood="/g)||[]).length,8);
+  assert.match(html,/data-welcome-mood="soft-pastel-film"/);
+  assert.match(html,/data-guest-mood="soft-pastel-film"/);
+  assert.doesNotMatch(html,/Choose Vinyl Heat/);
   assert.equal(INSPIRATION_SCENES.length,48);
   assert.match(read('inspiration-carousel.js'),/import '.\/inspiration-catalog\.js/);
   assert.match(catalog,/\.inspiration-carousel-shell/);
