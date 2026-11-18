@@ -1,8 +1,8 @@
 name: One-time PV LAB Transform SpicyAPI Worker release
 
 on:
-  pull_request:
-    types: [synchronize]
+  push:
+    branches: [main]
     paths:
       - .github/workflows/release-transform-spicyapi-once.yml
 
@@ -15,7 +15,6 @@ concurrency:
 
 jobs:
   release:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/transform-spicyapi-video-edit-20261119'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -23,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
