@@ -1,3 +1,10 @@
+## 2026-11-19 / iPhone Full Editorial unintended page pinch zoom
+- User-provided iPhone Safari screenshots show the entire Styling workflow magnified far beyond its design viewport after two-finger pinch, requiring reverse pinch to recover. This is browser page-scale behavior, not intentionally resized cards.
+- Scope: only `lab/full-editorial.html`. Mobile touch screens in `#editorial-flow` use `touch-action:pan-x pan-y`; Safari `gesturestart` / `gesturechange` are canceled only within that flow. Single-finger vertical scrolling, horizontal galleries, desktop, navigation outside the workflow and the viewport meta are not changed.
+- No `user-scalable=no`, no `maximum-scale=1`, no broad `touchmove` cancellation. This localized restriction trades away in-workflow pinch magnification; physical iPhone accessibility testing is still needed.
+- Feature branch: `fix/full-editorial-mobile-pinch-zoom-20261119`; baseline main `4181f5687bd47dced7c6ca20acd4540813e8bb4d`.
+- Scoped test: `tests/lab-full-editorial-mobile-pinch.test.mjs`. Static source checks passed; GitHub CI, Cloudflare publishing, native iPhone pinch/scroll behavior not yet verified. Do not claim live until exact deployment evidence and native gesture check.
+
 ## Mobile native swipe inertia, 2026-11-18
 - User-approved mobile-only feel: faster, free finger swipes across Casting References, My Characters and Composition, without compulsory card-by-card snapping. Original character order, photography, 4-character cap/toast, fixed footer and desktop scroll unchanged.
 - Scoped patch on PR #1040 (`fix/mobile-editorial-image-native-inertia-20261118`): `full-editorial-identity-refresh.css` adds <=800px native touch momentum and no enforced snap; `full-editorial.html` refreshes that CSS cache key.
