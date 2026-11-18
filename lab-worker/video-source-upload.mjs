@@ -3,10 +3,21 @@
 import {inspectUpscaleVideoRanges,VIDEO_UPSCALE_MAX_BYTES} from '../lab/video-upscale-metadata.js';
 export const VIDEO_PART_BYTES=8*1024*1024;
 export const VIDEO_UPLOAD_PENDING='application/x-pv-video-upload';
+export const VIDEO_UPLOAD_ABORTING_LEGACY=VIDEO_UPLOAD_PENDING+'-aborting';
+export const VIDEO_UPLOAD_ABORTING_PREFIX=VIDEO_UPLOAD_PENDING+'-aborting:';
+export function isVideoUploadAborting(mime){
+  return mime===VIDEO_UPLOAD_ABORTING_LEGACY||(typeof mime==='string'&&mime.startsWith(VIDEO_UPLOAD_ABORTING_PREFIX));
+}
+export function isVideoUploadReservation(mime){return mime===VIDEO_UPLOAD_PENDING||isVideoUploadAborting(mime);}
 const sessionKey=(owner,id)=>owner+'/video-uploads/'+id+'.json';
 
 export async function abandonVideoUpload(env,asset,{run}){
-  const claimed=await run(env,'UPDATE assets SET mime=? WHERE id=? AND owner_id=? AND mime=?',VIDEO_UPLOAD_PENDING+'-aborting',asset.id,asset.owner_id,VIDEO_UPLOAD_PENDING);
+  if(!isVideoUploadReservation(asset.mime))return;
+  // Compare-and-swap the exact state so concurrent cleanup attempts cannot
+  // claim the same reservation. A failed storage operation leaves a unique,
+  // discoverable abort state that a later abort or expiry sweep can reclaim.
+  const claim=VIDEO_UPLOAD_ABORTING_PREFIX+crypto.randomUUID();
+  const claimed=await run(env,'UPDATE assets SET mime=? WHERE id=? AND owner_id=? AND mime=?',claim,asset.id,asset.owner_id,asset.mime);
   if(!claimed.meta.changes)return;
   const key=sessionKey(asset.owner_id,asset.id),object=await env.LAB_MEDIA.get(key);
   if(object){
@@ -15,7 +26,7 @@ export async function abandonVideoUpload(env,asset,{run}){
   }
   await env.LAB_MEDIA.delete(asset.object_key);
   await env.LAB_MEDIA.delete(key);
-  await run(env,'DELETE FROM assets WHERE id=? AND owner_id=? AND mime=?',asset.id,asset.owner_id,VIDEO_UPLOAD_PENDING+'-aborting');
+  await run(env,'DELETE FROM assets WHERE id=? AND owner_id=? AND mime=?',asset.id,asset.owner_id,claim);
 }
 
 export async function videoSourceUploadRoute(request,env,owner,url,d){
@@ -31,7 +42,8 @@ export async function videoSourceUploadRoute(request,env,owner,url,d){
     if(!['video/mp4','video/quicktime'].includes(mime)||!Number.isSafeInteger(bytes)||bytes<128||bytes>VIDEO_UPSCALE_MAX_BYTES)
       fail(400,'Choose an MP4 or MOV up to 20 GB.');
     // Expired reservations cannot strand an account's archive capacity.
-    const expired=await rows(env,'SELECT * FROM assets WHERE owner_id=? AND mime=? AND created_at<?',owner,VIDEO_UPLOAD_PENDING,now()-86400000);
+    const expired=await rows(env,'SELECT * FROM assets WHERE owner_id=? AND created_at<? AND (mime=? OR mime=? OR mime LIKE ?)',
+      owner,now()-86400000,VIDEO_UPLOAD_PENDING,VIDEO_UPLOAD_ABORTING_LEGACY,VIDEO_UPLOAD_ABORTING_PREFIX+'%');
     for(const asset of expired)await abandonVideoUpload(env,asset,d);
     const id=crypto.randomUUID(),key=owner+'/sources/'+id;
     const filename=String(data.filename||'source-video').replace(/[\r\n\x00-\x1f]/g,'').slice(0,180);
@@ -49,7 +61,8 @@ export async function videoSourceUploadRoute(request,env,owner,url,d){
   const [,id,action,partText]=match;
   const asset=await first(env,"SELECT * FROM assets WHERE id=? AND owner_id=? AND kind='source'",id,owner);
   if(!asset)fail(404,'Video upload not found.');
-  if(asset.mime!==VIDEO_UPLOAD_PENDING){
+  const aborting=isVideoUploadAborting(asset.mime);
+  if(asset.mime!==VIDEO_UPLOAD_PENDING&&!aborting){
     // Only a fully committed video is an idempotent completion. An aborting
     // reservation is also non-pending, but must never be reported as success.
     if(action==='complete'&&['video/mp4','video/quicktime'].includes(asset.mime))
@@ -57,6 +70,7 @@ export async function videoSourceUploadRoute(request,env,owner,url,d){
     fail(409,'This upload is already complete or no longer available.');
   }
   if(action==='abort'){await abandonVideoUpload(env,asset,d);return json({ok:true});}
+  if(aborting)fail(409,'This upload is being cancelled. Retry the upload if needed.');
   const saved=await env.LAB_MEDIA.get(sessionKey(owner,id));
   if(!saved)fail(409,'Upload details expired. Choose the video again.');
   const session=await new Response(saved.body).json();
