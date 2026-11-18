@@ -2473,11 +2473,12 @@ test('Beauty Studio binds portrait edits to existing quotes and idempotent image
       [engine,'auto',1000,3000,'1:3']])]){
     const {env}=fixture();await setup(env);createMode='ok';providerState='queued';createCount=0;
     const id=await uploadGuidanceReference(env,'beauty-person.png',42);
+    const makeupSourceId=await uploadGuidanceReference(env,'beauty-makeup.png',43);
     const settings=beautySettings({model:engine,direction:'Subtle copper eye makeup.',aspectRatio,sourceWidth,sourceHeight});
-    const response=await req(env,'/api/quotes',{method:'POST',data:{sourceId:id,referenceSourceIds:[id],settings}});
-    assert.equal(response.status,200);const quote=await response.json();
+    const response=await req(env,'/api/quotes',{method:'POST',data:{sourceId:id,referenceSourceIds:[id,makeupSourceId],settings}});
+    assert.equal(response.status,200,await response.clone().text());const quote=await response.json();
     assert.equal(quote.settings.aspectRatio,expectedRatio,'The Worker preserves the photo-derived ratio in the priced settings');
-    validateBeautyQuote(quote,settings,id);
+    validateBeautyQuote(quote,settings,id,Date.now(),makeupSourceId);
     const before=createCount;
     const first=await req(env,'/api/jobs',{method:'POST',data:{quoteId:quote.id,confirm:true}});
     assert.equal(first.status,202);const job=(await first.json()).job;

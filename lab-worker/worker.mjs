@@ -1404,7 +1404,7 @@ async function route(request,env,ctx) {
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range,X-PV-Lab-Client,X-Replacement-Job-Id','Access-Control-Max-Age':'600'}});
   if(url.pathname==='/api/public/local-currency'&&request.method==='GET')return localCurrency(request);
-  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1',seedanceExtendReferences:'20261112-extend-refs1',seedream55:'20261113-seedream55-1'});
+  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1',seedanceExtendReferences:'20261112-extend-refs1',seedream55:'20261113-seedream55-1',videoUpscaleInputs:'20261118-mp4-mov-1'});
   if(url.pathname.startsWith('/api/music/public/'))return musicPublicRoute(request,env);
   // PV LAB anonymous traffic uses its own origin-checked, bounded payload.
   if(url.pathname==='/api/public/traffic'&&request.method==='POST')return recordLabTraffic(request,env);

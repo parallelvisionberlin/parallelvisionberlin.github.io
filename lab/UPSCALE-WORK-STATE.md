@@ -8,9 +8,12 @@
 - Accept modern QuickTime MOV with its original MIME, preserve it in History reuse/comparison, and read the existing authoritative ISO BMFF timing. No conversion/recompression is introduced.
 - Retain duration, size, upscale-factor, quote confirmation, ownership, safety and duplicate-submission safeguards.
 - Local genuine H.264 QuickTime fixture and owner upload/quote regression pass with the same metadata/credit quote as MP4, no provider dispatch.
-- Local combined backend/pricing/Image contracts: 135/137 initially; parser error wording expectation corrected. Remaining Beauty Studio quote test failure is in unrelated existing functionality.
+- Final local release set: 178/178 passed. The pre-existing Beauty quote test used one reference while its updated default needs two; its fixture now supplies the actual makeup reference, retaining idempotency and quote guards.
 - Shared heading/source/card bounds visually inspected in the isolated browser; exact equality across mode switch.
-- Desktop/phone CI, release and real-account verification pending. No paid jobs submitted.
+- Initial CI: desktop/phone MOV upload/drop/quote, shared geometry, source retention, uncertain-response lock and Assets checks passed. Short-window expanded Precision needed tighter row gaps; final compact run pending.
+- Migration-free Worker release workflow clones the existing resource/settings snapshot guards and financial tests; exact health marker videoUpscaleInputs=20261118-mp4-mov-1.
+- Existing unrelated alter-makeup-reference-transfer record uses unsupported test/deployment fields; full index validation remains blocked. Preserve it; the new Upscaler record validates individually.
+- Release and real-account verification pending. No paid jobs submitted.
 - Next: pass affected browser checks, publish exact reviewed code, verify frontend bytes and Worker deployment separately.
 
 

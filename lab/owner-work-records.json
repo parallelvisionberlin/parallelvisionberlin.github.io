@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T12:30:00Z",
+  "updatedAt": "2026-11-18T11:33:07Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4434,9 +4434,9 @@
       "component": "PV LAB Upscaler",
       "status": "needs_verification",
       "summary": "One shared Image/Video layout, medium-large heading, larger cards and persistent source drop box; accept MOV with preserved MIME and existing authoritative quote checks.",
-      "nextAction": "Complete browser CI, merge and verify Cloudflare frontend and Worker releases separately.",
+      "nextAction": "Finish final-candidate browser CI, merge, then verify Pages bytes and the migration-free Worker release with exact MOV capability marker.",
       "baselineSha": "844dbc091464273f5e772232ed27b41c24de85c3",
-      "reviewedSha": null,
+      "reviewedSha": "7b80cce58e47df3049009effdcaeae1d9526d743",
       "branch": "fix/upscaler-shared-design-mov-20261118",
       "files": [
         "lab/video-upscale.js",
@@ -4446,7 +4446,8 @@
         "lab-worker/video-upscale.mjs",
         "lab-worker/worker.mjs",
         "lab/AGENTS.md",
-        "lab/UPSCALE-WORK-STATE.md"
+        "lab/UPSCALE-WORK-STATE.md",
+        ".github/workflows/release-upscaler-mov-worker.yml"
       ],
       "links": [
         {
@@ -4467,9 +4468,15 @@
           "result": "passed"
         },
         {
-          "label": "Broader backend baseline",
-          "scope": "Unrelated existing Beauty Studio quote test returns 400 instead of expected 200",
-          "result": "documented"
+          "label": "Backend and release safeguards",
+          "scope": "178 Image/model/quote/credit/finance/lifecycle/replacement tests pass. Existing Beauty single-input test fixture updated to supply its default makeup reference; production guards unchanged.",
+          "result": "passed"
+        },
+        {
+          "label": "Desktop/phone parity and Assets",
+          "scope": "Initial candidate CI passed MOV selection/drop/quote, media-state retention, identical heading/source/model bounds, uncertain-submit lock and Assets visibility. Short-viewport expanded model options required tighter spacing; repeat compact suite on final candidate.",
+          "result": "documented",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44295062674"
         }
       ],
       "deployment": {
@@ -4493,9 +4500,10 @@
       "blockers": [],
       "doNotRepeat": [
         "Keep one shared design; do not restore Image-only compact sizing.",
-        "Do not submit paid jobs as a layout test."
+        "Do not submit paid jobs as a layout test.",
+        "Worker deployment must preserve live bindings/vars/secrets; use release-upscaler-mov-worker.yml with no migrations."
       ],
-      "updatedAt": "2026-11-18T12:30:00Z"
+      "updatedAt": "2026-11-18T11:33:07Z"
     }
   ]
 }
