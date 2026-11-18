@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T20:36:02Z",
+  "updatedAt": "2026-11-18T20:40:34Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4662,9 +4662,9 @@
       "component": "PV LAB Upscaler",
       "status": "needs_verification",
       "summary": "Prevent multipart completion retries from claiming an upload that is already aborting, and keep interrupted abort cleanup reclaimable after transient private-storage failures.",
-      "nextAction": "Review draft PR #1052. If approved, merge it and separately authorize the guarded Worker release; verify the published health marker and upload/quote behavior without confirming a paid generation.",
+      "nextAction": "Review draft PR #1052 after the broader Video browser check completes. If approved, merge it and separately authorize the guarded Worker release; verify the published health marker and upload/quote behavior without confirming a paid generation.",
       "baselineSha": "4181f5687bd47dced7c6ca20acd4540813e8bb4d",
-      "reviewedSha": "7c45e58a071b20484bd8bf94944f188e764d9daa",
+      "reviewedSha": "a55b6ebbc53cb4bd6f1d12c2bbe278678e10c03a",
       "branch": "fix/pvlab-video-upload-abort-idempotency-20261118",
       "files": [
         ".github/workflows/pv-lab-video-upscale.yml",
@@ -4699,21 +4699,27 @@
         },
         {
           "label": "Focused final candidate",
-          "scope": "Exact code candidate 7c45e58a passed 131/131 Worker/Upscaler and billing regression tests with zero skips, including both new abort-state regressions, completed-upload idempotency, private upload isolation, credit quotes, refunds and job lifecycle.",
+          "scope": "Exact code/test candidate a55b6ebb passed 132/132 Worker/Upscaler and billing regression tests with zero skips, including completion-state rejection, retryable abort cleanup, expiry-sweep recovery, completed-upload idempotency, private upload isolation, credit quotes, refunds and job lifecycle.",
           "result": "passed",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44392612510/job/135113968706"
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44393328813/job/135116533445"
         },
         {
           "label": "Adjacent UI and static checks",
           "scope": "Approved Image UI contract and static-site validation passed on the exact code candidate.",
           "result": "passed",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44392612517"
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44393328794"
         },
         {
           "label": "Broad private-lab baseline comparison",
           "scope": "The broad private-lab job still fails 23 tests; all 23 failure names exactly match the base job 134831621593. No new failure names were introduced by this candidate.",
           "result": "documented",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44392612797"
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44393328931"
+        },
+        {
+          "label": "Owner work-index validation",
+          "scope": "The full owner dashboard test fails on the unchanged alter-makeup-reference-transfer.tests[2].result unsupported value. The new record parses as JSON and uses existing accepted status/result values; full-index validation remains blocked by that unrelated record.",
+          "result": "documented",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44393329070"
         }
       ],
       "deployment": {
@@ -4748,14 +4754,16 @@
       ],
       "blockers": [
         "Draft PR #1052 needs review and merge approval.",
-        "A guarded production Worker release is a separate decision after merge; it has not been run."
+        "The broader Video browser workflow was still in progress at the last check; no claim of full browser validation.",
+        "A guarded production Worker release is a separate decision after merge; it has not been run.",
+        "Full owner work-index validation remains blocked by the pre-existing alter-makeup-reference-transfer.tests[2].result schema error."
       ],
       "doNotRepeat": [
         "Do not rerun the unchanged 23-failure broad private-lab suite without new evidence.",
         "Do not use paid generations or checkout transactions to verify this fix.",
         "Preserve the existing 20 GiB capacity, pricing and provider choices."
       ],
-      "updatedAt": "2026-11-18T20:36:02Z"
+      "updatedAt": "2026-11-18T20:40:34Z"
     }
   ]
 }
