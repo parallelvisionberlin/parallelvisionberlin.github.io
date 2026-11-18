@@ -47,7 +47,7 @@ import { PROVIDER_IMAGE_LIMIT, QWEN_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSC
 import {modelImageInputIssue} from './image-model-limits.js?v=20261111-qwen-auto-copy1';
 import {createImageSubmitHandoff,IMAGE_SUBMIT_COOLDOWN_MS} from './image-submit-handoff.js?v=20261031-repeat-cooldown1';
 import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261111-restore-result-strip2';
-import {createVideoUpscaler} from './video-upscale.js?v=20261118-mov-shared-source1';
+import {createVideoUpscaler} from './video-upscale.js?v=20261118-large-video2';
 import {createSeedreamReferencePreparer,seedreamPrepKind} from './seedream-reference-prep.js?v=20261111-qwen-auto-copy1';
 import {createReferencePackStudio} from './reference-pack-studio.js?v=20261018-gallery-create2';
 import {createVideoStartFrameMaker,attachVideoReferenceBrowserDrop,attachVideoReferenceTileDrop} from './video-start-frame-maker.js?v=20261031-reference-tile-drop1';
@@ -3416,7 +3416,7 @@ async function api(path,options={}) {
   const generation=epoch;
   if(!owner&&path!=='/api/session')throw new Error('Sign in first.');
   const assertCurrent=()=>{if(generation!==epoch)throw new Error('Session changed.');};
-  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),path==='/api/session'?18000:path==='/api/gemini/jobs'||path==='/api/image-models/generate'?240000:path==='/api/fal/soul-pro'||path==='/api/fal/krea'||path==='/api/jobs'&&options.method==='POST'?150000:path==='/api/soul/datasets'?120000:65000);requestControllers.add(controller);
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),options.timeoutMs|| (path==='/api/session'?18000:path==='/api/gemini/jobs'||path==='/api/image-models/generate'?240000:path==='/api/fal/soul-pro'||path==='/api/fal/krea'||path==='/api/jobs'&&options.method==='POST'?150000:path==='/api/soul/datasets'?120000:65000));requestControllers.add(controller);
   try{
     const headers={...options.headers};let b=options.body;
     if(b!==undefined&&!(b instanceof Blob)&&!(b instanceof ArrayBuffer)){headers['Content-Type']='application/json';b=JSON.stringify(b);}

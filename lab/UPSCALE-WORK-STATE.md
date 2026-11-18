@@ -1,5 +1,14 @@
 # PV LAB Premium Upscale work state
 
+## Maximum video capacity / 2026-11-18
+- Owner explicitly supersedes the old 20 MiB/30-second restriction after the MOV/shared-design repair. Preserve that approved layout exactly.
+- Source: MP4/MOV up to 20 GiB, constrained by remaining existing private archive capacity. Files above 20 MiB use private 8 MiB multipart requests with atomic quota reservation, progress, idempotent part/completion retry and cleanup. No new migration or paid upload API.
+- Topaz Proteus/Starlight: provider five-minute duration maximum, 1x to 4x factor. ByteDance: remove arbitrary duration cutoff and enable supported 6K/8K targets; retain provider output presets and correct FPS price buckets.
+- Browser and server read only container/index ranges, not whole camera files. Reuse, results and downloads use owner-issued expiring native streaming links instead of giant browser blobs. Large output copying retains private archive quota checks.
+- Reclaim abandoned upload reservations and abort unfinished multipart data on account closure. Auth, owner isolation, explicit quote confirmation and duplicate paid submission guards remain intact.
+- Local release check: 187/187 tests pass, including 21 MiB upload/31-second quote, quota concurrency, privacy, cleanup, same-resolution enhancement and 8K pricing. Virtual 20 GiB metadata fixture reads under 1 KB; this is not a physical 20 GiB upload/provider test.
+- Candidate publication, browser parity and live signed-in upload/quote still pending. No paid generation submitted.
+
 ## Shared design and MOV / 2026-11-18
 - Baseline main: 844dbc091464273f5e772232ed27b41c24de85c3. Branch fix/upscaler-shared-design-mov-20261118.
 - Owner supersedes the earlier Image-only compact sizing: one design in Image and Video, 44px desktop/36px phone heading, no kicker/intro paragraph, 60px model cards and 64px persistent source uploader.

@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - 'lab-worker/video-upscale.mjs'
+      - 'lab-worker/video-source-upload.mjs'
+      - 'lab/video-source-upload.js'
+      - 'lab/video-upscale-metadata.js'
+      - 'tests/lab-video-source-upload.test.mjs'
       - 'lab-worker/worker.mjs'
       - 'lab/video-upscale.js'
       - 'lab/video-upscale.css'
@@ -29,6 +33,6 @@ jobs:
           node --check lab-worker/video-upscale.mjs
           node --check lab-worker/worker.mjs
       - name: Validate model allowlist, private media and credit quoting
-        run: node --test tests/lab-video-upscale.test.mjs
+        run: node --test tests/lab-video-upscale.test.mjs tests/lab-video-source-upload.test.mjs
       - name: Guard image/video upscaling and billing against regressions
         run: node --test tests/lab-worker.test.mjs tests/lab-new-models-pricing.test.mjs

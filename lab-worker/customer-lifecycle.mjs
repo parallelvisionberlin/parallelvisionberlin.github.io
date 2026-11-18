@@ -96,7 +96,20 @@ export async function processAccountClosures(env,verifyBilling){
     // charges can continue. The caller supplies the verified Stripe check.
     if(customer?.stripe_customer_id&&(!verifyBilling||!await verifyBilling(env,customer.stripe_customer_id)))continue;
     const page=await env.LAB_MEDIA.list({prefix:id+'/',limit:100});
-    for(const object of page.objects)await env.LAB_MEDIA.delete(object.key);
+    for(const object of page.objects){
+      // Closing an account must remove unfinished large-video parts as well
+      // as completed objects. Keep the durable session until abort succeeds.
+      if(object.key.startsWith(id+'/video-uploads/')&&object.key.endsWith('.json')&&env.LAB_MEDIA.resumeMultipartUpload){
+        const stored=await env.LAB_MEDIA.get(object.key);
+        if(stored){
+          const upload=await new Response(stored.body).json();
+          const assetId=object.key.split('/').at(-1).slice(0,-5);
+          if(!/^[a-f\d-]{36}$/i.test(assetId)||typeof upload.uploadId!=='string')throw Error('Invalid private upload session.');
+          await env.LAB_MEDIA.resumeMultipartUpload(id+'/sources/'+assetId,upload.uploadId).abort();
+        }
+      }
+      await env.LAB_MEDIA.delete(object.key);
+    }
     // Re-list on the next run, including objects uploaded during this pass.
     if(page.objects.length||page.truncated)continue;
     const existing=await env.LAB_DB.prepare("SELECT name FROM sqlite_master WHERE type='table'").bind().all();

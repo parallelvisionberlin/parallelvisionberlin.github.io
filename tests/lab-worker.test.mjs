@@ -30,7 +30,7 @@ class DB {
  }
  async batch(statements){this.db.exec('BEGIN');try{const a=[];for(const s of statements)a.push(await s.run());this.db.exec('COMMIT');return a;}catch(e){this.db.exec('ROLLBACK');throw e;}}
 }
-function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',FAL_KEY:'fal-synthetic-test-key',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length,arrayBuffer:async()=>v.slice().buffer};},async head(k){return objects.has(k)?{size:objects.get(k).length}:null;},async delete(k){objects.delete(k);}}};return{env,objects};}
+function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',FAL_KEY:'fal-synthetic-test-key',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k,options){if(!objects.has(k))return null;const v=objects.get(k),r=options?.range,part=r&&typeof r.offset==='number'?v.slice(r.offset,r.offset+r.length):v;return{body:new Response(part).body,size:v.length,arrayBuffer:async()=>part.slice().buffer};},async head(k){return objects.has(k)?{size:objects.get(k).length}:null;},async delete(k){objects.delete(k);}}};return{env,objects};}
 let calls=[],quotedRequest=null,createCount=0,providerState='queued',createMode='ok',maxPrice='2.700000';
 let samRequestCounter=0;
 let uploadedReference=null,falState='IN_QUEUE',falSubmitCount=0,falResult422=false,falSubmitMode='ok',falVideoReject=false;
@@ -2675,4 +2675,97 @@ test('MOV and MP4 video-upscale uploads quote equally without dispatching or cre
     if(mp4Quote)assert.equal(result.creditCost,mp4Quote.creditCost);else mp4Quote=result;
   }
   assert.equal(falSubmitCount,before);assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,0);
+});
+
+function multipartFixture(f=fixture()){
+  const uploads=new Map();
+  f.env.LAB_MEDIA.createMultipartUpload=async key=>{
+    const uploadId=crypto.randomUUID();uploads.set(uploadId,{key,parts:new Map()});
+    return {uploadId,...f.env.LAB_MEDIA.resumeMultipartUpload(key,uploadId)};
+  };
+  f.env.LAB_MEDIA.resumeMultipartUpload=(key,uploadId)=>({
+    async uploadPart(partNumber,bytes){
+      const u=uploads.get(uploadId);assert.equal(u.key,key);u.parts.set(partNumber,new Uint8Array(bytes));return {partNumber,etag:'etag-'+partNumber};
+    },
+    async complete(parts){
+      const u=uploads.get(uploadId);assert.equal(u.key,key);
+      for(const p of parts)assert.equal(p.etag,'etag-'+p.partNumber);
+      const bytes=Buffer.concat(parts.map(p=>u.parts.get(p.partNumber)));f.objects.set(key,new Uint8Array(bytes));uploads.delete(uploadId);
+    },
+    async abort(){uploads.delete(uploadId);}
+  });
+  return {...f,uploads};
+}
+function paddedCameraVideo(){
+  const original=readFileSync(new URL('./fixtures/video-upscale/overlong-31s.mp4',import.meta.url));
+  const padding=Buffer.alloc(21*1024*1024-original.length);padding.writeUInt32BE(padding.length);padding.write('free',4);
+  return Buffer.concat([original,padding]);
+}
+test('multipart video over 20 MB reserves storage, preserves MIME and quotes 31 seconds without charging',async()=>{
+  const {env,objects}=multipartFixture(),bytes=paddedCameraVideo(),before=falSubmitCount;
+  const init=await req(env,'/api/video-uploads',{method:'POST',data:{mime:'video/quicktime',filename:'camera.mov',bytes:bytes.length}});
+  assert.equal(init.status,201,await init.clone().text());const session=await init.json();
+  assert.equal(env.LAB_DB.db.prepare('SELECT bytes FROM assets WHERE id=?').get(session.id).bytes,bytes.length);
+  assert.equal((await req(env,'/api/quotes',{method:'POST',data:{sourceId:session.id,settings:{type:'video',engine:'video-upscale',mode:'upscale',videoUpscaleEngine:'proteus',resolution:'1080p'}}})).status,400,'Pending media cannot be quoted');
+  const parts=[];
+  for(let offset=0,n=1;offset<bytes.length;offset+=session.partBytes,n++){
+    const response=await req(env,'/api/video-uploads/'+session.id+'/part/'+n,{method:'POST',raw:bytes.subarray(offset,offset+session.partBytes)});
+    assert.equal(response.status,200,await response.clone().text());parts.push(await response.json());
+  }
+  const complete=await req(env,'/api/video-uploads/'+session.id+'/complete',{method:'POST',data:{parts}});
+  assert.equal(complete.status,201,await complete.clone().text());
+  assert.equal((await req(env,'/api/video-uploads/'+session.id+'/complete',{method:'POST',data:{parts}})).status,201,'Lost completion response can be retried');
+  assert.equal((await req(env,'/api/video-uploads/'+session.id+'/abort',{method:'POST'})).status,409,'Completed source cannot be aborted or deleted');
+  const asset=env.LAB_DB.db.prepare('SELECT * FROM assets WHERE id=?').get(session.id);assert.equal(asset.mime,'video/quicktime');assert.equal(objects.get(asset.object_key).length,bytes.length);
+  const q=await req(env,'/api/quotes',{method:'POST',data:{sourceId:session.id,settings:{type:'video',engine:'video-upscale',mode:'upscale',videoUpscaleEngine:'proteus',resolution:'1080p'}}});
+  assert.equal(q.status,200,await q.clone().text());assert.equal((await q.json()).settings.duration,31);
+  assert.equal(falSubmitCount,before);assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,0);
+});
+test('multipart video reservations enforce quota, owner isolation, exact part sizes and abort cleanup',async()=>{
+  const {env,uploads}=multipartFixture();
+  env.OWNER_DB.db.prepare("INSERT INTO users VALUES('other-owner','clerk','user_OtherOwner','owner')").run();
+  const init=await req(env,'/api/video-uploads',{method:'POST',data:{mime:'video/mp4',filename:'private.mp4',bytes:21*1024*1024}});const session=await init.json();assert.equal(init.status,201);
+  const foreign=await req(env,'/api/video-uploads/'+session.id+'/abort',{method:'POST',authToken:await token('user_OtherOwner')});assert.equal(foreign.status,404);
+  const short=await req(env,'/api/video-uploads/'+session.id+'/part/1',{method:'POST',raw:new Uint8Array(16)});assert.equal(short.status,400);
+  const incomplete=await req(env,'/api/video-uploads/'+session.id+'/complete',{method:'POST',data:{parts:[]}});assert.equal(incomplete.status,400);
+  assert.equal((await req(env,'/api/video-uploads/'+session.id+'/abort',{method:'POST'})).status,200);
+  assert.equal(uploads.size,0);assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM assets').get().n,0);
+  env.LAB_DB.db.prepare("INSERT INTO assets VALUES(?,?,'occupied','source','video/mp4','old.mp4',?,1)").run(crypto.randomUUID(),'owner-internal',20*1024*1024*1024-1);
+  const full=await req(env,'/api/video-uploads',{method:'POST',data:{mime:'video/mp4',bytes:21*1024*1024}});assert.equal(full.status,413);assert.equal(uploads.size,0);
+});
+
+test('multipart reservations remain bounded under concurrent requests and unfunded customers cannot initiate them',async()=>{
+  const {env,uploads}=multipartFixture();
+  const replies=await Promise.all(Array.from({length:3},()=>req(env,'/api/video-uploads',{method:'POST',data:{mime:'video/mp4',bytes:12*1024*1024*1024}})));
+  assert.deepEqual(replies.map(r=>r.status).sort(),[201,413,413]);assert.equal(uploads.size,1);
+  const account=await archiveAccount(true);account.env.LAB_DB.db.prepare('UPDATE lab_customers SET balance_credits=0 WHERE id=?').run(account.owner);
+  const response=await req(account.env,'/api/video-uploads',{method:'POST',authToken:account.authToken,data:{mime:'video/mp4',bytes:21*1024*1024}});
+  assert.equal(response.status,402,'Existing credit/storage gate remains active');
+});
+test('signed video playback and download URLs stay private, owner-bound and separate from provider inputs',async()=>{
+  const {env,objects}=fixture(),id=crypto.randomUUID(),key='owner-internal/results/'+id;
+  const bytes=new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]);objects.set(key,bytes);
+  env.LAB_DB.db.prepare("INSERT INTO assets VALUES(?,?,?,'video','video/mp4','large-output.mp4',?,?)").run(id,'owner-internal',key,bytes.length,Date.now());
+  const response=await req(env,'/api/assets/'+id+'/video-url');assert.equal(response.status,200);const link=await response.json();
+  assert.ok(link.url.includes('/video-file/'));assert.ok(!link.url.includes('Bearer'));
+  const playback=await worker.fetch(new Request(link.url),env,{});assert.equal(playback.status,200);assert.equal(playback.headers.get('Content-Type'),'video/mp4');
+  assert.deepEqual(new Uint8Array(await playback.arrayBuffer()),bytes);
+  const download=await worker.fetch(new Request(link.downloadUrl),env,{});assert.equal(download.status,200);assert.match(download.headers.get('Content-Disposition'),/^attachment/);
+  assert.equal((await worker.fetch(new Request(link.url.replace('/video-file/','/input/')),env,{})).status,403,'A playback capability cannot be used as a provider input capability');
+  assert.equal((await worker.fetch(new Request(link.url.replace(/signature=[^&]+/,'signature=invalid')),env,{})).status,403);
+  env.OWNER_DB.db.prepare("INSERT INTO users VALUES('foreign-owner','clerk','user_ForeignOwner','owner')").run();
+  assert.equal((await req(env,'/api/assets/'+id+'/video-url',{authToken:await token('user_ForeignOwner')})).status,404);
+});
+
+test('account closure aborts unfinished multipart media before removing its upload session',async()=>{
+  const account=await archiveAccount(true),{env,objects,uploads}=multipartFixture(account);
+  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0011-customer-lifecycle.sql',import.meta.url),'utf8'));
+  env.LAB_MEDIA.list=async({prefix,limit})=>({objects:[...objects.keys()].filter(key=>key.startsWith(prefix)).slice(0,limit).map(key=>({key})),truncated:false});
+  const init=await req(env,'/api/video-uploads',{method:'POST',authToken:account.authToken,data:{mime:'video/mp4',bytes:21*1024*1024}});
+  assert.equal(init.status,201,await init.clone().text());assert.equal(uploads.size,1);
+  env.LAB_DB.db.prepare('INSERT INTO lab_account_closures(customer_id,requested_at) VALUES(?,?)').run(account.owner,Date.now()-180000);
+  const {processAccountClosures}=await import('../lab-worker/customer-lifecycle.mjs');
+  await processAccountClosures(env,async()=>true);
+  assert.equal(uploads.size,0,'No multipart fragments remain after account cleanup');
+  assert.equal([...objects.keys()].filter(k=>k.startsWith(account.owner+'/')).length,0);
 });

@@ -11,7 +11,7 @@ const server=http.createServer((req,res)=>{
  const pathname=new URL(req.url,'http://localhost').pathname;
  const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));
  if(!path.startsWith(root+sep)||!existsSync(path)){res.writeHead(404).end();return;}
- const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2'};
+ const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2','.mp4':'video/mp4'};
  res.setHeader('Content-Type',mime[extname(path)]||'text/plain');
  if(pathname==='/lab/lab.js'||pathname==='/lab/upscale-studio-v5.js'){res.end('// isolated mock');return;}
  res.end(readFileSync(path));
@@ -171,7 +171,8 @@ try{
     await chooser.setFiles(payload);
   }
   await selectVideo({name:'large.mp4',mimeType:'video/mp4',buffer:Buffer.alloc(21*1024*1024)});
-  assert.match(await page.locator('#pv-video-upscale-message').innerText(),/21.0 MB.*20 MB/);
+  await page.waitForFunction(()=>document.getElementById('pv-video-upscale-message').textContent.includes('could not be read'));
+  assert.match(await page.locator('#pv-video-upscale-message').innerText(),/could not be read/);
   const uploadError=await page.locator('#pv-video-upscale-message').boundingBox();
   assert.ok(uploadError&&uploadError.y>=0&&uploadError.y+uploadError.height<=height,label+': upload error is inside viewport without scrolling');
   assert.equal(await page.locator('#generate').isEnabled(),false,label+': oversized source cannot review credits');
@@ -181,9 +182,9 @@ try{
   assert.equal(await page.locator('#generate').isEnabled(),false,label+': unreadable MP4 cannot review credits');
   assert.equal(await page.locator('#pv-upscale-hero-upload').isVisible(),true,label+': failed preview offers another file');
   await selectVideo('tests/fixtures/video-upscale/overlong-31s.mp4');
-  await page.waitForFunction(()=>document.getElementById('pv-video-upscale-message').classList.contains('error'));
-  assert.match(await page.locator('#pv-video-upscale-message').innerText(),/0.5 and 30 seconds/);
-  assert.equal(await page.locator('#generate').isEnabled(),false,label+': invalid duration cannot review credits');
+  await page.waitForFunction(()=>!document.getElementById('generate').disabled);
+  assert.equal(await page.locator('#generate').isEnabled(),true,label+': 31-second video is accepted');
+  await page.locator('#clear').click();
   // Real native MP4 picker must open from the SAME image upload button.
   const chooser=page.waitForEvent('filechooser');
   await page.locator('#pv-upscale-hero-upload').click();
@@ -254,6 +255,17 @@ try{
   assert.equal(await page.locator('#generate').isEnabled(),false,label+': later playback error preserves uncertain submission lock');
   assert.match(await page.locator('#pv-video-upscale-message').innerText(),/History/);
   assert.deepEqual(await page.evaluate(()=>window.__upscaleApiCalls),['/api/reference-uploads','/api/quotes','/api/jobs'],label+': no paid retry after a playback error');
+  // History uses signed streaming URLs rather than buffering full video blobs.
+  await page.evaluate(async()=>{
+    window.__upscaleApiMock=async(path)=>{
+      if(!path.endsWith('/video-url'))throw Error('History must use a private streaming URL');
+      return {url:location.origin+'/tests/fixtures/video-upscale/valid-1s.mp4',downloadUrl:location.origin+'/tests/fixtures/video-upscale/valid-1s.mp4?download=1',mime:'video/mp4',bytes:2563,filename:'saved-camera.mp4'};
+    };
+    await window.__videoLayoutTest.openJob({id:'history-completed',sourceId:'history-source',outputId:'history-output',status:'completed',settings:{engine:'video-upscale',videoUpscaleEngine:'proteus',resolution:'1080p',duration:1}});
+  });
+  await page.waitForFunction(()=>document.getElementById('pv-video-upscale-result').duration===1);
+  assert.equal(await page.locator('#pv-video-upscale-result').isVisible(),true,label+': saved video streams in the result player');
+  assert.equal(await page.locator('#pv-video-upscale-download').isVisible(),true,label+': saved video exposes download');
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
   assert.equal(overflow,false,label+': no horizontal overflow');
   assert.deepEqual(errors,[],label+': no page errors');

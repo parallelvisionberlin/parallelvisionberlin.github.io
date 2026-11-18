@@ -6,14 +6,14 @@
  * Prices are estimates, not fal.ai's final settlement.
  */
 export const VIDEO_UPSCALERS=Object.freeze({
-  bytedance:{endpoint:'fal-ai/bytedance-upscaler/upscale/video',label:'ByteDance Standard',rates:{'1080p':7200,'2k':14400,'4k':28800}},
+  bytedance:{endpoint:'fal-ai/bytedance-upscaler/upscale/video',label:'ByteDance Standard',rates:{'1080p':7200,'2k':14400,'4k':28800,'6k':57400,'8k':114800}},
   proteus:{endpoint:'topaz/upscale/video/precision',label:'Topaz Proteus',rates:{'1080p':20000,'4k':60000}},
   starlight:{endpoint:'topaz/upscale/video/generative',label:'Topaz Starlight Precise 2.6',rates:{'1080p':120000,'4k':260000}}
 });
-export const VIDEO_UPSCALE_MAX_BYTES=20*1024*1024;
-const LONG_EDGES=Object.freeze({'1080p':1920,'2k':2560,'4k':3840});
-import {inspectUpscaleMp4,VIDEO_UPSCALE_MAX_SECONDS} from '../lab/video-upscale-metadata.js';
-export {inspectUpscaleMp4,VIDEO_UPSCALE_MAX_SECONDS};
+
+const LONG_EDGES=Object.freeze({'1080p':1920,'2k':2560,'4k':3840,'6k':5760,'8k':7680});
+import {inspectUpscaleMp4,inspectUpscaleVideoRanges,VIDEO_UPSCALE_MAX_SECONDS,VIDEO_UPSCALE_MAX_BYTES} from '../lab/video-upscale-metadata.js';
+export {inspectUpscaleMp4,inspectUpscaleVideoRanges,VIDEO_UPSCALE_MAX_SECONDS,VIDEO_UPSCALE_MAX_BYTES};
 
 export function videoUpscaleParameters(value,{fail}){
   const engine=String(value.videoUpscaleEngine||'');
@@ -31,9 +31,10 @@ export function videoUpscaleParameters(value,{fail}){
 export function quotedVideoUpscale(p,metadata,{fail}){
   const sourceLong=Math.max(metadata.width,metadata.height),targetLong=LONG_EDGES[p.resolution];
   const scale=targetLong/sourceLong;
-  if(scale<1.09)fail(400,'The selected output resolution must enlarge the source. Choose a higher resolution.');
-  if(scale>4)fail(400,'This video needs over 4× enlargement. Choose a lower output size.');
-  const roundedFps=Math.min(60,Math.max(8,Math.round(metadata.fps)));
+  if(scale<1)fail(400,'Choose the source resolution or a higher output size.');
+  if(p.videoUpscaleEngine!=='bytedance'&&metadata.duration>VIDEO_UPSCALE_MAX_SECONDS)fail(400,'Topaz accepts videos up to 5 minutes.');
+  if(p.videoUpscaleEngine!=='bytedance'&&scale>4)fail(400,'This video needs over 4× enlargement. Choose a lower output size.');
+  const roundedFps=Math.min(120,Math.max(24,Math.round(metadata.fps)));
   return {...p,duration:Math.round(metadata.duration*1000)/1000,sourceFps:Math.round(metadata.fps*100)/100,
     targetFps:roundedFps,sourceWidth:metadata.width,sourceHeight:metadata.height,
     scale:Math.round(scale*100000)/100000,sourceFrames:metadata.frames};
@@ -41,11 +42,11 @@ export function quotedVideoUpscale(p,metadata,{fail}){
 export function videoUpscaleEstimateMicros(p){
   const chosen=VIDEO_UPSCALERS[p.videoUpscaleEngine];
   const rate=chosen?.rates[p.resolution];
-  if(!rate||!(p.duration>=0.5&&p.duration<=VIDEO_UPSCALE_MAX_SECONDS)||
-     !(p.sourceFps>=8&&p.sourceFps<=60.1))throw Error('Verified video metadata is required for price calculation.');
+  if(!rate||!(p.duration>=0.5&&(p.videoUpscaleEngine==='bytedance'||p.duration<=VIDEO_UPSCALE_MAX_SECONDS))||
+     !(p.sourceFps>0&&Number.isFinite(p.sourceFps)))throw Error('Verified video metadata is required for price calculation.');
   // USD micros per second; 15% conservative allowance for provider rounding.
   // Quote is a retail reservation, not an exact provider settlement.
-  const fpsRatio=Math.max(1,(p.videoUpscaleEngine==='bytedance'?p.targetFps:p.sourceFps)/30);
+  const fpsRatio=p.videoUpscaleEngine==='bytedance'?(p.targetFps>60?4:p.targetFps>30?2:1):Math.max(1,p.sourceFps/30);
   return Math.ceil(rate*p.duration*fpsRatio*1.15);
 }
 export function buildVideoUpscaleInput(p,videoUrl){

@@ -1,4 +1,4 @@
-name: Release Upscaler MOV Worker
+name: Release Upscaler Video Worker
 
 on:
   workflow_dispatch:
@@ -27,7 +27,7 @@ jobs:
       - name: Test model routing, existing Image contract and money safeguards
         run: |
           node --check lab-worker/worker.mjs
-          node --test tests/lab-video-upscale.test.mjs tests/lab-new-models-pricing.test.mjs
+          node --test tests/lab-video-upscale.test.mjs tests/lab-video-source-upload.test.mjs tests/lab-new-models-pricing.test.mjs
           node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-model-labels.test.mjs tests/lab-flash-default-2k.test.mjs tests/lab-image-submit-handoff.test.mjs tests/lab-inspiration-rotation.test.mjs tests/lab-worker.test.mjs tests/lab-spicy-image-credit-steps.test.mjs tests/lab-pricing-integrity.test.mjs tests/lab-generation-finance.test.mjs tests/lab-customer-lifecycle.test.mjs tests/lab-image-replacement.test.mjs
       - name: Capture live configuration and verify expected resource bindings
         env:
@@ -70,7 +70,7 @@ jobs:
           let ready=false;
           for(let attempt=0;attempt<6;attempt++){
             const r=await fetch(url,{signal:AbortSignal.timeout(20000)});const b=await r.json();
-            if(r.ok&&b.ok&&b.videoUpscaleInputs==='20261118-mp4-mov-1'){ready=true;console.log('PASS: production health reports exact MP4/MOV upscaler capability.');break;}
+            if(r.ok&&b.ok&&b.videoUpscaleInputs==='20261118-large-video-2'){ready=true;console.log('PASS: production health reports exact MP4/MOV upscaler capability.');break;}
             await new Promise(resolve=>setTimeout(resolve,5000));
           }
           if(!ready)throw Error('MOV capability health marker is not live.');
