@@ -1,0 +1,25 @@
+{
+  "checkName": "PV LAB customer safety",
+  "tests": [
+    "tests/lab-auth.test.mjs",
+    "tests/lab-auth-google.test.mjs",
+    "tests/lab-owner-auth-guard.test.mjs",
+    "tests/lab-customer-billing.test.mjs",
+    "tests/lab-credit-purchase-flow.test.mjs",
+    "tests/lab-generation-finance.test.mjs",
+    "tests/lab-customer-lifecycle.test.mjs",
+    "tests/lab-customer-image-quotes.test.mjs",
+    "tests/lab-worker.test.mjs",
+    "tests/lab-spicy-image-credit-steps.test.mjs",
+    "tests/lab-pricing-integrity.test.mjs",
+    "tests/lab-seedance.test.mjs",
+    "tests/lab-video-reference-upload.test.mjs",
+    "tests/lab-viewer-reference-preparation.test.mjs",
+    "tests/lab-image-submit-handoff.test.mjs",
+    "tests/lab-video-upscale.test.mjs",
+    "tests/lab-new-models-pricing.test.mjs",
+    "tests/lab-sandbox-billing.test.mjs",
+    "tests/lab-approved-image-ui-contract.test.mjs",
+    "tests/lab-video-source-upload.test.mjs"
+  ]
+}

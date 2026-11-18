@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 import {isCustomGoogleHost,validOAuthReturn,readGoogleReturn,openLabSignIn,clearGoogleReturn} from '../lab/auth-google.js';
 
 const nonce='a1b2c3d4-e5f6-47ab-8cde-1234567890ab';
+const hostDescriptors=Object.fromEntries(['document','location','sessionStorage','crypto'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
 function memory(){
   const data=new Map();
   return {getItem:key=>data.get(key)||null,setItem:(key,val)=>data.set(key,val),removeItem:key=>data.delete(key)};
@@ -49,11 +50,12 @@ function descend(root,predicate){
   return null;
 }
 test('Google entry uses a branded modal and preserves selected checkout return',async t=>{
-  const saved={document:globalThis.document,location:globalThis.location,sessionStorage:globalThis.sessionStorage,crypto:globalThis.crypto};
+  const saved=Object.fromEntries(['document','location','sessionStorage','crypto'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+  t.after(()=>{for(const [key,descriptor]of Object.entries(saved)){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}});
   const store=memory(),lookup={};
   const doc={getElementById:id=>lookup[id]||null,createElement:tag=>node(tag,lookup),head:{append(el){lookup[el.id]=el;}},body:{append(el){lookup[el.id]=el;}}};
-  Object.assign(globalThis,{document:doc,location:{hostname:'pvlab.studio',origin:'https://pvlab.studio',href:'https://pvlab.studio/#pricing'},sessionStorage:store,crypto:{randomUUID:()=>nonce}});
-  t.after(()=>{for(const [key,value]of Object.entries(saved)){if(value===undefined)delete globalThis[key];else globalThis[key]=value;}});
+  const globals={document:doc,location:{hostname:'pvlab.studio',origin:'https://pvlab.studio',href:'https://pvlab.studio/#pricing'},sessionStorage:store,crypto:{randomUUID:()=>nonce}};
+  for(const [key,value]of Object.entries(globals))Object.defineProperty(globalThis,key,{value,writable:true,configurable:true});
   let redirect;
   const clerk={isSignedIn:false,client:{signIn:{authenticateWithRedirect:async args=>{redirect=args;}}},openSignIn:()=>{throw Error('Should use custom Google flow');}};
   openLabSignIn(clerk,{forceRedirectUrl:'https://pvlab.studio/?lab-checkout=abc#pricing'});
@@ -74,4 +76,8 @@ test('First-party callback retains canonical approved logo and Clerk state compl
   assert.match(script,/await clerk\.handleRedirectCallback/);
   assert.match(script,/if\(clerk\.isSignedIn&&clerk\.session\)/);
   assert.doesNotMatch(script,/checkout\/create|credits\/update|token=/i);
+});
+test('Google modal fixture restores the original host property descriptors',()=>{
+  for(const [key,descriptor]of Object.entries(hostDescriptors))
+    assert.deepEqual(Object.getOwnPropertyDescriptor(globalThis,key),descriptor,key+' is restored');
 });
