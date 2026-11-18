@@ -6,6 +6,7 @@
 - Source sidebar and preview both accept the selected media type by drag/drop; keep media/settings on mode switches.
 - MOV was rejected by frontend format validation and an MP4-only backend quote check, although the existing reference upload and provider support MOV.
 - Accept modern QuickTime MOV with its original MIME, preserve it in History reuse/comparison, and read the existing authoritative ISO BMFF timing. No conversion/recompression is introduced.
+- MOV preview decoding is optional: if the browser cannot decode a camera codec such as HEVC, a shared local metadata reader validates the original and permits explicit quote review. Server independently checks the same bytes; selection never uploads or submits.
 - Retain duration, size, upscale-factor, quote confirmation, ownership, safety and duplicate-submission safeguards.
 - Local genuine H.264 QuickTime fixture and owner upload/quote regression pass with the same metadata/credit quote as MP4, no provider dispatch.
 - Final local release set: 178/178 passed. The pre-existing Beauty quote test used one reference while its updated default needs two; its fixture now supplies the actual makeup reference, retaining idempotency and quote guards.

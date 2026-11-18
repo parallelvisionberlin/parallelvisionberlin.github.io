@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T11:33:07Z",
+  "updatedAt": "2026-11-18T11:36:20Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4433,7 +4433,7 @@
       "title": "One Upscaler design and MOV support",
       "component": "PV LAB Upscaler",
       "status": "needs_verification",
-      "summary": "One shared Image/Video layout, medium-large heading, larger cards and persistent source drop box; accept MOV with preserved MIME and existing authoritative quote checks.",
+      "summary": "One shared Image/Video layout, medium-large heading, larger cards and persistent source drop box; accept MOV with preserved MIME and existing authoritative quote checks. Valid MOV can reach quote review even when the browser cannot decode its preview.",
       "nextAction": "Finish final-candidate browser CI, merge, then verify Pages bytes and the migration-free Worker release with exact MOV capability marker.",
       "baselineSha": "844dbc091464273f5e772232ed27b41c24de85c3",
       "reviewedSha": "7b80cce58e47df3049009effdcaeae1d9526d743",
@@ -4447,7 +4447,8 @@
         "lab-worker/worker.mjs",
         "lab/AGENTS.md",
         "lab/UPSCALE-WORK-STATE.md",
-        ".github/workflows/release-upscaler-mov-worker.yml"
+        ".github/workflows/release-upscaler-mov-worker.yml",
+        "lab/video-upscale-metadata.js"
       ],
       "links": [
         {
@@ -4503,7 +4504,7 @@
         "Do not submit paid jobs as a layout test.",
         "Worker deployment must preserve live bindings/vars/secrets; use release-upscaler-mov-worker.yml with no migrations."
       ],
-      "updatedAt": "2026-11-18T11:33:07Z"
+      "updatedAt": "2026-11-18T11:36:20Z"
     }
   ]
 }

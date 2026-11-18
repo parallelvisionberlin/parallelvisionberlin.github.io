@@ -1,3 +1,4 @@
+import {inspectUpscaleMp4} from './video-upscale-metadata.js?v=20261118-mov1';
 /* PV LAB / One Upscaler workspace, two media modes.
    Video shares the Image editor's real control and preview columns. The
    existing image controls stay mounted, preserving their inputs and results.
@@ -213,8 +214,21 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
      }
      sourceReady=true;notice('');sync();
    };
-   src.onerror=()=>rejectSource('This video could not be read or previewed. Export as a standard MP4 (H.264), 0.5 to 30 seconds, up to 20 MB, and choose it again.');
-   sourceTimer=setTimeout(()=>rejectSource('The video preview could not be loaded. Choose the file again or export a standard MP4 (H.264), up to 20 MB.'),15000);
+   // A valid camera MOV may use HEVC, which not every browser can preview.
+   // Read local container metadata instead; the server independently rechecks
+   // the original bytes before it prices anything. Never upload automatically.
+   const previewUnavailable=async()=>{
+     if(file!==candidate)return;
+     if(loading||submissionUncertain||currentJob){rejectSource('Video preview unavailable.');return;}
+     clearTimeout(sourceTimer);sourceTimer=null;sourceReady=false;
+     try{
+       inspectUpscaleMp4(new Uint8Array(await candidate.arrayBuffer()));
+       if(file!==candidate)return;
+       sourceReady=true;notice('This browser cannot preview this video. You can still review credits and upscale the original.');sync();
+     }catch(error){rejectSource('This video could not be read. '+error.message);}
+   };
+   src.onerror=()=>{void previewUnavailable();};
+   sourceTimer=setTimeout(()=>{void previewUnavailable();},15000);
    sourceURL=URL.createObjectURL(candidate);src.src=sourceURL;
    sync();
  }

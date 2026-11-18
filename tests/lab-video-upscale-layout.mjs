@@ -224,6 +224,10 @@ try{
   await selectVideo('tests/fixtures/video-upscale/valid-1s.mov');
   await page.waitForFunction(()=>document.getElementById('pv-video-upscale-source').duration===1&&!document.getElementById('generate').disabled);
   assert.equal(await page.locator('#pv-video-upscale-message').textContent(),'',label+': same file can be selected again');
+  // Browser decoder support must not reject a valid MOV container (e.g. HEVC).
+  await page.evaluate(()=>document.getElementById('pv-video-upscale-source').dispatchEvent(new Event('error')));
+  await page.waitForFunction(()=>document.getElementById('pv-video-upscale-message').textContent.includes('cannot preview'));
+  assert.equal(await page.locator('#generate').isEnabled(),true,label+': valid MOV can quote without a browser decoder');
   // Isolated API stubs verify the existing two-click price review and the
   // uncertain-response lock. No network/provider generation can occur here.
   await page.evaluate(()=>{
