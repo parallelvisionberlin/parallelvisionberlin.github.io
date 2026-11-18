@@ -106,6 +106,7 @@ try{
    const c=document.createElement('canvas');c.width=400;c.height=400;
    c.getContext('2d').fillRect(0,0,400,400);
    const img=document.getElementById('preview');img.src=c.toDataURL('image/png');img.hidden=false;
+   const thumb=document.getElementById('pv-upscale-source-thumb');thumb.src=img.src;thumb.hidden=false;
    document.getElementById('empty').hidden=true;
    document.getElementById('app').classList.add('pv-upscale-source-ready');
   });
@@ -132,6 +133,7 @@ try{
   assert.equal(await page.locator('#empty .pv-upscale-empty-center h2').textContent(),'Insert a source video.',label+': exact Video source label');
   assert.equal(await page.locator('#pv-upscale-hero-upload span').textContent(),'Upload video',label+': SAME upload button');
   assert.equal(await page.locator('#preview').isVisible(),false,label+': saved Image preview hidden, not deleted');
+  assert.equal(await page.locator('#pv-upscale-source-upload svg').isVisible(),true,label+': Video source icon remains visible after an Image thumbnail');
   assert.equal(await page.locator('#app').evaluate(el=>el.classList.contains('pv-upscale-source-ready')),false,label+': Video does not inherit loaded Image layout');
   const video=await page.evaluate(()=>{
    const rect=sel=>{const r=document.querySelector(sel).getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};

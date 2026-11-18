@@ -212,7 +212,7 @@
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active):is(.video-upscale-active,:not(.video-upscale-active)) .pv-upscale-model-art{width:38px!important;height:38px!important;}
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active):is(.video-upscale-active,:not(.video-upscale-active)) .controls-body :is(#upscale-scale,#output-format){height:41px!important;min-height:41px!important;}
 #app.upscale-studio-active.video-upscale-active #pv-upscale-source-thumb{display:none!important}
-#app.upscale-studio-active.video-upscale-active #pv-upscale-source-upload .pv-upscale-source-icon svg{display:block!important}
+#app.upscale-studio-active.video-upscale-active #pv-upscale-source-upload .pv-upscale-source-icon:has(#pv-upscale-source-thumb:not([hidden])) svg{display:block!important}
 @media(min-width:781px){
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active):is(.video-upscale-active,:not(.video-upscale-active)):is(:has(#upscale-canvas #empty),:has(#upscale-canvas #preview))>.workspace{grid-template-rows:minmax(calc(100dvh - 102px),auto)!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;}
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active):is(.video-upscale-active,:not(.video-upscale-active)):is(:has(#upscale-canvas #empty),:has(#upscale-canvas #preview))>.workspace>.stage{contain:size;}
