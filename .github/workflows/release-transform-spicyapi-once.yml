@@ -1,6 +1,7 @@
 name: One-time PV LAB Transform SpicyAPI Worker release
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
