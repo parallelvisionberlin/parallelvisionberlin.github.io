@@ -32,8 +32,8 @@ test('Soft Pastel Film defaults to 70 percent and follows a distinct intensity t
   assert.match(maximumPrompt,/without bleaching skin/);
 });
 
-test('Soft Pastel Film preserves the Base and does not inject hidden Style images',()=>{
-  for(const engine of ['seedream','seedreamlite','gemini']){
+test('Soft Pastel Film preserves the customer Base while attaching four style-only reference photos',()=>{
+  for(const engine of ['seedream55','seedream','seedreamlite','gemini','gemini21']){
     const recipe=prepareMoodPrompt('Keep the source portrait and scene.',id,70,{...options,engine});
     assert.equal(recipe.error,'',engine);
     const plan=moodReferencePlan({
@@ -41,9 +41,20 @@ test('Soft Pastel Film preserves the Base and does not inject hidden Style image
       referenceMode:'base',referenceRoles:[{name:'original.jpg',role:'base'}],
       prompt:recipe.prompt
     });
-    assert.equal(plan.references.length,0,engine);
-    assert.equal(plan.settings.referenceRoles.length,1,engine);
+    assert.equal(plan.references.length,4,engine);
+    assert.equal(plan.settings.referenceRoles.length,5,engine);
+    assert.equal(plan.settings.referenceRoles[0].role,'base');
+    assert.equal(plan.settings.referenceRoles[0].name,'original.jpg');
+    assert.ok(plan.references.every(r=>r.label.role==='style'&&/Never|Do not|never/i.test(r.note)));
+    assert.equal(new Set(plan.references.map(r=>r.url)).size,4,'No duplicated photos');
   }
+});
+test('Unsupported Qwen and extra customer images never silently add four style photos',()=>{
+  const prompt=prepareMoodPrompt('A sunlit bedroom',id,70,{...options,engine:'qwen3'}).prompt;
+  const plan=moodReferencePlan({type:'image',mode:'image',engine:'qwen3',moodId:id,prompt,referenceRoles:[]});
+  assert.equal(plan.references.length,0);
+  const many=Array.from({length:7},(_,i)=>({name:'uploaded-'+i+'.png',role:i?'reference':'base'}));
+  assert.throws(()=>moodReferencePlan({type:'image',mode:'image',engine:'seedream',moodId:id,prompt,referenceMode:'base',referenceRoles:many}),/Pastel Dream includes 4 Style references/);
 });
 
 test('Soft Pastel Film remains text-only compatible without inventing a Base',()=>{
