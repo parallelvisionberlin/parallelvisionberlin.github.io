@@ -26,6 +26,7 @@ const moduleUrl=new URL(moduleSrc.replaceAll('&amp;','&'),'https://lab.test');
 assert.match(moduleUrl.searchParams.get('v'),/^\d{8}-[a-z0-9-]+$/,'Lab module has a cache version');
 assert.equal(moduleUrl.searchParams.get('wallet'),'1');
 const sizingHelper=source.slice(fnStart,fnEnd);
+const soulBar=source.slice(source.indexOf('function syncSoulBar(){'),source.indexOf("$('hf-bar-source').onclick="));
 
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp'};
 const server=http.createServer((req,res)=>{
@@ -43,7 +44,7 @@ const lorem=Array.from({length:48},(_,i)=>[
   'Keep photographic perspective, natural skin, stitching and material details.'
 ].join(' ')).join('\n\n');
 const records=[];
-let seedreamGenerateAppearance=null;
+
 try{
   for(const {width,height,kind,refs} of [
     {width:1440,height:900,kind:'seedream',refs:14},
@@ -63,7 +64,9 @@ try{
         document.getElementById('app').classList.add('image-studio-active');
         document.getElementById('image-studio').hidden=false;
         const composer=document.getElementById('image-composer');
-        composer.classList.add(isSoul?'is-pv-soul':'is-seedream');
+        composer.classList.add('is-seedream');
+        // Web Soul uses syncSoulBar; the is-pv-soul class belongs to native.
+        document.getElementById('composer-character').hidden=true;
         const tray=document.getElementById('image-composer-references');tray.hidden=false;
         for(let i=0;i<refs;i++){
           const tile=document.createElement('div');tile.className='composer-reference-tile';
@@ -76,7 +79,7 @@ try{
       },{isSoul:kind==='soul',refs});
       await page.addScriptTag({content:
         'const $=id=>document.getElementById(id);const imageComposer=document.getElementById("image-composer");function effectiveImagePrompt(){return "";}\n'+sizingHelper+
-        '\nwindow.__resizePVPrompt=fitImageComposerPrompt;\n'+
+        ';let activeSoul='+JSON.stringify(kind==='soul')+',busy=false,sourceUrl="",sourceWidth=0,sourceHeight=0,imageEngine="seedream";const tool="image";const isSoul2=()=>activeSoul;'+soulBar+';syncSoulBar();\nwindow.__resizePVPrompt=fitImageComposerPrompt;\n'+
         "document.getElementById('image-composer-prompt').addEventListener('input',fitImageComposerPrompt);"});
       const textbox=page.locator('#image-composer-prompt');
       await textbox.fill(lorem);
@@ -115,10 +118,12 @@ try{
           docWidth:document.documentElement.scrollWidth
         };
       });
-      // The same rendered Generate control must be used for PV Soul and Seedream.
-      // Inspect with the mock button enabled. No provider is called or charged.
+      // Compare model presentation at the same viewport through the actual
+      // web controller. The desktop type changes at 1180px, so a 1440px
+      // Seedream snapshot cannot be the typography baseline for 1100px Soul.
+      // Enabling the mock control never calls a provider or charges credits.
       if(kind==='seedream'||kind==='soul'){
-        const appearance=await page.locator('#image-composer-generate').evaluate(button=>{
+        const appearance=()=>page.locator('#image-composer-generate').evaluate(button=>{
           button.disabled=false;
           const css=getComputedStyle(button),box=button.getBoundingClientRect();
           const label=button.querySelector('.composer-generate-label');
@@ -131,12 +136,17 @@ try{
             labelSize:parseFloat(getComputedStyle(label).fontSize)
           };
         });
-        assert.equal(appearance.direction,'column',kind+': Generate action remains centered');
-        assert.equal(appearance.iconHidden,true,kind+': decorative symbol is removed');
-        assert.ok(appearance.labelSize>=17,kind+': primary Generate label is legible: '+appearance.labelSize);
-        if(kind==='seedream')seedreamGenerateAppearance=appearance;
-        else assert.deepEqual(appearance,seedreamGenerateAppearance,
-          'PV Soul uses the exact Seedream Generate styling and 144×84px button area');
+        const current=await appearance();
+        assert.equal(current.direction,'column',kind+': Generate action remains centered');
+        assert.equal(current.iconHidden,true,kind+': decorative symbol is removed');
+        assert.equal(current.labelSize,width>=1180?15:18,kind+': Generate retains the approved typography for this viewport');
+        if(kind==='soul'){
+          await page.evaluate(()=>{activeSoul=false;syncSoulBar();});
+          const standard=await appearance();
+          await page.evaluate(()=>{activeSoul=true;syncSoulBar();});
+          assert.deepEqual(await appearance(),current,'Restoring Soul retains its original Generate presentation');
+          assert.deepEqual(current,standard,'Web Soul uses the same Generate styling as Seedream at the same viewport');
+        }
       }
       if(kind==='seedream'){
         const withPhotos=metrics.dock.height;
@@ -175,8 +185,8 @@ try{
           'Prompt and the lower tool row must not overlap: '+JSON.stringify(metrics));
         assert.ok(metrics.prompt.width>metrics.references.width-7,
           'The prompt uses the full row instead of competing horizontally with photos: '+JSON.stringify(metrics));
-        assert.ok(await page.locator('#image-composer-prompt').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))===15.5,
-          'Uploaded-photo prompt uses smaller 15.5px Image typography');
+        assert.ok(await page.locator('#image-composer-prompt').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))===13,
+          'Uploaded-photo prompt retains approved 13px desktop Image typography');
         assert.ok(Math.abs(metrics.generate.bottom-metrics.controls.bottom)<=6,
           'Generate remains bottom-aligned with controls after loading references and pasting a long prompt: '+JSON.stringify(metrics));
       }
@@ -249,7 +259,9 @@ try{
         const app=document.getElementById('app');app.hidden=false;app.classList.add('image-studio-active');
         document.getElementById('image-studio').hidden=false;
         const composer=document.getElementById('image-composer');
-        composer.hidden=false;composer.classList.add('is-pv-soul');
+        composer.hidden=false;
+        const tray=document.getElementById('image-composer-references');tray.hidden=false;
+        tray.innerHTML='<div class="composer-reference-tile">Source photograph</div>';
         document.getElementById('image-composer-model-label').textContent='PV Soul';
         for(const id of ['image-composer-count-wrap','image-composer-resolution-wrap',
           'image-reference-mode-wrap','composer-exact-prompt-option','composer-more-anchor'])
@@ -261,7 +273,7 @@ try{
       });
       await page.addScriptTag({content:
         'const $=id=>document.getElementById(id);const imageComposer=document.getElementById("image-composer");\n'+
-        sizingHelper+'\nwindow.__resizePVPrompt=fitImageComposerPrompt;'});
+        sizingHelper+';let busy=false,sourceUrl="mock-source",sourceWidth=0,sourceHeight=0,imageEngine="higgsfield";const tool="image";const isSoul2=()=>true;'+soulBar+';syncSoulBar();\nwindow.__resizePVPrompt=fitImageComposerPrompt;'});
       await page.locator('#image-composer-prompt').fill(lorem);
       await page.evaluate(()=>window.__resizePVPrompt());
       const positions=await page.evaluate(()=>{
@@ -271,7 +283,7 @@ try{
         return {ratio:rect('hf-bar-ratio'),resolution:rect('hf-bar-resolution'),
           mood:rect('image-composer-moods'),model:rect('image-composer-model'),
           generate:rect('image-composer-generate'),identity:rect('composer-character'),
-          source:rect('hf-bar-source'),dock:rect('image-composer'),
+          source:rect('hf-bar-source'),references:rect('image-composer-references'),dock:rect('image-composer'),
           controls:{height:controls.getBoundingClientRect().height,
             scrollWidth:controls.scrollWidth,clientWidth:controls.clientWidth},
           prompt:rect('image-composer-prompt')};
@@ -283,13 +295,13 @@ try{
       assert.ok(positions.controls.height<52 && positions.controls.scrollWidth<=positions.controls.clientWidth+2,
         'PV Soul controls must not overflow or wrap: '+JSON.stringify(positions));
       assert.ok(positions.prompt.height>=125&&positions.prompt.height<=138,
-        'Soul prompt continues using the original bounded scroll editor');
+        'Web Soul keeps the shared bounded scroll editor: '+JSON.stringify(positions));
       assert.ok(Math.abs(positions.identity.bottom-positions.generate.bottom)<10,
         'Compact Soul ID stays anchored beside Generate');
-      assert.equal(positions.identity.height,40,'Soul ID shares the standard toolbar height');
-      assert.equal(positions.source.height,54,'Source upload uses the compact prompt row');
-      assert.ok(positions.source.bottom<=positions.identity.top && positions.source.right<positions.generate.left,
-        'Source upload stays above Soul ID and clear of Generate');
+      assert.equal(positions.identity.height,76,'Web Soul retains its approved portrait tile');
+      assert.equal(positions.source.height,0,'Web Soul never duplicates the source photograph in a native source card');
+      assert.ok(positions.references.height>0&&positions.references.left>=positions.dock.left&&positions.references.right<=positions.dock.right,
+        'The source photograph remains inside the shared reference strip: '+JSON.stringify(positions));
       assert.ok(positions.dock.height<360,
         'Soul prompt and selector row should not turn into a giant modal: '+positions.dock.height);
     }finally{await context.close();}

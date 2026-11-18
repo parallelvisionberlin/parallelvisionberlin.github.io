@@ -289,7 +289,12 @@ try{
     await page.goto(origin+'/lab/owner.html');
     await page.locator('#owner-dashboard:not([hidden])').waitFor();
     assert.equal(await page.locator('[data-owner-'+alias+']').evaluateAll(links=>links.length===2&&links.every(link=>!link.hidden)),true);checks++;
-    const privateLink=page.locator(width<=900?'.owner-jumpbar [data-owner-'+alias+']':'.owner-sidebar [data-owner-'+alias+']');
+    const mobileNavigation=await page.locator('#owner-mobile-access').isVisible();
+    if(mobileNavigation){
+      await page.locator('#owner-mobile-access>summary').click();
+      await page.locator('.owner-mobile-partners>summary').click();
+    }else await page.locator('.owner-sidebar .owner-partners>summary').click();
+    const privateLink=page.locator(mobileNavigation?'.owner-mobile-partners [data-owner-'+alias+']':'.owner-sidebar [data-owner-'+alias+']');
     assert.equal(await privateLink.isVisible(),true);checks++;
     await capture(page,'owner-navigation-'+width+'.png');
     await privateLink.click();await page.locator('#partner-content:not([hidden])').waitFor();

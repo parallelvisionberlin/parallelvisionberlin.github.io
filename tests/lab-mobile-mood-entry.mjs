@@ -41,8 +41,13 @@ async function openViewport(width,height){
   await page.route(/\/lab\/[^/]+\.js(?:\?.*)?$/,route=>{
     const pathname=new URL(route.request().url()).pathname;
     if(pathname.endsWith('/studio-guest-image.js')||
+       pathname.endsWith('/auth-google.js')||
        pathname.endsWith('/inspiration-looks.js')||
        pathname.endsWith('/inspiration-carousel.js')||
+       pathname.endsWith('/inspiration-catalog.js')||
+       pathname.endsWith('/inspiration-catalog-data.js')||
+       pathname.endsWith('/inspiration-owner-scenes.js')||
+       pathname.endsWith('/inspiration-road-scenes.js')||
        pathname.endsWith('/studio-mobile-entry.js')||
        pathname.endsWith('/image-editorial-deck.js')||
        pathname.endsWith('/mobile-composer-polish.js'))return route.continue();
@@ -59,6 +64,9 @@ async function openViewport(width,height){
     document.getElementById('app').hidden=true;
   });
   await page.locator('[data-guest-mood="90s-cinema"]').waitFor({state:'visible'});
+  await page.waitForFunction(()=>document.querySelectorAll('#pv-guest-cards > .pv-guest-card').length===15);
+  assert.equal(await page.locator('#pv-guest-cards > [data-inspiration-concept="raver"]').count(),1,
+    'The released Raver scene remains in the public Inspiration catalog');
   return {page,context,errors};
 }
 try{
@@ -104,6 +112,7 @@ try{
           tools:['pv-guest-add','pv-guest-library','pv-guest-model','pv-guest-moods','pv-guest-mobile-more'].map(rect),
           doc:document.documentElement.scrollWidth,viewport:innerWidth};
       });
+      await page.evaluate(async()=>{await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
       const before=await metrics();
       assert.equal(before.prompt.font,16,'Public phone prompt prevents undersized-input focus zoom');
       assert.ok(before.deck.x>=0&&before.deck.right<=width&&before.deck.bottom<=height,'Entire dock fits the phone');
@@ -244,15 +253,24 @@ try{
         document.getElementById('image-studio').hidden=false;
         document.getElementById('image-composer').hidden=false;
         document.getElementById('image-composer').classList.add('is-seedream');
+        // This fixture blocks the account module; mirror the real first-image
+        // welcome state rather than comparing guest entry with private History.
+        document.getElementById('lab-welcome-start').hidden=false;
+        document.getElementById('image-gallery-empty').hidden=false;
+        document.getElementById('lab-image-empty-intro').hidden=true;
+        document.getElementById('image-composer').dataset.mobileSettings='closed';
         document.getElementById('image-composer-references').hidden=true;
+        // syncImageComposer hides trained-character tiles for Seedream.
+        document.getElementById('composer-character').hidden=true;
       });
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       assert.equal(await page.locator('#image-composer-prompt').evaluate(e=>parseFloat(getComputedStyle(e).fontSize)),16,'Authenticated phone prompt also avoids undersized text');
       assert.equal(await page.locator('#image-composer-mobile-more').isVisible(),true);
       const signed=await page.evaluate(()=>{
         const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};
         return {deck:rect('image-composer'),tools:['image-composer-add','scene-image-open','image-composer-model','image-composer-moods','image-composer-mobile-more'].map(rect)};
       });
-      assert.ok(Math.abs(signed.deck.height-before.deck.height)<=5,'Public and signed compact decks share their height');
+      assert.ok(Math.abs(signed.deck.height-before.deck.height)<=5,'Public and signed compact decks share their height: '+JSON.stringify({signed,guest:before}));
       assert.equal(signed.deck.width,before.deck.width,'Public and signed dock widths match');
       for(let i=0;i<signed.tools.length;i++){
         assert.ok(Math.abs(signed.tools[i].y-signed.tools[0].y)<2,'Signed primary controls also stay on one row');
@@ -285,7 +303,8 @@ try{
         const card=document.querySelector('#lab-welcome-presets .lab-welcome-preset').getBoundingClientRect();
         const title=document.getElementById('lab-welcome-title').getBoundingClientRect();
         const shelf=document.querySelector('#lab-welcome-start .lab-welcome-carousel');
-        return {height:card.height,titleGap:card.top-title.bottom,
+        return {height:card.height,top:card.top,titleGap:card.top-title.bottom,
+          src:document.querySelector('#lab-welcome-presets .lab-welcome-preset img').getAttribute('src'),
           margin:parseFloat(getComputedStyle(shelf).marginTop)};
       });
       const signedRest=await signedCards();
@@ -293,8 +312,7 @@ try{
       await page.locator('#image-composer-prompt').fill('Analog atmosphere. '.repeat(60));
       await page.waitForFunction(()=>document.getElementById('image-composer').classList.contains('pv-deck-expanded'));
       const signedExpanded=await signedCards();
-      assert.ok(Math.abs(signedExpanded.height-signedRest.height)<1,
-        'Signed-in Image photos remain full size when the prompt expands');
+      assert.equal(signedExpanded.src,signedRest.src,'Expanding the prompt retains the original Inspiration photograph');
       assert.ok(signedExpanded.titleGap>=12&&signedExpanded.titleGap<=signedRest.titleGap+2,
         'Signed-in Image photos keep enough title clearance while moving toward the prompt dock: '+JSON.stringify({signedRest,signedExpanded}));
       const signedClearance=await page.evaluate(()=>{
@@ -303,6 +321,15 @@ try{
         return {cardBottom:card.bottom,deckTop:dock.top,
           lifted:document.getElementById('lab-welcome-start').classList.contains('pv-phone-inspiration-lift')};
       });
+      // Merged #970 explicitly permits shortening only when full portraits
+      // cannot fit above the fixed dock, with a 120px photographic floor.
+      // Keep full size whenever it fits; retain strict measured clearance.
+      if(signedExpanded.height<signedRest.height-1){
+        assert.ok(signedExpanded.top+signedRest.height>signedClearance.deckTop-8,
+          'Full-size portraits would actually overlap the dock before allowing a shorter card: '+JSON.stringify({signedRest,signedExpanded,signedClearance}));
+        assert.ok(signedExpanded.height>=120,'Short browser viewports retain at least 120px photographs');
+      }else assert.ok(Math.abs(signedExpanded.height-signedRest.height)<1,
+        'Signed-in Image photos retain their original height whenever it fits');
       assert.equal(signedClearance.lifted,true,'Expanded signed-in Inspiration computes a safe top lift');
       if(signedClearance.deckTop>=240)
         assert.ok(signedClearance.cardBottom<=signedClearance.deckTop-8,
@@ -314,7 +341,7 @@ try{
   }
   let {page,context,errors}=await openViewport(390,844);
   try{
-    assert.equal(await page.locator('.pv-guest-card').count(),14,'Eight original cards plus six featured Inspiration scenes');
+    assert.equal(await page.locator('.pv-guest-card').count(),15,'Eight original cards plus seven featured Inspiration scenes, including Raver');
     const motion=await page.locator('#pv-guest-cards').evaluate(track=>({
      snap:getComputedStyle(track).scrollSnapType,behavior:getComputedStyle(track).scrollBehavior,
      scrollable:track.scrollWidth>track.clientWidth
@@ -508,7 +535,9 @@ try{
       'Guest image preview is visible above the composer tools');
     assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
       'A chosen photograph opens the expanded composer without hiding its toolbar');
-    for(const id of ['pv-guest-library','pv-guest-model','pv-guest-retouch','pv-guest-ratio','pv-guest-resolution','pv-guest-count','pv-guest-exact']){
+    assert.equal(await page.locator('#pv-guest-retouch').isVisible(),false,
+      'Retouch stays retired from the Image toolbar');
+    for(const id of ['pv-guest-characters','pv-guest-library','pv-guest-model','pv-guest-ratio','pv-guest-resolution','pv-guest-count','pv-guest-exact']){
       const before=await page.evaluate(()=>window.__guestSignInClicks);
       await page.locator('#'+id).click();
       assert.equal(await page.evaluate(()=>window.__guestSignInClicks),before+1,

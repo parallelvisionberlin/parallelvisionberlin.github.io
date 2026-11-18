@@ -32,7 +32,7 @@ jobs:
           node --input-type=module <<'NODE' >> "$GITHUB_ENV"
           import {readFileSync} from 'node:fs';
           const html=readFileSync('lab/studio.html','utf8');
-          for(const [key,file] of [['STUDIO_MODULE_REF','lab.js'],['STUDIO_ASSETS_REF','assets.css'],['IMAGE_DISCREET_MODULE_REF','image-discreet.js'],['IMAGE_DISCREET_STYLE_REF','image-discreet.css'],['IMAGE_STUDIO_STYLE_REF','image-studio.css']]){
+          for(const [key,file] of [['STUDIO_MODULE_REF','lab.js'],['STUDIO_ASSETS_REF','assets.css'],['IMAGE_DISCREET_MODULE_REF','image-discreet.js'],['IMAGE_DISCREET_STYLE_REF','image-discreet.css'],['IMAGE_STUDIO_STYLE_REF','image-studio.css'],['IMAGE_MOODS_RETURN_STYLE_REF','image-moods-return.css'],['STUDIO_FINISH_STYLE_REF','studio-finish-v2.css']]){
             const ref=html.match(new RegExp('(?:src|href)="\\./('+file.replaceAll('.','\\.')+'\\?v=[^&"\\s]+)'))?.[1];
             if(!ref)throw new Error('Missing versioned Studio asset: '+file);
             console.log(key+'='+ref);
@@ -85,11 +85,11 @@ jobs:
               && grep -Fq "$IMAGE_STUDIO_STYLE_REF" /tmp/live-studio.html \
               && grep -Fq 'studio.css?v=20261018-owner-effects-nav1&reference-nav=1' /tmp/live-studio.html \
               && grep -Fq "$STUDIO_MODULE_REF" /tmp/live-studio.html \
-              && grep -Fq 'image-moods-return.css?v=20261017-hidden-inspiration1' /tmp/live-studio.html \
+              && grep -Fq "$IMAGE_MOODS_RETURN_STYLE_REF" /tmp/live-studio.html \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/$IMAGE_DISCREET_MODULE_REF" -o /tmp/live-image-discreet.js \
               && grep -Fq 'pv-lab-image-previews-hidden-v1' /tmp/live-image-discreet.js \
               && grep -Fq 'setTimeout(()=>{noticeTimer=null;dismissNotice();},1600)' /tmp/live-image-discreet.js \
-              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-moods-return.css?verify=20261017-hidden-inspiration1" -o /tmp/live-image-moods-return.css \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/$IMAGE_MOODS_RETURN_STYLE_REF" -o /tmp/live-image-moods-return.css \
               && grep -Fq 'html.pv-image-previews-hidden #app.image-studio-active #history-moods-toggle' /tmp/live-image-moods-return.css \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/$IMAGE_DISCREET_STYLE_REF" -o /tmp/live-image-discreet.css \
               && grep -Fq 'pv-image-previews-hidden' /tmp/live-image-discreet.css \
@@ -143,10 +143,10 @@ jobs:
               "https://pvlab.studio/studio?tool=image&verify=20261016-f02906" \
               -o /tmp/live-pv-studio-exact.html || true
             if grep -Fq "$STUDIO_ASSETS_REF" /tmp/live-pv-studio-exact.html \
-              && grep -Fq 'studio-finish-v2.css?v=20261016-generate-always3' /tmp/live-pv-studio-exact.html \
+              && grep -Fq "$STUDIO_FINISH_STYLE_REF" /tmp/live-pv-studio-exact.html \
               && grep -Fq 'id="composer-exact-prompt-option"' /tmp/live-pv-studio-exact.html; then
               curl -fsSL --connect-timeout 6 --max-time 20 \
-                "https://pvlab.studio/studio-finish-v2.css?v=20261016-generate-always3" \
+                "https://pvlab.studio/$STUDIO_FINISH_STYLE_REF" \
                 -o /tmp/live-pv-generate-style.css || true
               curl -fsSL --connect-timeout 6 --max-time 20 \
                 "https://pvlab.studio/$STUDIO_ASSETS_REF" \

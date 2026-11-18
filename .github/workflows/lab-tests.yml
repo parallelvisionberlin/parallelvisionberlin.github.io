@@ -30,6 +30,7 @@ jobs:
             tests
             .github/scripts
             js/pv-auth.js
+            wonkarwai1.png
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'

@@ -8,7 +8,7 @@ test('Explore Moods header links back to each Studio tool and keeps My Moods anc
   for(const tool of ['image','retouch','video','upscale','fashion'])
     assert.match(page,new RegExp('studio\\.html\\?tool='+tool+'\\&amp;returnToDraft=1'));
   assert.match(page,/href="\.\/mood-creator\.html#my-moods">My Moods<\/a>/);
-  assert.match(page,/aria-current="page">Explore Moods<\/a>/);
+  assert.match(page,/href="\.\/moods" aria-current="page">Moods<\/a>/);
 });
 test('Mood generate is submitted only in the modal and does not redirect to Studio',()=>{
   const js=read('lab/explore-moods.js'),service=read('lab/app-mood-generation.js');
@@ -75,7 +75,7 @@ test('Oversized Mood uploads show an in-card error and keep the editor fixed',()
   assert.match(js,/fileInput\.value=''/);
   const booth=read('lab/explore-moods-photobooth.css');
   assert.match(booth,/aspect-ratio:1\.19/);
-  assert.match(booth,/height:clamp\(150px,23dvh,190px\)!important/);
+  assert.match(booth,/#mc-look-dropzone\{[^}]*height:clamp\(150px,21dvh,180px\)!important/);
   assert.match(js,/dialog\.style\.removeProperty\('--mc-editor-height'\)/);
   assert.match(page,/id="mc-look-upload-error"[^>]+role="alert"/);
   assert.match(page,/id="mc-look-upload-error-dismiss"/);

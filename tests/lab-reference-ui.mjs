@@ -11,7 +11,7 @@ import { createHash } from 'node:crypto';
 const { chromium } = await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const source = readFileSync('lab/lab.js', 'utf8'), boot = source.indexOf("try{clerk=await loadLabAccount();");
 assert.ok(boot > 0);
-const injected = source.slice(0, boot) + source.slice(source.indexOf("\n// Soul composer:",boot)) + `clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock,refs:()=>references.map(r=>({name:r.file.name,size:r.file.size,type:r.file.type,width:r.width,height:r.height,role:r.role,note:r.note,target:r.target})),file:()=>file};`;
+const injected = source.slice(0, boot) + source.slice(source.indexOf("\n// Soul composer:",boot)) + `clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,seedream55Enabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock,refs:()=>references.map(r=>({name:r.file.name,size:r.file.size,type:r.file.type,width:r.width,height:r.height,role:r.role,note:r.note,target:r.target})),file:()=>file};`;
 const server = http.createServer((req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname;
   const file = resolve('.', '.' + path + (path.endsWith('/') ? 'index.html' : ''));
@@ -100,7 +100,7 @@ try{
   assert.ok(layout.stage<=741&&layout.canvas<650);assert.ok(layout.list<=layout.stage&&layout.scroll>=layout.list,'Reference list must fit the bounded stage without clipping the original thumbnails: '+JSON.stringify(layout));pass('Reference layout remains bounded and never stretches the result canvas');
   await x.page.locator('#image-composer-references .composer-reference-tile img').nth(6).click();await x.page.locator('#input-preview-dialog').waitFor({state:'visible'});
   assert.match(await x.page.locator('#input-preview-description').innerText(),/not a generated result/);
-  const size=await x.page.locator('#input-preview-image').evaluate(async i=>{await i.decode();return [i.naturalWidth,i.naturalHeight];});assert.ok(Math.max(...size)<=1280);
+  const size=await x.page.locator('#input-preview-image').evaluate(async i=>{await i.decode();return [i.naturalWidth,i.naturalHeight];});assert.deepEqual(size,[3072,2048],'Inspection opens the original photograph rather than the retired 1280px copy');
   await x.page.locator('#input-preview-dialog [data-close]').click();assert.equal(await x.page.locator('#preview').isVisible(),false);pass('Input previews open separately and never replace the result canvas');
   await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('Architectural sculpture in daylight.');
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');await imageAdvanced(x.page);
@@ -113,6 +113,7 @@ try{
   const draft=x.requests.find(r=>r.path==='/api/drafts').data;assert.equal(draft.settings.outputFormat,'png');assert.equal(draft.referenceSourceIds.length,7);assert.equal(draft.settings.referenceRoles[0].role,'room');assert.equal(draft.settings.referenceRoles[0].note,'Use only the architecture.');
   assert.equal(x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length,0);pass('Save sends original bytes, ordered reference IDs, roles and notes, never the thumbnails');
   await x.page.locator('#image-composer-references .composer-reference-tile').nth(1).focus();await x.page.keyboard.press('Alt+ArrowLeft');assert.equal((await x.page.evaluate(()=>window.__labTest.refs()))[0].name,'architecture-reference-2.png');
+  await x.page.locator('#image-composer-references .composer-reference-tile').first().hover();
   await x.page.locator('#image-composer-references .composer-reference-remove').first().click();assert.equal(await x.page.locator('.reference-item').count(),6);pass('Reorder and remove still operate on the correct originals');
   assert.deepEqual(x.errors,[]);await x.context.close();
 
@@ -143,7 +144,7 @@ try{
   await choose(target(x.page,3),'pants');
   assert.equal(await target(x.page,1).count(),0);
   assert.equal(await x.page.locator('#reference-guidance details').evaluate(e=>e.open),false);
-  assert.match(await x.page.locator('#reference-provider').textContent(),/Seedream 5 Pro.*SpicyAPI/);
+  assert.match(await x.page.locator('#reference-provider').textContent(),/Seedream 5\.5.*SpicyAPI/);
   await x.page.locator('#reference-guidance summary').evaluate(el=>el.click());
   const preview=await x.page.locator('#reference-guidance-text').innerText();
   assert.match(preview,/Reference 1 \[Base image\]/);assert.match(preview,/Reference 2 \[Detail \/ Hands\]/);assert.match(preview,/Reference 3 \[Clothing \/ Pants\]/);
@@ -252,12 +253,12 @@ try{
       promptBorder:getComputedStyle(document.querySelector('.image-detail-prompt-card')).borderTopWidth,
       detailsBorder:getComputedStyle(document.querySelector('#image-detail-metadata')).borderTopWidth};
   });
-  assert.ok(polish.close.right>=1420&&polish.close.right<=1440&&polish.close.top>=0&&polish.close.bottom<=64,
+  assert.ok(Math.abs(polish.close.right-(1440-22))<2&&polish.close.top>=0&&polish.close.bottom<=64,
     'Close X is at the top-right of the complete viewer');
   assert.equal(await x.page.locator('#image-detail-pixels').innerText(),'960 × 640 px');
-  assert.equal(polish.promptBorder,'0px','Prompt uses the approved flat inspector');
+  assert.equal(polish.promptBorder,'1px','Prompt preserves the current bounded inspector card');
   assert.equal(await x.page.locator('.image-detail-utility-row #image-lightbox-download').count(),1,'Download is in the pinned utility row');
-  assert.equal(polish.detailsBorder,'0px','Details uses the approved flat inspector');
+  assert.equal(polish.detailsBorder,'1px','Details preserves the current single separator');
   await x.page.locator('#image-detail-metadata > summary').click();
   assert.equal(await x.page.locator('#image-detail-metadata').evaluate(el=>el.open),false);
   await x.page.locator('#image-detail-metadata > summary').click();

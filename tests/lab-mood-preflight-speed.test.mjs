@@ -8,18 +8,23 @@ const settings=()=>{
    referenceRoles:[{name:'source.jpg',role:'base',note:''}]};
 };
 test('Dream Blur starts all four downloads together, then uploads four in parallel in reference order',async()=>{
- let downloads=0,uploads=0,releaseDownload,releaseUpload;
+ let downloads=0,uploads=0,releaseDownload,releaseUpload,allUploadsStarted;
+ const uploadsStarted=new Promise(resolve=>{allUploadsStarted=resolve;});
  const downloadsGate=new Promise(resolve=>{releaseDownload=resolve;});
  const uploadsGate=new Promise(resolve=>{releaseUpload=resolve;});
  const loader=createMoodReferenceLoader({
    fetchFile:()=>{downloads++;return downloadsGate.then(()=>new Response(new Blob(['picture'],{type:'image/jpeg'})));},
-   upload:file=>{uploads++;const order=uploads;return uploadsGate.then(()=>({id:'upload-'+order}));}
+   upload:file=>{uploads++;const order=uploads;if(uploads===4)allUploadsStarted();return uploadsGate.then(()=>({id:'upload-'+order}));}
  });
  const run=loader.prepare(settings(),{sessionKey:'signed-account'});
  await Promise.resolve();
  assert.equal(downloads,4,'Do not download one style photograph at a time');
  releaseDownload();
- await new Promise(setImmediate);
+ // Wait for the causal signal, not a Node-version-specific event-loop turn.
+ // Sequential uploads cannot resolve this before their held first upload.
+ let timer;
+ try{await Promise.race([uploadsStarted,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('All four uploads must start before any upload completes')),2000);})]);}
+ finally{clearTimeout(timer);}
  assert.equal(uploads,4,'Do not upload each style photograph one after another');
  releaseUpload();
  const result=await run;

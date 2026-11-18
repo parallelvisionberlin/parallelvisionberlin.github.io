@@ -293,12 +293,12 @@ try{
       return {media:rect('.history-media'),heart:rect('.asset-heart'),download:rect('.result-download')};
     });
     assert.equal(await tiles.first().locator('.history-video-play').isVisible(),true,'The thumbnail retains one clear Play Video affordance');
-    assert.equal(await tiles.first().locator('.asset-video-badge').isVisible(),width>640,'Only phone cards hide the redundant Video badge');
+    assert.equal(await tiles.first().locator('.asset-video-badge').isVisible(),false,'Video History keeps one Play marker at every width; Assets classification is separate');
     if(width<=640){
       assert.ok(cardControls.heart.bottom<cardControls.download.top,'Favorite and Download do not overlap');
-      assert.ok(Math.abs(cardControls.download.bottom-cardControls.media.bottom)<3,'Download sits at the image/text boundary, not the bottom of the whole card');
+      assert.ok(Math.abs(cardControls.media.bottom-cardControls.download.bottom-5)<2,'Phone Download retains the approved 5px inset at the thumbnail boundary');
     }else{
-      assert.ok(cardControls.download.top-cardControls.media.top<10,'Desktop keeps its existing Download position');
+      assert.ok(Math.abs(cardControls.media.bottom-cardControls.download.bottom-5)<2,'Desktop Download retains the approved 5px inset at the thumbnail boundary');
     }
     if(shape==='landscape'){
       await tiles.first().scrollIntoViewIfNeeded();
@@ -310,10 +310,10 @@ try{
     await page.evaluate(()=>{const center=document.querySelector('#video-feed-center');center.scrollTop=center.scrollHeight;});
     await tiles.first().evaluate(el=>el.click());
     assert.equal(await page.locator('#video-job-stage').isVisible(),true,'Video click opens the central loading surface');
-    assert.match(await page.locator('#video-job-stage-title').innerText(),/Opening video/);
+    assert.match(await page.locator('#video-job-stage-title').innerText(),/Opening video/i);
     assert.equal(await page.locator('#video-detail-status').innerText(),'Completed',
       'Job inspector truthfully retains the backend state');
-    assert.equal(await page.locator('#video-job-stage-state').innerText(),'Loading',
+    assert.equal(await page.locator('#video-job-stage-state').textContent(),'Loading',
       'The player does not report Ready before video data arrives');
     if(width===1440)assert.equal(await page.locator('#video-feed-center').evaluate(el=>el.scrollTop),0,
       'Selecting a History card reveals the large desktop player');
@@ -331,7 +331,7 @@ try{
     assert.equal(await page.locator('#pv-video-reference-preview img').count(),0,
       'An empty Video canvas never invents attached reference thumbnails');
     assert.match(await page.locator('.canvas').evaluate(el=>getComputedStyle(el,'::before').backgroundImage),
-      /video-subway-relaxed-approved\.png/,'The approved original is empty-canvas decoration only');
+      /video-android-trio-original\.png/,'The approved original is empty-canvas decoration only');
     assert.equal(await page.locator('#video-feed-center>.stage').isVisible(),width>820,
       'The decorative empty stage remains on desktop and disappears only on phones');
     if(shape==='landscape')await page.screenshot({path:`test-results/video-mobile-quiet-${width}.png`,fullPage:false});

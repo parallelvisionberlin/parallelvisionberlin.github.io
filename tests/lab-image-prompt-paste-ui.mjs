@@ -14,7 +14,7 @@ const html=readFileSync('lab/studio.html','utf8');
 for(const id of ['pv-guest-prompt','image-composer-prompt']){
   const element=html.match(new RegExp('<textarea\\s+id="'+id+'"[^>]*>'))?.[0];
   assert.ok(element,'Image prompt field must exist: '+id);
-  assert.match(element,/\\bspellcheck="false"/,'Image prompt editor should not show browser red spellcheck underlines: '+id);
+  assert.match(element,/\bspellcheck="false"/,'Image prompt editor should not show browser red spellcheck underlines: '+id);
 }
 const sizingStart=source.indexOf('function fitImageComposerPrompt(){');
 const sizingEnd=source.indexOf('\nfunction syncImageComposer(){',sizingStart);

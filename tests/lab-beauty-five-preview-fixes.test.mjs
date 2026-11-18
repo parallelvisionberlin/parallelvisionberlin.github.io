@@ -19,7 +19,7 @@ for(const [category,ids] of Object.entries(keys))for(const id of ids){
 }
 test('ALTER preserves all other approved Light/Color reference pictures and original option',()=>{
  const old={
-  light:{daylight:'alter-light-daylight-20261107.webp',softbox:'alter-light-softbox-20261107.webp',side:'alter-light-side-20261107.webp','low-key':'alter-light-low-key-20261107.webp',window:'alter-light-window-20261107.webp',rim:'alter-light-rim-20261107.webp'},
+  light:{daylight:'alter-light-daylight-20261107.webp',softbox:'alter-light-softbox-20261107.webp',side:'alter-light-side-editorial-20261107.webp','low-key':'alter-light-low-key-20261107.webp',window:'alter-light-window-20261107.webp',rim:'alter-light-rim-editorial-20261107.webp'},
   color:{neutral:'alter-color-neutral-20261107.webp',cool:'alter-color-cool-20261107.webp',mono:'alter-color-mono-20261107.webp',muted:'alter-color-muted-20261107.webp',contrast:'alter-color-contrast-20261107.webp'}
  };
  for(const category of ['light','color']){

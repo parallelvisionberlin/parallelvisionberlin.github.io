@@ -10,7 +10,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{clerk=await loadLabAccount();");const bootEnd=source.indexOf("\n// Soul composer:",boot);assert.ok(boot>0&&bootEnd>boot);
-const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;ownerAccount=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,higgsfieldEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};hf.configure(true);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();await restoreStudioEntry();finishLabBoot();update();window.__labTest={lock,poll,setBusy:value=>{busy=!!value;update();},setCustomerMode:value=>{customerMode=!!value;update();},setImageLimit:value=>{config.concurrency.image=value;update();}};`;
+const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;ownerAccount=true;userId='test';config={enabled:true,seedream55Enabled:true,geminiEnabled:true,falEnabled:true,higgsfieldEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};hf.configure(true);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();await restoreStudioEntry();finishLabBoot();update();window.__labTest={lock,poll,setBusy:value=>{busy=!!value;update();},setCustomerMode:value=>{customerMode=!!value;update();},setImageLimit:value=>{config.concurrency.image=value;update();}};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4179,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -93,6 +93,11 @@ async function workspace({failure='',width=1440,height=1000,initial=[],savedPack
  await page.goto(ORIGIN+'/lab/studio.html?tool=image');
  try{await page.waitForFunction(()=>!!window.__labTest,undefined,{timeout:12000});}
  catch(e){console.error('IMAGE_STUDIO_BOOT_DIAGNOSTICS',JSON.stringify({url:page.url(),title:await page.title(),errors,requests:requests.slice(0,9),scripts:await page.locator('script[src]').evaluateAll(a=>a.map(el=>el.src))}));throw e;}
+ // The existing two-second owner handoff is scoped to Seedream 5 Pro.
+ // The current 5.5 default has separate first-image/customer coverage.
+ if(!await page.locator('#image-composer-model').isVisible())await page.click('#image-composer-prompt');
+ await page.click('#image-composer-model');
+ await page.click('.composer-model-option[data-value="seedream"]');
  if(!png)png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=320;const x=c.getContext('2d');x.fillStyle='#333';x.fillRect(0,0,320,320);x.fillStyle='#aaa';x.fillRect(75,75,170,170);return c.toDataURL().split(',')[1];}),'base64');
  return {page,context,requests,errors,dialogs,jobs,accepted:()=>accepted,releaseStillQuotes:stillQuotes.resolve};
 }

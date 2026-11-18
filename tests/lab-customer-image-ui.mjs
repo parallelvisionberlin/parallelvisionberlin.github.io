@@ -15,7 +15,7 @@ assert.ok(authEnd>boot,'Clerk bootstrap must end before editor tool handlers');
 const mocked=source.slice(0,boot)+source.slice(authEnd+1)+`
 clerk={isSignedIn:true,user:{id:'user_browser'},session:{id:'test-customer-session',getToken:async()=> 'synthetic-token'}};
 owner=true;customerMode=true;customerGenerationReady=true;userId='user_browser';
-config={enabled:true,configured:true,geminiEnabled:true,falEnabled:true,
+config={enabled:true,seedream55Enabled:true,configured:true,geminiEnabled:true,falEnabled:true,
   higgsfieldEnabled:false,videoEngines:['wan'],concurrency:{image:10,video:3}};
 wallet.connect({customer:true,balanceCredits:1000,billingReady:true,products:[],
   soulIdTrainingCredits:400,soul2ImageCredits:7});
@@ -135,12 +135,12 @@ assert.equal(await page.locator('#lab-welcome-balance').textContent(),'1,000 cre
  assert.equal(await welcome.locator('#lab-welcome-start').isVisible(),true);
  assert.equal(await welcome.locator('#lab-welcome-balance').textContent(),'200 credits');
  assert.deepEqual(await welcome.locator('[data-welcome-mood]').evaluateAll(cards=>cards.map(card=>card.dataset.welcomeMood)),
-   ['dream-blur','90s-cinema','fashion-editorial','fisheye-2000','chrome-couture','hong-kong-nights','dreamcore','80s-film'],
+   ['dream-blur','fashion-editorial','fisheye-2000','chrome-couture','dreamcore','80s-film','hong-kong-nights','90s-cinema'],
    'The current editorial onboarding retains all eight approved looks');
  const beforeWelcomeSubmit=paidJobs;
  await welcome.click('[data-welcome-mood="dream-blur"]');
  assert.match(await welcome.locator('#image-composer-prompt').inputValue(),/motion blur/i);
- assert.equal(await welcome.locator('#image-engine').inputValue(),'seedream');
+ assert.equal(await welcome.locator('#image-engine').inputValue(),'seedream55');
  assert.equal(await welcome.locator('#image-composer-resolution').inputValue(),'2k');
  assert.equal(await welcome.locator('#image-composer-count').inputValue(),'1');
  assert.equal(await welcome.locator('#image-composer-ratio').inputValue(),'16:9');
@@ -149,7 +149,7 @@ assert.equal(await page.locator('#lab-welcome-balance').textContent(),'1,000 cre
  await welcome.click('#image-composer-generate');
  await welcome.waitForFunction(()=>!document.querySelector('#generate').disabled);
  assert.equal(paidJobs,beforeWelcomeSubmit+1,'Only the explicit Generate click submits one provider job');
- console.log('PASS current Inspiration uses authenticated balance, one Seedream 2K image, bound quote and explicit submission');
+ console.log('PASS current Inspiration uses authenticated balance, one Seedream 5.5 2K image, bound quote and explicit submission');
  await welcome.close();
  assert.deepEqual(errors,[]);
 }finally{

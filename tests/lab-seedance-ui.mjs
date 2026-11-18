@@ -10,7 +10,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{clerk=await loadLabAccount();");assert.ok(boot>0);
-const testSource=source.slice(0,boot)+source.slice(source.indexOf("\n// Soul composer:",boot))+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;ownerAccount=true;userId='test';config={enabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();syncVideoStudioMode();window.__labTest={lock,setCustomer:()=>{customerMode=true;ownerAccount=false;customerGenerationReady=true;config.customer=true;wallet.connect({customer:true,balanceCredits:1000,billingReady:true});update();}};`;
+const testSource=source.slice(0,boot)+source.slice(source.indexOf("\n// Soul composer:",boot))+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;ownerAccount=true;userId='test';config={enabled:true,seedream55Enabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();syncVideoStudioMode();window.__labTest={lock,setCustomer:()=>{customerMode=true;ownerAccount=false;customerGenerationReady=true;config.customer=true;wallet.connect({customer:true,balanceCredits:1000,billingReady:true});update();}};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg'})[extname(path)]||'application/octet-stream');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4183,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -77,7 +77,7 @@ try{
    visible:getComputedStyle(el,'::before').display,
    attached:document.getElementById('app').classList.contains('pv-video-has-input')
   }));
-  assert.match((await art()).image,/video-subway-relaxed-approved\.png/);
+  assert.match((await art()).image,/video-android-trio-original\.png/);
   assert.equal(await preview.page.locator('#pv-video-reference-preview img').count(),0,
    'Decorative artwork never becomes a reference or History item');
   assert.equal(await preview.page.locator('#history .card').count(),0);
@@ -93,10 +93,12 @@ try{
    }));
    assert.ok(spacing.gap>=0&&spacing.gap<=16,'Output controls stay close to Generate: '+JSON.stringify(spacing));
    assert.equal(spacing.inside,true,'Audio remains inside the expanded prompt surface');
-   assert.equal(Math.round((await preview.page.locator('#video-model-control').boundingBox()).height),124,'Fit must preserve the original model banner height');
+   assert.equal(Math.round((await preview.page.locator('#video-model-control').boundingBox()).height),height<=900?110:124,
+    'Fit preserves the approved compact-height breakpoint and full-height model banner');
   }
   await assertInputPanelFits();
-  assert.equal(Math.round((await preview.page.locator('#generate').boundingBox()).height),52,'Owner-approved larger Generate keeps the existing dock');
+  assert.equal(Math.round((await preview.page.locator('#generate').boundingBox()).height),width>=821?45:52,
+   'Generate retains the approved desktop dossier and phone dock sizes');
   await preview.page.waitForFunction(()=>document.getElementById('empty-title').textContent==='Animate your references');
   assert.equal(await preview.page.locator('#empty-title').textContent(),'Animate your references');
   assert.equal(await preview.page.locator('#empty-description').textContent(),'');
@@ -177,7 +179,9 @@ try{
   const target=mode==='start'?plus:drop.page.locator('.canvas');
   await target.dispatchEvent('dragover',{dataTransfer:transfer});
   assert.equal(await drop.page.locator('.canvas').evaluate(el=>el.classList.contains('pv-video-file-drag')),true,'Canvas shows a file-drop hint');
+  const preupload=mode==='reference'?drop.page.waitForResponse(response=>new URL(response.url()).pathname==='/api/uploads'&&response.request().method()==='POST'):null;
   await target.dispatchEvent('drop',{dataTransfer:transfer});await transfer.dispose();
+  if(preupload)assert.equal((await preupload).status(),201,'Authenticated Reference selection stages its single private photo');
   await drop.page.waitForFunction(mode=>mode==='extend'?document.querySelector('#video-reference-list').children.length===1:mode==='reference'?document.querySelectorAll('#reference-list .reference-item').length===1:!document.querySelector('#video-start-thumb').hidden,mode);
   await ready(drop.page);
   assert.equal(await drop.page.locator('.canvas').evaluate(el=>el.classList.contains('pv-video-file-drag')),false);
@@ -190,8 +194,10 @@ try{
    await still(drop,'last-image');
    assert.equal(await drop.page.locator('#video-end-thumb').isVisible(),true,'Canvas upload preserves the optional end frame');
   }
-  assert.equal(count(drop,'/api/uploads'),0);assert.equal(count(drop,'/api/reference-uploads'),0);
-  assert.equal(count(drop,'/api/quotes'),0);assert.equal(count(drop,'/api/jobs'),0,'Drop only prepares local media');
+  assert.equal(count(drop,'/api/uploads'),mode==='reference'?1:0,
+   'Only authenticated Reference mode preuploads one selected private photo; Start and Extend remain deferred');
+  assert.equal(count(drop,'/api/reference-uploads'),0);
+  assert.equal(count(drop,'/api/quotes'),0);assert.equal(count(drop,'/api/jobs'),0,'Drop never requests a quote or generation');
   await drop.page.evaluate(()=>window.__labTest.lock());
   await drop.page.waitForFunction(()=>document.getElementById('app').dataset.guestPreview==='video');
   const blocked=await drop.page.evaluateHandle(()=>{const data=new DataTransfer();data.items.add(new File(['blocked'],'guest.png',{type:'image/png'}));return data;});
@@ -239,8 +245,13 @@ try{
  // Retained media-note handlers are hidden in the approved compact Video deck.
  for(const [selector,value] of [['#video-reference-list input','Camera movement only.'],['#audio-reference-list input','Rhythm.']])
   await x.page.locator(selector).evaluate((input,note)=>{input.value=note;input.dispatchEvent(new Event('input',{bubbles:true}));},value);
- await x.page.click('#save');await ready(x.page);assert.equal(count(x,'/api/jobs'),0);assert.equal(count(x,'/api/reference-uploads'),2);
- await x.page.click('#clear');await x.page.locator('.card[data-state="draft"]').click();await x.page.click('#video-detail-reuse');await ready(x.page);
+ // Save draft is retained for compatibility, not shown in the compact deck.
+ // Exercise that real handler and verify its response without exposing a new action.
+ assert.equal(await x.page.locator('#save').isVisible(),false);
+ const savedDraft=x.page.waitForResponse(response=>new URL(response.url()).pathname==='/api/drafts'&&response.request().method()==='POST');
+ await x.page.locator('#save').evaluate(button=>button.click());assert.equal((await savedDraft).status(),201);
+ await ready(x.page);assert.equal(count(x,'/api/jobs'),0);assert.equal(count(x,'/api/reference-uploads'),2);
+ await x.page.locator('#clear').evaluate(button=>button.click());await x.page.locator('.card[data-state="draft"]').click();await x.page.click('#video-detail-reuse');await ready(x.page);
  assert.match(await x.page.locator('#video-ref-count').innerText(),/1 \/ 10/);assert.match(await x.page.locator('#audio-ref-count').innerText(),/1 \/ 10/);assert.equal(await x.page.locator('#video-reference-list input').inputValue(),'Camera movement only.');assert.equal(await x.page.locator('#audio-reference-list input').inputValue(),'Rhythm.');assert.equal(count(x,'/api/jobs'),0);ok('Mixed references retain media, durations and notes through draft, clear and Reuse');
  await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});const mixed=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(mixed.referenceVideoIds.length,1);assert.equal(mixed.referenceAudioIds.length,1);assert.equal(mixed.referenceSourceIds.length,1);assert.equal(mixed.settings.referenceVideos[0].seconds,3);assert.equal(mixed.settings.referenceAudio[0].seconds,3);assert.equal(x.accepted(),0);ok('Mixed references use a quoted, not automatic, paid request');
  await x.page.click('[data-close="quote-dialog"]');await x.page.selectOption('#video-engine','wan');assert.equal(await x.page.locator('#video-engine').inputValue(),'seedance');ok('Changing models cannot silently discard unsupported media');assert.deepEqual(x.errors,[]);await x.context.close();
@@ -269,9 +280,13 @@ try{
   x=await workspace({initial:[completedVideo]});await x.page.click('#tool-video');
   const savedVideo=x.page.locator('#history .card[data-job="'+completedVideo.id+'"]');
   await savedVideo.waitFor({state:'visible'});
-  assert.equal(count(x,'/api/assets/'+completedVideo.outputId,'GET'),0,'Opening Video does not automatically download the MP4');
-  assert.equal(await x.page.locator('#video-inspector-selected').isVisible(),false,
-    'Opening Video preserves the current creation scene until a History card is selected');
+  await x.page.waitForFunction(()=>document.querySelector('#video')?.src.startsWith('blob:')&&!document.querySelector('#video').hidden);
+  assert.equal(count(x,'/api/assets/'+completedVideo.outputId,'GET'),1,'Opening Video restores the latest completed original exactly once');
+  assert.equal(await x.page.locator('#video-inspector-selected').isVisible(),true,
+    'Restored History opens its existing metadata inspector');
+  assert.equal(await x.page.locator('#video').evaluate(video=>video.paused&&!video.autoplay),true,
+    'Restoring a playable original never autoplays it');
+  assert.equal(count(x,'/api/quotes'),0,'Restoring History requests no generation price');
   await savedVideo.click();
   await x.page.waitForFunction(()=>document.querySelector('#video-detail-prompt').textContent.includes('sculptural object'));
   assert.equal(await x.page.locator('#video-inspector').isVisible(),true,'Selected Video metadata inspector stays visible');
@@ -279,43 +294,14 @@ try{
   assert.equal(await x.page.locator('#video-detail-model').innerText(),'Seedance 2.5');
   assert.equal(await x.page.locator('#video-detail-watch').isEnabled(),true);
   await x.page.waitForFunction(()=>document.querySelector('#video')?.src.startsWith('blob:')&&!document.querySelector('#video').hidden);
-  assert.equal(count(x,'/api/assets/'+completedVideo.outputId,'GET'),1);
+  assert.equal(count(x,'/api/assets/'+completedVideo.outputId,'GET'),1,'Explicitly selecting the restored card reuses its original bytes');
   assert.equal(x.accepted(),0);
   await x.page.screenshot({path:'test-results/lab-video-selected-result.png',fullPage:false});
   assert.deepEqual(x.errors,[]);
-  ok('Video preserves the create scene, then loads explicit History selection without a paid job');
+  ok('Video restores latest History once without autoplay, duplicate reads or a paid job');
   await x.context.close();
 
- // Motion Effects: mock-only integration. Do not confirm or buy a generation.
- const completedStill={id:id(90),outputId:id(91),sourceId:null,status:'completed',createdAt:Date.now(),
-   settings:{type:'image',engine:'seedream',mode:'image',prompt:'Fashion editorial photograph.',
-     resolution:'2k',aspectRatio:'1:1',referenceSourceIds:[]}};
- x=await workspace({initial:[completedStill]});
- // Effects remains a retained route handler; the approved header hides its legacy tab.
- await x.page.locator('#tool-effects').evaluate(button=>button.click());
- await x.page.locator('#video-effects-grid .video-effect-card').first().waitFor();
- assert.equal(await x.page.locator('#video-effects-grid .video-effect-card').count(),3);
- assert.equal(await x.page.locator('#video-effects-explore').isVisible(),true);
- assert.equal(count(x,'/api/quotes'),0);
- assert.equal(count(x,'/api/jobs'),0);
- await x.page.locator('[data-effect="liquid-metal"]').click();
- assert.equal(await x.page.locator('#video-engine').inputValue(),'seedance');
- assert.equal(await x.page.locator('#duration').inputValue(),'5');
- assert.equal(await x.page.locator('#resolution').inputValue(),'720p');
- assert.equal(await x.page.locator('#audio').isChecked(),false);
- assert.match(await x.page.locator('#prompt').inputValue(),/liquid chrome/i);
- assert.equal(await x.page.locator('#video-effect-active').isVisible(),true);
- assert.equal(count(x,'/api/quotes'),0);
- await x.page.click('#video-effect-from-gallery');
- await x.page.locator('.effect-gallery-choice').first().click();
- await x.page.waitForFunction(()=>document.querySelector('#filemeta').textContent.includes('effect-start-frame'));
- assert.equal(count(x,'/api/jobs'),0);
- await x.page.click('#generate');
- await x.page.locator('#quote-dialog').waitFor({state:'visible'});
- assert.equal(count(x,'/api/quotes'),1);
- assert.equal(count(x,'/api/jobs'),0,'Selecting an effect and reviewing the price never charges the customer');
- assert.deepEqual(x.errors,[]);
- ok('Motion Effects gallery, original Gallery handoff and explicit video price review without paid request');
- await x.context.close();
+ // Current owner-only Metro Blonde Transform coverage runs in the maintained
+ // lab-motion-effects-browser.mjs suite in the same Video CI job.
  console.log('SEEDANCE_STANDARD_BROWSER_CHECKS_PASSED='+passed);
 }finally{await browser.close();await new Promise(r=>server.close(r));}

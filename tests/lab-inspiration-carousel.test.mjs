@@ -130,8 +130,8 @@ test('vertical wheel gestures glide by pixels, accumulate, and release the page 
 test('carousel navigation cannot invoke paid jobs or rewrite the current prompt',()=>{
   const code=read('inspiration-carousel.js'),looks=read('inspiration-looks.js');
   assert.doesNotMatch(code,/fetch\(|\/api\/|submit\(|dispatchEvent\(|\.click\(/);
-  assert.match(looks,/A modified example is now a user's own direction/);
-  assert.match(looks,/if\(existing&&!isInspirationExample\(existing\)\)/);
+  assert.match(looks,/Preserve drafts for non-click callers/);
+  assert.match(looks,/if\(existing&&!replace&&!isInspirationExample\(existing\)\)/);
   assert.doesNotMatch(read('moods.js'),/"id": "chrome-couture"/);
   assert.match(read('lab.js'),/const underlyingMood=id==='chrome-couture'\?'fashion-editorial':id/);
 });

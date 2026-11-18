@@ -14,7 +14,9 @@ const current={
   'image-tools.js':readFileSync('lab/image-tools.js','utf8'),
   'image-worker.js':readFileSync('lab/image-worker.js','utf8')
 };
-assert.notEqual(baseline['image-tools.js'],current['image-tools.js'],'Run on a PR with a code change');
+// This workflow also runs on main and on changes outside image preparation.
+// An unchanged implementation must still exercise both browser paths below.
+console.log('REFERENCE_PREVIEW_SOURCE_CHANGED='+Object.keys(current).some(file=>baseline[file]!==current[file]));
 const server=http.createServer((req,res)=>{
   const url=new URL(req.url,'http://127.0.0.1'),parts=url.pathname.split('/').filter(Boolean);
   if(parts.length===0){res.writeHead(200,{'Content-Type':'text/html'}).end('<!doctype html><title>Preview timing</title>');return;}

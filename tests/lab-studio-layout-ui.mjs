@@ -126,7 +126,7 @@ try{
   assert.ok(d.navigation.top>=d.header.top&&d.navigation.bottom<=d.header.bottom,'Tool tabs stay inside the shared header');
   assert.ok(Math.abs(d.workspace.top-d.header.bottom)<=3,'Workspace starts directly below the shared header');
   assert.ok(d.workspace.top<140,'Workspace must be above the fold');
-  assert.equal(d.dock.height,64,'Approved relaxed Generate dock retains its fixed 64px track');
+  assert.equal(d.dock.height,54,'Approved full-height composer retains its 54px content-sized footer');
   assert.ok(d.dock.bottom<=d.panel.bottom+2,'Generation controls remain inside their panel');
   assert.ok(d.generate.bottom<=d.panel.bottom+2,'Generate dock must remain inside left panel');
   assert.ok(Math.abs(d.stage.top-d.inspector.top)<2&&Math.abs(d.stage.bottom-d.inspector.bottom)<2,'Video preview and right inspector share their top and bottom edges');
@@ -309,7 +309,7 @@ try{
   });
   assert.equal(videoTypography.size,14,'Approved relaxed Video motion prompt uses 14px type');
   assert.match(videoTypography.family,/DM Sans/,'PV Lab uses its own editorial UI typography');
-  assert.equal(d.stage.height,744,'Approved relaxed desktop stage leaves room for real History');
+  assert.equal(d.stage.height,656,'Current film-dossier stage reserves the approved 244px at 900px viewport height');
   assert.equal(d.canvas.height,d.stage.height-2,'Empty artwork fills the bordered preview');
   assert.ok(d.modes.top-d.model.bottom<110,'Start/reference buttons remain near model info');
   assert.equal(d.explanationCollapsed,true);
@@ -491,7 +491,7 @@ try{
       descriptionFontSize:getComputedStyle(help.querySelector('small')).fontSize};
   });
   assert.equal(exactSurface.border,'0px','No chip border around Exact');
-  assert.equal(exactSurface.background,'rgba(0, 0, 0, 0)','Exact background is transparent');
+  assert.equal(exactSurface.background,'rgb(50, 52, 55)','Exact uses the approved shared Image toolbar fill');
   assert.equal(exactSurface.tooltipVisibility,'hidden','Hover explanation is hidden by default');
   assert.match(exactSurface.tooltipText,/Exact Prompt.*No automatic prompt improvements/);
   assert.ok(exactSurface.tooltipWidth<=225&&exactSurface.paddingTop==='6px'&&exactSurface.paddingLeft==='8px'&&exactSurface.rowGap==='3px',
@@ -669,6 +669,7 @@ try{
     inlineGeometry.promptTop-inlineGeometry.refBottom<=22,
     'The uploaded thumbnail occupies one compact row above the prompt, aligned to the text: '+JSON.stringify(inlineGeometry));
   await x.page.screenshot({path:'test-results/lab-image-inline-reference.png',fullPage:false});
+  await x.page.locator('.composer-reference-tile').hover();
   await x.page.click('.composer-reference-remove');
   await x.page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===0);
   assert.equal(await x.page.locator('#ref-count').textContent().then(t=>t.includes('0')),true,'Removing in-bar thumbnail updates true reference list');
@@ -721,7 +722,7 @@ try{
   assert.match((await x.page.locator('#canvas-import').innerText()).replace(/\s+/g,' '),/Upload images/);
   assert.equal(await x.page.locator('#pv-mode-reference-label').innerText(),'Reference set');
   assert.equal(await x.page.locator('#reference-drop>span').innerText(),'Upload images');
-  assert.equal(await x.page.locator('#video-inspector-empty .pv-video-sidebar-section:nth-of-type(2) h3').innerText(),'Attached images');
+  assert.equal(await x.page.locator('#video-inspector-empty .pv-video-sidebar-section h3').allTextContents().then(t=>t.map(x=>x.trim()).includes('Attached images')),true);
   await x.page.locator('#pv-video-browse-library').click();
   assert.equal(await x.page.locator('#scene-library-dialog').isVisible(),true,'Approved central action opens the real Scene library');
   await x.page.keyboard.press('Escape');

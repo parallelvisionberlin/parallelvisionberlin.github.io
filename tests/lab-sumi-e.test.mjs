@@ -13,8 +13,8 @@ const recipe=(direction,intensity,options={})=>prepareMoodPrompt(direction,id,in
 
 test('Sumi-e retains its original single catalogue entry, preview and public identity',()=>{
   const mood=moodById(id);
-  assert.equal(MOODS.length,17);
-  assert.equal(MOODS.at(-1),mood);
+  assert.equal(MOODS.length,18);
+  assert.equal(MOODS.at(-2),mood);
   assert.equal(mood.name,'Japanese Sumi-e');
   assert.equal(mood.preview,'/lab/mood-previews/hd/japanese-sumi-e-20261011.jpg');
   assert.match(mood.previewFull,/sumi-ink\/originals\//);

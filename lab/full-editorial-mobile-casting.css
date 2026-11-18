@@ -74,6 +74,6 @@
 @media(max-width:360px){
  body.editorial-web #panel-model .editorial-casting-top{grid-template-columns:1fr auto;gap:4px!important}
  body.editorial-web #panel-model .editorial-casting-top h3{font-size:26px}
- body.editorial-web #editorial-mobile-search{grid-column:2;grid-row:2;justify-self:end}
+ body.editorial-web #editorial-mobile-search{grid-column:2;grid-row:1;justify-self:end}
  body.editorial-web #editorial-mobile-upload{grid-column:1;grid-row:2;justify-content:flex-start}
 }

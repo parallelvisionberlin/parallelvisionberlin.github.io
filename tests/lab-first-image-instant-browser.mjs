@@ -4,6 +4,7 @@ import http from 'node:http';
 import {readFileSync,existsSync} from 'node:fs';
 import {resolve,extname,sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {INSPIRATION_VARIATIONS} from '../lab/inspiration-looks.js';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const start=source.indexOf('try{clerk=await loadLabAccount();');
@@ -14,7 +15,7 @@ clerk={isSignedIn:true,user:{id:'welcome-mock'},session:{id:'welcome-session',ge
 const mockRole=new URL(location.href).searchParams.get('mockRole')||'customer';
 const mockBalance=mockRole==='new'?0:200;
 owner=true;ownerAccount=mockRole==='owner';customerMode=!ownerAccount;customerGenerationReady=true;userId='welcome-mock';
-config={enabled:true,configured:true,geminiEnabled:true,falEnabled:true,higgsfieldEnabled:false,
+config={enabled:true,seedream55Enabled:true,configured:true,geminiEnabled:true,falEnabled:true,higgsfieldEnabled:false,
   concurrency:{image:4,video:1}};
 wallet.connect({customer:customerMode,balanceCredits:mockBalance,billingReady:true,products:[]});
 $('app').hidden=false;$('gate').hidden=true;
@@ -28,6 +29,9 @@ if(mockRole==='guest'){
   // A real signed-out boot never activates the private Image workspace.
   $('app').classList.remove('image-studio-active');
   $('app').hidden=true;$('gate').hidden=false;
+  // Complete the real signed-out route state; its class and tool data own
+  // the canonical guest frame and reserved desktop scrollbar gutter.
+  $('gate').classList.add('pv-guest-image');$('gate').dataset.guestTool='image';
 }
 // Test-only trigger for transitioning from an empty customer welcome to
 // one saved image without making any paid request or changing production APIs.
@@ -227,6 +231,7 @@ try{
           role+' reference icons stay inside the '+state+' deck');
       }
       assert.equal(states.idle.h,74,role+' starts with the approved compact row');
+      assert.equal(states.idle.w,1064,role+' uses the locked desktop Image width');
       for(const tool of ['add','library','model','moods','base','ratio','resolution','count','exact'])
         assert.ok(states.idle.controls[tool]?.w>0,role+' keeps '+tool+' visible while compact');
       assert.equal(states.idle.generate.w,128,role+' keeps Generate visible while compact');
@@ -501,8 +506,10 @@ try{
   assert.ok(!hovered.boxShadow.includes('0.87')&&!hovered.boxShadow.includes('0.33'),
     'The earlier overbright halo must be removed: '+hovered.boxShadow);
   await page.mouse.move(2,2);
-  assert.equal(await page.locator('.lab-welcome-preset').count(),14,
-    'The original eight welcome cards remain mounted ahead of six featured Inspiration scenes');
+  assert.equal(await page.locator('.lab-welcome-preset').count(),15,
+    'The original eight welcome cards remain mounted ahead of seven featured Inspiration scenes, including Raver');
+  assert.equal(await page.locator('#lab-welcome-presets > [data-inspiration-concept="raver"]').count(),1,
+    'The released Raver scene remains in the signed-in Inspiration catalog');
   // Navigate the real gallery before submitting a job, so queue callbacks
   // cannot close the Inspiration view during the click regression.
   const welcomeNext=page.locator('.lab-welcome-carousel .inspiration-nav-next');
@@ -510,16 +517,21 @@ try{
   await welcomeNext.waitFor({state:'visible'});
   assert.equal(await welcomePrev.isVisible(),true,'Both gallery arrows remain in place');
   assert.equal(await welcomePrev.isDisabled(),true,'At the first look, previous is dimmed');
-  await welcomeNext.click();
-  // A second native smooth-scroll click must start after the first card lands.
-  // Waiting only for 30px of motion can merge both clicks into one snap.
-  await page.waitForFunction(()=>{
-    const track=document.getElementById('lab-welcome-presets');
-    const first=track.querySelector(':scope > button');
-    const step=first.getBoundingClientRect().width+(parseFloat(getComputedStyle(track).columnGap)||0);
-    return track.scrollLeft>=Math.min(step,track.scrollWidth-track.clientWidth)-4;
-  });
-  await welcomeNext.click();
+  // Each real navigation click advances one card, not a whole page. Traverse
+  // the fifteen-card catalog and let each native smooth scroll settle.
+  async function browseWelcome(button,direction){
+    for(let advance=0;advance<15;advance++){
+      const frame=await page.locator('#lab-welcome-presets').evaluate(track=>({
+        left:track.scrollLeft,limit:track.scrollWidth-track.clientWidth,
+        step:track.firstElementChild.getBoundingClientRect().width+(parseFloat(getComputedStyle(track).columnGap)||0)
+      }));
+      if(direction>0?frame.left>=frame.limit-4:frame.left<4)break;
+      await button.click();
+      await page.waitForFunction(target=>Math.abs(document.getElementById('lab-welcome-presets').scrollLeft-target)<2,
+        Math.max(0,Math.min(frame.left+direction*frame.step,frame.limit)));
+    }
+  }
+  await browseWelcome(welcomeNext,1);
   await page.waitForFunction(()=>{
     const track=document.getElementById('lab-welcome-presets');
     return track.scrollWidth-track.clientWidth>30&&
@@ -534,14 +546,7 @@ try{
       within:target===prev||prev.contains(target)};
   });
   assert.ok(welcomeHit.within,'Carousel back arrow must receive pointer events: '+JSON.stringify(welcomeHit));
-  await welcomePrev.click();
-  await page.waitForFunction(()=>{
-    const track=document.getElementById('lab-welcome-presets');
-    const first=track.querySelector(':scope > button');
-    const step=first.getBoundingClientRect().width+(parseFloat(getComputedStyle(track).columnGap)||0);
-    return track.scrollLeft<=Math.max(0,track.scrollWidth-track.clientWidth-step)+4;
-  });
-  await welcomePrev.click();
+  await browseWelcome(welcomePrev,-1);
   await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft<4);
   await page.keyboard.press('ArrowRight');
   await page.waitForFunction(()=>{
@@ -638,6 +643,13 @@ try{
     'Generate must remain visible when typing long prompts: '+JSON.stringify(expanded));
   const enteredText=await field.inputValue();
   await page.locator('[data-welcome-mood="hong-kong-nights"]').click();
+  assert.ok(INSPIRATION_VARIATIONS['hong-kong-nights'].includes(await field.inputValue()),
+    'An explicit Inspiration card click replaces the previous direction with its approved preset');
+  assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
+    'An Inspiration card without uploaded photos restores the current customer 2K default');
+  // Restore the long manual direction to verify its layout separately from
+  // the explicit preset replacement contract above.
+  await field.fill(enteredText);
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Choosing a Mood keeps the opened deck permanently expanded after blur');
   const bottomAfterMood=await deck.boundingBox();
@@ -653,14 +665,13 @@ try{
     'Desktop Inspiration stays stationary while writing and choosing a Mood: '+key+' '+JSON.stringify({stationaryCards,cardClearance}));
   assert.ok(cardClearance.titleTop>=cardClearance.headerBottom+14,
     'The stationary desktop heading stays below navigation: '+JSON.stringify(cardClearance));
-  assert.equal((await field.inputValue()).trimEnd(),enteredText.trimEnd(),'Selecting a Mood preserves the user text');
-  assert.equal(await page.locator('#image-composer-resolution').inputValue(),'1k',
-    'Applying a Mood to existing customer text does not override image resolution');
-  assert.equal(await button.isEnabled(),true,'Green Haze must enable Generate in the same click');
+  assert.equal((await field.inputValue()).trimEnd(),enteredText.trimEnd(),'Subsequent manual edits remain unchanged');
+  assert.equal(await button.isEnabled(),true,'Hong Kong Nights must enable Generate after editing');
   await page.locator('[data-welcome-mood="dream-blur"]').click();
-  assert.equal((await field.inputValue()).trimEnd(),enteredText.trimEnd(),'Changing Moods preserves the user text');
-  assert.equal(await page.locator('#image-composer-resolution').inputValue(),'1k',
-    'Switching Moods preserves a compatible current resolution');
+  assert.ok(INSPIRATION_VARIATIONS['dream-blur'].includes(await field.inputValue()),
+    'Explicitly choosing another Inspiration card replaces the prior direction');
+  assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
+    'Switching Inspiration cards keeps the current customer 2K default');
   assert.doesNotMatch(await button.getAttribute('data-credits')||'',/Confirming credits/i,
     'The preflight must not put Confirming credits inside Generate');
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
@@ -669,6 +680,7 @@ try{
   // provider prompt. Keep this deck expanded with a valid-length direction,
   // rather than submitting the intentionally overlong layout stress input.
   await field.fill(('Realistic editorial atmosphere and tactile photographic details. ').repeat(8));
+  await page.locator('#image-composer-resolution').selectOption('1k');
   await page.waitForFunction(()=>document.getElementById('image-composer')?.classList.contains('pv-deck-expanded'));
   // The previous Mood's asynchronous bound price may still be settling.
   // Wait for the new Mood's preflight before submitting the single paid job.
@@ -728,8 +740,8 @@ try{
     'Populated History retains its existing selection flow, never the welcome-only grid');
   await page.locator('#history-cancel-select').click();
   assert.equal(await page.locator('#history-selection').isVisible(),false);
-  // The same six Mood cards reappear through Inspiration after a real History
-  // result. Their background must be identical to the original welcome.
+  // Reopened desktop Inspiration now shares the approved Chrome backdrop;
+  // the approved chrome photograph belongs to the first-image/public entry.
   await page.evaluate(()=>window.__welcomeMockInspiration(true));
   assert.equal(await page.locator('#lab-welcome-start').isVisible(),true);
   const inspirationSurface=await page.locator('.image-gallery-shell').evaluate(shell=>{
@@ -743,7 +755,7 @@ try{
   assert.equal(inspirationSurface.filter,'none','Inspiration must not restore the saturated/blurred wallpaper');
   assert.equal(inspirationSurface.opacity,'1');
   assert.equal(inspirationSurface.gradient,welcomeSurface.gradient,
-    'Inspiration and welcome must use the same legibility overlay');
+    'Inspiration and welcome retain the same approved desktop overlay');
   const inspirationArrows=page.locator('.lab-welcome-carousel .inspiration-nav');
   await page.locator('.lab-welcome-carousel .inspiration-nav-next').waitFor({state:'visible'});
   const inspirationViewport=await page.evaluate(()=>{
@@ -818,11 +830,13 @@ try{
   const mobileInspire=await page.locator('#history-moods-toggle').evaluate(button=>({
     width:button.getBoundingClientRect().width,
     visible:button.getBoundingClientRect().height>0,
-    label:getComputedStyle(button.querySelector('.mood-view-label'),'::after').content
+    label:button.querySelector('.mood-view-label').textContent.trim(),
+    labelFontSize:parseFloat(getComputedStyle(button.querySelector('.mood-view-label')).fontSize)
   }));
-  assert.ok(mobileInspire.visible&&mobileInspire.width>=72,
+  assert.ok(mobileInspire.visible&&mobileInspire.width>=106,
     'Mobile History keeps an identifiable Inspiration button: '+JSON.stringify(mobileInspire));
-  assert.equal(mobileInspire.label,'"Inspire"','The mobile sparkle carries its visible Inspire label');
+  assert.equal(mobileInspire.label,'Inspiration','The mobile button carries the current full Inspiration label');
+  assert.ok(mobileInspire.labelFontSize>=12,'The full label remains legible');
   await page.locator('#history-moods-toggle').click();
   assert.equal(await page.locator('#lab-welcome-start').isVisible(),true);
   const mobileDiscovery=await page.evaluate(()=>{
@@ -874,10 +888,10 @@ try{
     'Mobile Inspiration must not reserve the old viewport + 200px height: '+JSON.stringify(mobileSurface));
   assert.ok(mobileSurface.shellHeight<=mobileSurface.contentHeight+8,
     'Gallery height must follow actual visible content, without a black trailing void: '+JSON.stringify(mobileSurface));
-  assert.match(mobileSurface.backgroundImage,/image-hero-chrome-editorial-20261031\.jpg/,
-    'Keep the approved chrome editorial photograph');
-  assert.match(mobileSurface.backgroundSize,/cover/,
-    'On narrow phones crop the approved chrome portrait naturally rather than stretching it');
+  assert.match(mobileSurface.backgroundImage,/pvlab-subtle-cinematic-background-20261017\.webp/,
+    'Reopened private Inspiration keeps its existing cinematic plate');
+  assert.equal(mobileSurface.backgroundSize,'auto, auto, 100% 100%',
+    'Private mobile Inspiration retains both optical gradients and the full abstract color field');
   assert.ok(Math.abs(mobileSurface.backdropHeight-mobileSurface.shellHeight)<4,
     'Mobile backdrop must cover the whole actual gallery: '+JSON.stringify(mobileSurface));
   assert.equal(mobileSurface.footer,'none',
@@ -900,6 +914,11 @@ try{
     'The mobile background must not create horizontal scrolling');
   // The approved mobile deck has one tools row, a stable header and a real
   // secondary-options expander. No paid requests are made in this check.
+  // Earlier geometry deliberately kept a long direction. Clear it before
+  // asserting the resting deck; an expanded writing surface permits scrolling.
+  await field.fill('');
+  await page.locator('#lab-welcome-title').click();
+  await page.waitForFunction(()=>!document.getElementById('image-composer').classList.contains('pv-deck-expanded'));
   await page.waitForFunction(()=>document.getElementById('studio-header')?.classList.contains('pv-mobile-entry-condensed'));
   const compact=await page.evaluate(()=>{
     document.activeElement?.blur?.();

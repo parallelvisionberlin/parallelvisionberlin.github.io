@@ -11,7 +11,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{clerk=await loadLabAccount();");const bootEnd=source.indexOf("\n// Soul composer:",boot);assert.ok(boot>0&&bootEnd>boot);
-const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();await restoreStudioEntry();update();window.__labTest={lock,settled:()=>!busy&&!imageSubmissionPending&&!fastImageHandoff.active(),setBusy:value=>{busy=!!value;update();},setCustomerMode:value=>{customerMode=!!value;update();}};`;
+const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,seedream55Enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();await restoreStudioEntry();update();window.__labTest={lock,settled:()=>!busy&&!imageSubmissionPending&&!fastImageHandoff.active(),setBusy:value=>{busy=!!value;update();},setCustomerMode:value=>{customerMode=!!value;update();}};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4179,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -665,10 +665,9 @@ try{
  const failedFal={id:id(901),status:'failed',sourceId:id(902),settings:{type:'video',provider:'fal',engine:'h3maxfal',mode:'reference',model:'minimax/h3-max/reference-to-video',prompt:'test',duration:10,resolution:'1080p',aspectRatio:'16:9'},createdAt:Date.now(),estimatedUsd:1.721,error:'fal.ai: Provider rejected the request.',providerTaskId:'fal_failed'};
  const uncertainFal={id:id(903),status:'uncertain',sourceId:id(904),settings:{type:'video',provider:'fal',engine:'h3maxfal',mode:'reference',model:'minimax/h3-max/reference-to-video',prompt:'test',duration:10,resolution:'1080p',aspectRatio:'16:9'},createdAt:Date.now()-1,estimatedUsd:1.721,error:'fal.ai submission status is uncertain.',providerTaskId:'fal_uncertain'};
  x=await workspace({initial:[failedFal,uncertainFal]});await x.page.click('#tool-video');
- const cards=x.page.locator('.card');
- const failedCard=cards.filter({hasText:'FAILED /'});assert.equal(await failedCard.locator('.history-no-result strong').innerText(),'Generation failed');assert.doesNotMatch(await failedCard.innerText(),/Result pending/);assert.match(await failedCard.textContent(),/Lab estimate released: \$1\.721/);
- const uncertainCard=cards.filter({hasText:'UNCERTAIN /'});assert.equal(await uncertainCard.locator('.history-no-result strong').innerText(),'Status unknown');assert.doesNotMatch(await uncertainCard.innerText(),/Result pending/);assert.match(await uncertainCard.textContent(),/provider status unknown/);
- await failedCard.click();await x.page.locator('#video-detail-extra summary').click();assert.equal(await x.page.locator('#video-detail-extra-list').getByRole('button',{name:'Recover FAL output'}).count(),1);
+ const failedCard=x.page.locator('.card[data-job="'+failedFal.id+'"]');assert.equal(await failedCard.locator('.history-no-result strong').innerText(),'Generation failed');assert.doesNotMatch(await failedCard.innerText(),/Result pending/);assert.match(await failedCard.textContent(),/Lab estimate released: \$1\.721/);
+ const uncertainCard=x.page.locator('.card[data-job="'+uncertainFal.id+'"]');assert.equal(await uncertainCard.locator('.history-no-result strong').innerText(),'Status unknown');assert.doesNotMatch(await uncertainCard.innerText(),/Result pending/);assert.match(await uncertainCard.textContent(),/provider status unknown/);
+ await failedCard.click();await x.page.locator('#pv-video-scene-actions>summary').click();await x.page.locator('#video-detail-extra summary').click();assert.equal(await x.page.locator('#video-detail-extra-list').getByRole('button',{name:'Recover FAL output'}).count(),1);
  ok('History distinguishes definite FAL failure from uncertain provider status and offers FAL recovery');await x.context.close();
 
 
@@ -729,19 +728,20 @@ try{
  x=await workspace({initial:moderatedVideos});await x.page.click('#tool-video');
  for(const record of moderatedVideos){
   const card=x.page.locator('#history .card[data-job="'+record.id+'"]');
-  assert.equal(await card.locator('.history-no-result.is-content-restricted strong').innerText(),'Not with this model.');
-  assert.equal(await card.locator('.content-restriction-edit').count(),1);
+  assert.equal(await card.locator('.history-no-result.pv-video-history-state strong').innerText(),'Generation failed');
+  assert.equal(await card.locator('.pv-video-history-details').count(),1,'Current Video failures retain the explicit details action');
+  assert.equal(await card.locator('.pv-video-history-credit').count(),0,'A refusal alone never establishes a returned-credit notice');
   assert.equal(await card.locator('.cardactions button').filter({hasText:'Download video'}).isDisabled(),true);
  }
  const seedanceCard=x.page.locator('#history .card[data-job="'+moderatedVideos[0].id+'"]');
  assert.match(await seedanceCard.innerText(),/Seedance/i,'Guidance must name the video model, not an image model');
  await seedanceCard.click();
  assert.equal(await x.page.locator('#video-detail-status').innerText(),'Restricted');
- await seedanceCard.locator('.content-restriction-edit').click();await ready(x.page);
+ await x.page.locator('#video-detail-reuse').click();await ready(x.page);
  assert.equal(await x.page.locator('#prompt').inputValue(),'Slow camera push toward the room.');
  assert.equal(x.accepted(),0,'Video prompt reuse must not submit a paid request');
  assert.deepEqual(x.errors,[]);
- ok('Seedance and FAL video refusals use the same card and restore the original prompt without generation');await x.context.close();
+ ok('Seedance and FAL video refusals retain the current details card and restore the original prompt without generation');await x.context.close();
 
  const inactive=n=>({id:id(1000+n),status:'failed',sourceId:id(1100+n),settings:{type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',soulProQuality:'medium',resolution:'source',prompt:''},createdAt:Date.now()-n,estimatedUsd:.06,error:'test failure',providerTaskId:'fal-'+n});
  x=await workspace({initial:[inactive(1),inactive(2),inactive(3),active(1040)]});await x.page.click('#tool-image');

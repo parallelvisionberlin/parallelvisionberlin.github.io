@@ -23,7 +23,7 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('.lab-pricing-welcome').count(),0,'Free credits offer is removed from pricing');
   assert.equal(await page.locator('.start-link').getAttribute('href'),'./studio.html?tool=image&welcome=1');
   assert.deepEqual(await page.locator('.studio-tool-link').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['./studio.html?tool=image','./studio.html?tool=video','./studio.html?tool=upscale']);
-  assert.deepEqual(await page.locator('.landing-header nav > a:not([hidden]),.landing-header nav > .pv-studios-menu > .pv-studios-trigger').allTextContents(),['Image','Video','Upscaler','Studios','Explore Moods','Pricing']);
+  assert.deepEqual(await page.locator('.landing-header nav > a:not([hidden]),.landing-header nav > .pv-studios-menu > .pv-studios-trigger').allTextContents(),['Image','Video','Upscaler','Studios','Moods','Pricing']);
   assert.equal(await page.locator('.pv-studios-panel').isVisible(),false,'Studios is closed initially');
   if(await page.evaluate(()=>matchMedia('(hover: hover) and (pointer: fine)').matches)){
     await page.locator('.pv-studios-trigger').hover();
@@ -52,7 +52,7 @@ const server=http.createServer((req,res)=>{
     assert.equal(studiosMotion.cardAnimation,'none','All four Studio cards appear together without independent movement');
     assert.deepEqual(studiosMotion.cardDelays,['0s','0s','0s','0s'],'No delayed image or card entrance');
   }
-  assert.match(await page.getByRole('link',{name:'Beauty Studio',exact:true}).getAttribute('href'),/beauty\.html$/);
+  assert.match(await page.getByRole('link',{name:'Alter',exact:true}).getAttribute('href'),/beauty\.html$/);
   assert.equal(await page.getByRole('link',{name:'Fashion Studio',exact:true}).getAttribute('href'),'./studio.html?tool=fashion');
   assert.match(await page.getByRole('link',{name:'Retouch Studio',exact:true}).getAttribute('href'),/studio\.html\?tool=retouch$/);
   assert.deepEqual(await page.locator('.pv-studios-photo img').evaluateAll(images=>images.map(img=>img.loading)),['eager','eager','eager','eager'],'All Studio photographs are requested before the menu opens');
@@ -65,18 +65,18 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('.pv-studios-beauty-artwork').count(),1,'Beauty reuses PV LAB veil portrait');
   assert.match(await page.locator('.pv-studios-beauty-artwork').getAttribute('src'),/beauty-veil-editorial\.webp$/);
   assert.equal(await page.locator('.pv-studios-fashion-artwork').count(),1,'Fashion presents high resolution silver sculptural couture');
-  assert.match(await page.locator('.pv-studios-fashion-artwork').getAttribute('src'),/silver-image\.webp$/);
+  assert.match(await page.locator('.pv-studios-fashion-artwork').getAttribute('src'),/7cb87d27-a1f0-41a8-8e27-42f6432362e7\.png$/);
   assert.equal(await page.locator('.pv-studios-editorial-artwork').count(),1,'Full Editorial preserves approved campaign image');
-  assert.match(await page.locator('.pv-studios-editorial-artwork').getAttribute('src'),/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a\.png/);
+  assert.match(await page.locator('.pv-studios-editorial-artwork').getAttribute('src'),/0e71ba24-0b09-4eaf-b9d7-dec03b803e7a\.png/);
   assert.equal(await page.locator('.pv-studios-retouch-artwork').count(),1,'Retouch presents high resolution editorial portrait');
-  assert.match(await page.locator('.pv-studios-retouch-artwork').getAttribute('src'),/full-editorial-hero-clean-20261028\.jpg$/);
-  assert.equal(await page.locator('.pv-studios-tile').first().evaluate(el=>parseFloat(getComputedStyle(el).borderRadius)),1,'Selected sharp one-pixel editorial card corners');
+  assert.match(await page.locator('.pv-studios-retouch-artwork').getAttribute('src'),/1904c918-0012-4c9c-9784-f2f14adc2b5a\.png$/);
+  assert.equal(await page.locator('.pv-studios-tile').first().evaluate(el=>parseFloat(getComputedStyle(el).borderRadius)),0,'Approved Studios cards retain square editorial corners');
   assert.match(await page.locator('.pv-studios-meta strong').first().evaluate(el=>getComputedStyle(el).fontFamily),/Bodoni MT|Didot|Times New Roman/);
   assert.equal(await page.locator('.pv-studios-fashion-artwork').evaluate(async img=>{await img.decode();return img.naturalHeight>=1000}),true,'Fashion hero uses an actual HD source instead of 247px legacy sprite');
-  assert.equal(await page.locator('.pv-studios-heading').innerText(),'CREATIVE STUDIOS');
+  assert.equal(await page.locator('.pv-studios-kicker').innerText(),'STUDIOS');
   assert.equal(await page.locator('.pv-studios-editorial-go').count(),0,'No old circular navigation controls');
-  assert.equal(await page.locator('.pv-studios-arrow').count(),4,'Restrained directional marks within the editorial cards');
-  assert.deepEqual(await page.locator('.pv-studios-meta strong, .pv-studios-editorial-copy strong').allTextContents(),['BeautyStudio','FashionStudio','FullEditorial','RetouchStudio']);
+  assert.equal(await page.locator('.pv-studios-arrow').count(),0,'Approved Studios actions contain no decorative arrows');
+  assert.deepEqual(await page.locator('.pv-studios-meta strong, .pv-studios-editorial-copy strong').allTextContents(),['ALTER','FashionStudio','FullEditorial','RetouchStudio']);
   const photoBounds=await page.locator('.pv-studios-photo').first().boundingBox();
   assert.ok(photoBounds&&photoBounds.height>=(width<=370?190:width<=760?205:width<=1060?260:275),'Portrait-led cards retain sufficient visual height at '+width);
   const gridColumns=await page.locator('.pv-studios-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length);

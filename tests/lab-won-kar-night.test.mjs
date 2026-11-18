@@ -10,7 +10,7 @@ const fail=(status,message)=>{throw Object.assign(new Error(message),{status});}
 const settings={type:'image',moodId:'won-kar-night',moodIntensity:75,moodOriginalPrompt:'Keep this person and outfit.',resolution:'1080p'};
 
 test('Won Kar Night is outside the unchanged public catalogue and reuses the existing road-couple cover',()=>{
- assert.equal(MOODS.length,17);assert.equal(MOODS.some(m=>m.id==='won-kar-night'),false);
+ assert.equal(MOODS.length,18);assert.equal(MOODS.some(m=>m.id==='won-kar-night'),false);
  assert.equal(OWNER_MOODS.length,1);assert.equal(moodById('won-kar-night').name,'Won Kar Night');
  assert.equal(OWNER_MOODS[0].ownerOnly,true);
  assert.deepEqual(readFileSync(new URL('../lab/mood-previews/won-kar-night.png',import.meta.url)),readFileSync(new URL('../wonkarwai1.png',import.meta.url)));

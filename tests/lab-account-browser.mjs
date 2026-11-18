@@ -23,6 +23,19 @@ const clerkMock=`export class Clerk {
 }`;
 async function setup(width,customer=true,overrides={}){
   const context=await browser.newContext({viewport:{width,height:950},reducedMotion:'reduce'}),page=await context.newPage();
+  await context.addInitScript(()=>{
+    const NativeObserver=window.MutationObserver;
+    window.MutationObserver=class extends NativeObserver{
+      constructor(callback){
+        let deliveries=0;
+        super((records,observer)=>{
+          if(!deliveries)setTimeout(()=>{deliveries=0;},0);
+          if(++deliveries>300)throw new Error('Mutation delivery never settled: '+records.map(r=>(r.target.id||r.target.nodeName)+'.'+r.attributeName).join(',')+' callback '+String(callback).slice(0,180));
+          callback(records,observer);
+        });
+      }
+    };
+  });
   const errors=[],writes=[];let fundingErrors=0;let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null,checkoutUrl='javascript:alert(1)',checkoutObserved=null,observeCheckout=null,initialized=!overrides.newCustomer;
   let deferredResizeNotices=0;
   page.on('pageerror',e=>{
@@ -34,7 +47,7 @@ async function setup(width,customer=true,overrides={}){
     }
     errors.push(e.message);
   });
-  const session={customer,ownerId:'user_Test',balanceCredits:1234,billingReady:true,generationReady:true,products,subscription:{plan_id:null,status:'none'},config:{enabled:true,configured:true,concurrency:{image:4,video:1},videoEngines:['wan']},...overrides};
+  const session={customer,ownerId:'user_Test',balanceCredits:1234,billingReady:true,generationReady:true,products,subscription:{plan_id:null,status:'none'},config:{enabled:true,seedream55Enabled:true,configured:true,concurrency:{image:4,video:1},videoEngines:['wan']},...overrides};
   await page.route('https://**/*',async route=>{
     const request=route.request(),url=new URL(request.url());
     if(url.hostname==='esm.sh'&&url.pathname.includes('clerk-js'))return route.fulfill({contentType:'text/javascript',body:clerkMock});

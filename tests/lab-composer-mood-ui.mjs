@@ -11,7 +11,7 @@ import {compileImagePrompt} from '../lab/reference-guidance.js';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{clerk=await loadLabAccount();");const bootEnd=source.indexOf("\n// Soul composer:",boot);assert.ok(boot>0&&bootEnd>boot);
-const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();await restoreStudioEntry();update();window.__labTest={lock,setBusy:value=>{busy=!!value;update();},setCustomerMode:value=>{customerMode=!!value;update();}};`;
+const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,seedream55Enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();await restoreStudioEntry();update();window.__labTest={lock,setBusy:value=>{busy=!!value;update();},setCustomerMode:value=>{customerMode=!!value;update();}};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4179,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -255,26 +255,31 @@ try{
   const x=await workspace({width:1240,height:900});
   await x.page.locator('#reference-images').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});
   await waitRefs(x.page,1);
+  await x.page.mouse.move(0,0);
+  assert.equal(await x.page.locator('#image-composer-moods').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(50, 52, 55)',
+    'The closed idle Mood control uses the shared graphite fill');
   // Check idle hover before opening: the Mood panel's backdrop intentionally blocks its deck.
   await x.page.hover('#image-composer-moods');
-  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(45, 48, 44)');
+  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(62, 64, 67)');
   const idleHover=await x.page.locator('#image-composer-moods').evaluate(el=>({background:getComputedStyle(el).backgroundColor,gradient:getComputedStyle(el).backgroundImage}));
-  assert.equal(idleHover.background,'rgb(45, 48, 44)','Idle hover remains dark');
+  assert.equal(idleHover.background,'rgb(62, 64, 67)','Idle hover uses the shared graphite toolbar palette');
   assert.equal(idleHover.gradient,'none','Hover never activates an unselected Mood');
   await x.page.mouse.move(0,0);
   await x.page.click('#image-composer-moods');
   await x.page.mouse.move(0,0);
-  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(35, 37, 35)');
+  await x.page.waitForFunction(()=>document.querySelector('#image-composer-moods').getAttribute('aria-expanded')==='true'&&
+    getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(62, 64, 67)');
   const moodAppearance=await x.page.evaluate(()=>{
-    const mood=document.querySelector('#image-composer-moods'),retouch=document.querySelector('#image-composer-edit-area');
-    const value=getComputedStyle(mood),neighbor=getComputedStyle(retouch);
-    return {background:value.backgroundColor,gradient:value.backgroundImage,color:value.color,height:mood.getBoundingClientRect().height,retouchBackground:neighbor.backgroundColor};
+    const mood=document.querySelector('#image-composer-moods'),model=document.querySelector('#image-composer-model');
+    const value=getComputedStyle(mood),neighbor=getComputedStyle(model);
+    return {background:value.backgroundColor,gradient:value.backgroundImage,color:value.color,height:mood.getBoundingClientRect().height,neighborHeight:model.getBoundingClientRect().height,neighborBackground:neighbor.backgroundColor};
   });
-  assert.equal(moodAppearance.background,moodAppearance.retouchBackground,'Idle Moods must match the neighboring dark control');
-  assert.equal(moodAppearance.background,'rgb(35, 37, 35)');
+  assert.equal(moodAppearance.neighborBackground,'rgb(50, 52, 55)','Closed neighboring model control retains the shared idle fill');
+  assert.equal(moodAppearance.background,'rgb(62, 64, 67)','An expanded Mood picker retains the shared active fill');
   assert.equal(moodAppearance.gradient,'none','Opening the Mood picker must not look selected');
-  assert.equal(moodAppearance.color,'rgb(214, 255, 0)','Idle icon and letters use electric citron');
-  assert.ok(moodAppearance.height>=39&&moodAppearance.height<=43,'Moods must stay aligned with neighboring controls: '+JSON.stringify(moodAppearance));
+  assert.equal(moodAppearance.color,'rgb(220, 255, 0)','Idle icon and letters use electric citron');
+  assert.equal(moodAppearance.height,34,'Moods retains the approved 34px desktop toolbar height');
+  assert.equal(moodAppearance.height,moodAppearance.neighborHeight,'Moods stays aligned with the model control');
   const beforeMood=await x.page.evaluate(()=>{
     const modal=document.querySelector('#composer-moods');
     const card=document.querySelector('.moods-card-media');
@@ -297,21 +302,24 @@ try{
   const selectedLook=await x.page.evaluate(()=>{
     const mood=getComputedStyle(document.querySelector('#image-composer-moods'));
     const clear=getComputedStyle(document.querySelector('#image-composer-moods-clear'));
-    return {gradient:mood.backgroundImage,color:mood.color,removeColor:clear.color};
+    const button=document.querySelector('#image-composer-moods');
+    return {gradient:mood.backgroundImage,color:mood.color,removeColor:clear.color,selected:button.classList.contains('is-mood-selected'),label:button.textContent};
   });
-  assert.match(selectedLook.gradient,/linear-gradient/,'Selected Moods must retain citron visual prominence');
-  assert.equal(selectedLook.color,'rgb(24, 34, 14)');
-  assert.equal(selectedLook.removeColor,'rgb(27, 42, 9)','Clear X needs dark contrast on citron');
+  assert.equal(selectedLook.gradient,'none','The selected Mood retains the shared graphite surface');
+  assert.equal(selectedLook.color,'rgb(220, 255, 0)');
+  assert.equal(selectedLook.removeColor,'rgb(220, 255, 0)','Clear X retains citron contrast on graphite');
+  assert.equal(selectedLook.selected,true,'Selection is reflected by the real control state');
+  assert.match(selectedLook.label,/Hong Kong Nights/,'The selected Mood name replaces the generic label');
   assert.equal(await x.page.locator('#composer-moods-selection').isVisible(),true);
   assert.equal(await x.page.locator('#composer-moods-summary').innerText(),'Hong Kong Nights');
   assert.equal(await hongKong.getAttribute('aria-pressed'),'true');
   await hongKong.click();
   assert.equal(await hongKong.getAttribute('aria-pressed'),'false','Clicking the selected mood again deselects it.');
-  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#image-composer-moods')).backgroundColor==='rgb(35, 37, 35)'&&getComputedStyle(document.querySelector('#image-composer-moods')).backgroundImage==='none');
+  await x.page.waitForFunction(()=>!document.querySelector('#image-composer-moods').classList.contains('is-mood-selected'));
   const deselectedLook=await x.page.locator('#image-composer-moods').evaluate(el=>({background:getComputedStyle(el).backgroundColor,gradient:getComputedStyle(el).backgroundImage,color:getComputedStyle(el).color}));
-  assert.equal(deselectedLook.background,'rgb(35, 37, 35)','Deselecting returns to the dark Mood control');
+  assert.equal(deselectedLook.background,'rgb(62, 64, 67)','Deselecting retains the active fill while the picker is still expanded');
   assert.equal(deselectedLook.gradient,'none');
-  assert.equal(deselectedLook.color,'rgb(214, 255, 0)');
+  assert.equal(deselectedLook.color,'rgb(220, 255, 0)');
   assert.equal(await x.page.locator('#composer-moods-selection').isHidden(),true);
   assert.equal(await x.page.locator('#composer-moods-summary').textContent(),'');
   assert.equal(await x.page.locator('#composer-moods-done').isDisabled(),true);

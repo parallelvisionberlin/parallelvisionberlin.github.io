@@ -21,6 +21,7 @@ jobs:
             tests
             .github/scripts
             js
+            wonkarwai1.png
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
@@ -55,6 +56,7 @@ jobs:
         run: |
           node tests/lab-studio-layout-ui.mjs
           node tests/lab-seedance-ui.mjs
+          node tests/lab-motion-effects-browser.mjs
           node tests/lab-soul-reinterpret-ui.mjs
           node tests/lab-image-oneclick-ui.mjs
           node tests/lab-upscale-ui.mjs

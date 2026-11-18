@@ -32,7 +32,7 @@ test('At 90-91 and 99-100, the instructions change only in the displayed intensi
 
 test('Current Hong Kong pack has only two real photographic style inputs, never the artwork',()=>{
  assert.deepEqual(HONG_KONG_REFERENCE_MANIFEST.map(x=>x.file),['02-city-haze.jpg','03-shop-reflections.jpg']);
- assert.equal(moods.moodById('hong-kong-nights').preview,'/lab/mood-references/hong-kong-nights/supervalu.jpg');
+ assert.equal(moods.moodById('hong-kong-nights').preview,'https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/e06ac253-47c4-47b4-80e0-b90df2949f45.png');
 });
 
 test('Hong Kong Film Finish remains separate and the browser does not duplicate Worker refs',async()=>{

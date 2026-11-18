@@ -274,6 +274,16 @@ try{
     assert.ok(geometry.top<320,'Real casting appears near the top: '+JSON.stringify(geometry));
     assert.ok(Math.abs(geometry.footerBottom-844)<2,'Continue stays at viewport bottom');
     assert.ok(geometry.continue>=44);assert.equal(geometry.arrow,'none');assert.equal(geometry.overflow,false);
+    const castingFrame=await page.locator('#casting-reference-gallery').boundingBox();
+    await page.locator('#saved-character').click();
+    await page.locator('#saved-character-gallery .editorial-saved-cast').first().waitFor();
+    const savedFrame=await page.locator('#casting-reference-gallery').boundingBox();
+    for(const key of ['x','y','width','height'])assert.ok(Math.abs(savedFrame[key]-castingFrame[key])<2,
+      'Phone source switching retains gallery '+key+' at '+phoneWidth+'px: '+JSON.stringify({castingFrame,savedFrame}));
+    assert.equal(await page.locator('#model-drop').isVisible(),true,'Pinned upload remains available in saved characters');
+    assert.equal(await page.locator('#editorial-mobile-search').isVisible(),true,'Saved-character search remains available');
+    await page.locator('[data-source-view="casting"]').click();
+
    }
    await page.setViewportSize({width:390,height:900});
    assert.equal(await page.locator('.editorial-account .credits-link').isVisible(),false);
@@ -503,6 +513,7 @@ try{
    assert.ok(compositionImages.every(src=>src===remainingCover),'Removed model is not retained in disabled Composition photos');
    // Swapping source tabs keeps the approved Identity frame, pinned card and
    // Composition shelf in precisely the same positions.
+  await page.evaluate(async()=>{await document.fonts.ready;await Promise.allSettled(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished));await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
   const beforeSaved=await page.evaluate(()=>{
    const box=id=>{const r=document.querySelector(id).getBoundingClientRect();return {top:r.top,left:r.left,width:r.width,height:r.height}};
    return {gallery:box('#casting-reference-gallery'),pinned:box('.editorial-cast-pinned'),footer:box('#step-footer'),composition:box('#editorial-casting-controls')};
@@ -518,6 +529,7 @@ try{
    assert.equal(await page.locator('#panel-model .editorial-casting-top h3').isVisible(),false,'No second Choose your cast heading');
    assert.equal(await page.locator('#editorial-cast-search').isVisible(),true,'Saved character search remains available');
   }
+  await page.evaluate(async()=>{await Promise.allSettled(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished));});
   const afterSaved=await page.evaluate(()=>{
    const box=id=>{const r=document.querySelector(id).getBoundingClientRect();return {top:r.top,left:r.left,width:r.width,height:r.height}};
    return {gallery:box('#casting-reference-gallery'),pinned:box('.editorial-cast-pinned'),footer:box('#step-footer'),composition:box('#editorial-casting-controls')};

@@ -26,7 +26,7 @@ const server=http.createServer((req,res)=>{
     const bodyTag=source.match(/<body\b[^>]*>/)[0];
     if(pathname==='/moods-header')assert.match(bodyTag,/mc-explore-page/,'Explore fixture retains its approved page-scoped styles');
     const masthead=source.match(/<header class="landing-header[\s\S]*?<\/header>/)[0];
-    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}).end('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><base href="/lab/">'+styles+'</head>'+bodyTag+masthead+'</body></html>');return;
+    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}).end('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><base href="/lab/">'+styles+'</head>'+bodyTag+masthead+'<script defer src="/lab/studios-menu.js"></script></body></html>');return;
   }
   if(pathname==='/test'){
     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}).end(html);return;
@@ -55,7 +55,7 @@ try{
     ['Image','Video','Effects','Upscaler','Retouch','Fashion'],
     'Six text tools include Effects; Assets stays a separate icon');
   const moodLinks=page.locator('#studio-header .tool-group>a.tool-link');
-  assert.deepEqual(await moodLinks.allTextContents(),['Explore Moods']);
+  assert.deepEqual(await moodLinks.allTextContents(),['Moods']);
   assert.equal(await page.locator('#tool-explore-moods').getAttribute('href'),'./moods');
   assert.equal(await page.locator('#tool-mood-creator').count(),0);
   assert.equal(await page.locator('#studio-header .studio-mood-link').count(),0,
@@ -155,12 +155,12 @@ try{
   }
   for(const route of ['landing','moods']){
     await page.goto('http://127.0.0.1:4193/'+route+'-header');
-    assert.deepEqual(await page.locator('.landing-header nav a:not([hidden])').allTextContents(),route==='landing'
-      ?['Image','Video','Upscaler','Fashion','Explore Moods','Pricing']:['Image','Video','Upscaler','Fashion','Explore Moods']);
+    assert.deepEqual(await page.locator('.landing-header nav > a:not([hidden]),.landing-header nav > .pv-studios-menu > .pv-studios-trigger').allTextContents(),route==='landing'
+      ?['Image','Video','Upscaler','Studios','Moods','Pricing']:['Image','Video','Upscaler','Studios','Moods']);
     if(route==='landing'){
       const paths=await page.locator('.landing-header nav a:not([hidden])').evaluateAll(els=>els.map(el=>new URL(el.href).pathname+new URL(el.href).search));
       assert.equal(await page.locator('.landing-header nav a[href*="tool=retouch"]').isVisible(),false,'Retouch is not a top-level destination');
-      assert.ok(paths[3].endsWith('/studio.html?tool=fashion'),'Fashion keeps its existing Studio destination');
+      assert.equal(await page.locator('.pv-studios-fashion-link').getAttribute('href'),'./studio.html?tool=fashion','Fashion remains available inside Studios');
       const pricing=page.locator('.landing-header nav a.lab-nav-pricing');
       assert.equal(await pricing.count(),1,'Pricing has its own quiet utility treatment');
       assert.equal(await pricing.getAttribute('href'),'#pricing','Pricing still scrolls to plans');

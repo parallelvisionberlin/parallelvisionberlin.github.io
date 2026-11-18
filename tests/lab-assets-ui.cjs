@@ -1,7 +1,7 @@
 const {chromium}=require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright');
 const fs=require('fs'),http=require('http'),path=require('path'),assert=require('assert/strict');
 async function chooseReferenceMode(page,value){await page.click('#composer-reference-intent-toggle');await page.click('[data-reference-intent="'+value+'"]');}
-const root=process.cwd();let source=fs.readFileSync('lab/lab.js','utf8');const a=source.indexOf("try{clerk=await loadLabAccount();"),b=source.indexOf('// Soul composer:',a);source=source.slice(0,a)+`clerk={session:{getToken:async()=> 'test'}};owner=true;ownerAccount=true;userId='test';studioAccount.update({signed:true,user:{fullName:'Test Owner'},profile:{customer:false}});config={enabled:true,higgsfieldEnabled:true,openrouterEnabled:true,falEnabled:true,videoEngines:['seedance','wan'],concurrency:{image:10,video:3}};$('app').hidden=false;$('gate').hidden=true;hf.configure(true);await loadHistory();await restoreStudioEntry();update();finishLabBoot();window.__lockTest=lock;window.__assetCacheSize=()=>assetBlobs.size;window.__referenceSettings=()=>settings();window.__setTestJobs=setActiveJobs;window.__surfaceTestJob=surfaceHistoryJob;window.__ready=true;\n`+source.slice(b);
+const root=process.cwd();let source=fs.readFileSync('lab/lab.js','utf8');const a=source.indexOf("try{clerk=await loadLabAccount();"),b=source.indexOf('// Soul composer:',a);source=source.slice(0,a)+`clerk={session:{getToken:async()=> 'test'}};owner=true;ownerAccount=true;userId='test';studioAccount.update({signed:true,user:{fullName:'Test Owner'},profile:{customer:false}});config={enabled:true,seedream55Enabled:true,higgsfieldEnabled:true,openrouterEnabled:true,falEnabled:true,videoEngines:['seedance','wan'],concurrency:{image:10,video:3}};$('app').hidden=false;$('gate').hidden=true;hf.configure(true);await loadHistory();await restoreStudioEntry();update();finishLabBoot();window.__lockTest=lock;window.__assetCacheSize=()=>assetBlobs.size;window.__referenceSettings=()=>settings();window.__setTestJobs=setActiveJobs;window.__surfaceTestJob=surfaceHistoryJob;window.__ready=true;\n`+source.slice(b);
 const server=http.createServer((req,res)=>{const url=new URL(req.url,'http://localhost'),rel=url.pathname.replace(/^\//,'')+(url.pathname.endsWith('/')?'index.html':'');const f=['.'].map(x=>path.join(root,x,rel)).find(fs.existsSync);if(!f){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png'})[path.extname(f)]||'text/plain');res.end(rel==='lab/lab.js'?source:fs.readFileSync(f));});
 (async()=>{await new Promise(r=>server.listen(8765,'127.0.0.1',r));const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox']});const page=await browser.newPage({viewport:{width:1440,height:1000}});const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=900;c.height=600;const x=c.getContext('2d');x.fillStyle='#454b50';x.fillRect(0,0,900,600);x.fillStyle='#9b9489';x.fillRect(240,80,400,450);return c.toDataURL().split(',')[1];}),'base64');const errors=[];page.on('pageerror',e=>errors.push(e.message));let releaseImages;const imagesReady=new Promise(r=>releaseImages=r);let folders=[],members={},favorites=new Set();let jobs=Array.from({length:6},(_,i)=>({id:'job-'+i,sourceId:'source-'+i,outputId:'out-'+i,status:'completed',createdAt:Date.now()-i*100,settings:{galleryDimensions:{assetId:'out-'+i,width:900,height:600},type:i<4?'image':'video',mode:i<4?'image':'start',engine:i<4?'seedream':'wan',resolution:'1k',prompt:'A quiet room',aspectRatio:'16:9',duration:5}}));
 await page.route('https://**/*',async route=>{const req=route.request(),u=new URL(req.url());if(!u.href.includes('parallel-vision-lab.parallelvision.workers.dev'))return route.abort();let result={};const d=req.method()==='POST'?req.postDataJSON():{};if(u.pathname==='/api/jobs'){let list=jobs.filter(j=>(u.searchParams.get('unfiled')!=='1'||u.searchParams.get('folder')||u.searchParams.get('favorite')||!Object.values(members).some(ids=>ids.includes(j.id)))&&(!u.searchParams.get('kind')||j.settings.type===u.searchParams.get('kind'))&&(!u.searchParams.get('mode')||j.settings.mode===u.searchParams.get('mode'))&&(!u.searchParams.get('favorite')||favorites.has(j.id))&&(!u.searchParams.get('folder')||(members[u.searchParams.get('folder')]||[]).includes(j.id)));result={jobs:list.map(j=>({...j,favorite:favorites.has(j.id)})),next:null,activeJobs:[]};}else if(u.pathname==='/api/library')result={folders:folders.map(f=>({...f,count:(members[f.id]||[]).length}))};else if(u.pathname==='/api/library/folders'){const folder={id:'folder-'+folders.length,name:d.name};folders.push(folder);result={folder};}else if(u.pathname==='/api/library/archive'){let folder=folders.find(f=>f.name==='Archive');if(!folder){folder={id:'archive',name:'Archive'};folders.push(folder);}members[folder.id]=[...new Set([...(members[folder.id]||[]),...d.ids])];}else if(u.pathname==='/api/library/members'){for(const id of d.ids){if(typeof d.favorite==='boolean'){d.favorite?favorites.add(id):favorites.delete(id);}else{const m=new Set(members[d.folderId]||[]);d.remove?m.delete(id):m.add(id);members[d.folderId]=[...m];}}}else if(u.pathname==='/api/jobs/bulk-delete'){jobs=jobs.filter(j=>!d.ids.includes(j.id));result={deleted:d.ids.length};}else if(u.pathname.startsWith('/api/assets/')){await imagesReady;return route.fulfill({contentType:/out-[45]$/.test(u.pathname)?'video/mp4':'image/png',body:/out-[45]$/.test(u.pathname)?Buffer.from('mock video bytes'):png});}return route.fulfill({contentType:'application/json',body:JSON.stringify(result)});});
@@ -58,15 +58,18 @@ await page.locator('#history .card[data-job="job-0"]').click();
 await page.waitForFunction(()=>document.querySelector('#image-lightbox-img').naturalWidth>0);
 assert.equal(reads.get('/api/assets/out-0'),1,'Reopening the viewer reuses cached original bytes');
 await page.keyboard.press('Escape');
-// No full video fetch on entry; an explicit slow view must not lock navigation.
+// History restores the latest completed video on entry without autoplay.
+// A pending original fetch must remain shared and must never lock navigation.
 let releaseVideo;
 const slowVideo=new Promise(resolve=>releaseVideo=resolve);
 await page.route('**/api/assets/out-4',async route=>{await slowVideo;await route.fulfill({contentType:'video/mp4',body:Buffer.from('mock video bytes')});});
-await page.click('#tool-video');
+const restoredVideo=page.waitForRequest('**/api/assets/out-4');
+await page.click('#tool-video');await restoredVideo;
 await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===2);
-assert.equal(reads.get('/api/assets/out-4')||0,0,'Entering Video does not download or autoplay a previous MP4');
-const explicitVideo=page.waitForRequest('**/api/assets/out-4');
-await page.locator('#history .card[data-job="job-4"]').click();await explicitVideo;
+assert.equal(reads.get('/api/assets/out-4'),1,'History restores the latest completed original once');
+assert.equal(await page.locator('#video').evaluate(el=>el.paused&&!el.autoplay),true,'Restoring a previous video never autoplays it');
+await page.locator('#history .card[data-job="job-4"]').click();
+assert.equal(reads.get('/api/assets/out-4'),1,'Explicit selection shares the pending original request');
 assert.equal(await page.locator('#tool-image').isEnabled(),true,'Slow video playback does not disable tabs');
 await page.click('#tool-image');
 const videoFinished=page.waitForResponse('**/api/assets/out-4');releaseVideo();await videoFinished;
@@ -82,7 +85,7 @@ for(const section of ['upscale','image','video','assets']){
 await page.click('#tool-image');
 await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===4&&[...document.querySelectorAll('#history img')].every(i=>i.naturalWidth>0));
 page.off('request',trackAssets);
-console.log('PASS section URLs and reloads, shared gallery bytes, no Video auto-download and nonblocking slow playback');
+console.log('PASS section URLs and reloads, shared gallery bytes, no Video autoplay, shared original request and nonblocking slow playback');
 for(const width of [1920,1440,900,899,821,768,390,320]){
   await page.setViewportSize({width,height:1000});
   const header=await page.locator('.studio-header').boundingBox();
@@ -195,7 +198,7 @@ assert.deepEqual(await page.evaluate(()=>window.__referenceSettings().referenceR
 await page.locator('.composer-reference-tile').nth(1).focus();await page.keyboard.press('Alt+ArrowLeft');
 assert.deepEqual(await page.evaluate(()=>window.__referenceSettings().referenceRoles.map(r=>r.role)),['body','identity'],'Reordering does not assign a base');
 await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'References mode fits mobile');await page.setViewportSize({width:1440,height:1000});
-await page.locator('.composer-reference-remove').first().click();await page.locator('.composer-reference-remove').first().click();await page.fill('#image-composer-prompt','');
+await page.locator('.composer-reference-tile').first().hover();await page.locator('.composer-reference-remove').first().click();await page.locator('.composer-reference-tile').first().hover();await page.locator('.composer-reference-remove').first().click();await page.fill('#image-composer-prompt','');
 console.log('PASS reference-only roles, settings, prompt, toggle, reorder and mobile layout');
 await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="soulpro"]').click();
 
@@ -206,7 +209,7 @@ await page.waitForFunction(()=>document.querySelector('#image-composer').classLi
 assert.ok((await page.locator('#image-composer').boundingBox()).height>soulEmptyDockHeight,'Soul grows only to show attached photo row');
 assert.equal((await page.locator('#image-composer-generate').boundingBox()).height,soulGenerateHeight);
 assert.equal(await page.locator('#hf-bar-source').isVisible(),false,'Loaded source appears once in the reference row');
-await page.locator('.composer-reference-remove').click();
+await page.locator('.composer-reference-tile').hover();await page.locator('.composer-reference-remove').click();
 assert.equal((await page.locator('#image-composer').boundingBox()).height,soulEmptyDockHeight,'Removing photo restores compact Soul');
 assert.equal(await page.locator('#hf-bar-ratio option:checked').textContent(),'16:9');
 await page.click('#composer-character');
@@ -230,16 +233,21 @@ await page.route('**/api/higgsfield/generate',route=>{
   soulPaidSubmissions++;
   return route.fulfill({contentType:'application/json',body:JSON.stringify({job:{id:'ab000000-0000-4000-8000-000000000002',status:'queued',createdAt:Date.now(),settings:{type:'image',provider:'higgsfield',engine:'soulpro',mode:'image',prompt:'A quiet concrete room in daylight'}}})});
 });
+// The owner explicitly submits once at the bound live quote, without a
+// second modal. Hold that quote to verify pricing alone cannot dispatch.
+let releaseSoulQuote;
+const heldSoulQuote=new Promise(resolve=>releaseSoulQuote=resolve);
+await page.route('**/api/higgsfield/quote',async route=>{await heldSoulQuote;return route.fallback();});
 const outgoingQuote=page.waitForRequest(r=>r.url().endsWith('/api/higgsfield/quote')&&r.method()==='POST');
+const outgoingGeneration=page.waitForRequest(r=>r.url().endsWith('/api/higgsfield/generate')&&r.method()==='POST');
+const completedSoulGeneration=page.waitForResponse(r=>r.url().endsWith('/api/higgsfield/generate')&&r.request().method()==='POST');
 await page.click('#image-composer-generate');
 const quotedPayload=(await outgoingQuote).postDataJSON();
 assert.equal(quotedPayload.sourceId,null);assert.equal(quotedPayload.settings.prompt,'A quiet concrete room in daylight');
-await page.locator('#quote-dialog').waitFor({state:'visible'});
 assert.equal(soulPaidSubmissions,0,'Checking the PV Soul price does not start a paid generation');
-assert.match(await page.locator('#quote-notice').innerText(),/NO SOUL ID/);
-const outgoingGeneration=page.waitForRequest(r=>r.url().endsWith('/api/higgsfield/generate')&&r.method()==='POST');
-await page.click('#confirm-generation');
+releaseSoulQuote();
 const paidPayload=(await outgoingGeneration).postDataJSON();
+await completedSoulGeneration;
 assert.equal(paidPayload.quoteId,'ab000000-0000-4000-8000-000000000001');
 assert.equal(paidPayload.confirm,true);assert.equal(soulPaidSubmissions,1);
 await page.locator('#quote-dialog').waitFor({state:'hidden'});
@@ -277,12 +285,29 @@ for(const engine of ['flash','kling']){
 }
 await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="flash"]').click();
 await page.evaluate(()=>window.__setTestJobs([{id:'interrupted-flash',status:'uncertain',settings:{type:'image',engine:'flash',provider:'spicy'}}]));
-assert.equal(await page.locator('#image-composer-generate').isEnabled(),false);
-assert.match(await page.locator('#image-composer-generate').getAttribute('title'),/previous request.*Queue/);
-await page.locator('#active>summary').click();assert.equal(await page.locator('#active').getAttribute('open'),'');
+assert.equal(await page.locator('#generate').isEnabled(),false,'Interrupted Flash still blocks the underlying paid submission');
+const queueAction=page.locator('#image-composer-generate');
+assert.equal(await queueAction.isEnabled(),true,'The visible action remains usable to inspect Queue');
+assert.equal(await queueAction.getAttribute('aria-label'),'View queue');
+assert.equal(await queueAction.getAttribute('aria-controls'),'active');
+const queueWrites=[];
+const trackQueueWrite=request=>{if(request.method()!=='GET'&&request.url().includes('parallel-vision-lab.parallelvision.workers.dev'))queueWrites.push(request.url());};
+page.on('request',trackQueueWrite);
+await page.evaluate(()=>{
+  window.__queuePaidClicks=0;
+  document.getElementById('generate').addEventListener('click',()=>window.__queuePaidClicks++);
+});
+await queueAction.click();
+assert.equal(await page.locator('#active').getAttribute('open'),'','View queue opens the actual job queue');
+// Uncertain jobs are intentionally excluded from polling. The click must
+// return before the underlying paid handler, whether or not a poll can run.
+await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+assert.equal(await page.evaluate(()=>window.__queuePaidClicks),0,'View queue never delegates to the paid Generate handler');
+assert.deepEqual(queueWrites,[],'Inspecting an interrupted request never uploads, quotes or submits another paid job');
+page.off('request',trackQueueWrite);
 await page.evaluate(()=>window.__setTestJobs([{id:'unrelated-gemini',status:'uncertain',settings:{type:'image',engine:'gemini',provider:'gemini'}}]));
 assert.equal(await page.locator('#image-composer-generate').isEnabled(),true,'Unrelated Gemini interruption never blocks Flash');
-console.log('PASS SpicyAPI Flash interruption explains blocking; unrelated interruptions do not block Flash');
+console.log('PASS interrupted Flash blocks paid submission, opens Queue without writes, and leaves unrelated providers available');
 assert.deepEqual(errors,[]);console.log('PASS Flash defaults to 2K, Kling remains 1K, PNG, text-only submission and mobile geometry');
 await page.evaluate(()=>window.__setTestJobs([]));
 await page.click('#tool-upscale');
@@ -420,7 +445,8 @@ assert.ok((await page.locator('#video-model-control').boundingBox()).y<(await pa
 await page.click('#mode-extend');
 assert.equal(await page.locator('#video-media-drop').isVisible(),true);
 assert.equal(await page.locator('#start-mode').isVisible(),false);
-assert.equal(await page.locator('#reference-drop').isVisible(),false);
+assert.equal(await page.locator('#reference-drop').isVisible(),true,'Extend preserves its optional image-reference entry, as covered by the dedicated Extend contract');
+assert.equal(await page.evaluate(()=>window.__referenceSettings().mode),'extend','Showing optional references does not silently switch Extend into a new-shot Reference request');
 assert.equal(await page.locator('#generate').isEnabled(),true,'Missing media offers the approved preparation action');
 assert.equal(await page.locator('#generate').textContent(),'Add a video');
 const [videoPicker]=await Promise.all([page.waitForEvent('filechooser'),page.click('#generate')]);
@@ -712,7 +738,7 @@ await page.route('**/api/jobs',async route=>{
   return route.fulfill({contentType:'application/json',body:JSON.stringify({job})});
 });
 await page.click('#image-composer-generate');
-await page.waitForFunction(()=>document.querySelector('.submission-title')?.textContent==='Preparing image');
+await page.waitForFunction(()=>document.querySelector('.submission-title')?.textContent==='Uploading references');
 assert.equal(await page.locator('[data-local-submission]').count(),1,'Card appears before any upload completes');
 assert.equal(submitCount,0);assert.equal(quoteCount,0);
 assert.equal(await page.locator('.submission-detail').innerText(),'','Compact pending card does not display a redundant upload counter');
