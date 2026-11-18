@@ -135,3 +135,15 @@ test('Inspiration cards do not expose native hover titles, while keeping screen-
   assert.doesNotMatch(catalog,/button\\.title\\s*=/,'Dynamic Inspiration cards have no browser-native titles');
   assert.match(catalog,/button\\.setAttribute\\('aria-label'/,'Dynamic cards keep accessible names');
 });
+
+test('Explore All publishes only visually vetted worlds, with no screenshot-based cards',()=>{
+  const catalog=read('inspiration-catalog.js');
+  const match=catalog.match(/const APPROVED_CATALOG_IDS=new Set\\(\\[([\\s\\S]*?)\\]\\)/);
+  assert.ok(match,'Published card IDs must be curated separately from draft concepts');
+  const ids=[...match[1].matchAll(/'([^']+)'/g)].map(x=>x[1]);
+  assert.equal(ids.length,20,'Curated concepts, plus eight original Inspiration entry cards');
+  for(const id of ['midnight-cinema','dressing-room','blue-hour','velvet-corridor','italian-1963','hiroshima-room','berlin-winter','private-cinema'])
+    assert.ok(!ids.includes(id),id+' uses an embedded-UI screenshot or a mismatched placeholder photograph');
+  assert.match(catalog,/const categories=categoryOrder.filter/,'Do not show empty filter categories');
+  assert.match(catalog,/\\.filter\\(item=>APPROVED_CATALOG_IDS.has\\(item.id\\)\\)/);
+});
