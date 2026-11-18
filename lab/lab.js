@@ -1,3 +1,4 @@
+import {openLabSignIn} from './auth-google.js?v=20261117-pv-google1';
 import {prepareViewerReferenceImages} from './viewer-reference-preparation.js?v=20261108-picker1';
 import {createVideoReferenceUploader} from './video-reference-upload.js?v=20261111-preupload1';
 import {soulNightFlashQuoteMatches} from './night-flash-soul.js?v=20261106v1&wonKarNight=20261106v1&ownerNightFlash=20261107v1';
@@ -5882,7 +5883,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
       setTimeout(()=>document.documentElement.classList.remove('pv-native-route-pending'),12000);
     }}}
 $('studio-invite-friends').onclick=()=>location.assign('./account.html#referrals');
-$('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn({forceRedirectUrl:location.href,signUpForceRedirectUrl:location.href});$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
+$('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>openLabSignIn(clerk,{forceRedirectUrl:location.href,signUpForceRedirectUrl:location.href});$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 $('pv-guest-closed-signout').onclick=()=>$('logout').click();
 assetLibrary=createAssetLibrary({api,notify,archive,app:$('app'),selected:()=>historySelected,selectMode:setHistorySelectMode,reload:()=>loadHistory(),restoreStudio:()=>{syncImageStudioMode();syncVideoStudioMode();syncStudioNav();},beforeOpen:()=>{++previewRevision;$('video').pause();if(retouchActive)leaveRetouch();setFashionActive(false);syncStudioRoute('assets');},kind:()=>tool==='upscale'?(videoUpscaler?.mode()==='video'?'video-upscale':'upscale'):tool==='video'?'video':'image',ready:()=>owner});
 setTool(['fashion','assets','retouch'].includes(studioRoute())?'image':studioRoute());

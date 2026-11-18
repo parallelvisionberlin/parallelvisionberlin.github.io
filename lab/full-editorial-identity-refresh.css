@@ -790,3 +790,100 @@ body.editorial-web #panel-model[data-model-mode="saved"] #casting-reference-gall
   scroll-behavior:auto!important;
  }
 }
+
+/* PVLAB_IDENTITY_STABLE_COMPOSITION_20261117
+   Desktop Identity only: moderately taller portraits, steady selection dock.
+   Do not change mobile dimensions, photos, workflow or generation behavior. */
+@media (min-width:801px) and (min-height:761px) {
+ body.editorial-web #panel-model .editorial-cast-pinned,
+ body.editorial-web #panel-model .editorial-cast-rail {
+  height:clamp(274px,calc(31svh + 16px),310px)!important;
+ }
+ body.editorial-web .flow-main:has(#panel-model:not([hidden])) #step-footer {
+  box-sizing:border-box!important;
+  height:72px!important;min-height:72px!important;max-height:72px!important;
+  margin:8px 0 0!important;padding:8px 0!important;
+  align-items:center!important;overflow:visible!important;
+ }
+ body.editorial-web #editorial-footer-cast #editorial-cast-selection {
+  box-sizing:border-box!important;
+  height:56px!important;min-height:56px!important;max-height:56px!important;
+  align-items:center!important;overflow:visible!important;
+ }
+ body.editorial-web #editorial-footer-cast #model-thumbs.editorial-selected-cast {
+  box-sizing:border-box!important;height:56px!important;min-height:56px!important;
+  max-height:56px!important;align-items:center!important;
+ }
+}
+
+/* PVLAB_IDENTITY_APPROVED_CAST_20261117
+   Match the approved no-world Identity screenshot: less unused portrait-hero
+   space and taller unchanged photographic character cards, desktop only. */
+@media(min-width:801px) and (min-height:761px){
+ body.editorial-web #panel-model .stage-visual{height:clamp(216px,calc(27svh - 14px),232px)!important}
+ body.editorial-web #panel-model .stage-copy{bottom:clamp(78px,9.2svh,88px)!important}
+ body.editorial-web #panel-model .editorial-cast-pinned,
+ body.editorial-web #panel-model .editorial-cast-rail{height:clamp(290px,calc(33svh + 10px),324px)!important}
+}
+
+/* PVLAB_IDENTITY_FEATURED_CAST_NOTICE_20261118: ephemeral 5th-character cue.
+   Position it beside selected portraits, not after Composition or in layout flow. */
+body.editorial-web #editorial-footer-cast #editorial-cast-selection{
+ position:relative!important;overflow:visible!important;
+}
+body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast{
+ position:absolute;z-index:8;left:calc(100% + 20px);top:50%;
+ display:inline-flex;align-items:center;gap:9px;max-width:280px;
+ white-space:nowrap;color:#c9c9c7;font-size:11px;
+ font-weight:500;letter-spacing:.005em;line-height:1.35;
+ opacity:0;visibility:hidden;pointer-events:none;
+ transform:translateY(calc(-50% + 5px));
+ transition:opacity .28s ease,transform .38s cubic-bezier(.2,.7,.2,1),visibility 0s linear .38s;
+}
+body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast::before{
+ content:'ⓘ';display:inline-block;color:#e5e4e0;font-size:16px;font-weight:400;
+}
+body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast.is-visible{
+ opacity:1;visibility:visible;transform:translateY(-50%);
+ transition:opacity .28s ease,transform .38s cubic-bezier(.2,.7,.2,1),visibility 0s;
+}
+@media(min-width:801px) and (max-width:1180px){
+ body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast{
+  left:auto;right:0;top:-8px;max-width:270px;
+  transform:translateY(calc(-100% + 5px));background:#0a0b0bdc;padding:6px 8px;
+ }
+ body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast.is-visible{transform:translateY(-100%)}
+}
+@media(max-width:800px){
+ body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast{
+  position:fixed;left:12px;right:12px;top:auto;
+  bottom:calc(77px + env(safe-area-inset-bottom));
+  width:max-content;max-width:calc(100vw - 24px);
+  padding:9px 12px;background:#151617;border:1px solid #414244;
+  transform:translateY(5px);font-size:11px;white-space:normal;
+ }
+ body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast.is-visible{transform:translateY(0)}
+}
+@media(prefers-reduced-motion:reduce){
+ body.editorial-web #editorial-footer-cast .editorial-cast-limit-toast{transition:none!important}
+}
+
+/* PVLAB_MOBILE_CAST_INERTIA_20261118: keep the user's native kinetic momentum.
+   Without mandatory snap, a finger flick glides freely through the portraits. */
+@media(max-width:800px){
+ body.editorial-web #panel-model #editorial-cast-track.editorial-cast-track,
+ body.editorial-web #panel-model #casting-reference-gallery #saved-character-gallery,
+ body.editorial-web .flow-main > #editorial-casting-controls #editorial-composition-choices.editorial-composition-grid{
+  scroll-snap-type:none!important;
+  scroll-behavior:auto!important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;
+ }
+}
+
+/* PVLAB_COMPOSITION_FACE_SAFE_20261118: keep selected faces visible in the
+   existing dynamic image cards. No layout, caption or original-photo changes. */
+body.editorial-web .flow-main > #editorial-casting-controls .editorial-composition-art img{
+ object-position:center var(--composition-portrait-focus,28%)!important;
+ object-fit:var(--composition-portrait-fit,cover)!important;
+}

@@ -11,6 +11,11 @@ const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).hr
 const root=resolve('.');
 const source=readFileSync('lab/lab.js','utf8');
 const html=readFileSync('lab/studio.html','utf8');
+for(const id of ['pv-guest-prompt','image-composer-prompt']){
+  const element=html.match(new RegExp('<textarea\\s+id="'+id+'"[^>]*>'))?.[0];
+  assert.ok(element,'Image prompt field must exist: '+id);
+  assert.match(element,/\\bspellcheck="false"/,'Image prompt editor should not show browser red spellcheck underlines: '+id);
+}
 const sizingStart=source.indexOf('function fitImageComposerPrompt(){');
 const sizingEnd=source.indexOf('\nfunction syncImageComposer(){',sizingStart);
 assert.ok(sizingStart>0&&sizingEnd>sizingStart);

@@ -1,0 +1,69 @@
+/* ALTER: job-state textile. Only the photo-stage transition and Results status.
+   Existing hero, geometry, gallery, source resolution and compare controls remain locked. */
+#beauty-processing[hidden]{display:none!important}
+#beauty-photo-drop:has(#beauty-processing:not([hidden])) #beauty-photo-preview,
+#beauty-photo-drop:has(#beauty-processing:not([hidden])) .beauty-before-image{
+  opacity:0!important;transition:opacity .38s ease;
+}
+#beauty-processing{
+ position:absolute;inset:0;z-index:9;overflow:hidden;pointer-events:none;
+ display:block;isolation:isolate;color:#f4f3f0;background:#050505;
+ animation:alter-stage-enter .44s ease both;
+}
+#beauty-processing::after{
+ content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+ background:linear-gradient(180deg,rgba(5,5,5,.06),rgba(5,5,5,.04) 58%,rgba(5,5,5,.48));
+}
+#beauty-processing .beauty-processing-visual{
+ position:absolute;inset:0;z-index:0;overflow:hidden;width:100%;height:100%;
+ border:0;border-radius:0;background:#080808;box-shadow:none;
+}
+#beauty-processing .beauty-processing-visual .pv-beauty-fabric{
+ position:absolute;inset:0;width:100%;height:100%;display:block;
+ opacity:1;pointer-events:none;
+}
+#beauty-processing .beauty-processing-sweep,
+#beauty-processing .beauty-processing-track{display:none!important}
+#beauty-processing .beauty-processing-copy{
+ position:absolute;z-index:2;bottom:clamp(24px,9%,76px);left:clamp(22px,6%,62px);
+ max-width:min(400px,82%);align-items:flex-start;gap:11px;
+ display:flex;flex-direction:column;text-align:left;
+}
+#beauty-processing .beauty-processing-copy small{
+ font-size:10px;letter-spacing:.26em;font-weight:600;color:rgba(244,244,242,.7);
+}
+#beauty-processing .beauty-processing-copy strong{
+ font-size:clamp(24px,2.55vw,37px);font-weight:500;line-height:1.08;
+ letter-spacing:-.045em;text-wrap:balance;
+}
+#beauty-processing .beauty-processing-copy span{
+ font-size:12px;line-height:1.5;color:rgba(244,244,242,.77);
+}
+#beauty-processing[data-phase="uncertain"] .beauty-processing-visual{opacity:.6}
+#beauty-processing[data-phase="uncertain"] .beauty-processing-copy span{max-width:300px}
+#beauty-history button[data-beauty-pending]{
+ position:relative;isolation:isolate;overflow:hidden;
+ background:#0a0b0b;color:#e9e9e8;
+}
+#beauty-history button[data-beauty-pending]::before{
+ content:"";position:absolute;inset:-100% -130%;z-index:0;pointer-events:none;
+ background:linear-gradient(115deg,transparent 41%,rgba(238,234,224,.19) 50%,transparent 59%);
+ animation:alter-result-sweep 3.1s ease-in-out infinite;
+}
+#beauty-history button[data-beauty-pending] span{
+ position:absolute;z-index:1;bottom:13px;left:12px;right:10px;padding:0;
+ color:#dededc;font-size:11px;text-align:left;text-transform:capitalize;
+ letter-spacing:.05em;
+}
+@keyframes alter-stage-enter{from{opacity:0}to{opacity:1}}
+@keyframes alter-result-sweep{from{transform:translateX(-34%)}to{transform:translateX(34%)}}
+@media(max-width:640px){
+ #beauty-processing .beauty-processing-copy{left:22px;bottom:25px;gap:9px}
+ #beauty-processing .beauty-processing-copy strong{font-size:27px}
+ #beauty-processing .beauty-processing-copy span{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+ #beauty-processing{animation:none!important}
+ #beauty-photo-drop:has(#beauty-processing:not([hidden])) #beauty-photo-preview{transition:none}
+ #beauty-history button[data-beauty-pending]::before{animation:none;opacity:.45}
+}

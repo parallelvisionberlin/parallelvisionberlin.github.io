@@ -1,4 +1,27 @@
 /* PV LAB Image Inspiration only. Keep Image Studio and generation UI unchanged. */
+/* A second authentic frame crossfades over the photograph on desktop only.
+   Existing card proportions, selected prompts and foreground captions remain. */
+@media (hover:hover) and (pointer:fine){
+  #gate .pv-guest-carousel .pv-guest-card > img.pv-inspiration-hover-shot,
+  #app.image-studio-active #lab-welcome-start .lab-welcome-preset > img.pv-inspiration-hover-shot{
+    position:absolute;inset:0;display:block;width:100%;height:100%;
+    object-fit:cover;object-position:center;
+    z-index:0;opacity:0;pointer-events:none;
+    filter:brightness(.94);transform:none!important;
+    transition:opacity .42s cubic-bezier(.22,1,.36,1);
+  }
+  #gate .pv-guest-carousel .pv-guest-card:hover:not([aria-pressed="true"]) > img.pv-inspiration-hover-shot.is-ready,
+  #app.image-studio-active #lab-welcome-start .lab-welcome-preset:hover:not([aria-pressed="true"]) > img.pv-inspiration-hover-shot.is-ready{
+    opacity:1;transition-delay:.16s;transform:none!important;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  #gate .pv-guest-carousel .pv-guest-card > img.pv-inspiration-hover-shot,
+  #app.image-studio-active #lab-welcome-start .lab-welcome-preset > img.pv-inspiration-hover-shot{
+    transition:none!important;
+  }
+}
+
 .inspiration-carousel-shell{position:relative}
 .inspiration-carousel-shell .pv-inspiration-view-all{
   position:absolute;right:0;top:-40px;z-index:5;
@@ -82,6 +105,10 @@
   display:block;flex:0 0 auto;align-self:stretch;
   width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;object-position:center;
   border-radius:5px;background:#202125;
+}
+/* Owner portrait crops favor the face when the wider Explore All grid trims them. */
+.pv-inspiration-catalog-card img[src*="/inspiration-sets/"]{
+  object-position:50% 28%;
 }
 .pv-inspiration-catalog-card strong{
   display:block;padding:12px 0 0;font:450 16px/1.25 "DM Sans",Arial,sans-serif;

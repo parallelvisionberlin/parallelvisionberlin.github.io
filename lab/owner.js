@@ -1,3 +1,4 @@
+import {openLabSignIn} from './auth-google.js?v=20261117-pv-google1';
 import {createOwnerCustomersUI} from './owner-customers-ui.js?v=20261106-activity3';
 import {createOwnerWorkspace} from './owner-workspace-ui.js?v=20261106-activity3';
 import {createOwnerOperationsUI} from './owner-operations-ui.js?v=20261106-activity3';
@@ -718,7 +719,7 @@ for(const button of document.querySelectorAll('[data-recent-filter]'))button.add
   paintRecentActivity();
 });
 $('owner-quick-search').addEventListener('click',()=>{
-  if(!profile?.owner){clerk?.openSignIn();return;}
+  if(!profile?.owner){openLabSignIn(clerk);return;}
   if(location.hash!=='#owner-customers-section')history.pushState(null,'','#owner-customers-section');
   workspace.route('#owner-customers-section',{scroll:true});
   $('owner-search').focus({preventScroll:true});
@@ -831,7 +832,7 @@ for(const preset of document.querySelectorAll('[data-credit-preset]'))preset.add
   $('owner-voucher-credits').value=preset.dataset.creditPreset;updateVoucherEstimate();
 });
 updateVoucherEstimate();
-$('owner-signin').addEventListener('click',()=>clerk?.openSignIn());
+$('owner-signin').addEventListener('click',()=>openLabSignIn(clerk));
 try{clerk=await loadLabAccount();
   const onClerkAuthUpdate=createOwnerAuthGuard({
     getClerk:()=>clerk,

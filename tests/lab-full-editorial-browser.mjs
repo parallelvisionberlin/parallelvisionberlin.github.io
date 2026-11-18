@@ -106,7 +106,20 @@ try{
   assert.equal(await page.locator('.editorial-cast-pinned').count(),1,'One pinned Create Character and upload card');
   assert.match(await page.locator('.editorial-create-character').getAttribute('href'),/createCharacter=1/);
   const carouselState=await castTrack.evaluate(el=>({width:el.clientWidth,full:el.scrollWidth,count:el.querySelectorAll('.atelier-reference').length}));
-  assert.equal(carouselState.count,10,'Original five plus five approved new casting references');
+  assert.equal(carouselState.count,10,'All ten casting references remain available');
+  if(width<=800){
+   const rails=await page.evaluate(()=>['#editorial-cast-track','#editorial-composition-choices','#saved-character-gallery'].map(selector=>{
+    const computed=getComputedStyle(document.querySelector(selector));
+    return {selector,snap:computed.scrollSnapType,behavior:computed.scrollBehavior};
+   }));
+   for(const rail of rails){
+    assert.equal(rail.snap,'none','Phone rail must not snap: '+rail.selector);
+    assert.equal(rail.behavior,'auto','Phone rail uses native touch momentum: '+rail.selector);
+   }
+  }
+  assert.deepEqual(await castTrack.locator('.atelier-reference').evaluateAll(cards=>cards.map(card=>card.querySelector('span')?.textContent.trim())),
+   ['06 / SLATE','07 / COBALT','08 / PEARL','09 / ACID','10 / BLOSSOM','01 / SILVER','02 / BRONZE','03 / COPPER','04 / IVORY','05 / NIGHT'],
+   'Five featured portraits appear first, with all original numbers and remaining models retained');
   assert.ok(carouselState.full>carouselState.width+30,'The casting gallery scrolls horizontally');
   assert.equal(await page.locator('#editorial-cast-prev').isDisabled(),true);
   await page.locator('#editorial-cast-next').click();
@@ -151,6 +164,21 @@ try{
    const pinnedAfter=await page.locator('.editorial-cast-pinned').boundingBox();
    assert.ok(Math.abs(pinnedAfter.x-pinnedBefore.x)<1&&Math.abs(pinnedAfter.y-pinnedBefore.y)<1,'The Create Character tile remains fixed when wheel is over it');
    assert.equal(await page.locator('#casting-reference-gallery .atelier-reference[aria-pressed="true"]').count(),0,'Wheel does not select any model');
+   const afterInput=await castTrack.evaluate(el=>el.scrollLeft);
+   await page.waitForTimeout(150);
+   const duringCoast=await castTrack.evaluate(el=>el.scrollLeft);
+   assert.ok(duringCoast>afterInput+8,'Wheel continues easing after the last input: '+JSON.stringify({afterInput,duringCoast}));
+   await page.waitForTimeout(700);
+   const beforeRest=await castTrack.evaluate(el=>el.scrollLeft);
+   await page.waitForTimeout(130);
+   const afterRest=await castTrack.evaluate(el=>el.scrollLeft);
+   assert.ok(Math.abs(afterRest-beforeRest)<2,'Wheel fades naturally to a stop: '+JSON.stringify({beforeRest,afterRest}));
+   await page.mouse.wheel(0,100000);
+   await page.waitForFunction(()=>{const el=document.getElementById('editorial-cast-track');return el.scrollWidth-el.clientWidth-el.scrollLeft<2});
+   const noPageScroll=await page.evaluate(()=>scrollY);
+   await page.mouse.wheel(0,240);
+   await page.waitForTimeout(100);
+   assert.ok(Math.abs(await page.evaluate(()=>scrollY)-noPageScroll)<1,'Wheel at right edge does not scroll the page');
    await castTrack.evaluate(el=>el.scrollTo({left:0,behavior:'instant'}));
    await page.waitForFunction(()=>document.getElementById('editorial-cast-track').scrollLeft<3);
   }
@@ -183,7 +211,7 @@ try{
    });
    assert.equal(layout.heroBelowHeader,true,'Sticky header does not cover hero controls');
    assert.ok(layout.topGap<=13,'Hero begins immediately below the header');
-   assert.ok(layout.heroHeight>=236&&layout.heroHeight<=274,'Identity hero is only 12px shorter: '+JSON.stringify(layout));
+   assert.ok(layout.heroHeight>=216&&layout.heroHeight<=234,'Approved Identity hero makes room for taller portraits: '+JSON.stringify(layout));
    assert.ok(Math.abs(layout.compositionHeight-144)<1,'Composition cards gain 12px at 1440px without changing card widths: '+JSON.stringify(layout));
    for(const key of ['railHidden','backInside','cardsVisible'])assert.equal(layout[key],true,key);
    const emptyBounds=await page.evaluate(()=>{
@@ -193,7 +221,7 @@ try{
      buttonBackground:getComputedStyle(document.getElementById('step-next')).backgroundColor};
    });
    assert.ok(emptyBounds.footerBottom<=emptyBounds.viewportHeight-8,'Empty Identity action and cast all fit on the initial desktop screen: '+JSON.stringify(emptyBounds));
-   assert.ok(emptyBounds.cardHeight>=258&&emptyBounds.cardHeight<=295,'Casting references use the approved full-height portraits');
+   assert.ok(emptyBounds.cardHeight>=298&&emptyBounds.cardHeight<=325,'Approved casting portraits are taller');
    const textClearance=await page.evaluate(()=>{
     const box=selector=>document.querySelector(selector).getBoundingClientRect();
     const button=document.getElementById('step-next');
@@ -289,8 +317,33 @@ try{
   assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Back returns from Identity to hero');
   assert.equal(await page.locator('#editorial-flow').isVisible(),false);
   await page.locator('#editorial-start').click();
+  // Composition and the selected cast dock must remain immobile on first selection.
+  const beforeCastChoice=width>800?await page.evaluate(()=>{
+   const r=selector=>document.querySelector(selector).getBoundingClientRect();
+   return {compositionTop:r('#editorial-casting-controls').top,footerHeight:r('#step-footer').height,
+    pinnedHeight:r('.editorial-cast-pinned').height,photoHeight:r('#editorial-cast-track .atelier-reference').height};
+  }):null;
   await page.locator('#casting-reference-gallery .atelier-reference').first().click();
   await page.locator('#model-thumbs .thumb').waitFor({state:'visible'});
+  if(width>800){
+   const afterCastChoice=await page.evaluate(()=>{
+    const r=selector=>document.querySelector(selector).getBoundingClientRect();
+    const img=document.querySelector('#model-thumbs .editorial-model-cover img');
+    return {compositionTop:r('#editorial-casting-controls').top,footerHeight:r('#step-footer').height,
+     pinnedHeight:r('.editorial-cast-pinned').height,photoHeight:r('#editorial-cast-track .atelier-reference').height,
+     thumbnailHeight:img?.getBoundingClientRect().height||0};
+   });
+   assert.ok(afterCastChoice.photoHeight>=298&&afterCastChoice.photoHeight<=325,
+    'Desktop casting photos are moderately taller: '+JSON.stringify(afterCastChoice));
+   assert.ok(Math.abs(afterCastChoice.compositionTop-beforeCastChoice.compositionTop)<1,
+    'Selecting a portrait must not move Composition: '+JSON.stringify({beforeCastChoice,afterCastChoice}));
+   assert.ok(Math.abs(afterCastChoice.footerHeight-beforeCastChoice.footerHeight)<1,
+    'Selection dock height is constant');
+   assert.ok(Math.abs(afterCastChoice.pinnedHeight-afterCastChoice.photoHeight)<1,
+    'Create Character and casting cards stay aligned');
+   assert.ok(afterCastChoice.thumbnailHeight<=afterCastChoice.footerHeight-12,
+    'Selected model photo fits without resizing the dock');
+  }
   if(width>800){
    const sizes=await page.evaluate(()=>{
     const r=selector=>document.querySelector(selector).getBoundingClientRect();
@@ -372,6 +425,18 @@ try{
   const compositionPreview=await page.locator('[data-cast-composition="mixed"] .editorial-composition-art img').evaluateAll(images=>images.map(img=>img.currentSrc||img.src));
   const selectedCovers=await page.locator('#model-thumbs .editorial-model-cover img').evaluateAll(images=>images.map(img=>img.currentSrc||img.src));
   assert.deepEqual(compositionPreview,selectedCovers.slice(0,2),'Composition uses selected identities');
+  const frames=await page.locator('#editorial-composition-choices').evaluate(root=>({
+   pair:[...root.querySelectorAll('[data-cast-composition="mixed"] .editorial-composition-art img')].map(img=>({
+    focus:getComputedStyle(img).objectPosition,fit:getComputedStyle(img).objectFit
+   })),
+   solo:[...root.querySelectorAll('[data-cast-composition="alternating"] .editorial-composition-art img')].map(img=>({
+    focus:getComputedStyle(img).objectPosition,fit:getComputedStyle(img).objectFit
+   }))
+  }));
+  assert.deepEqual(frames.pair,[{focus:'50% 24%',fit:'cover'},{focus:'50% 6%',fit:'cover'}],
+   'Both selected faces have individually focused group crops: '+JSON.stringify(frames));
+  assert.deepEqual(frames.solo,[{focus:'50% 24%',fit:'cover'}],
+   'Solo preview focuses the selected Slate face');
   await page.locator('#editorial-composition-toggle').click();
   assert.equal(await page.locator('#editorial-composition-toggle').getAttribute('aria-expanded'),'false');
   assert.equal(await page.locator('#editorial-composition-choices').isVisible(),false,'Composition folds');
@@ -384,19 +449,58 @@ try{
    assert.ok(addSize>=42&&addSize<=46,'Footer add control stays compact, never inherits the full CTA width: '+addSize);
   }
   await page.screenshot({path:'test-results/editorial/'+width+'-two-model-composition.png',fullPage:width===390});
-  assert.equal(await page.locator('#model-selection-count').textContent(),'2 models selected');
+  assert.equal(await page.locator('#model-selection-count').textContent(),'2 / 4 models selected');
   assert.equal(await page.locator('#editorial-footer-cast img').count(),2,'Footer shows the selected models');
   assert.equal(await page.locator('.editorial-footer-add').isVisible(),width>600,'Mobile upload stays in pinned tile');
   if(width<=600){
    const selectedPicker=page.waitForEvent('filechooser');
    await page.locator('#model-drop').click();await selectedPicker;
-   assert.equal(await page.locator('#model-selection-count').textContent(),'2 models selected','Opening another upload retains the cast');
+   assert.equal(await page.locator('#model-selection-count').textContent(),'2 / 4 models selected','Opening another upload retains the cast');
   }
   assert.equal(await page.locator('[data-cast-composition="mixed"]').getAttribute('aria-pressed'),'true','Mixed editorial is the default');
   await page.locator('[data-cast-composition="alternating"]').click();
   assert.equal(await page.locator('[data-cast-composition="alternating"]').getAttribute('aria-pressed'),'true');
   await page.locator('[data-cast-composition="together"]').click();
   assert.equal(await page.locator('[data-cast-composition="together"]').getAttribute('aria-pressed'),'true');
+  // Four character identities maximum; additional reference views remain permitted.
+  await page.locator('#casting-reference-gallery .atelier-reference').nth(2).click();
+  await page.locator('#casting-reference-gallery .atelier-reference').nth(3).click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===4);
+  assert.equal(await page.locator('#model-selection-count').textContent(),'4 / 4 models selected');
+  assert.equal(await page.locator('.editorial-footer-add').isVisible(),false,'The extra + is hidden at four');
+  if(width>800){
+   assert.equal(await page.locator('#editorial-footer-cast .editorial-cast-limit-note').count(),0,'No extra cast guidance in the selection bar');
+   const fit=await page.evaluate(()=>({
+    last:document.querySelector('#model-thumbs .editorial-model-card:last-of-type').getBoundingClientRect().right,
+    right:document.querySelector('#model-thumbs').getBoundingClientRect().right
+   }));
+   assert.ok(fit.last<=fit.right+2,'All four selected thumbnails fit without clipping: '+JSON.stringify(fit));
+  }
+  // Bring the fifth portrait into view before measuring so Playwright itself
+  // cannot create a page scroll while locating the button.
+  const fifthPortrait=page.locator('#casting-reference-gallery .atelier-reference').nth(4);
+  await fifthPortrait.scrollIntoViewIfNeeded();
+  // Four is a silent selection limit, not an error that expands the page.
+  const beforeFifth=await page.evaluate(()=>({scrollY,documentHeight:document.documentElement.scrollHeight,
+   footerTop:document.getElementById('step-footer').getBoundingClientRect().top,
+   compositionTop:document.getElementById('editorial-casting-controls').getBoundingClientRect().top}));
+  await fifthPortrait.click();
+  assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),4,'Fifth distinct model is blocked');
+  assert.equal(await page.locator('#editorial-status').textContent(),'','Four-character limit never creates a page-level error');
+  await page.waitForFunction(()=>document.querySelector('.editorial-cast-limit-toast')?.classList.contains('is-visible'));
+  assert.match(await page.locator('.editorial-cast-limit-toast').textContent(),/4 characters max.*Remove one/);
+  assert.equal(await page.locator('.editorial-cast-limit-toast').getAttribute('aria-hidden'),'false');
+  const afterFifth=await page.evaluate(()=>({scrollY,documentHeight:document.documentElement.scrollHeight,
+   footerTop:document.getElementById('step-footer').getBoundingClientRect().top,
+   compositionTop:document.getElementById('editorial-casting-controls').getBoundingClientRect().top}));
+  for(const key of Object.keys(beforeFifth))assert.ok(Math.abs(beforeFifth[key]-afterFifth[key])<2,
+   'Fifth character must not move the page: '+key+' '+JSON.stringify({beforeFifth,afterFifth}));
+  await page.waitForFunction(()=>!document.querySelector('.editorial-cast-limit-toast')?.classList.contains('is-visible'),null,{timeout:5500});
+  assert.equal(await page.locator('.editorial-cast-limit-toast').getAttribute('aria-hidden'),'true','Notice fades away on its own');
+  await page.locator('#casting-reference-gallery .atelier-reference').nth(2).click();
+  await page.locator('#casting-reference-gallery .atelier-reference').nth(3).click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
+  assert.equal(await page.locator('.editorial-footer-add').isVisible(),width>600,'Add returns below the cap');
   await page.locator('[data-cast-composition="alternating"]').click();
   await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===1);

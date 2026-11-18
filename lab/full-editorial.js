@@ -1,3 +1,4 @@
+import {openLabSignIn} from './auth-google.js?v=20261117-pv-google1';
 // Browser-only casting presentation; native app keeps its existing layout.
 if(!window.__PV_LAB_NATIVE__)document.body.classList.add('editorial-web');
 import {takeModelPhotos} from './editorial-model-handoff.js?v=20261102-eight-photos1';
@@ -53,9 +54,35 @@ let clerk=null,profile=null,sessionKey='',epoch=0,step=0,directionTab='location'
 let chosenCount=4,chosenRatio='3:4',castComposition='mixed',quote=null,quoteBusy=false,quoteError=false,quoteTimer=null,quoteExpiryTimer=null,submitting=false,uncertain=false,pollTimeout=null;
 let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0,progressBatchStart=0,progressBatchSize=4;
 const objectUrls=new Map(),sampleFiles=new Map(),savedCharacterThumbnails=new Map();
+const MAX_EDITORIAL_CHARACTERS=4;
+let castLimitNoticeTimer=null;
+let castLimitNoticeFrame=null;
 let modelGroups=[],modelGroupSerial=0,modelUploadTarget=null,charactersLoadSequence=0;
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
 function effectiveCastMode(){return modelGroups.length>1?'cast':'one';}
+// The approved portraits need different focal points in very wide Composition
+// previews. This never changes the actual identity image or generation input.
+const compositionFaceFocals={
+ 'slate-cast-20261111.jpg':{group:24,solo:24},
+ 'cobalt-cast-20261111.jpg':{group:6,solo:6},
+ 'pearl-cast-20261111.jpg':{group:10,solo:15},
+ 'acid-cast-20261111.jpg':{group:2,solo:5},
+ 'blossom-cast-20261111.jpg':{group:6,solo:4},
+ 'plum-cast03.webp':{group:12,solo:12},
+ 'bronze-cast03.webp':{group:7,solo:4},
+ 'copper-inertia.webp':{group:8,solo:5},
+ 'ivory-cast03.webp':{group:10,solo:9},
+ 'night-cast03.webp':{group:5,solo:3}
+};
+function compositionPortraitFraming(group,kind){
+ if(!group)return {fit:'cover',focus:'28%'};
+ const sample=[...sampleFiles].find(([,file])=>group.files.includes(file))?.[0];
+ const imageName=sample?.dataset.sampleSrc?.split('/').pop();
+ const preset=compositionFaceFocals[imageName];
+ // Do not guess a crop for an unfamiliar user upload or private character.
+ return preset?{fit:'cover',focus:(kind==='alternating'?preset.solo:preset.group)+'%'}:
+  {fit:'contain',focus:'50%'};
+}
 function renderCastingControls(){
  const count=modelGroups.length,ready=count>=2;
  const region=$('editorial-casting-controls'),wasHidden=region.hidden;
@@ -77,6 +104,10 @@ function renderCastingControls(){
    if(!img.dataset.originalSrc)img.dataset.originalSrc=img.getAttribute('src')||'';
    const next=count===0?img.dataset.originalSrc:(photos[i]||covers[0]||img.dataset.originalSrc);
    if(next&&img.getAttribute('src')!==next)img.src=next;
+   const group=count?modelGroups[kind==='alternating'?0:Math.min(i,modelGroups.length-1)]:null;
+   const frame=compositionPortraitFraming(group,kind);
+   img.style.setProperty('--composition-portrait-focus',frame.focus);
+   img.style.setProperty('--composition-portrait-fit',frame.fit);
   });
  }
  $('editorial-cast-summary').textContent=count===0?'Select a model to begin. Composition options become available when you select two or more.':
@@ -102,6 +133,14 @@ function renderIdentityFooter(){
  const footer=$('editorial-footer-cast'),selection=$('editorial-cast-selection');
  const actionDock=$('step-footer'),composition=$('editorial-casting-controls');
  const workspace=$('panel-model').querySelector('.atelier-workspace');
+ // Dismiss a stale cast-limit notice when a slot opens or Identity is left.
+ const limitNotice=selection.querySelector('.editorial-cast-limit-toast');
+ if(limitNotice&&(step!==1||modelGroups.length<MAX_EDITORIAL_CHARACTERS)){
+  clearTimeout(castLimitNoticeTimer);
+  if(castLimitNoticeFrame!==null){cancelAnimationFrame(castLimitNoticeFrame);castLimitNoticeFrame=null}
+  limitNotice.classList.remove('is-visible');
+  limitNotice.setAttribute('aria-hidden','true');
+ }
  footer.hidden=step!==1;
  // Composition follows the selection dock, matching the approved editorial reference.
  // Move back to its original panel when leaving Identity so other steps never expose it.
@@ -118,10 +157,37 @@ function renderIdentityFooter(){
   add.addEventListener('click',()=>openModelPicker());
   footer.append(add);
  }
- add.hidden=modelGroups.length===0;
+ add.hidden=modelGroups.length===0||modelGroups.length>=MAX_EDITORIAL_CHARACTERS;
  add.disabled=submitting||files.model.length+savedRefs.model.length>=8;
 }
+// Responsive casting feedback without changing the document height.
+function showCastLimitNotice(){
+ if(step!==1)return;
+ const selection=$('editorial-cast-selection');
+ let notice=selection.querySelector('.editorial-cast-limit-toast');
+ if(!notice){
+  notice=document.createElement('span');
+  notice.className='editorial-cast-limit-toast';
+  notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');
+  notice.setAttribute('aria-hidden','true');
+  notice.textContent='4 characters max. Remove one to select another.';
+  selection.append(notice);
+ }
+ clearTimeout(castLimitNoticeTimer);
+ if(castLimitNoticeFrame!==null)cancelAnimationFrame(castLimitNoticeFrame);
+ notice.classList.remove('is-visible');
+ notice.setAttribute('aria-hidden','false');
+ castLimitNoticeFrame=requestAnimationFrame(()=>{
+  notice.classList.add('is-visible');
+  castLimitNoticeFrame=null;
+ });
+ castLimitNoticeTimer=setTimeout(()=>{
+  notice.classList.remove('is-visible');
+  notice.setAttribute('aria-hidden','true');
+ },2600);
+}
 function createModelGroup(name,origin='upload'){
+ if(modelGroups.length>=MAX_EDITORIAL_CHARACTERS)return null;
  const group={id:'cast-'+(++modelGroupSerial),name:name||'Your model',origin,files:[],saved:[]};
  modelGroups.push(group);return group;
 }
@@ -174,7 +240,7 @@ function resetAll(){invalidateQuote();clearTimeout(pollTimeout);submitting=false
  renderFiles();renderDirections();updateOptions();refreshSliderLabels();setIdentitySource('casting');go(curatedWorld?1:0);status('');
  if(curatedWorld)void loadWorldReferences();
 }
-function go(next){step=next;const panels=['model','style','mood','generate','progress','results'];
+function go(next){if(next!==1)stopCastingWheelCoast();step=next;const panels=['model','style','mood','generate','progress','results'];
  for(let i=0;i<panels.length;i++)$('panel-'+panels[i]).hidden=i!==Math.max(0,next-1);
  $('editorial-hero').hidden=next!==0;$('editorial-flow').hidden=next===0;
  document.body.classList.toggle('editorial-is-generating',next===5);
@@ -225,7 +291,7 @@ function renderModelGroups(){
  $('editorial-cast-selection').hidden=false;
  $('editorial-cast-empty').hidden=modelGroups.length>0;
  $('model-selection-heading').hidden=modelGroups.length===0;
- $('model-selection-count').textContent=modelGroups.length+' model'+(modelGroups.length===1?'':'s')+' selected';
+ $('model-selection-count').textContent=modelGroups.length+' / '+MAX_EDITORIAL_CHARACTERS+' models selected';
  for(const [index,group] of modelGroups.entries()){
   const card=document.createElement('article');card.className='editorial-model-card thumb';card.title=group.name;
   const hero=document.createElement('div');hero.className='editorial-model-cover';
@@ -279,6 +345,7 @@ function renderFiles(){
 }
 function openModelPicker(target=null){
  if(submitting)return;
+ if(!target&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS){showCastLimitNotice();return;}
  modelUploadTarget=target;$('model-files').click();
 }
 function addFiles(kind,list,groupId=null,label=null){
@@ -291,7 +358,10 @@ function addFiles(kind,list,groupId=null,label=null){
  const accepted=accept.slice(0,allowed);
  if(kind==='model'&&accepted.length){
   const group=groupId?findModelGroup(groupId):createModelGroup(label||'Your model '+(modelGroups.length+1));
-  if(!group){status('The selected model is unavailable. Choose it again.',true);return}
+  if(!group){
+   if(!groupId&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS){showCastLimitNotice();return;}
+   status('The selected model is unavailable. Choose it again.',true);return;
+  }
   group.files.push(...accepted);
  }
  files[kind].push(...accepted);
@@ -334,6 +404,7 @@ async function toggleSample(button){
   }
   status(kind==='model'?'':'Reference removed.');return;
  }
+ if(kind==='model'&&modelGroups.length>=MAX_EDITORIAL_CHARACTERS){showCastLimitNotice();return;}
  const limit={model:8,outfit:3}[kind],num=files[kind].length+savedRefs[kind].length;
  if(num>=limit){status('You can select up to '+limit+' '+(kind==='model'?'model photos':'wardrobe references')+'.',true);return}
  button.disabled=true;
@@ -466,7 +537,7 @@ function editorialShotPlan(index,total,references,base){
  if(prompt.length>(base.engine==='seedreamlite'?3000:5000))throw Error('The combined shot brief exceeds the selected model prompt limit. Shorten the creative text.');
  return {references:shotReferences,settings:{...base,prompt,referenceRoles:shotReferences.map(({file,role})=>({role,name:nameFor(file),note:''}))}};
 }
-async function signIn(){if(!clerk)clerk=await loadLabAccount();const href=location.href;clerk.openSignIn({forceRedirectUrl:href,signInForceRedirectUrl:href,signUpForceRedirectUrl:href})}
+async function signIn(){if(!clerk)clerk=await loadLabAccount();const href=location.href;openLabSignIn(clerk,{forceRedirectUrl:href,signInForceRedirectUrl:href,signUpForceRedirectUrl:href})}
 async function sync(){
  const prev=sessionKey;const next=clerk?.session?.id||'';
  if(prev&&prev!==next){epoch++;uploaded.clear();quote=null;uncertain=false;submitting=false;wipeResults();resetAll();}
@@ -573,6 +644,7 @@ function addSavedCharacter(pack,refs){
  if(submitting)return;
  const name=pack.name.split('|').slice(2).join('|');
  if(modelGroups.some(group=>group.origin===pack.name)){status('That character is already in your cast. Use Add reference for another photo.',true);return}
+ if(modelGroups.length>=MAX_EDITORIAL_CHARACTERS){showCastLimitNotice();return;}
  const available=4-files.model.length-savedRefs.model.length;
  const used=Object.values(files).reduce((n,part)=>n+part.length,0)+Object.values(savedRefs).reduce((n,part)=>n+part.length,0);
  if(Math.min(available,10-used)<=0){status('Four model reference photos maximum. Remove one before adding another model.',true);return}
@@ -816,24 +888,64 @@ function updateCastCarouselControls(){
   $(nextId).disabled=max<4||track.scrollLeft>=max-3;
  }
 }
+// Mouse-wheel momentum only. Trackpad and touch retain their native scrolling.
+// A single eased target for all desktop vertical wheel deltas. Unlike the
+// old double-movement path, no instant jump or size-dependent velocity tail.
+const castingReducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+const castingWheelMotion={frame:0,target:0,lastFrame:0};
+function stopCastingWheelCoast(){
+ if(castingWheelMotion.frame)cancelAnimationFrame(castingWheelMotion.frame);
+ castingWheelMotion.frame=0;castingWheelMotion.lastFrame=0;
+ castingWheelMotion.target=$('editorial-cast-track')?.scrollLeft||0;
+}
+function coastCastingWheel(now){
+ castingWheelMotion.frame=0;
+ if(document.hidden||step!==1||$('panel-model').dataset.modelMode!=='casting'||castingReducedMotion.matches){
+  stopCastingWheelCoast();return;
+ }
+ const track=$('editorial-cast-track'),max=Math.max(0,track.scrollWidth-track.clientWidth);
+ if(max<=4){stopCastingWheelCoast();return;}
+ const dt=castingWheelMotion.lastFrame?Math.min(40,Math.max(1,now-castingWheelMotion.lastFrame)):16;
+ castingWheelMotion.lastFrame=now;
+ castingWheelMotion.target=Math.max(0,Math.min(max,castingWheelMotion.target));
+ const distance=castingWheelMotion.target-track.scrollLeft;
+ if(Math.abs(distance)<.65){
+  track.scrollLeft=castingWheelMotion.target;
+  stopCastingWheelCoast();return;
+ }
+ // Frame-rate-independent exponential approach: fast response, gentle finish.
+ const eased=track.scrollLeft+distance*(1-Math.exp(-dt/105));
+ track.scrollLeft=Math.max(0,Math.min(max,eased));
+ castingWheelMotion.frame=requestAnimationFrame(coastCastingWheel);
+}
 function moveCastCarousel(direction,source){
+ stopCastingWheelCoast();
  const track=$(source==='saved'?'saved-character-gallery':'editorial-cast-track');if(!track)return;
  const first=track.querySelector('.atelier-reference:not([hidden])');
  const gap=parseFloat(getComputedStyle(track).columnGap)||12;
  const distance=(first?.getBoundingClientRect().width||220)+gap;
- track.scrollBy({left:direction*distance,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+ track.scrollBy({left:direction*distance,behavior:castingReducedMotion.matches?'instant':'smooth'});
 }
 function handleCastingWheel(event){
- // Wheel browsing belongs only to the portrait rail, never the pinned Create Character card.
- // Trackpad horizontal gestures, browser zoom, touch swipes and normal page scroll still work.
- if(step!==1||$('panel-model').dataset.modelMode!=='casting'||event.ctrlKey)return;
+ // Vertical wheel input within the gallery moves portraits, not the page.
+ // Native horizontal trackpad gestures, touch and browser zoom remain untouched.
+ if(step!==1||$('panel-model').dataset.modelMode!=='casting'||event.ctrlKey||event.metaKey||innerWidth<=800)return;
  if(!event.deltaY||Math.abs(event.deltaX)>=Math.abs(event.deltaY))return;
- const track=$('editorial-cast-track'),max=track.scrollWidth-track.clientWidth;
+ const track=$('editorial-cast-track'),max=Math.max(0,track.scrollWidth-track.clientWidth);
  if(max<=4)return;
- const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?track.clientWidth:1);
- if((delta>0&&track.scrollLeft>=max-2)||(delta<0&&track.scrollLeft<=2))return;
+ // Consume wheel at both edges too, preventing a sudden vertical page jump.
  event.preventDefault();
- track.scrollTo({left:Math.max(0,Math.min(max,track.scrollLeft+delta)),behavior:'instant'});
+ const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?track.clientWidth:1);
+ if(castingReducedMotion.matches){
+  stopCastingWheelCoast();
+  track.scrollLeft=Math.max(0,Math.min(max,track.scrollLeft+delta));return;
+ }
+ if(!castingWheelMotion.frame){
+  castingWheelMotion.target=track.scrollLeft;
+  castingWheelMotion.lastFrame=0;
+ }
+ castingWheelMotion.target=Math.max(0,Math.min(max,castingWheelMotion.target+delta));
+ if(!castingWheelMotion.frame)castingWheelMotion.frame=requestAnimationFrame(coastCastingWheel);
 }
 function setupCastCarousel(){
  for(const [source,trackId,prevId,nextId] of [
@@ -848,6 +960,13 @@ function setupCastCarousel(){
  }
  if('MutationObserver' in window)new MutationObserver(updateCastCarouselControls)
   .observe($('saved-character-gallery'),{childList:true});
+ // New pointer gestures and native horizontal scrolling cancel residual coast.
+ $('casting-reference-gallery').addEventListener('pointerdown',stopCastingWheelCoast,{passive:true});
+ $('editorial-cast-track').addEventListener('wheel',event=>{
+  if(Math.abs(event.deltaX)>Math.abs(event.deltaY))stopCastingWheelCoast();
+ },{passive:true});
+ castingReducedMotion.addEventListener('change',stopCastingWheelCoast);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopCastingWheelCoast()});
  // Wheel over the entire casting gallery advances portraits, not the pinned tile.
  $('casting-reference-gallery').addEventListener('wheel',handleCastingWheel,{passive:false});
  window.addEventListener('resize',updateCastCarouselControls);

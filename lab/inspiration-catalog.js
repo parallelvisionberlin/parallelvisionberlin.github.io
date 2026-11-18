@@ -1,8 +1,9 @@
 // Image Studio Inspiration expansion. Deliberately separate from Moods.
 // No automatic generation, credit changes, uploads or model/provider changes.
-import {INSPIRATION_SCENES} from './inspiration-catalog-data.js?v=20261112-road1';
+import {INSPIRATION_SCENES} from './inspiration-catalog-data.js?v=20261117-owner1';
+import {OWNER_ORIGINAL_HOVER_FRAMES} from './inspiration-owner-scenes.js?v=20261117-owner1';
 const categories=['All','Original','Cinema','After Hours','Fashion','Analog','Street','Future','Intimacy','Atmospheres'];
-const priority=['lost-highway','desert-stop','eros-lingerie','hotel-intimacy','post-human','desert-sculptures','chrome-skin','berlin-club','italian-1963','tokyo-4am','red-room'];
+const priority=['lost-highway','desert-stop','raver','eros-lingerie','hotel-intimacy','post-human','desert-sculptures','chrome-skin','berlin-club','italian-1963','tokyo-4am','red-room'];
 const rank=new Map(priority.map((id,index)=>[id,index]));
 const sorted=[...INSPIRATION_SCENES].sort((a,b)=>(rank.get(a.id)??100)-(rank.get(b.id)??100));
 const originals=[...document.querySelectorAll('#pv-guest-cards > [data-guest-mood]')].map(button=>({
@@ -19,6 +20,34 @@ function photo(item){
   img.src=item.cover;img.alt='';img.loading='lazy';img.decoding='async';
   return img;
 }
+// Only photographs verified in the existing PV LAB archive. A missing second
+// shot is intentionally left static rather than substituted with another mood.
+const originalHoverFrames=Object.freeze({
+  '90s-cinema':'./mood-previews/90s-cinema-record-shop-20261010.webp',
+  'fisheye-2000':'./mood-references/fisheye-2000/02-fisheye-flash.webp',
+  'hong-kong-nights':'./mood-references/hong-kong-nights/plaza-grill.webp',
+  'dreamcore':'./welcome-cards/cloud-spa.webp',
+  '80s-film':'./welcome-cards/sun-fade.webp',
+  ...OWNER_ORIGINAL_HOVER_FRAMES
+});
+function installHoverPreview(button,cover){
+  if(!cover||!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return;
+  button.dataset.hoverFrame=cover;
+  // Load only when a visitor first explores the card, avoiding a second
+  // background image request for every item on the landing surface.
+  button.addEventListener('pointerenter',()=>{
+    const overlay=document.createElement('img');
+    overlay.className='pv-inspiration-hover-shot';
+    overlay.alt='';
+    overlay.setAttribute('aria-hidden','true');
+    overlay.loading='lazy';
+    overlay.decoding='async';
+    overlay.addEventListener('load',()=>overlay.classList.add('is-ready'));
+    overlay.addEventListener('error',()=>overlay.remove());
+    button.insertBefore(overlay,button.querySelector('span,strong'));
+    overlay.src=button.dataset.hoverFrame;
+  },{once:true});
+}
 const selectedExamples=new Map();
 function select(item){
   const index=item.examples?((selectedExamples.get(item.id)??-1)+1)%item.examples.length:0;
@@ -31,7 +60,13 @@ function select(item){
     button.setAttribute('aria-pressed',String(button.dataset.inspirationConcept===item.id));
     if(item.examples&&button.dataset.inspirationConcept===item.id){
       button.querySelector('img').src=example.cover;
-      button.title=item.title+' · '+(index+1)+' / '+item.examples.length+' · Select again for another frame';
+      const nextCover=item.examples[(index+1)%item.examples.length].cover;
+      button.dataset.hoverFrame=nextCover;
+      const overlay=button.querySelector('.pv-inspiration-hover-shot');
+      if(overlay&&overlay.src!==new URL(nextCover,document.baseURI).href){
+        overlay.classList.remove('is-ready');
+        overlay.src=nextCover;
+      }
     }
   }
   for(const button of document.querySelectorAll('[data-welcome-mood],[data-guest-mood]'))
@@ -44,7 +79,6 @@ function carouselCard(item,guest){
   button.className=guest?'pv-guest-card':'lab-welcome-preset';
   button.setAttribute('aria-pressed','false');
   button.setAttribute('aria-label','Select '+item.title+' Inspiration');
-  button.title=item.title+' · '+item.category+(item.examples?' · Select again for another frame':'');
   button.append(photo(item));
   if(guest){
     const caption=document.createElement('span');
@@ -84,7 +118,6 @@ function openAll(){
         const button=document.createElement('button');button.type='button';
         button.className='pv-inspiration-catalog-card';button.setAttribute('aria-label','Select '+item.title);
         if(!item.original){button.dataset.inspirationConcept=item.id;button.setAttribute('aria-pressed','false');}
-        if(item.examples)button.title=item.title+' · '+item.examples.length+' frames · Select again for another frame';
         button.append(photo(item));
         const name=document.createElement('strong');name.textContent=item.title;
         const sub=document.createElement('small');sub.textContent=item.category;
@@ -121,7 +154,7 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   const guest=track.classList.contains('pv-guest-cards');
   const inTrack=new Set([...track.querySelectorAll(':scope > button')].map(button=>
     (button.querySelector('span,strong')?.firstChild?.textContent||'').trim().toLowerCase()));
-  for(const item of sorted.slice(0,6))if(!inTrack.has(item.title.toLowerCase()))track.append(carouselCard(item,guest));
+  for(const item of sorted.slice(0,7))if(!inTrack.has(item.title.toLowerCase()))track.append(carouselCard(item,guest));
   // Swap existing nodes so every card keeps its original selection behavior.
   for(const [mood,concept] of [['90s-cinema','desert-stop'],['hong-kong-nights','lost-highway']]){
     const original=track.querySelector('[data-'+(guest?'guest':'welcome')+'-mood="'+mood+'"]');
@@ -131,11 +164,22 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
     original.before(featured);
     track.insertBefore(original,following);
   }
+  // Keep the newly commissioned Raver card immediately after Lost Highway.
+  const raverCard=track.querySelector('[data-inspiration-concept="raver"]');
+  const highwayCard=track.querySelector('[data-inspiration-concept="lost-highway"]');
+  if(raverCard&&highwayCard)highwayCard.after(raverCard);
+  // Attach only to the carousel, not the full Explore All catalog.
+  for(const button of track.querySelectorAll(':scope > button')){
+    const item=sorted.find(scene=>scene.id===button.dataset.inspirationConcept);
+    const cover=item?.examples?.length>1?item.examples[1].cover:
+      originalHoverFrames[button.dataset.guestMood||button.dataset.welcomeMood];
+    installHoverPreview(button,cover);
+  }
   const viewAll=document.createElement('button');
   viewAll.type='button';viewAll.className='pv-inspiration-view-all';
   viewAll.textContent='Explore all';viewAll.setAttribute('aria-label','Explore all Inspiration looks');
   viewAll.addEventListener('click',openAll);shell.append(viewAll);
 }
 const stylesheet=document.createElement('link');
-stylesheet.rel='stylesheet';stylesheet.href='./inspiration-catalog.css?v=20261111-full-portrait1';
+stylesheet.rel='stylesheet';stylesheet.href='./inspiration-catalog.css?v=20261117-owner1';
 document.head.append(stylesheet);

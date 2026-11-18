@@ -338,6 +338,12 @@ try{
   let {page,context,errors}=await openViewport(390,844);
   try{
     assert.equal(await page.locator('.pv-guest-card').count(),14,'Eight original cards plus six featured Inspiration scenes');
+    const motion=await page.locator('#pv-guest-cards').evaluate(track=>({
+     snap:getComputedStyle(track).scrollSnapType,behavior:getComputedStyle(track).scrollBehavior,
+     scrollable:track.scrollWidth>track.clientWidth
+    }));
+    assert.deepEqual(motion,{snap:'none',behavior:'auto',scrollable:true},
+     'Guest phone Inspiration scrolls freely while all cards remain accessible');
     const height=await page.locator('.pv-guest-card').first().evaluate(e=>e.getBoundingClientRect().height);
     assert.ok(height>185&&height<216,'390px phone keeps the cards about 15% shorter: '+height);
     const forward=page.locator('#gate .inspiration-nav-next');

@@ -40,6 +40,13 @@
 /* Photographs stay static on hover. No AI-style zoom effects. */
 #gate .pv-guest-carousel .pv-guest-card:hover img,
 #app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-preset:hover>img{transform:none!important}
+/* Desktop wheels glide freely between photographs; touch keeps card snapping. */
+@media (hover:hover) and (pointer:fine){
+  #gate .pv-guest-carousel .pv-guest-cards,
+  #app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-presets{
+    scroll-snap-type:none;
+  }
+}
 @media(max-width:1150px){
   #gate .pv-guest-carousel .pv-guest-cards,
   #app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-presets{grid-auto-columns:calc((100% - var(--inspire-gap)*2)/3)!important}
@@ -63,4 +70,16 @@
   #gate .pv-guest-carousel .pv-guest-cards,
   #app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-presets{scroll-behavior:auto}
   .inspiration-carousel-shell .inspiration-nav{transition:none}
+}
+
+/* PVLAB_MOBILE_IMAGE_INERTIA_20261118: frictionless native finger swipes.
+   Both guest and signed-in Inspiration cards retain their existing sizes. */
+@media(max-width:680px){
+ #gate .pv-guest-carousel .pv-guest-cards,
+ #app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-presets{
+  scroll-snap-type:none!important;
+  scroll-behavior:auto!important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;
+ }
 }

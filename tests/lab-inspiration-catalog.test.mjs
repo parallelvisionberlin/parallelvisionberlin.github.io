@@ -12,7 +12,7 @@ test('Image Inspiration expands original eight cards without modifying Moods',()
   const guest=read('studio-guest-image.js');
   assert.equal((html.match(/data-guest-mood="/g)||[]).length,8);
   assert.equal((html.match(/data-welcome-mood="/g)||[]).length,8);
-  assert.equal(INSPIRATION_SCENES.length,47);
+  assert.equal(INSPIRATION_SCENES.length,48);
   assert.match(read('inspiration-carousel.js'),/import '.\/inspiration-catalog\.js/);
   assert.match(catalog,/\.inspiration-carousel-shell/);
   assert.match(catalog,/inspiration-view-all/);
@@ -27,15 +27,15 @@ test('Image Inspiration expands original eight cards without modifying Moods',()
   assert.doesNotMatch(catalog,/\/api\/|fetch\(|submitImage|createGeneration/);
 });
 
-test('catalog has 47 unique scene concepts, eight categories, valid covers and editable photographic prompts',()=>{
+test('catalog has 48 unique scene concepts, eight categories, valid covers and editable photographic prompts',()=>{
   const ids=new Set(),names=new Set(),categories=new Set();
   for(const scene of INSPIRATION_SCENES){
     assert.ok(!ids.has(scene.id),'duplicate id '+scene.id);
     assert.ok(!names.has(scene.title),'duplicate name '+scene.title);
     ids.add(scene.id);names.add(scene.title);categories.add(scene.category);
     assert.ok(scene.prompt.length>110&&scene.prompt.length<=5000,scene.title+' prompt length');
-    if(['eros-lingerie','hotel-intimacy'].includes(scene.id)){
-      assert.equal(new URL(scene.cover).origin,'https://d2ol7oe51mr4n9.cloudfront.net','preserve the two approved hosted previews');
+    if(scene.id==='eros-lingerie'){
+      assert.equal(new URL(scene.cover).origin,'https://d2ol7oe51mr4n9.cloudfront.net','preserve the approved EROS hosted cover');
     }else{
       assert.ok(scene.cover.startsWith('./'),'asset stays on PV LAB origin');
       assert.ok(existsSync(new URL('../lab/'+scene.cover.slice(2),import.meta.url)),'missing preview '+scene.cover);
@@ -69,6 +69,42 @@ test('approved road photographs form two coherent cards with five distinct edita
 });
 
 
+test('Inspiration hover frames use verified alternative photographs, not generated or reused card covers',()=>{
+  const js=read('inspiration-catalog.js');
+  const css=read('inspiration-catalog.css');
+  const original=read('studio.html');
+  const expected={
+    '90s-cinema':'mood-previews/90s-cinema-record-shop-20261010.webp',
+    'fisheye-2000':'mood-references/fisheye-2000/02-fisheye-flash.webp',
+    'hong-kong-nights':'mood-references/hong-kong-nights/plaza-grill.webp',
+    dreamcore:'welcome-cards/cloud-spa.webp',
+    '80s-film':'welcome-cards/sun-fade.webp'
+  };
+  for(const [id,file] of Object.entries(expected)){
+    assert.ok(js.includes("'"+id+"':'./"+file+"'"),id+' has a registered hover shot');
+    assert.ok(existsSync(new URL('../lab/'+file,import.meta.url)),id+' hover photo must exist');
+    assert.ok(!original.includes('src="./'+file+'"'),id+' cover and hover shot must differ');
+  }
+  for(const id of ['lost-highway','desert-stop']){
+    const scene=INSPIRATION_SCENES.find(item=>item.id===id);
+    assert.ok(scene.examples.length>1&&scene.examples[0].cover!==scene.examples[1].cover);
+  }
+  assert.match(js,/item\?\.examples\?\.length>1\?item\.examples\[1\]\.cover/);
+  assert.match(js,/button\.addEventListener\('pointerenter'/);
+  assert.match(js,/overlay\.addEventListener\('load'/);
+  assert.match(js,/button\.dataset\.hoverFrame=nextCover/);
+  assert.match(js,/installHoverPreview\(button,cover\)/);
+  assert.match(js,/OWNER_ORIGINAL_HOVER_FRAMES/);
+  assert.match(js,/raverCard&&highwayCard/);
+  assert.match(js,/hover:hover/);
+  assert.doesNotMatch(js,/generateImage\(|fetch\(|\/api\//);
+  assert.match(css,/pointer:fine/);
+  assert.match(css,/\.pv-inspiration-hover-shot\.is-ready/);
+  assert.match(css,/not\(\[aria-pressed="true"\]\)/);
+  assert.match(css,/transition-delay:\.16s/);
+  assert.match(css,/prefers-reduced-motion:reduce/);
+});
+
 test('Inspiration gallery keeps complete portrait cards and scrolls within the dialog',()=>{
   const css=read('inspiration-catalog.css');
   const js=read('inspiration-catalog.js');
@@ -80,5 +116,19 @@ test('Inspiration gallery keeps complete portrait cards and scrolls within the d
   assert.match(css,/aspect-ratio:3\/4/);
   assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(js,/viewAll\.textContent='Explore all'/);
-  assert.match(js,/inspiration-catalog\.css\?v=20261111-full-portrait1/);
+  assert.match(js,/inspiration-catalog\.css\?v=20261117-owner1/);
+});
+
+
+test('Inspiration cards do not expose native hover titles, while keeping screen-reader labels',()=>{
+  const html=read('studio.html');
+  const catalog=read('inspiration-catalog.js');
+  const chrome=[...html.matchAll(/<button\\b[^>]*data-(?:guest|welcome)-mood="chrome-couture"[^>]*>/g)].map(m=>m[0]);
+  assert.equal(chrome.length,2,'Public and signed-in Chrome Couture cards exist');
+  for(const card of chrome){
+    assert.doesNotMatch(card,/\\btitle=/,'No browser tooltip on the card');
+    assert.match(card,/\\baria-label=/,'Screen reader name remains');
+  }
+  assert.doesNotMatch(catalog,/button\\.title\\s*=/,'Dynamic Inspiration cards have no browser-native titles');
+  assert.match(catalog,/button\\.setAttribute\\('aria-label'/,'Dynamic cards keep accessible names');
 });

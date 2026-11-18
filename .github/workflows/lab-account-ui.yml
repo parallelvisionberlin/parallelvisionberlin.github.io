@@ -1,9 +1,9 @@
 name: PV Lab account interface
 on:
   pull_request:
-    paths: ['lab/native-account.js', 'lab/clerk-browser-sdk.js', 'tests/lab-clerk-bootstrap.test.mjs', 'lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', 'lab/owner*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-auth-guard.test.mjs', '.github/workflows/lab-account-ui.yml']
+    paths: ['lab/native-account.js', 'lab/auth-google.js', 'lab/auth-callback.js', 'lab/auth-callback.html', 'lab/clerk-browser-sdk.js', 'tests/lab-clerk-bootstrap.test.mjs', 'tests/lab-auth-google.test.mjs', 'lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', 'lab/owner*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-auth-guard.test.mjs', '.github/workflows/lab-account-ui.yml']
   push:
-    paths: ['lab/native-account.js', 'lab/clerk-browser-sdk.js', 'tests/lab-clerk-bootstrap.test.mjs', 'lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', 'lab/owner*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-auth-guard.test.mjs', '.github/workflows/lab-account-ui.yml']
+    paths: ['lab/native-account.js', 'lab/auth-google.js', 'lab/auth-callback.js', 'lab/auth-callback.html', 'lab/clerk-browser-sdk.js', 'tests/lab-clerk-bootstrap.test.mjs', 'tests/lab-auth-google.test.mjs', 'lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', 'lab/owner*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-auth-guard.test.mjs', '.github/workflows/lab-account-ui.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,8 +21,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/lab-clerk-bootstrap.test.mjs tests/lab-auth.test.mjs tests/lab-clerk-domains.test.mjs tests/lab-account-menu.test.mjs tests/lab-referral-ui.test.mjs tests/lab-owner-auth-guard.test.mjs
-      - run: node --check lab/account.js && node --check lab/owner.js
+      - run: node --test tests/lab-clerk-bootstrap.test.mjs tests/lab-auth-google.test.mjs tests/lab-auth.test.mjs tests/lab-clerk-domains.test.mjs tests/lab-account-menu.test.mjs tests/lab-referral-ui.test.mjs tests/lab-owner-auth-guard.test.mjs
+      - run: node --check lab/account.js && node --check lab/owner.js && node --check lab/auth-google.js && node --check lab/auth-callback.js && node --check lab/customer-entry.js
       - run: npm install --prefix /tmp/pv-account-browser --no-audit --no-fund playwright@1.62.1
       - run: /tmp/pv-account-browser/node_modules/.bin/playwright install --with-deps chromium
       - name: Verify Image Studio loading has no scrollbar-width jump

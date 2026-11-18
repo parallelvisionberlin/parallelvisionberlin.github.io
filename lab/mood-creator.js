@@ -1,3 +1,4 @@
+import {openLabSignIn} from './auth-google.js?v=20261117-pv-google1';
 import {createAccountMenu} from './account-menu.js?v=20261030-robin-partner1';
 import {loadLabAccount} from './native-account.js?v=2&studioAuth=20261015-1';
 import {MOODS,moodById} from './moods.js?v=20261018-girard-originals2&20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&raveNight=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016v2&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&fisheyeCover=20261021v1&hkRefs=20261023two1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&hkCinema=20261025v1&softPastelV2=20261111a&fallenAngel=20261112a';
@@ -484,7 +485,7 @@ function initMoodCreator(){
       }
     }catch(error){if(local===authGeneration){account=null;showAuth();feedback('Sign-in worked, but your private Mood collection could not load. '+error.message,true);}}
   }
-  signin.onclick=()=>clerk?.openSignIn?.();
+  signin.onclick=()=>openLabSignIn(clerk);
   signout.onclick=()=>void clerk?.signOut?.();
   for(const mood of MOODS)base.add(new Option(mood.name,mood.id));
   base.addEventListener('change',()=>{const selectedMood=moodById(base.value);if(selectedMood?.defaultIntensity){intensity.value=String(selectedMood.defaultIntensity);$('mc-intensity-value').textContent=intensity.value+'%';}});

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-15T18:51:08.813Z",
+  "updatedAt": "2026-11-18T01:25:00Z",
   "handoffs": [
     {
       "id": "owner",
@@ -64,6 +64,57 @@
     }
   ],
   "records": [
+    {
+      "id": "home-hero-still-first",
+      "title": "PV LAB homepage static hero by default",
+      "component": "PV LAB homepage hero",
+      "status": "needs_verification",
+      "summary": "Default hero is the existing approved Fashion After Fabric poster, not an automatically looping Flesh Zero video. The previously approved owner film remains available from the existing Play control.",
+      "nextAction": "Review focused landing/approved Image CI; merge after valid checks, then verify exact Cloudflare Pages production build and public homepage in normal-motion desktop and mobile browsers.",
+      "baselineSha": "02fedcf990e72b96ec8743f2892ff8619df95c00",
+      "branch": "fix/pvlab-static-hero-by-default-20261117",
+      "files": [
+        "lab/landing-motion.js",
+        "tests/lab-landing-ui.cjs",
+        "lab/WORK-STATE.md"
+      ],
+      "tests": [
+        {
+          "label": "Landing still-first, manual Play, reduced-motion regression",
+          "result": "not_run",
+          "scope": "New checks included in tests/lab-landing-ui.cjs. CI pending."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "This record describes a branch, not a merged commit, Cloudflare deployment or live browser verification."
+        ]
+      },
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not auto-play the Flesh Zero video on homepage entry or on scroll re-entry.",
+        "Do not alter the approved homepage copy, wordmark, navigation, gradient or CTA placements."
+      ],
+      "updatedAt": "2026-11-17T22:37:13.014Z",
+      "links": [
+        {
+          "label": "PR #1034",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1034"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "A reviewable branch changes only homepage hero autoplay default and focused landing UI assertions.",
+          "scope": "Public landing presentation and opt-in video loader; no customer data or payments.",
+          "limitations": [
+            "Not merged or verified in production."
+          ]
+        }
+      ]
+    },
     {
       "id": "owner-release-health-console-link",
       "title": "Owner navigation: Estado de PV LAB",
@@ -232,7 +283,7 @@
       "title": "Chrome Desert featured world to Full Editorial",
       "component": "PV LAB homepage / Full Editorial",
       "status": "deployed",
-      "summary": "Chrome Desert homepage crop now keeps the model’s entire head visible. Original photo, supporting cards, layout and CTA preserved.",
+      "summary": "Chrome Desert homepage crop now keeps the model\u2019s entire head visible. Original photo, supporting cards, layout and CTA preserved.",
       "nextAction": "No crop implementation pending. Mobile rendering was not freshly browser-tested in this release.",
       "baselineSha": "739b9b3fde2092b259997b7a98e8be83b950ba1d",
       "branch": "fix/chrome-desert-head-framing-20261114",
@@ -607,7 +658,7 @@
       "title": "Selected Image Mood label clarity",
       "component": "Image Mood control",
       "status": "needs_verification",
-      "summary": "Desktop 104px selected Mood pill reserves room for clear ×; Night Flash lettering is bounded and cannot cover the clear button. Rest of Image toolbar untouched.",
+      "summary": "Desktop 104px selected Mood pill reserves room for clear \u00d7; Night Flash lettering is bounded and cannot cover the clear button. Rest of Image toolbar untouched.",
       "nextAction": "Run Night Flash geometry and Image UI checks, merge reviewed PR, confirm Cloudflare and production asset.",
       "baselineSha": "a73fc4242a76802458facee8379d713654af9c15",
       "reviewedSha": null,
@@ -736,7 +787,7 @@
       "title": "Group partner dashboards",
       "component": "Owner navigation",
       "status": "deployed",
-      "summary": "Robin / König Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
+      "summary": "Robin / K\u00f6nig Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
       "nextAction": "No additional menu work is pending. Recheck only if navigation code, routes or role behavior change.",
       "baselineSha": "e400ff36ca7e6d541dfeb8d8748fc0357a0b6730",
       "reviewedSha": "9fc17771dd75bd3eeb4cd5bbdc77812945f98e1c",
@@ -883,7 +934,7 @@
       "component": "Owner workspace",
       "status": "deployed",
       "summary": "Published: clear View activity access to existing generated-content review, restored manual Customers Refresh and improved Recent purchases spacing. Approved simplified navigation and existing functions retained.",
-      "nextAction": "Use Customers → View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
+      "nextAction": "Use Customers \u2192 View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
       "baselineSha": "e2cd02bce742b157d12308b76908cbacea34b604",
       "reviewedSha": "01362b3073f7d997d98d7ebd2830ad586d244d77",
       "branch": "fix/owner-activity-access-20261106",
@@ -1309,7 +1360,7 @@
         },
         {
           "kind": "fixture",
-          "summary": "Rendered a local scene-specific exposure/color proof preserving original pixel coordinates and 1343×767 geometry. Both faces, expressions and composition remain source-derived. Original frontal lighting remains evident.",
+          "summary": "Rendered a local scene-specific exposure/color proof preserving original pixel coordinates and 1343\u00d7767 geometry. Both faces, expressions and composition remain source-derived. Original frontal lighting remains evident.",
           "scope": "User-supplied storefront Base capture, local deterministic render and visual inspection.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/HONG-KONG-IMAGE3-WORK-STATE.md",
           "observedAt": "2026-11-07T09:15:51Z",
@@ -2206,7 +2257,7 @@
       "title": "Smaller Image reference removal controls",
       "component": "Image prompt deck",
       "status": "deployed",
-      "summary": "Published: Image thumbnail × controls are 16px and appear on hover or visible keyboard focus on mouse-equipped web devices. Existing touch/native visibility and sizing remain.",
+      "summary": "Published: Image thumbnail \u00d7 controls are 16px and appear on hover or visible keyboard focus on mouse-equipped web devices. Existing touch/native visibility and sizing remain.",
       "nextAction": "No further work pending for this request. Real signed-in hover/removal observation remains separate from asset publication and synthetic-session browser checks.",
       "baselineSha": "c714d7ec533da9807bb3f0f03e5c571463d2a4e4",
       "reviewedSha": "dd1aab176c7cadbfe987955c14cdf055188c3a31",
@@ -3338,7 +3389,7 @@
         {
           "label": "Photographic geometry and Assets browser regression",
           "result": "passed",
-          "scope": "Eight photographic cases: Standard V2/High Fidelity V3 at 1920×910, 1440×740, 1024×520 and 390×844. Exact upload/Clear inspector geometry, visible source, no inner scroll, no horizontal overflow, accessible fields/action and no billable requests. Desktop/mobile Assets result, History and source-replacement assertions pass.",
+          "scope": "Eight photographic cases: Standard V2/High Fidelity V3 at 1920\u00d7910, 1440\u00d7740, 1024\u00d7520 and 390\u00d7844. Exact upload/Clear inspector geometry, visible source, no inner scroll, no horizontal overflow, accessible fields/action and no billable requests. Desktop/mobile Assets result, History and source-replacement assertions pass.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43628905439/job/132550892178"
         },
         {
@@ -3366,7 +3417,7 @@
       "evidence": [
         {
           "kind": "source",
-          "summary": "A high-specificity legacy empty-only 680px workspace rule moved the action by 42px at 1440×740. The later Image workspace rules now match both visible empty/source states with the same specificity.",
+          "summary": "A high-specificity legacy empty-only 680px workspace rule moved the action by 42px at 1440\u00d7740. The later Image workspace rules now match both visible empty/source states with the same specificity.",
           "scope": "Image Upscaler inspector sizing",
           "source": "lab/video-upscale.css",
           "limitations": []
@@ -3395,7 +3446,7 @@
         },
         {
           "kind": "signed_in_production",
-          "summary": "Live existing authenticated browser: public 960×1200 JPG selected through the source chooser and cleared through Clear. Title, model, scale, format and action rectangles remained exactly equal before/after both actions. Body overflow-y visible; clientHeight = scrollHeight = 752px. Upscale was never clicked.",
+          "summary": "Live existing authenticated browser: public 960\u00d71200 JPG selected through the source chooser and cleared through Clear. Title, model, scale, format and action rectangles remained exactly equal before/after both actions. Body overflow-y visible; clientHeight = scrollHeight = 752px. Upscale was never clicked.",
           "scope": "Actual production upload/Clear layout and absence of an internal scrollbar",
           "source": "https://pvlab.studio/studio?tool=upscale",
           "limitations": [
@@ -3450,7 +3501,7 @@
         {
           "label": "Picker geometry and shared toolbar",
           "result": "passed",
-          "scope": "Anchored menu, viewport fit, compact choices and stable deck at 1440×900, 1100×700, 390×844 and 390×600. Desktop and phone screenshots inspected.",
+          "scope": "Anchored menu, viewport fit, compact choices and stable deck at 1440\u00d7900, 1100\u00d7700, 390\u00d7844 and 390\u00d7600. Desktop and phone screenshots inspected.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42905720524"
         },
         {
@@ -3504,7 +3555,7 @@
       "title": "PV Still image quantity counter",
       "component": "Image / PV Still",
       "status": "deployed",
-      "summary": "Added the shared 1–2 image counter for PV Still. Each image uses its own live quote and job; customer confirmation shows the total. Complete quote validation, two-slot availability checks and stop-on-uncertain handling protect partial batches.",
+      "summary": "Added the shared 1\u20132 image counter for PV Still. Each image uses its own live quote and job; customer confirmation shows the total. Complete quote validation, two-slot availability checks and stop-on-uncertain handling protect partial batches.",
       "nextAction": "No implementation work remains. If the owner reports a real provider issue, inspect the returned job and quote before retrying.",
       "baselineSha": "1255c78b396c00bef6caf8df3bb9a6f004cf6b25",
       "reviewedSha": "1ab7d0211094c058c428a74db309cf4d34bf12b0",
@@ -4073,7 +4124,7 @@
       "evidence": [
         {
           "kind": "source",
-          "summary": "Only four lazy-loaded figure cards added to homepage, using existing casting JPEGs and sequential numbers 09–12.",
+          "summary": "Only four lazy-loaded figure cards added to homepage, using existing casting JPEGs and sequential numbers 09\u201312.",
           "scope": "Homepage character selection only.",
           "source": "lab/index.html",
           "limitations": [
@@ -4238,14 +4289,153 @@
       ]
     },
     {
+      "id": "mobile-editorial-image-swipe-20261118",
+      "title": "PV LAB phone casting and Inspiration kinetic swipes",
+      "component": "PV LAB Full Editorial Identity / Image Studio Inspiration",
+      "status": "in_progress",
+      "summary": "Mobile-only adjustment removes mandatory card snapping in Full Editorial casting, saved characters, Composition and Image Studio guest/signed-in Inspiration. Native iPhone kinetic horizontal swipe remains; no artificial velocity handler. Approved card dimensions, fixed footer, selection, prompts, credit and generation logic unchanged.",
+      "nextAction": "Inspect scoped PR #1040 source/browser CI, merge when safe, verify Cloudflare Pages app check for the exact merge SHA, then confirm production CSS versions and actual iPhone/Instagram browser swipe feel. Do not claim deployment from merge.",
+      "baselineSha": "255f9dfae6fa55e178271f19bdfd170f1cbb258f",
+      "reviewedSha": null,
+      "branch": "fix/mobile-editorial-image-native-inertia-20261118",
+      "files": [
+        "lab/full-editorial-identity-refresh.css",
+        "lab/inspiration-carousel.css",
+        "lab/full-editorial.html",
+        "lab/studio.html",
+        "tests/lab-full-editorial.test.mjs",
+        "tests/lab-inspiration-carousel.test.mjs",
+        "tests/lab-full-editorial-browser.mjs",
+        "tests/lab-mobile-mood-entry.mjs"
+      ],
+      "links": [
+        {
+          "label": "PR #1040 mobile kinetic swipe",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1040"
+        },
+        {
+          "label": "Full Editorial scoped history",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/FULL-EDITORIAL-WORK-STATE.md"
+        },
+        {
+          "label": "Inspiration scoped history",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/INSPIRATION-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Full Editorial and Image source/mobile browser assertions",
+          "result": "not_run",
+          "scope": "Computed free-scroll/no snap at phone widths; unchanged presets, hero and controls."
+        },
+        {
+          "label": "Required approved Image UI contract",
+          "result": "not_run",
+          "scope": "GitHub Actions PR job, not yet confirmed passing."
+        }
+      ],
+      "deployment": {
+        "state": "unverified",
+        "sourceSha": null,
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "No Cloudflare release or exact served-byte check yet.",
+          "Actual native iOS inertia on Instagram in-app browser has not been physically tested."
+        ]
+      },
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not redesign the editor or Image deck, change photo order, sizes, captions, arrows, payment or generation.",
+        "Do not add JavaScript touch event prevention/drag simulation to obtain an artificial speed boost.",
+        "Do not confuse GitHub Pages with pvlab.studio production.",
+        "Test iOS swipe separately from CSS computed properties."
+      ],
+      "updatedAt": "2026-11-18",
+      "evidence": []
+    },
+    {
+      "id": "alter-makeup-reference-transfer",
+      "title": "ALTER: makeup image references, Seedream 5.5, and Video-like accepted-job handoff",
+      "component": "ALTER Studio",
+      "status": "deployed",
+      "summary": "MERGED TO PRODUCTION: ALTER retains all existing approved photos/hero/layout and 20-look archive. All 15 non-Original Makeup cards inject their exact approved makeup WebP as Reference 2 with an explicit makeup-only role, keeping user's photo as authoritative Base Reference 1. Hair/Light/Skin/Color continue as independent prompt options with one shared global Look strength. Seedream 5.5 added; 5 Pro remains default. On Generate the source photo fades into a full-deck Video-inspired optical textile. After provider acceptance, New edit is enabled and cannot resubmit the old quote; confirmed jobs continue polling in Results with an animated status card, private original preserved for Before/After.",
+      "nextAction": "No further code change or merge remains. Cloudflare production deployment completed successfully for merge SHA f4362ccbf2e7087597282b98756fdf4767fb126b. GitHub Actions remained queued globally, and external browser fetch returned inaccessible; do not label UI or paid provider fidelity as independently tested. Optional controlled signed-in user test: makeup reference exactness, hair color, identity, and second draft while prior job runs.",
+      "baselineSha": "a618768b8b359ade058e344eb5a5e3c051e1e06e",
+      "reviewedSha": "f4362ccbf2e7087597282b98756fdf4767fb126b",
+      "branch": "feat/alter-makeup-reference-progress-20261118",
+      "files": [
+        "lab/beauty-settings.js",
+        "lab/beauty.js",
+        "lab/beauty.html",
+        "lab/beauty-processing-20261118.css",
+        "tests/lab-beauty.test.mjs",
+        "tests/lab-beauty-category-contract.test.mjs",
+        "tests/lab-beauty-makeup-expansion.test.mjs",
+        "tests/lab-beauty-ui.mjs",
+        "lab/beauty-processing-fabric.js"
+      ],
+      "links": [
+        {
+          "label": "PR #1039, changes and CI",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1039"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Independent code assertions",
+          "result": "passed",
+          "scope": "102/102 checks across all 15 makeup image mappings, exact two-reference quotes, mismatch rejection, model selector, on-photo handoff, New edit, and parallel results state. These are static/pure-function checks; not a full browser suite."
+        },
+        {
+          "label": "Cloudflare Pages build",
+          "result": "passed",
+          "scope": "GitHub Cloudflare Workers and Pages app checked exact merge commit f4362ccbf2e7087597282b98756fdf4767fb126b: completed success at 2026-11-18T00:00:24Z."
+        },
+        {
+          "label": "GitHub Actions",
+          "result": "queued",
+          "scope": "Beauty Studio, approved Image UI, Lab integration and other repository Actions remained queued; no pass claimed."
+        }
+      ],
+      "deployment": {
+        "status": "cloudflare_success",
+        "sourceSha": "f4362ccbf2e7087597282b98756fdf4767fb126b",
+        "project": "pvlab-studio",
+        "checkUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/f5fb9d95-9bfd-4cfc-897a-671035b90f58",
+        "completedAt": "2026-11-18T00:00:24Z",
+        "verifiedVia": "Cloudflare Pages GitHub check-run; direct public-domain browser/byte verification unavailable"
+      },
+      "evidence": [
+        {
+          "kind": "production_app_check",
+          "summary": "Cloudflare Pages deployment completed successfully for exact merge f4362cc",
+          "url": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/f5fb9d95-9bfd-4cfc-897a-671035b90f58"
+        },
+        {
+          "kind": "source_pr",
+          "summary": "PR #1039 merged",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1039"
+        }
+      ],
+      "blockers": [
+        "Full GitHub Actions browser/integration tests remain queued across the repository. No evidence of a failing ALTER test, but no passing run either.",
+        "Direct read-only browser of pvlab.studio is inaccessible; real signed-in and paid two-reference generation not independently executed."
+      ],
+      "doNotRepeat": [
+        "Preserve approved 15 makeup images, hero and existing five-tab layout.",
+        "Never weaken exact quote validation, submit deduplication, credits or customer privacy to speed the UI.",
+        "Distinguish a GitHub merge from verified production and a real signed-in paid transfer test."
+      ],
+      "updatedAt": "2026-11-18T00:01:00Z"
+    },
+    {
       "id": "customer-risk-ci-coverage-20261114",
       "title": "Stop phone Mood freezing, stabilize saved-character frame and restore regression coverage",
       "component": "Customer generation / regression coverage",
       "status": "needs_verification",
-      "summary": "Updating draft #934 after #1025/#1026 merged. The earlier 8a5d2d05 remains fully tested against old main only; it now conflicts with the released taller stationary desktop cards and model order. Integrate current main while preserving all its approved desktop behavior, Chrome backdrop, Seedream 5 Pro order, and all other work records. Retain the isolated phone observer guard and existing CI/fixture repairs. Current integration still requires fresh focused and hosted validation before it can be described as ready. Production controller bytes independently confirm the unguarded phone class update remains live; no real generation/payment or production change was performed.",
-      "nextAction": "Complete validation of the integrated candidate on current main, then present the concrete merge/frontend-publication decision. No Worker deployment or migration is needed. After an authorized publication verify served controller bytes and a phone Mood interaction without paid generation.",
-      "baselineSha": "c340012303b842fd0687dfc1c7f395295b99f23a",
-      "reviewedSha": "6e4c327b62ec4aa96d36829d36f60eb8c8f24fa5",
+      "summary": "Current main 844dbc09 integrated locally into the existing phone-freeze fix after confirmed merge conflicts. Preserve released authentication, ALTER references/job handoff, Inspiration photographs, Editorial casting and all other work records. The six application-file deltas remain the original phone observer guard, cache tags and saved-character frame stability. This integration is not ready: required browser checks remain unrun and seven focused failures also exist on current main.",
+      "nextAction": "Run required browser validation on the exact integrated draft head, compare failures with current-main baseline and correct any attributable regression before proposing publication. Preserve other work. No Worker deployment or migration is required for the phone guard.",
+      "baselineSha": "844dbc091464273f5e772232ed27b41c24de85c3",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
         ".github/workflows/lab-first-image-trial.yml",
@@ -4482,6 +4672,11 @@
           "result": "passed",
           "scope": "Current candidate passes original pixel and geometry thresholds. The earlier ten rounded-border sample failures remain documented. Software-rendering flags did not eliminate recurrence and were reverted. Exact layout/style and same-source capture diagnostics were added; successful control runs have identical geometry and all 46,760 card pixels matching. No mask, tolerance increase or production-layout change was introduced to hide a failure.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/43721559472/job/132834453369"
+        },
+        {
+          "label": "November 18 current-main integration baseline comparison",
+          "result": "failed",
+          "scope": "Exact local integration 9fd528f0: 326 focused tests, 319 passed and 7 failed. Exact baseline 844dbc09: same 326 tests, 316 passed and 10 failed. All 7 candidate failures also occur on baseline: Google crypto mock, stale ALTER source assertion, five existing ALTER work-index schema failures. No new focused failure observed. Local browser cannot start because Playwright Chromium is absent. Historical hosted tests do not validate this integration."
         }
       ],
       "deployment": {
@@ -4751,9 +4946,9 @@
         }
       ],
       "blockers": [
-        "Integrated candidate validation is pending. Historical 61 green checks apply only to old head 8a5d2d05 against main 29dbf29f.",
-        "User decision is required before merge/frontend publication.",
-        "Real signed-in checkout-to-credit delivery and paid generation remain unverified."
+        "Required phone/deck/role browser validation is pending; local Playwright Chromium is absent.",
+        "Seven focused failures persist from current main, including authentication mock, ALTER fixture and unrelated work-index schema. Candidate is not ready.",
+        "User decision required before merge/frontend publication; no production actions performed."
       ],
       "doNotRepeat": [
         "Do not rewrite approved catalog/design to silence assertions. Reuse existing PR #934 for its test-fixture files.",
@@ -4761,7 +4956,8 @@
         "Keep strict visual thresholds. Use captured geometry/style and same-source controls when narrow rounded-edge variance recurs; do not declare production health or weaken the gate.",
         "Use current exact job IDs, nested saved-video Actions, uniform Video failure cards and inspector reuse; do not restore retired status prefixes, Liquid Metal templates or Image-only refusal markup to satisfy stale fixtures."
       ],
-      "updatedAt": "2026-11-15T18:51:08.813Z"
+      "updatedAt": "2026-11-18T01:25:00Z",
+      "reviewedSha": "9fd528f04bfa78235d2e4684812ebe7e4031a09f"
     }
   ]
 }

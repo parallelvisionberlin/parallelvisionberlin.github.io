@@ -1,3 +1,10 @@
+## Homepage hero static by default, 2026-11-17
+
+- Owner finds the repeatedly looping Flesh Zero visual distracting and wants a calmer premium first impression.
+- On the public homepage, retain the approved static Fashion After Fabric poster, layout, copy, positioning and video asset; disable unsolicited playback and network loading. Video remains opt-in through the existing small Play control.
+- Only `lab/landing-motion.js` changes runtime behavior; `tests/lab-landing-ui.cjs` adds explicit non-reduced-motion checks for no initial source/download and user-initiated playback, plus reduced-motion reset. No studio, customer, wallet, Stripe, provider or Worker changes.
+- Work branch: `fix/pvlab-static-hero-by-default-20261117`. The source patch is not a production deployment; verify CI, merge, Cloudflare Pages pvlab-studio, then custom-domain behavior separately.
+
 ## Fashion Studio focused Replace Outfit design, 2026-10-31
 
 - Owner approved the final dark two-model translucent-fabric mockup without the Style & Looks strip.

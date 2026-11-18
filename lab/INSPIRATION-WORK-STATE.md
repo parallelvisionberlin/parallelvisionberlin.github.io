@@ -1,3 +1,9 @@
+## Mobile native swipe inertia, 2026-11-18
+- User-approved phone Image Studio Inspiration swipes: retain the existing two-up card imagery/sizes and fixed Generate deck, but stop forced card snapping so finger swipes carry native iOS momentum.
+- Same PR #1040: `inspiration-carousel.css` now scopes free kinetic scrolling to <=680px for both signed-out and signed-in Inspiration; `studio.html` refreshes only that stylesheet cache version.
+- Existing desktop easing and mouse wheel, functional arrows, Mood choice handlers, prompt/deck, payment and provider code unchanged. Source contract `tests/lab-inspiration-carousel.test.mjs` and mobile browser test `tests/lab-mobile-mood-entry.mjs` expanded.
+- At checkpoint creation: code on PR branch; CI, Cloudflare and actual iPhone momentum are pending independent verification. No paid jobs involved.
+
 # Active: primary Inspiration entry, 2026-10-31
 
 - User: Inspiration was too easy to miss among the upper-right utility buttons.
