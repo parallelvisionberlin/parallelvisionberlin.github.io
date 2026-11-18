@@ -40,3 +40,12 @@ These instructions apply to all changes under `lab/`, in addition to the reposit
 - Preserve the approved taller single row: grow cards upward into spare heading space while keeping the original bottom edge and 24px heading gap. Do not add rows or extend cards downward.
 - Public, new, returning and owner Inspiration share the approved Chrome backdrop, heading/card spacing and1064px deck. Preserve the visually hidden credit-row layout slot even when owner status hides it.
 - Current verification and release: IMAGE-PROMPT-WORK-STATE.md, canonical record image-prompt-deck-clearance.
+
+## Upscaler Image / Video shared design, owner lock 2026-11-18
+
+- One shared inspector, source uploader/drop target, preview frame and action footer across Image/Video and empty/loaded/Clear states. Mode switching must not redesign or resize the interface.
+- Shared Upscale. heading: 44px desktop / 36px phone. Hide the enhancement kicker and descriptive paragraph.
+- Use the larger Video proportions for both modes: 60px model cards with 38px art and a persistent 64px source upload box. Both the source box and the large preview accept drag/drop for the selected media type.
+- Only media labels, models and relevant output fields change. Preserve original media and settings when switching.
+- MOV and MP4 are accepted by Video Upscaler; keep real source MIME and server-verified timing/pricing. Keep 20 MiB/30s limits unless separately authorized.
+- Current implementation and publication evidence: UPSCALE-WORK-STATE.md, owner record upscaler-shared-design-mov. This replaces the earlier Image-only compact sizing direction.

@@ -192,9 +192,9 @@ async function verifyPhotographicLayout(){
     assert.ok(g.documentWidth<=g.viewportWidth,'No horizontal overflow with a loaded photograph');
     assert.ok(Math.abs(g.scaleTop-g.formatTop)<=1&&g.scaleRight<g.formatLeft,
       'Enlargement and Image format sit side by side: '+JSON.stringify(g));
-    assert.equal(g.scaleHeight,38,'Enlargement uses the compact Video field height');
-    assert.equal(g.formatHeight,38,'Image format matches Enlargement');
-    assert.ok(g.modelHeight>=44&&g.modelHeight<55,'Model button stays compact and readable');
+    assert.equal(g.scaleHeight,41,'Enlargement uses the compact Video field height');
+    assert.equal(g.formatHeight,41,'Image format matches Enlargement');
+    assert.ok(g.modelHeight>=57&&g.modelHeight<=62,'Model button stays compact and readable');
     if(width>=781){
       assert.equal(g.overflow,'visible','The loaded deck has no inner scroll container');
       assert.ok(g.bodyScrollHeight<=g.bodyHeight+1,'All settings fit their deck: '+JSON.stringify(g));

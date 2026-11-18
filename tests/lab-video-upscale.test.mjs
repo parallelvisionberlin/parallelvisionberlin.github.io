@@ -27,7 +27,7 @@ test('MP4 server validation reads authoritative duration, fps, geometry and fram
 });
 test('MP4 metadata refuses fragmented or invalid containers, overlong duration and unbounded FPS',()=>{
   assert.throws(()=>inspectUpscaleMp4(new Uint8Array(200)),/valid.*MP4|unfragmented MP4/i);
-  assert.throws(()=>inspectUpscaleMp4(fixture({fragmented:true})),/readable video index/);
+  assert.throws(()=>inspectUpscaleMp4(fixture({fragmented:true})),/readable.*index/);
   assert.throws(()=>inspectUpscaleMp4(fixture({frames:1000})),/30 seconds/);
   assert.throws(()=>inspectUpscaleMp4(fixture({timescale:30000,delta:100})),/8 to 60/);
 });
@@ -72,4 +72,12 @@ test('website has Video tab, three API providers and distinct private upload + q
   assert.match(js,/\/api\/quotes/);assert.match(js,/\/api\/jobs/);assert.match(js,/confirm:true/);
   assert.match(core,/createVideoUpscaler/);assert.match(core,/historyJobVisible/);
   assert.match(worker,/fal-video-upscale-v1/);assert.match(worker,/inspectUpscaleMp4/);
+});
+
+test('real QuickTime MOV uses the same authoritative timing and quote as MP4',()=>{
+  const mp4=inspectUpscaleMp4(readFileSync(new URL('./fixtures/video-upscale/valid-1s.mp4',import.meta.url)));
+  const mov=inspectUpscaleMp4(readFileSync(new URL('./fixtures/video-upscale/valid-1s.mov',import.meta.url)));
+  assert.deepEqual(mov,mp4);
+  const p=videoUpscaleParameters({videoUpscaleEngine:'proteus',resolution:'1080p'},{fail});
+  assert.deepEqual(quotedVideoUpscale(p,mov,{fail}),quotedVideoUpscale(p,mp4,{fail}));
 });

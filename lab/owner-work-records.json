@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T00:01:00Z",
+  "updatedAt": "2026-11-18T11:36:20Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4427,6 +4427,84 @@
         "Distinguish a GitHub merge from verified production and a real signed-in paid transfer test."
       ],
       "updatedAt": "2026-11-18T00:01:00Z"
+    },
+    {
+      "id": "upscaler-shared-design-mov",
+      "title": "One Upscaler design and MOV support",
+      "component": "PV LAB Upscaler",
+      "status": "needs_verification",
+      "summary": "One shared Image/Video layout, medium-large heading, larger cards and persistent source drop box; accept MOV with preserved MIME and existing authoritative quote checks. Valid MOV can reach quote review even when the browser cannot decode its preview.",
+      "nextAction": "Finish final-candidate browser CI, merge, then verify Pages bytes and the migration-free Worker release with exact MOV capability marker.",
+      "baselineSha": "844dbc091464273f5e772232ed27b41c24de85c3",
+      "reviewedSha": "7b80cce58e47df3049009effdcaeae1d9526d743",
+      "branch": "fix/upscaler-shared-design-mov-20261118",
+      "files": [
+        "lab/video-upscale.js",
+        "lab/upscale-single-editor.css",
+        "lab/studio.html",
+        "lab/lab.js",
+        "lab-worker/video-upscale.mjs",
+        "lab-worker/worker.mjs",
+        "lab/AGENTS.md",
+        "lab/UPSCALE-WORK-STATE.md",
+        ".github/workflows/release-upscaler-mov-worker.yml",
+        "lab/video-upscale-metadata.js"
+      ],
+      "links": [
+        {
+          "label": "Scoped Upscaler state",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Real MOV metadata and upload/quote",
+          "scope": "QuickTime fixture equals MP4; owner route retains MIME; no jobs/provider dispatch",
+          "result": "passed",
+          "source": "tests/lab-worker.test.mjs"
+        },
+        {
+          "label": "Shared inspector visual check",
+          "scope": "44px heading, 64px source and 60px model cards have identical rectangles across media switch in isolated browser",
+          "result": "passed"
+        },
+        {
+          "label": "Backend and release safeguards",
+          "scope": "178 Image/model/quote/credit/finance/lifecycle/replacement tests pass. Existing Beauty single-input test fixture updated to supply its default makeup reference; production guards unchanged.",
+          "result": "passed"
+        },
+        {
+          "label": "Desktop/phone parity and Assets",
+          "scope": "Initial candidate CI passed MOV selection/drop/quote, media-state retention, identical heading/source/model bounds, uncertain-submit lock and Assets visibility. Short-viewport expanded model options required tighter spacing; repeat compact suite on final candidate.",
+          "result": "documented",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44295062674"
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio and PV LAB Worker",
+        "sourceSha": null,
+        "limitations": [
+          "Browser tests use synthetic media; actual owner MOV is not attached.",
+          "No paid provider job was submitted."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Provider supports MOV; PV LAB general reference upload supports video/quicktime; Upscaler-only format and quote checks blocked it.",
+          "scope": "MOV upload and quote path",
+          "source": "lab-worker/worker.mjs",
+          "limitations": []
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Keep one shared design; do not restore Image-only compact sizing.",
+        "Do not submit paid jobs as a layout test.",
+        "Worker deployment must preserve live bindings/vars/secrets; use release-upscaler-mov-worker.yml with no migrations."
+      ],
+      "updatedAt": "2026-11-18T11:36:20Z"
     }
   ]
 }

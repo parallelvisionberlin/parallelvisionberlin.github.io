@@ -1,3 +1,4 @@
+import {inspectUpscaleMp4} from './video-upscale-metadata.js?v=20261118-mov1';
 /* PV LAB / One Upscaler workspace, two media modes.
    Video shares the Image editor's real control and preview columns. The
    existing image controls stay mounted, preserving their inputs and results.
@@ -120,14 +121,14 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
      heroTitle.textContent='Insert a source video.';
      heroDescription.textContent='Upload a video to begin the upscale process.';
      heroButtonText.textContent='Upload video';
-     heroHint.textContent='MP4 · up to 30 seconds · 20 MB';
+     heroHint.textContent='MP4 or MOV · up to 30 seconds · 20 MB';
      originalHero.setAttribute('aria-label','Upload a source video for upscaling');
-     dropzone?.setAttribute('aria-label','Drop a source video here or choose an MP4 file');
+     dropzone?.setAttribute('aria-label','Drop a source video here or choose an MP4 or MOV file');
      emptySection?.setAttribute('aria-label','Upload a video to upscale');
      sourceUpload?.setAttribute('aria-label',file?'Replace source video for upscaling':'Choose source video for upscaling');
      if(sourceControlLabel)sourceControlLabel.textContent='Source video';
      if(sourceControlTitle)sourceControlTitle.textContent=file?'Replace video':'Choose video';
-     if(sourceControlFilename)sourceControlFilename.textContent=file?file.name:'MP4 · up to 30 seconds · 20 MB';
+     if(sourceControlFilename)sourceControlFilename.textContent=file?file.name:'MP4 or MOV · up to 30 seconds · 20 MB';
      originalEmpty.hidden=!!file||!!resultURL;
    }else{
      if(introKicker)introKicker.textContent=imageIntroKicker;
@@ -172,7 +173,7 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
      sharedGenerate.textContent=action.textContent;
      sharedGenerate.disabled=action.disabled;
      if(sourceControlTitle)sourceControlTitle.textContent=file?'Replace video':'Choose video';
-     if(sourceControlFilename)sourceControlFilename.textContent=file?file.name:'MP4 · up to 30 seconds · 20 MB';
+     if(sourceControlFilename)sourceControlFilename.textContent=file?file.name:'MP4 or MOV · up to 30 seconds · 20 MB';
    }
  }
  function changeTab(name){if(!['image','video'].includes(name)||media===name||loading)return;media=name;sync();onModeChange?.();}
@@ -185,13 +186,13 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
  }
  function chooseFile(candidate,id=null){
    if(!candidate||candidate.size<128)
-     throw Error('This file is empty or incomplete. Choose a standard MP4 video.');
-   if(candidate.type!=='video/mp4'&&!/\.mp4$/i.test(candidate.name))
-     throw Error('This format is not supported. Choose an MP4 (H.264), 0.5 to 30 seconds, up to 20 MB.');
+     throw Error('This file is empty or incomplete. Choose an MP4 or MOV video.');
+   if(!['video/mp4','video/quicktime'].includes(candidate.type)&&!/\.(mp4|mov)$/i.test(candidate.name))
+     throw Error('This format is not supported. Choose an MP4 or MOV, 0.5 to 30 seconds, up to 20 MB.');
    // Both /api/reference-uploads and the server-owned upscale quote enforce
    // 20 MiB. Do not accept larger local files that the backend must reject.
    if(candidate.size>20*1024*1024)
-     throw Error('This video is '+(candidate.size/1048576).toFixed(1)+' MB. The upload limit is 20 MB. Export a smaller MP4 or trim the video.');
+     throw Error('This video is '+(candidate.size/1048576).toFixed(1)+' MB. The upload limit is 20 MB. Export a smaller video or trim it.');
    resetSource();notice('Checking video…');file=candidate;assetId=id;media='video';
    const rejectSource=text=>{
      if(file!==candidate)return;
@@ -206,15 +207,28 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
      if(file!==candidate)return;
      clearTimeout(sourceTimer);sourceTimer=null;
      if(!Number.isFinite(src.duration)||src.duration<0.5||src.duration>30){
-       rejectSource('Use a video between 0.5 and 30 seconds. Trim it and choose the MP4 again.');return;
+       rejectSource('Use a video between 0.5 and 30 seconds. Trim it and choose the video again.');return;
      }
      if(!src.videoWidth||!src.videoHeight){
        rejectSource('No readable video track. Export as a standard MP4 (H.264) and choose it again.');return;
      }
      sourceReady=true;notice('');sync();
    };
-   src.onerror=()=>rejectSource('This video could not be read or previewed. Export as a standard MP4 (H.264), 0.5 to 30 seconds, up to 20 MB, and choose it again.');
-   sourceTimer=setTimeout(()=>rejectSource('The video preview could not be loaded. Choose the file again or export a standard MP4 (H.264), up to 20 MB.'),15000);
+   // A valid camera MOV may use HEVC, which not every browser can preview.
+   // Read local container metadata instead; the server independently rechecks
+   // the original bytes before it prices anything. Never upload automatically.
+   const previewUnavailable=async()=>{
+     if(file!==candidate)return;
+     if(loading||submissionUncertain||currentJob){rejectSource('Video preview unavailable.');return;}
+     clearTimeout(sourceTimer);sourceTimer=null;sourceReady=false;
+     try{
+       inspectUpscaleMp4(new Uint8Array(await candidate.arrayBuffer()));
+       if(file!==candidate)return;
+       sourceReady=true;notice('This browser cannot preview this video. You can still review credits and upscale the original.');sync();
+     }catch(error){rejectSource('This video could not be read. '+error.message);}
+   };
+   src.onerror=()=>{void previewUnavailable();};
+   sourceTimer=setTimeout(()=>{void previewUnavailable();},15000);
    sourceURL=URL.createObjectURL(candidate);src.src=sourceURL;
    sync();
  }
@@ -231,18 +245,20 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    event.preventDefault();event.stopImmediatePropagation();
    if(loading)return;resetSource();notice('');sync();
  },true);
- stage.addEventListener('dragover',e=>{
+ for(const target of [stage,sourceUpload].filter(Boolean)){
+ target.addEventListener('dragover',e=>{
    if(media!=='video'||!app.classList.contains('upscale-studio-active'))return;
    e.preventDefault();e.stopImmediatePropagation();
-   if(e.dataTransfer?.types?.includes('Files')&&!loading)stage.classList.add('dragging');
+   if(e.dataTransfer?.types?.includes('Files')&&!loading)target.classList.add('dragging');
  },true);
- stage.addEventListener('dragleave',()=>stage.classList.remove('dragging'),true);
- stage.addEventListener('drop',e=>{
+ target.addEventListener('dragleave',()=>target.classList.remove('dragging'),true);
+ target.addEventListener('drop',e=>{
    if(media!=='video'||!app.classList.contains('upscale-studio-active'))return;
-   e.preventDefault();e.stopImmediatePropagation();stage.classList.remove('dragging');
+   e.preventDefault();e.stopImmediatePropagation();target.classList.remove('dragging');
    if(loading||!e.dataTransfer?.files?.length)return;
    try{chooseFile(e.dataTransfer.files[0]);onModeChange?.();}catch(error){notice(error.message,true,true);}
  },true);
+ }
  // The existing Upscale button remains the only action in both modes.
  // Capture before the Image handler so a Video click can never submit an
  // Image quote using the wrong media type.
@@ -270,7 +286,8 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
        if(Number.isFinite(src.duration)&&(src.duration>30||src.duration<0.5))throw Error('Video must be between 0.5 and 30 seconds.');
        notice('Checking source and credit estimate…');
        if(!assetId){
-         const uploaded=await api('/api/reference-uploads',{method:'POST',headers:{'Content-Type':'video/mp4','X-Filename':encodeURIComponent(original.name||'upscale-source.mp4')},body:original});
+         const mime=/\.mov$/i.test(original.name)||original.type==='video/quicktime'?'video/quicktime':'video/mp4';
+         const uploaded=await api('/api/reference-uploads',{method:'POST',headers:{'Content-Type':mime,'X-Filename':encodeURIComponent(original.name||'upscale-source.mp4')},body:original});
          if(token!==revision||file!==original)throw Error('Source changed during upload.');
          assetId=uploaded.id;
        }
@@ -301,8 +318,8 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    // Keep Original/Result comparison bound to the SAME History source clip.
    if(job.sourceId&&assetId!==job.sourceId){
      const original=await api('/api/assets/'+job.sourceId,{blob:true});
-     if(original.type==='video/mp4'&&original.size)
-       chooseFile(new File([original],'source-'+job.sourceId+'.mp4',{type:'video/mp4'}),job.sourceId);
+     if(['video/mp4','video/quicktime'].includes(original.type)&&original.size)
+       chooseFile(new File([original],'source-'+job.sourceId+(original.type==='video/quicktime'?'.mov':'.mp4'),{type:original.type}),job.sourceId);
    }
    const token=++revision;media='video';currentJob=job;quote=null;sync();
    const blob=await api('/api/assets/'+job.outputId,{blob:true});
@@ -315,7 +332,7 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    const token=++revision;media='video';model=variants[job.settings.videoUpscaleEngine]?job.settings.videoUpscaleEngine:'bytedance';
    res.value=variants[model].allowed.includes(job.settings.resolution)?job.settings.resolution:'1080p';
    const blob=await api('/api/assets/'+job.sourceId,{blob:true});if(token!==revision)return;
-   chooseFile(new File([blob],'source-'+job.sourceId+'.mp4',{type:'video/mp4'}),job.sourceId);onModeChange?.();
+   chooseFile(new File([blob],'source-'+job.sourceId+(blob.type==='video/quicktime'?'.mov':'.mp4'),{type:blob.type}),job.sourceId);onModeChange?.();
  }
  return {mode:()=>media,sync,openJob,restore,
    onJob(job){
