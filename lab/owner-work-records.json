@@ -4433,8 +4433,8 @@
       "title": "Stop phone Mood freezing, stabilize saved-character frame and restore regression coverage",
       "component": "Customer generation / regression coverage",
       "status": "needs_verification",
-      "summary": "Main remains 844dbc09. Exact draft 72d83b6 completed hosted checks: 28 successful, 14 failed, 2 cancelled. The previous Raver correction missed two browser fixtures still requiring 14 instead of the released 15 cards; correct both exact counts, retain explicit Raver assertions, traverse all 15 cards and serve the real auth-google import in the isolated phone harness. Application code is unchanged in this follow-up. Required browser verification remains incomplete; do not merge.",
-      "nextAction": "Inspect hosted checks on the next exact candidate. Required phone/deck/role browser tests must pass or receive an evidenced baseline comparison; never infer customer behavior from preview success. Preserve other work; no Worker deployment or migration required.",
+      "summary": "Main remains 844dbc09. Exact 80fc0047 passes the signed-in first-image mocked quote/submission flow and public/new/returning/owner parity. Required phone test still stops before selection: the harness blocks inspiration-owner-scenes.js, a named import added by released catalog code. Correct that missed transitive dependency and the existing literal-backslash spellcheck regex that prevents the required paste browser check. This follow-up changes tests and own record only. Browser validation remains incomplete; do not merge.",
+      "nextAction": "Inspect exact next-head phone and paste browser checks, then unresolved same-browser Editorial/visual/landing failures against main. Keep draft blocked; production exposure remains unverified at this checkpoint. No Worker deployment or migration required.",
       "baselineSha": "844dbc091464273f5e772232ed27b41c24de85c3",
       "branch": "codex/pvlab-ci-regressions-20261108",
       "files": [
@@ -4475,6 +4475,7 @@
         "tests/lab-image-oneclick-ui.mjs",
         "tests/lab-image-preview-benchmark.mjs",
         "tests/lab-image-prompt-dock-ui.mjs",
+        "tests/lab-image-prompt-paste-ui.mjs",
         "tests/lab-image-viewer-browser.mjs",
         "tests/lab-inspiration-carousel.test.mjs",
         "tests/lab-landing-stability.mjs",
@@ -4683,6 +4684,12 @@
           "result": "failed",
           "scope": "28 success, 14 failure, 2 cancelled. Phone test timed out at obsolete length===14; shared deck asserted actual 15!==14. Correct both counts and missing auth-google module allowlist without changing product code. Local system Chromium also cannot launch because process-singleton socket is denied; browser behavior not validated.",
           "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44216111900/job/134506248755"
+        },
+        {
+          "label": "80fc0047 completed first-image and harness evidence",
+          "result": "failed",
+          "scope": "Signed-in first-image browser reaches FIRST_IMAGE_INSTANT_QUOTED_GENERATE_OK=1 and role parity passes. Phone suite times out before selection because its route harness blocks named exports from inspiration-owner-scenes.js; static dependency closure proves this is the only blocked static import in the relevant roots. Paste baseline reproduces false failure against existing spellcheck=false HTML because regex requires a literal backslash. Neither issue is evidence of production credit/payment harm.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/44225531793/job/134537658019"
         }
       ],
       "deployment": {
@@ -4962,8 +4969,8 @@
         "Keep strict visual thresholds. Use captured geometry/style and same-source controls when narrow rounded-edge variance recurs; do not declare production health or weaken the gate.",
         "Use current exact job IDs, nested saved-video Actions, uniform Video failure cards and inspector reuse; do not restore retired status prefixes, Liquid Metal templates or Image-only refusal markup to satisfy stale fixtures."
       ],
-      "updatedAt": "2026-11-18T02:43:56Z",
-      "reviewedSha": "72d83b6fb89f8c13ced1a71afe605f7a2a576ef6"
+      "updatedAt": "2026-11-18T03:15:23Z",
+      "reviewedSha": "80fc004757e177a1a5ac476d3b695243e91ded17"
     }
   ]
 }

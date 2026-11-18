@@ -46,6 +46,7 @@ async function openViewport(width,height){
        pathname.endsWith('/inspiration-carousel.js')||
        pathname.endsWith('/inspiration-catalog.js')||
        pathname.endsWith('/inspiration-catalog-data.js')||
+       pathname.endsWith('/inspiration-owner-scenes.js')||
        pathname.endsWith('/inspiration-road-scenes.js')||
        pathname.endsWith('/studio-mobile-entry.js')||
        pathname.endsWith('/image-editorial-deck.js')||
