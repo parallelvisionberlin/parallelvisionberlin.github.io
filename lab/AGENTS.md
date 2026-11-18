@@ -47,5 +47,5 @@ These instructions apply to all changes under `lab/`, in addition to the reposit
 - Shared Upscale. heading: 44px desktop / 36px phone. Hide the enhancement kicker and descriptive paragraph.
 - Use the larger Video proportions for both modes: 60px model cards with 38px art and a persistent 64px source upload box. Both the source box and the large preview accept drag/drop for the selected media type.
 - Only media labels, models and relevant output fields change. Preserve original media and settings when switching.
-- MOV and MP4 are accepted by Video Upscaler; keep real source MIME and server-verified timing/pricing. Keep 20 MiB/30s limits unless separately authorized.
+- MOV and MP4 are accepted by Video Upscaler; keep real source MIME and server-verified timing/pricing. Owner authorized maximum video capacity on 2026-11-18: use multipart uploads within the existing 20 GiB archive capacity, Topaz up to 5 minutes, ByteDance without a documented duration cap, and model-specific output limits. Never reintroduce the old 20 MiB/30s caps.
 - Current implementation and publication evidence: UPSCALE-WORK-STATE.md, owner record upscaler-shared-design-mov. This replaces the earlier Image-only compact sizing direction.

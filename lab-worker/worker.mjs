@@ -53,7 +53,8 @@ import {NANO21_MODEL,NANO21_STANDARD_MICROS,nano21Request,nano21ImagePart} from 
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
 import {falUpscaleParameters,storedImageDimensions,setFalUpscaleDimensions,falUpscaleEstimateMicros,buildFalUpscaleInput} from './fal-upscale.mjs';
-import {videoUpscaleParameters,inspectUpscaleMp4,quotedVideoUpscale,videoUpscaleEstimateMicros,buildVideoUpscaleInput,VIDEO_UPSCALE_MAX_BYTES} from './video-upscale.mjs';
+import {videoSourceUploadRoute,abandonVideoUpload,VIDEO_UPLOAD_PENDING} from './video-source-upload.mjs';
+import {videoUpscaleParameters,inspectUpscaleMp4,inspectUpscaleVideoRanges,quotedVideoUpscale,videoUpscaleEstimateMicros,buildVideoUpscaleInput,VIDEO_UPSCALE_MAX_BYTES} from './video-upscale.mjs';
 import {SOUL_PRO_MODELS,soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
 import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
@@ -628,24 +629,29 @@ async function sourceReferenced(env,owner,id) {
 async function pruneSource(env,owner,id) {
   if(await sourceReferenced(env,owner,id))return;
   const a=await first(env,"SELECT * FROM assets WHERE id=? AND owner_id=? AND kind='source'",id,owner);if(!a)return;
+  if(a.mime===VIDEO_UPLOAD_PENDING){await abandonVideoUpload(env,a,{run});return;}
   await env.LAB_MEDIA.delete(a.object_key);
   if(a.mime?.startsWith('image/'))await env.LAB_MEDIA.delete(galleryThumbnailKey(a));
   await run(env,'DELETE FROM assets WHERE id=? AND owner_id=?',id,owner);
 }
-async function signedInput(env,url,id,ttl=1800) {
+async function signedInput(env,url,id,ttl=1800,videoFile=false) {
   const expires=Math.floor(now()/1000)+ttl,key=await derived(env,'input-url',{name:'HMAC',hash:'SHA-256'},['sign']);
-  const sig=base(await crypto.subtle.sign('HMAC',key,enc.encode(id+':'+expires)));
-  return url.origin+'/input/'+id+'?expires='+expires+'&signature='+sig;
+  const sig=base(await crypto.subtle.sign('HMAC',key,enc.encode((videoFile?'video:':'')+id+':'+expires)));
+  return url.origin+(videoFile?'/video-file/':'/input/')+id+'?expires='+expires+'&signature='+sig;
 }
-async function publicInput(request,env,url) {
+async function publicInput(request,env,url,videoFile=false) {
   const id=uid(url.pathname.split('/')[2]),expires=Number(url.searchParams.get('expires')),signature=url.searchParams.get('signature')||'';
   if(!Number.isInteger(expires)||expires<Math.floor(now()/1000)||expires>Math.floor(now()/1000)+86405||!signature||signature.length>100)fail(403,'Expired input link.');
   const key=await derived(env,'input-url',{name:'HMAC',hash:'SHA-256'},['verify']);let valid=false;
-  try{valid=await crypto.subtle.verify('HMAC',key,unbase(signature),enc.encode(id+':'+expires));}catch{}
+  try{valid=await crypto.subtle.verify('HMAC',key,unbase(signature),enc.encode((videoFile?'video:':'')+id+':'+expires));}catch{}
   if(!valid)fail(403,'Invalid input link.');
-  const a=await first(env,"SELECT * FROM assets WHERE id=? AND kind='source'",id);if(!a)fail(404,'Not found.');
+  const a=await first(env,videoFile?'SELECT * FROM assets WHERE id=?':"SELECT * FROM assets WHERE id=? AND kind='source'",id);if(!a)fail(404,'Not found.');
+  if(videoFile&&!['video/mp4','video/quicktime'].includes(a.mime))fail(404,'Video not found.');
   const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(a.owner_id).first();
-  if(!owner){if(!await isLabCustomer(env,a.owner_id))fail(403,'Access revoked.');await assertCustomerOpen(env,a.owner_id);}return media(request,env,a);
+  if(!owner){if(!await isLabCustomer(env,a.owner_id))fail(403,'Access revoked.');await assertCustomerOpen(env,a.owner_id);}
+  const response=await media(request,env,a);
+  if(videoFile&&url.searchParams.get('download')==='1')response.headers.set('Content-Disposition','attachment; filename="pv-lab-video-'+id+(a.mime==='video/quicktime'?'.mov':'.mp4')+'"');
+  return response;
 }
 async function media(request,env,a) {
   const rangeRequested=request.method==='GET'&&request.headers.has('range');
@@ -701,7 +707,7 @@ async function completeImageResult(env,j,original,storedBytes){
 async function copyResult(env,j,url) {
   let target=safeVideoUrl(url),r;
   for(let i=0;i<4;i++){
-    r=await fetch(target,{redirect:'manual',signal:AbortSignal.timeout(30000)});
+    r=await fetch(target,{redirect:'manual',signal:AbortSignal.timeout(JSON.parse(j.params).engine==='video-upscale'?1800000:30000)});
     if(r.status>=300&&r.status<400){const next=r.headers.get('location');if(!next)throw new Error('No output location.');target=safeVideoUrl(new URL(next,target).href);continue;}break;
   }
   if(!r?.ok)throw new Error('Output download failed.');
@@ -709,7 +715,7 @@ async function copyResult(env,j,url) {
   const mime=(r.headers.get('content-type')||'').split(';')[0];
   if(isImage?!['image/png','image/jpeg','image/webp'].includes(mime):!['video/mp4','application/octet-stream'].includes(mime))throw new Error('Unexpected output format.');
   const finalMime=isImage?mime:'video/mp4',ext=isImage?({'image/png':'png','image/jpeg':'jpg','image/webp':'webp'}[mime]):'mp4';
-  const limit=params.mode==='upscale'?256*1024*1024:isImage?MAX_IMAGE:MAX_VIDEO;
+  const limit=params.engine==='video-upscale'?MAX_STORAGE:params.mode==='upscale'?256*1024*1024:isImage?MAX_IMAGE:MAX_VIDEO;
   const declared=Number(r.headers.get('content-length')||0);
   if(!Number.isSafeInteger(declared)||declared<0||declared>limit)throw new Error('Output exceeds the archive limit.');
   const stored=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',j.owner_id);
@@ -1404,13 +1410,14 @@ async function route(request,env,ctx) {
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range,X-PV-Lab-Client,X-Replacement-Job-Id','Access-Control-Max-Age':'600'}});
   if(url.pathname==='/api/public/local-currency'&&request.method==='GET')return localCurrency(request);
-  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1',seedanceExtendReferences:'20261112-extend-refs1',seedream55:'20261113-seedream55-1',videoUpscaleInputs:'20261118-mp4-mov-1'});
+  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1',seedanceExtendReferences:'20261112-extend-refs1',seedream55:'20261113-seedream55-1',videoUpscaleInputs:'20261118-large-video-2'});
   if(url.pathname.startsWith('/api/music/public/'))return musicPublicRoute(request,env);
   // PV LAB anonymous traffic uses its own origin-checked, bounded payload.
   if(url.pathname==='/api/public/traffic'&&request.method==='POST')return recordLabTraffic(request,env);
   if(url.pathname.startsWith('/api/public/agency/'))return agencyPublicRoute(request,env,ctx);
 
   if(url.pathname.startsWith('/input/')&&(request.method==='GET'||request.method==='HEAD'))return publicInput(request,env,url);
+  if(url.pathname.startsWith('/video-file/')&&(request.method==='GET'||request.method==='HEAD'))return publicInput(request,env,url,true);
   if(url.pathname.startsWith('/soul-dataset/')&&request.method==='GET')return publicSoulDataset(request,env,url,soulDeps());
   if(url.pathname.startsWith('/soul-weight/')&&(request.method==='GET'||request.method==='HEAD'))return publicSoulWeight(request,env,url,soulDeps());
   if(url.pathname==='/api/stripe/webhook'&&request.method==='POST')return stripeWebhook(request,env,ctx);
@@ -1541,7 +1548,7 @@ async function route(request,env,ctx) {
   const replacementJobId=path==='/api/uploads'&&method==='POST'?request.headers.get('x-replacement-job-id'):null;
   const replacementUpload=replacementJobId?await replacementUploadContext(env,owner,replacementJobId,request.headers.get('content-type')?.split(';')[0],{fail,first,source,falImageBytes,storedImageDimensions}):null;
   // Unfunded trial accounts must not consume unbounded private R2 storage.
-  if(customer&&method==='POST'&&['/api/uploads','/api/reference-uploads'].includes(path)){
+  if(customer&&method==='POST'&&['/api/uploads','/api/reference-uploads','/api/video-uploads'].includes(path)){
     const wallet=await first(env,'SELECT balance_credits FROM lab_customers WHERE id=?',owner);
     if(!wallet?.balance_credits&&!replacementUpload)fail(402,'Add PV Lab credits before uploading files.');
   }
@@ -1692,6 +1699,8 @@ async function route(request,env,ctx) {
     if(!pack)fail(404,'Pack not found.');await run(env,'DELETE FROM packs WHERE id=? AND owner_id=?',id,owner);
     for(const a of JSON.parse(pack.refs))await pruneSource(env,owner,a.id);return json({ok:true});
   }
+  if(path==='/api/video-uploads'||path.startsWith('/api/video-uploads/'))
+    return videoSourceUploadRoute(request,env,owner,url,{fail,first,run,rows,now,json,limitedBody});
   if(path==='/api/reference-uploads'&&method==='POST') {
     const mime=request.headers.get('content-type')?.split(';')[0];
     if(!REFERENCE_MIME.has(mime))fail(415,'Choose an MP4/MOV video or MP3/WAV audio reference.');
@@ -1716,6 +1725,12 @@ async function route(request,env,ctx) {
     await env.LAB_MEDIA.put(key,bytes,{httpMetadata:{contentType:mime}});
     try{await run(env,"INSERT INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,'source',?,?,?,?)",id,owner,key,mime,filename,bytes.length,now());}catch(e){await env.LAB_MEDIA.delete(key);throw e;}
     return json({id,filename,bytes:bytes.length},201);
+  }
+  if(path.startsWith('/api/assets/')&&path.endsWith('/video-url')&&method==='GET'){
+    const id=uid(path.split('/')[3]),asset=await first(env,'SELECT * FROM assets WHERE id=? AND owner_id=?',id,owner);
+    if(!asset||!['video/mp4','video/quicktime'].includes(asset.mime))fail(404,'Video not found.');
+    const link=await signedInput(env,url,id,86400,true);
+    return json({url:link,downloadUrl:link+'&download=1',mime:asset.mime,filename:asset.filename,bytes:asset.bytes});
   }
   if(path.startsWith('/api/assets/')&&path.endsWith('/thumbnail')&&method==='GET') {
     const parts=path.split('/');if(parts.length!==5||parts[4]!=='thumbnail')fail(404,'Unknown preview.');
@@ -1960,15 +1975,18 @@ async function route(request,env,ctx) {
         fail(400,'Choose one original video, without extra references.');
       const primary=await source(env,owner,data.sourceId);
       if(!['video/mp4','video/quicktime'].includes(primary.mime)||!primary.bytes||primary.bytes>VIDEO_UPSCALE_MAX_BYTES)
-        fail(400,'Choose an MP4 or MOV video no larger than 20 MiB.');
-      const object=await env.LAB_MEDIA.get(primary.object_key);
-      if(!object)fail(404,'Source video is missing from private storage.');
-      const bytes=new Uint8Array(await object.arrayBuffer());
-      if(bytes.length!==primary.bytes)fail(409,'Source video changed. Upload again.');
-      let metadata;try{metadata=inspectUpscaleMp4(bytes);}catch(e){fail(400,String(e.message).slice(0,300));}
+        fail(400,'Choose an MP4 or MOV video up to 20 GB.');
+      const head=await env.LAB_MEDIA.head(primary.object_key);
+      if(!head)fail(404,'Source video is missing from private storage.');
+      if(head.size!==primary.bytes)fail(409,'Source video changed. Upload again.');
+      let metadata;
+      try{metadata=await inspectUpscaleVideoRanges(primary.bytes,async(offset,length)=>{
+        const object=await env.LAB_MEDIA.get(primary.object_key,{range:{offset,length}});
+        if(!object)throw Error('Source video is missing.');return object.arrayBuffer();
+      });}catch(e){fail(400,String(e.message).slice(0,300));}
       const quoted=quotedVideoUpscale(p,metadata,{fail});
       const estimate=videoUpscaleEstimateMicros(quoted),creditCost=creditsForJobUsd(estimate/1000000,quoted);
-      const input=buildVideoUpscaleInput(quoted,await signedInput(env,url,primary.id,7200));
+      const input=buildVideoUpscaleInput(quoted,await signedInput(env,url,primary.id,86400));
       const id=crypto.randomUUID(),expires=now()+290000;
       await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
         id,owner,primary.id,JSON.stringify({...quoted,customerChargeCredits:creditCost}),estimate,expires,

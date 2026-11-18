@@ -4540,6 +4540,78 @@
         "Worker deployment must preserve live bindings/vars/secrets; use release-upscaler-mov-worker.yml with no migrations."
       ],
       "updatedAt": "2026-11-18T11:59:43Z"
+    },
+    {
+      "id": "upscaler-maximum-video-capacity",
+      "title": "Maximum provider video Upscaler capacity",
+      "component": "PV LAB Upscaler",
+      "status": "needs_verification",
+      "summary": "Owner replaces the previous 20 MB and 30-second source restrictions: bounded multipart MP4/MOV uploads up to the existing 20 GiB private archive capacity; Topaz up to five minutes; ByteDance has no imposed duration cutoff and includes 6K/8K. Preserve the shared design, authoritative metadata, explicit quote confirmation and financial safeguards.",
+      "nextAction": "Publish the reviewed candidate, verify guarded Worker and exact Cloudflare Pages release, then test a real signed-in large upload and quote without paid submission.",
+      "baselineSha": "db094023c73ba452ec73c30b971a05c59a836a78",
+      "reviewedSha": null,
+      "branch": "fix/upscaler-maximum-video-limits-20261118",
+      "files": [
+        ".github/workflows/pv-lab-video-upscale.yml",
+        ".github/workflows/release-upscaler-mov-worker.yml",
+        "lab-worker/customer-lifecycle.mjs",
+        "lab-worker/video-upscale.mjs",
+        "lab-worker/worker.mjs",
+        "lab/AGENTS.md",
+        "lab/lab.js",
+        "lab/studio.html",
+        "lab/video-upscale-metadata.js",
+        "lab/video-upscale.js",
+        "tests/lab-video-upscale-layout.mjs",
+        "tests/lab-video-upscale.test.mjs",
+        "tests/lab-worker.test.mjs",
+        "lab-worker/video-source-upload.mjs",
+        "lab/video-source-upload.js",
+        "tests/lab-video-source-upload.test.mjs",
+        "lab/UPSCALE-WORK-STATE.md",
+        "lab/owner-work-records.json"
+      ],
+      "links": [
+        {
+          "label": "Scoped work state",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/UPSCALE-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Local release and finance safeguards",
+          "scope": "187 tests passed, including multipart files above 20 MB, atomic storage reservations, owner isolation, retry/abort, native signed playback/download, account deletion cleanup, existing Image contract, pricing and credits.",
+          "result": "passed"
+        },
+        {
+          "label": "20 GiB range metadata",
+          "scope": "Virtual 20 GiB camera source reads less than 1 KB of metadata, without buffering the media payload. This is not a physical 20 GiB provider processing test.",
+          "result": "passed"
+        },
+        {
+          "label": "Browser and production",
+          "scope": "New browser regression includes native streamed History playback. CI and real signed-in publication remain pending.",
+          "result": "not_run"
+        }
+      ],
+      "deployment": {
+        "state": "pending",
+        "environment": "Cloudflare Pages pvlab-studio and parallel-vision-lab Worker",
+        "sourceSha": null,
+        "limitations": [
+          "No paid provider job submitted.",
+          "A full 20 GiB physical upload is not tested."
+        ]
+      },
+      "evidence": [],
+      "blockers": [],
+      "doNotRepeat": [
+        "Preserve the owner-locked Image/Video geometry and CSS.",
+        "Do not initiate a paid generation to test this change.",
+        "Do not claim a full legacy UI suite pass; its separate baseline stall remains documented.",
+        "Preserve the unrelated invalid alter-makeup-reference-transfer work record."
+      ],
+      "updatedAt": "2026-11-18T14:00:00Z"
     }
   ]
 }
