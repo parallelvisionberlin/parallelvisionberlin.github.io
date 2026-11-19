@@ -5751,15 +5751,21 @@ function surfaceHistoryJob(job){
   if(assetLibrary?.active()){void syncHistory().catch(e=>notify(e.message,true));return;}
   renderCards([job],{upsert:true});$('emptyarchive').hidden=true;if(tool==='video'&&!assetLibrary?.active())restoreLatestVideoSelection();
 }
-let lastCustomerHistoryWake=0;
-function refreshCustomerHistoryOnWake(){
-  if(!owner||!customerMode||document.hidden||historyLoading)return;
-  const now=Date.now();if(now-lastCustomerHistoryWake<10000)return;
-  lastCustomerHistoryWake=now;
-  void syncHistory().catch(error=>{if(owner&&customerMode)console.warn('History refresh failed:',error.message);});
+let lastHistoryWake=0;
+function refreshHistoryOnWake(){
+  if(!owner||document.hidden||historyLoading)return;
+  // Owner jobs can finish server-side while the page is suspended or the
+  // original browser tab is in the background. Refresh only when the Video
+  // selection/feed still includes a nonterminal job; never resubmit a job.
+  const pendingVideo=tool==='video'&&(activeStates.has(selectedVideoJob?.status)||
+    [...videoJobCache.values()].some(job=>job.settings?.type==='video'&&activeStates.has(job.status)));
+  if(!customerMode&&!pendingVideo)return;
+  const now=Date.now();if(now-lastHistoryWake<10000)return;
+  lastHistoryWake=now;
+  void syncHistory().catch(error=>{if(owner)console.warn('History refresh failed:',error.message);});
 }
-window.addEventListener('focus',refreshCustomerHistoryOnWake);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshCustomerHistoryOnWake();});
+window.addEventListener('focus',refreshHistoryOnWake);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshHistoryOnWake();});
 function refreshHistorySoon(){
   const expectedEpoch=epoch;
   queueMicrotask(()=>syncHistory().catch(error=>{if(owner&&epoch===expectedEpoch)notify('History refresh delayed. Your queued job is safe. '+error.message,true);}));
