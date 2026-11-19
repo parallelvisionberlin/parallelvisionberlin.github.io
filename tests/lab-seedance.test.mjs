@@ -21,6 +21,7 @@ class DB {
 }
 function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length};},async delete(k){objects.delete(k);}}};return{env,objects};}
 let calls=[],quotedRequest=null,createCount=0,providerState='queued',createMode='ok',maxPrice='2.700000';
+let providerSettlementCost='2.7';
 let uploadedReference=null,hfQuotedRequest=null,hfCreates=0,hfEstimate='1.35',hfCreateMode='ok';
 globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:String(url),options});if(u.pathname==='/.well-known/jwks.json')return Response.json({keys:[jwk]});if(u.hostname==='cdn.spicyapi.ai'){assert.ok(!options.headers?.Authorization);if(u.pathname.endsWith('.png'))return new Response(new Uint8Array([137,80,78,71,13,10,26,10,0]),{headers:{'content-type':'image/png'}});return new Response(new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]),{headers:{'content-type':'video/mp4'}});}
  if(u.hostname==='test.r2.cloudflarestorage.com'){assert.equal(options.method,'PUT');assert.equal(new Headers(options.headers).get('authorization'),null);uploadedReference=new Uint8Array(options.body);return new Response(null,{status:200});}
@@ -41,7 +42,7 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
  if(u.pathname.endsWith('/files/fil_synthetic_reference/commit')){assert.equal(options.method,'POST');return Response.json({code:200,data:{fileId:'fil_synthetic_reference',status:'ready',bytes:uploadedReference.length,contentType:'image/png',sha256:Buffer.from(await crypto.subtle.digest('SHA-256',uploadedReference)).toString('hex'),uri:'spicy://f/fil_synthetic_reference',expiresAt:new Date(Date.now()+86400000).toISOString()}});}
  if(u.pathname.endsWith('/jobs/quote')){quotedRequest=JSON.parse(options.body);return Response.json({code:200,data:{quoteId:'synthetic-quote',estimatedCost:maxPrice,maxCharge:maxPrice,currency:'USD',expiresAt:new Date(Date.now()+300000).toISOString()}});}
  if(u.pathname.endsWith('/jobs/createTask')){createCount++;const payload=JSON.parse(options.body);assert.deepEqual({model:payload.model,input:payload.input},quotedRequest);assert.equal(payload.quoteId,'synthetic-quote');assert.equal(payload.expectedCost,maxPrice);assert.match(options.headers['Idempotency-Key'],/^[a-f0-9-]{36}$/);if(createMode==='timeout')throw new Error('simulated interrupted network');if(createMode==='pricechange')return Response.json({code:40901,msg:'quote changed',data:null},{status:409});return Response.json({code:200,data:{taskId:'job_synthetic',state:'queued'}},{status:202});}
- if(u.pathname.endsWith('/jobs/recordInfo'))return Response.json({code:200,data:{taskId:'job_synthetic',state:providerState,settled:providerState==='succeeded',cost:'2.7',output:{assets:[(quotedRequest?.model?.includes('seedream')||quotedRequest?.model?.includes('image-upscaler'))?{mime:'image/png',url:'https://cdn.spicyapi.ai/test.png'}:{mime:'video/mp4',url:'https://cdn.spicyapi.ai/test.mp4'}]}}});
+ if(u.pathname.endsWith('/jobs/recordInfo'))return Response.json({code:200,data:{taskId:'job_synthetic',state:providerState,settled:providerState==='succeeded',cost:providerSettlementCost,output:{assets:[(quotedRequest?.model?.includes('seedream')||quotedRequest?.model?.includes('image-upscaler'))?{mime:'image/png',url:'https://cdn.spicyapi.ai/test.png'}:{mime:'video/mp4',url:'https://cdn.spicyapi.ai/test.mp4'}]}}});
  throw new Error('Unmocked network request: '+url);
 };
 const auth=await token(),guest=await token('user_Guest');
@@ -163,6 +164,38 @@ test('Seedance Extend uses the SpicyAPI bound quote and preserves one source vid
 });
 
 
+test('Paid Seedance video completes even when settled provider cost is null, then accepts overprecise USD',async()=>{
+  const {env}=fixture(),image=await setup(env);
+  createCount=0;createMode='ok';providerState='queued';maxPrice='2.700000';
+  const make=async()=>{
+    const response=await req(env,'/api/quotes',{method:'POST',data:{sourceId:image,settings:sd('start')}});
+    assert.equal(response.status,200,await response.clone().text());
+    const q=await response.json();
+    const accepted=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});
+    assert.equal(accepted.status,202,await accepted.clone().text());
+    return (await accepted.json()).job.id;
+  };
+  try{
+    const first=await make();
+    providerState='succeeded';providerSettlementCost=null;
+    env.LAB_DB.db.prepare('UPDATE jobs SET last_poll=0 WHERE id=?').run(first);
+    const completed=(await(await req(env,'/api/jobs/'+first)).json()).job;
+    assert.equal(completed.status,'completed','Missing cost cannot block successful provider output');
+    assert.equal(completed.settledUsd,null,'Never fabricate a USD settlement');
+    assert.ok(completed.outputId,'Archive the existing video without a second paid request');
+    assert.equal(createCount,1);
+    providerState='queued';
+    const second=await make();
+    providerState='succeeded';providerSettlementCost='2.7000000000000002';
+    env.LAB_DB.db.prepare('UPDATE jobs SET last_poll=0 WHERE id=?').run(second);
+    const settled=(await(await req(env,'/api/jobs/'+second)).json()).job;
+    assert.equal(settled.status,'completed');
+    assert.equal(settled.settledUsd,2.7);
+    assert.equal(createCount,2,'One submission per explicit quote only');
+  }finally{
+    providerSettlementCost='2.7';providerState='queued';createMode='ok';
+  }
+});
 test('Customer Extend with photos preserves inputs, quotes without debit and submits exactly once after confirmation',async()=>{
  const {env}=fixture(),db=env.LAB_DB.db,customer='user_ExtendReferenceQA';
  for(const migration of ['0006-customers-billing','0007-lab-referrals','0008-soul-id-launch-credits','0011-customer-lifecycle','0015-lab-promotional-credits','0023-welcome-guard','0025-promo-generation-holds','0029-pause-welcome-promotion','0033-owner-voucher-generation'])
