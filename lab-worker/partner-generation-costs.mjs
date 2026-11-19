@@ -55,10 +55,23 @@ export function allocateGenerationCosts(entries,finance,rates=[]){
  for(const e of ordered){
   if(!Number.isSafeInteger(e.deltaCredits)||!e.deltaCredits){incomplete=true;continue;}
   if(e.deltaCredits>0){
-   const job=e.kind==='refund'&&e.reference.startsWith('refund:job:')?jobs.get(e.reference.slice(11)):null;
+   const isFailure=e.kind==='refund'&&e.reference.startsWith('refund:job:');
+   const isSettlement=e.kind==='refund'&&e.reference.startsWith('settlement:job:');
+   const job=isFailure?jobs.get(e.reference.slice(11)):isSettlement?jobs.get(e.reference.slice(15)):null;
    if(job){
-    if(job.refunded||e.deltaCredits!==job.credits){incomplete=true;continue;}
-    job.refunded=true;for(const a of job.allocations)a.lot.remaining+=a.credits;
+    if(job.returnedCredits+e.deltaCredits>job.credits||job.refunded){incomplete=true;continue;}
+    let restore=e.deltaCredits;
+    // Restore excess holds against the latest funding lots first, preserving
+    // the same FIFO funding allocation as if only final credits were spent.
+    for(const allocation of [...job.allocations].reverse()){
+     const n=Math.min(restore,allocation.credits-allocation.returned);
+     if(n){allocation.returned+=n;allocation.lot.remaining+=n;restore-=n;}
+     if(!restore)break;
+    }
+    if(restore){incomplete=true;continue;}
+    job.returnedCredits+=e.deltaCredits;
+    job.refunded=job.returnedCredits===job.credits;
+    if(isFailure&&!job.refunded)incomplete=true;
    }else{
     if(e.kind==='refund')incomplete=true;
     lots.push({reference:e.reference,credits:e.deltaCredits,remaining:e.deltaCredits,costMicros:0n,pending:false});
@@ -70,15 +83,20 @@ export function allocateGenerationCosts(entries,finance,rates=[]){
   if(needed)incomplete=true;
   if(e.kind!=='generation')continue;
   if(!e.reference.startsWith('job:')||jobs.has(e.reference.slice(4))){incomplete=true;continue;}
-  jobs.set(e.reference.slice(4),{credits:-e.deltaCredits,allocations,refunded:false});
+  jobs.set(e.reference.slice(4),{credits:-e.deltaCredits,allocations:allocations.map(a=>({...a,returned:0})),returnedCredits:0,refunded:false});
  }
  for(const [id,job] of jobs){
   const f=fin.get(id),cost=f?eurMicros(f.settledCostUsd,f.createdAt,rates):null;
   const pending=!f||!terminal.has(f.state)||cost===null;
+  const allocationWeights=job.allocations.map(a=>job.refunded?a.credits:a.credits-a.returned);
+  const totalWeight=allocationWeights.reduce((sum,n)=>sum+n,0);
   let assigned=0n;
   job.allocations.forEach((a,i)=>{
    a.lot.pending ||= pending;
-   if(cost!==null){const portion=i===job.allocations.length-1?cost-assigned:cost*BigInt(a.credits)/BigInt(job.credits);a.lot.costMicros+=portion;assigned+=portion;}
+   if(cost!==null&&totalWeight>0){
+    const portion=i===job.allocations.length-1?cost-assigned:cost*BigInt(allocationWeights[i])/BigInt(totalWeight);
+    a.lot.costMicros+=portion;assigned+=portion;
+   }
   });
  }
  return new Map(lots.map(l=>[l.reference,{remainingCredits:l.remaining,costCents:Number((l.costMicros+5000n)/10000n),final:!incomplete&&!l.remaining&&!l.pending,allocationIncomplete:incomplete}]));
