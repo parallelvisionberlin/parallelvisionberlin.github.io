@@ -49,6 +49,7 @@ import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} fro
 import {seedanceVariantParameters,prepareSeedanceVariant} from './seedance-variants.mjs';
 import {seedreamLiteParameters,seedreamLiteInput,SEEDREAM_LITE_TEXT,SEEDREAM_LITE_EDIT} from './seedream-lite.mjs';
 import {creditsForJobUsd,isFixedTransformRetail,TRANSFORM_FIXED_RETAIL_VERSION,isFixedReferenceRetail,REFERENCE_FIXED_RETAIL_VERSION} from './job-pricing.mjs';
+import {settledProviderCostMicros} from './spicy-settlement-cost.mjs';
 import {NANO21_MODEL,NANO21_STANDARD_MICROS,nano21Request,nano21ImagePart} from './nano-banana-21.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
@@ -1219,7 +1220,13 @@ async function refreshJob(env,j,ctx=null,forcedByBoundCallback=false) {
     const c=await config(env,j.owner_id);if(!c)return;
     const key=await decryptKey(env,c.encrypted_key);
     const result=await vendorRequest('/jobs/recordInfo?taskId='+encodeURIComponent(j.provider_id),key);
-    if(result.settled===true&&result.cost!==undefined){const cost=micros(result.cost);await run(env,'UPDATE jobs SET settled_cost=? WHERE id=?',cost/1000000,j.id);}
+    // SpicyAPI may report a terminal output before final billing is readable.
+    // A null/overprecise/malformed cost must not strand an already-paid video.
+    // Unknown settlement is left NULL for later financial reconciliation.
+    if(result.settled===true){
+      const cost=settledProviderCostMicros(result.cost);
+      if(cost!==null)await run(env,'UPDATE jobs SET settled_cost=? WHERE id=?',cost/1000000,j.id);
+    }
     if(result.state==='succeeded') {
       const kind=JSON.parse(j.params).type==='image'?'image/':'video/';
       const asset=result.output?.assets?.find(a=>a.mime?.startsWith(kind)&&a.url);
@@ -1474,7 +1481,7 @@ async function route(request,env,ctx) {
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range,X-PV-Lab-Client,X-Replacement-Job-Id','Access-Control-Max-Age':'600'}});
   if(url.pathname==='/api/public/local-currency'&&request.method==='GET')return localCurrency(request);
-  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1',seedanceExtendReferences:'20261112-extend-refs1',seedream55:'20261113-seedream55-1',videoUpscaleInputs:'20261118-large-video-2',videoTransformProvider:'spicyapi-seedance25-edit-20261119',videoTransformCreditRate:'20261119-seedance25-160',videoTransformRetailCharge:'20261119-source-seconds-v1',videoReferenceRetailCharge:'20261119-reference-seconds-v1'});
+  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1',seedanceExtendReferences:'20261112-extend-refs1',seedream55:'20261113-seedream55-1',videoUpscaleInputs:'20261118-large-video-2',videoTransformProvider:'spicyapi-seedance25-edit-20261119',videoTransformCreditRate:'20261119-seedance25-160',videoTransformRetailCharge:'20261119-source-seconds-v1',videoReferenceRetailCharge:'20261119-reference-seconds-v1',videoSettlementRecovery:'20261119-spicy-settlement-null-v1'});
   if(url.pathname.startsWith('/api/music/public/'))return musicPublicRoute(request,env);
   // PV LAB anonymous traffic uses its own origin-checked, bounded payload.
   if(url.pathname==='/api/public/traffic'&&request.method==='POST')return recordLabTraffic(request,env);
