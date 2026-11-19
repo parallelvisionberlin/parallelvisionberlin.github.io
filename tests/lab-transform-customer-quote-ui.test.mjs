@@ -12,3 +12,11 @@ test('Customer Transform review uses PV credits and original video, not supplier
  assert.match(ui,/Generate · up to/);
  assert.match(ui,/editEstimate&&customerMode/);
 });
+
+test('fixed retail Transform shows one source-duration debit without a customer reserve',()=>{
+ assert.match(ui,/fixedTransformRetail=customerMode/);
+ assert.match(ui,/q\.creditCost\.toLocaleString\(\)\+' PV credits'/);
+ assert.match(ui,/One fixed PV LAB credit charge/);
+ assert.match(ui,/No additional credit hold or later debit/);
+ assert.match(ui,/Generate · \$\{q\.creditCost\.toLocaleString\(\)\} credits/);
+});
