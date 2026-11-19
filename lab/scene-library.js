@@ -803,8 +803,11 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
           note:elementReferenceNote(item,i)
         }));
         await addReferences(files,chosen.map(({ref})=>ref.id),labels);
-        // Never dismiss the library for an interrupted or partially attached set.
-        if(!chosen.every(({ref})=>getReferences().some(active=>active.elementId===item.id&&active.id===ref.id)))
+        // Video prepares upload-safe copies of saved photographs, so a prepared
+        // reference can have a new upload ID (or no ID while uploading). Match
+        // the saved Element and its original view index, not the asset ID.
+        // This checks deck attachment only; video uploads have their own status.
+        if(!chosen.every(({i})=>getReferences().some(active=>active.elementId===item.id&&active.elementView===i&&active.file)))
           throw Error('Not all selected views were attached. Please try again.');
         attached=true;
         setStatus('@'+item.title+' added as one Element · '+chosen.length+' photo'+(chosen.length===1?'':'s')+' attached.');
