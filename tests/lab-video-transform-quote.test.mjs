@@ -20,3 +20,10 @@ test('unknown models, providers and invalid durations never get a fabricated est
  assert.equal(transformEditQuoteEstimate(quote(0)),null);
  assert.equal(transformEditQuoteEstimate({...quote(12),settings:{...quote(12).settings,model:'other'}}),null);
 });
+
+test('12.5-second source bills 13 seconds, independent of the Transform duration picker',()=>{
+ const estimate=transformEditQuoteEstimate(quote(12.5));
+ assert.equal(estimate.billedSeconds,13);
+ assert.equal(estimate.estimatedUsd,5.928);
+ assert.equal(estimate.estimatedCredits,949);
+});
