@@ -2,10 +2,12 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {seedreamFlashParameters,seedreamFlashInput,FLASH_TEXT,FLASH_EDIT} from '../lab-worker/seedream-flash.mjs';
-test('Seedream Flash defaults to 2K in Studio; Seedream Pro retains 1K for drafts',()=>{
+test('Image defaults: Seedream 5.5 uses 1.5K, Seedream 5 Pro owner 1K and Flash 2K',()=>{
   const src=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
-  assert.match(src,/\['fal','seedream55','seedream','kling'\]\.includes\(imageEngine\)\?'1k':'2k'/);
+  assert.match(src,/imageEngine==='seedream55'\?'1\.5k':\['fal','seedream','kling'\]\.includes\(imageEngine\)\?'1k':'2k'/);
   assert.doesNotMatch(src,/\['fal','seedream','flash','kling'\]\.includes\(imageEngine\)\?'1k':'2k'/);
+  assert.doesNotMatch(src,/\['fal','seedream55','seedream','kling'\]\.includes\(imageEngine\)\?'1k':'2k'/);
+  assert.match(src,/ownerAccount&&imageEngine==='seedream'\?'1k':'2k'/);
 });
 test('Flash uses the SpicyAPI text and edit endpoint and live bound pricing',()=>{
   const fail=(code,message)=>{throw Error(message)};
