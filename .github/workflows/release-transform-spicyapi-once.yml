@@ -1,4 +1,4 @@
-name: One-time PV LAB Transform 160-credit release
+name: One-time PV LAB Transform final-cost credit release
 
 on:
   workflow_dispatch:
@@ -35,7 +35,7 @@ jobs:
           node --check lab-worker/seedance.mjs
           node --check lab-worker/higgsfield-video-transform.mjs
           node --check lab/lab.js
-          node --test tests/lab-video-transform.test.mjs tests/lab-worker.test.mjs tests/lab-pricing-integrity.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-generation-finance.test.mjs tests/lab-customer-lifecycle.test.mjs
+          node --test tests/lab-video-transform.test.mjs tests/lab-worker.test.mjs tests/lab-pricing-integrity.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-generation-finance.test.mjs tests/lab-customer-lifecycle.test.mjs tests/lab-provider-settlement.test.mjs tests/lab-transform-credit-settlement.test.mjs tests/lab-transform-quote-preview.test.mjs
       - name: Verify existing Cloudflare bindings and capture original configuration
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -65,6 +65,7 @@ jobs:
           wranglerVersion: '4'
           preCommands: |
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0062-transform-seedance-credit-parity.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0063-transform-final-cost-credit-release.sql --yes
           command: deploy --keep-vars
       - name: Verify live Transform version and configuration unchanged
         env:
@@ -76,7 +77,7 @@ jobs:
           for(let attempt=0;attempt<8;attempt++){
             const res=await fetch('https://parallel-vision-lab.parallelvision.workers.dev/health',{signal:AbortSignal.timeout(15000)});
             const payload=await res.json();
-            if(res.ok&&payload.ok&&payload.videoTransformProvider==='spicyapi-seedance25-edit-20261119'&&payload.videoTransformCreditRate==='20261119-seedance25-160'){found=true;break;}
+            if(res.ok&&payload.ok&&payload.videoTransformProvider==='spicyapi-seedance25-edit-20261119'&&payload.videoTransformCreditRate==='20261119-seedance25-160'&&payload.videoTransformFinalCreditRelease==='20261119-confirmed-cost-v1'){found=true;break;}
             await new Promise(resolve=>setTimeout(resolve,3500));
           }
           if(!found)throw Error('Production health does not confirm SpicyAPI Transform version.');
@@ -94,5 +95,10 @@ jobs:
           const dbTrigger=dbData.result?.[0]?.results?.[0]?.sql||'';
           if(!db.ok||!dbData.success||!dbTrigger.includes("'bytedance/seedance-2.5/video-edit'")||!dbTrigger.includes('THEN 160'))
             throw Error('Production D1 pricing trigger not updated for Transform.');
-          console.log('LIVE VERIFIED: SpicyAPI Transform 160-credit Worker and D1 debit agree; Cloudflare settings preserved. No checkout or paid generation executed.');
+          const releaseCheck=await fetch('https://api.cloudflare.com/client/v4/accounts/'+process.env.CLOUDFLARE_ACCOUNT_ID+'/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query',{
+            method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({sql:"SELECT name FROM sqlite_master WHERE type='trigger' AND name IN ('lab_transform_credit_release_insert','lab_transform_credit_release_update') ORDER BY name"}),signal:AbortSignal.timeout(25000)});
+          const releaseRows=(await releaseCheck.json()).result?.[0]?.results||[];
+          if(!releaseCheck.ok||releaseRows.length!==2||releaseRows[0]?.name!=='lab_transform_credit_release_insert'||releaseRows[1]?.name!=='lab_transform_credit_release_update')
+            throw Error('Production D1 credit-release triggers not present.');
+          console.log('LIVE VERIFIED: Transform provider, 160-credit rate and idempotent final-cost releases deployed; D1 and bindings verified. No checkout or paid generation executed.');
           NODE
