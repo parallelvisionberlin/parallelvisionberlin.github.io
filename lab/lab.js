@@ -32,6 +32,7 @@ import {mountVideoEffectsGallery,resolveVideoEffect} from './video-effects.js?v=
 import {createVideoModelPicker} from './video-model-picker.js?v=20261111-spicy-extend1';
 import {readProviderPolicyDetails} from './model-policy-preferences.js?v=20261028-1';
 import {videoCustomerQuoteLabels,videoCreditPreview} from './video-euro-pricing.js?creditPreview=20261029-1&v=20261024-credits1';
+import {transformEditQuoteEstimate} from './video-transform-quote.js?v=20261119-quote-hold1';
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1&seedream55=1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,AUTO_IMAGE_REINTERPRET_PROMPT,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?characterAllViews=20261103v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1&fisheye=20261020v1&hkRefs=20261023two1&photoOnlyAuto=20261022v3&hkCinema=20261025v1&replaceCompact=20261108-v1&fallenAngel=20261112a&seedream55=1';
 import {createInspirationRotation,INSPIRATION_VARIATIONS,CHROME_COUTURE_DEFAULTS} from './inspiration-looks.js?v=20261019-chrome1&fisheyeCover=20261021v1&fisheyeY2K=20261024v1&chromeQwen20=20261031v1&dreamBlurExposure=20261102v2&sunFadeInspiration=20261104v1&promptSwitch=20261112v1';
@@ -4186,11 +4187,15 @@ $('generate').onclick=async()=>{if(tool==='image')return submitImageSnapshot();
   $('quote-settings').textContent=q.settings.mode==='upscale'?`Image Upscaler / ${q.settings.resolution.toUpperCase()} / ${q.settings.outputFormat.toUpperCase()} / source ratio kept`:isImage?`${imageModelLabel(q.settings)} / ${q.settings.referenceSourceIds.length?'Reference Edit':'Text to Image'} / ${q.settings.resolution.toUpperCase()} / ${q.settings.aspectRatio}`:`${videoLabel(q.settings)} / ${modeName} / ${q.settings.duration}s / ${q.settings.resolution} / ${q.provider}`;
   const quotedCredits=Number.isSafeInteger(q.creditCost)&&q.creditCost>0?q.creditCost.toLocaleString()+' credits':'Price unavailable';
   const videoLabels=customerMode&&!isImage?videoCustomerQuoteLabels(q.creditCost):null;
-  $('quote-price').textContent=videoLabels?.primary||(customerMode?quotedCredits:money(q.estimatedUsd));
-  $('quote-limit').textContent=videoLabels?.detail||(customerMode?`Credit maximum reserved: ${quotedCredits}`:q.priceIsEstimate?`Estimated provider charge: ${money(q.maxUsd)} USD`:`Quoted maximum: ${money(q.maxUsd)} USD`);
-  $('confirm-generation').textContent=videoLabels?.confirm||'Confirm & generate';
+  const editEstimate=transformEditQuoteEstimate(q);
+  $('quote-price').textContent=editEstimate&&!customerMode?'~'+money(editEstimate.estimatedUsd):(videoLabels?.primary||(customerMode?quotedCredits:money(q.estimatedUsd)));
+  $('quote-limit').textContent=editEstimate
+    ?(customerMode?`Estimated final cost ~${editEstimate.estimatedCredits.toLocaleString()} credits for ${editEstimate.billedSeconds}s. Maximum reserved: ${quotedCredits}. Any difference is returned only after verified provider settlement.`
+      :`Estimated for ${editEstimate.billedSeconds}s of source. SpicyAPI reserves up to ${money(q.maxUsd)} USD (30-second ceiling); unused funds return after settlement.`)
+    :(videoLabels?.detail||(customerMode?`Credit maximum reserved: ${quotedCredits}`:q.priceIsEstimate?`Estimated provider charge: ${money(q.maxUsd)} USD`:`Quoted maximum: ${money(q.maxUsd)} USD`));
+  $('confirm-generation').textContent=editEstimate?(customerMode?`Reserve ${quotedCredits} & generate`:`Confirm max ${money(q.maxUsd)} & generate`):(videoLabels?.confirm||'Confirm & generate');
   $('quote-expiry').textContent='Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No automatic repricing. '+(q.settings.transferNotes||[]).join(' ');
-  $('quote-notice').textContent=q.notice||'';$('confirm-generation').disabled=false;$('quote-dialog').showModal();
+  $('quote-notice').textContent=(editEstimate?'The estimate uses the source length rounded up to whole seconds, at the rate implied by the current 30-second quote. The full maximum is authorized and temporarily held. Final usage may differ. ':'')+(q.notice||'');$('confirm-generation').disabled=false;$('quote-dialog').showModal();
 });};
 $('confirm-generation').onclick=async()=>{
   const q=currentQuote;if(!q||busy)return;
