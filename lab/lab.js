@@ -4188,17 +4188,18 @@ $('generate').onclick=async()=>{if(tool==='image')return submitImageSnapshot();
   const quotedCredits=Number.isSafeInteger(q.creditCost)&&q.creditCost>0?q.creditCost.toLocaleString()+' credits':'Price unavailable';
   const videoLabels=customerMode&&!isImage?videoCustomerQuoteLabels(q.creditCost):null;
   const editEstimate=transformEditQuoteEstimate(q);
+  const fixedTransformRetail=customerMode&&q.settings.mode==='transform'&&q.settings.transformFixedChargeVersion==='source-seconds-v1'&&Number.isSafeInteger(q.creditCost)&&q.creditCost>=7;
   // Never expose supplier preauthorization mechanics in the customer price review.
   // Customers must still see the actual maximum PV credits debited on confirmation:
   // showing only the estimated final cost would misrepresent the temporary debit.
-  $('quote-price').textContent=editEstimate?(customerMode?'Up to '+quotedCredits:'~'+money(editEstimate.estimatedUsd)):(videoLabels?.primary||(customerMode?quotedCredits:money(q.estimatedUsd)));
-  $('quote-limit').textContent=editEstimate
+  $('quote-price').textContent=fixedTransformRetail?q.creditCost.toLocaleString()+' PV credits':editEstimate?(customerMode?'Up to '+quotedCredits:'~'+money(editEstimate.estimatedUsd)):(videoLabels?.primary||(customerMode?quotedCredits:money(q.estimatedUsd)));
+  $('quote-limit').textContent=fixedTransformRetail?`${Number(q.settings.sourceDurationSeconds).toFixed(1)}s original video · ${q.settings.transformBillableSeconds} billed seconds. One fixed PV LAB credit charge.`:editEstimate
     ?(customerMode?`Estimated final cost: ${editEstimate.estimatedCredits.toLocaleString()} PV credits for ${editEstimate.billedSeconds}s of source video. Unused credits return to your balance automatically after completion.`
       :`Expected final cost for ${editEstimate.billedSeconds}s of source at ${q.settings.resolution}. Internal supplier authorization limit: ${money(q.maxUsd)} USD.`)
     :(videoLabels?.detail||(customerMode?`Maximum charged before generation: ${quotedCredits}`:q.priceIsEstimate?`Estimated provider charge: ${money(q.maxUsd)} USD`:`Quoted maximum: ${money(q.maxUsd)} USD`));
-  $('confirm-generation').textContent=editEstimate?(customerMode?`Generate · up to ${quotedCredits}`:'Confirm & generate'):(videoLabels?.confirm||'Confirm & generate');
+  $('confirm-generation').textContent=fixedTransformRetail?`Generate · ${q.creditCost.toLocaleString()} credits`:editEstimate?(customerMode?`Generate · up to ${quotedCredits}`:'Confirm & generate'):(videoLabels?.confirm||'Confirm & generate');
   $('quote-expiry').textContent='Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No automatic repricing. '+(q.settings.transferNotes||[]).join(' ');
-  $('quote-notice').textContent=editEstimate&&customerMode
+  $('quote-notice').textContent=fixedTransformRetail?'This is the total PV LAB credit charge for this edit. No additional credit hold or later debit is taken from your balance. Failed jobs are refunded under the generation policy.':editEstimate&&customerMode
     ?'A successful edit is billed according to the original video length. Remaining PV credits return automatically after the provider confirms the final cost. A completed generation is charged even if you dislike the result.'
     :(editEstimate?'A supplier preauthorization is separate from the final measured usage. ':'')+(q.notice||'');
   $('confirm-generation').disabled=false;$('quote-dialog').showModal();
