@@ -1330,7 +1330,7 @@ function setTool(value){
   if(toolChanged){$('notice').textContent='';$('notice').classList.remove('error');}
   syncNoticePlacement();
   for(const name of ['image','video','upscale']){$('tool-'+name).classList.toggle('active',tool===name);$('tool-'+name).setAttribute('aria-pressed',String(tool===name));}$('soul-launch').hidden=!image;
-  $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-model-control').hidden=!image;$('engine-name').hidden=image;$('image-processing-control').hidden=!image||imageEngine!=='gemini';$('soul-pro-settings').hidden=!image||imageEngine!=='soulpro';$('controlled-pose-settings').hidden=!image||imageEngine!=='fal';$('image-count-control').hidden=!image||imageEngine==='fal'||imageEngine==='soulpro'&&!isSoul2()||imageEngine==='soul'&&soul.isKrea();$('video-utilities').hidden=!video;$('format-control').hidden=video||(image&&['seedream55','seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy','gemini','gemini21','fal','soulpro'].includes(imageEngine));$('soul-controls').hidden=!image||imageEngine!=='soul';
+  $('video-modes').hidden=!video;$('duration-control').hidden=!video||mode==='transform';$('image-model-control').hidden=!image;$('engine-name').hidden=image;$('image-processing-control').hidden=!image||imageEngine!=='gemini';$('soul-pro-settings').hidden=!image||imageEngine!=='soulpro';$('controlled-pose-settings').hidden=!image||imageEngine!=='fal';$('image-count-control').hidden=!image||imageEngine==='fal'||imageEngine==='soulpro'&&!isSoul2()||imageEngine==='soul'&&soul.isKrea();$('video-utilities').hidden=!video;$('format-control').hidden=video||(image&&['seedream55','seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy','gemini','gemini21','fal','soulpro'].includes(imageEngine));$('soul-controls').hidden=!image||imageEngine!=='soul';
   $('start-mode').hidden=(image&&imageEngine!=='soulpro')||video&&mode!=='start';$('reference-mode').hidden=upscale||video&&mode!=='reference'||image&&['soul','soulpro','zspicy'].includes(imageEngine);
   $('last-upload').hidden=upscale||image&&imageEngine==='soulpro';$('start-label').textContent=upscale?'Image to upscale':image&&imageEngine==='soulpro'?'Base image':'Start frame';
   $('upscale-info').hidden=!upscale;$('prompt').hidden=upscale;$('prompt-label').hidden=upscale;$('resolution-control').hidden=image&&(imageEngine==='soul'&&!isReinterpret()||imageEngine==='fal'||imageEngine==='soulpro');$('ratio-control').hidden=upscale||image&&imageEngine==='soulpro';
@@ -4184,18 +4184,24 @@ $('generate').onclick=async()=>{if(tool==='image')return submitImageSnapshot();
   if(selectedTool==='video'&&['seedance','seedance15','seedance4k','h3maxfal','omni','kling3'].includes(engine)&&(q.settings.engine!==engine||q.settings.mode!==mode||q.settings.model!==VIDEO_MODELS[engine].endpoints[mode]))throw new Error('Provider quote does not match the selected video model and mode. Nothing was submitted.');
   if(customerMode&&(!Number.isSafeInteger(q.creditCost)||q.creditCost<1))throw new Error('No verified PV LAB credit price was returned. Nothing submitted.');
   currentQuote=q;const isImage=q.settings.type==='image',modeName=q.settings.mode==='transform'?'Replace Character / Video Edit':q.settings.mode==='extend'?'Extend Video':q.settings.mode==='text'?'Text to Video':q.settings.mode==='reference'?'Reference to Video':'Image to Video';
-  $('quote-settings').textContent=q.settings.mode==='upscale'?`Image Upscaler / ${q.settings.resolution.toUpperCase()} / ${q.settings.outputFormat.toUpperCase()} / source ratio kept`:isImage?`${imageModelLabel(q.settings)} / ${q.settings.referenceSourceIds.length?'Reference Edit':'Text to Image'} / ${q.settings.resolution.toUpperCase()} / ${q.settings.aspectRatio}`:`${videoLabel(q.settings)} / ${modeName} / ${q.settings.duration}s / ${q.settings.resolution} / ${q.provider}`;
+  $('quote-settings').textContent=q.settings.mode==='upscale'?`Image Upscaler / ${q.settings.resolution.toUpperCase()} / ${q.settings.outputFormat.toUpperCase()} / source ratio kept`:isImage?`${imageModelLabel(q.settings)} / ${q.settings.referenceSourceIds.length?'Reference Edit':'Text to Image'} / ${q.settings.resolution.toUpperCase()} / ${q.settings.aspectRatio}`:q.settings.mode==='transform'?`${videoLabel(q.settings)} / Replace Character / ${q.settings.sourceDurationSeconds}s original / ${q.settings.resolution}`:`${videoLabel(q.settings)} / ${modeName} / ${q.settings.duration}s / ${q.settings.resolution} / ${customerMode?'PV LAB':q.provider}`;
   const quotedCredits=Number.isSafeInteger(q.creditCost)&&q.creditCost>0?q.creditCost.toLocaleString()+' credits':'Price unavailable';
   const videoLabels=customerMode&&!isImage?videoCustomerQuoteLabels(q.creditCost):null;
   const editEstimate=transformEditQuoteEstimate(q);
-  $('quote-price').textContent=editEstimate&&!customerMode?'~'+money(editEstimate.estimatedUsd):(videoLabels?.primary||(customerMode?quotedCredits:money(q.estimatedUsd)));
+  // Never expose supplier preauthorization mechanics in the customer price review.
+  // Customers must still see the actual maximum PV credits debited on confirmation:
+  // showing only the estimated final cost would misrepresent the temporary debit.
+  $('quote-price').textContent=editEstimate?(customerMode?'Up to '+quotedCredits:'~'+money(editEstimate.estimatedUsd)):(videoLabels?.primary||(customerMode?quotedCredits:money(q.estimatedUsd)));
   $('quote-limit').textContent=editEstimate
-    ?(customerMode?`Estimated final cost ~${editEstimate.estimatedCredits.toLocaleString()} credits for ${editEstimate.billedSeconds}s. Maximum reserved: ${quotedCredits}. Any difference is returned only after verified provider settlement.`
-      :`Estimated for ${editEstimate.billedSeconds}s of source. SpicyAPI reserves up to ${money(q.maxUsd)} USD (30-second ceiling); unused funds return after settlement.`)
-    :(videoLabels?.detail||(customerMode?`Credit maximum reserved: ${quotedCredits}`:q.priceIsEstimate?`Estimated provider charge: ${money(q.maxUsd)} USD`:`Quoted maximum: ${money(q.maxUsd)} USD`));
-  $('confirm-generation').textContent=editEstimate?(customerMode?`Reserve ${quotedCredits} & generate`:`Confirm max ${money(q.maxUsd)} & generate`):(videoLabels?.confirm||'Confirm & generate');
+    ?(customerMode?`Estimated final cost: ${editEstimate.estimatedCredits.toLocaleString()} PV credits for ${editEstimate.billedSeconds}s of source video. Unused credits return to your balance automatically after completion.`
+      :`Expected final cost for ${editEstimate.billedSeconds}s of source at ${q.settings.resolution}. Internal supplier authorization limit: ${money(q.maxUsd)} USD.`)
+    :(videoLabels?.detail||(customerMode?`Maximum charged before generation: ${quotedCredits}`:q.priceIsEstimate?`Estimated provider charge: ${money(q.maxUsd)} USD`:`Quoted maximum: ${money(q.maxUsd)} USD`));
+  $('confirm-generation').textContent=editEstimate?(customerMode?`Generate · up to ${quotedCredits}`:'Confirm & generate'):(videoLabels?.confirm||'Confirm & generate');
   $('quote-expiry').textContent='Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No automatic repricing. '+(q.settings.transferNotes||[]).join(' ');
-  $('quote-notice').textContent=(editEstimate?'The estimate uses the source length rounded up to whole seconds, at the rate implied by the current 30-second quote. The full maximum is authorized and temporarily held. Final usage may differ. ':'')+(q.notice||'');$('confirm-generation').disabled=false;$('quote-dialog').showModal();
+  $('quote-notice').textContent=editEstimate&&customerMode
+    ?'A successful edit is billed according to the original video length. Remaining PV credits return automatically after the provider confirms the final cost. A completed generation is charged even if you dislike the result.'
+    :(editEstimate?'A supplier preauthorization is separate from the final measured usage. ':'')+(q.notice||'');
+  $('confirm-generation').disabled=false;$('quote-dialog').showModal();
 });};
 $('confirm-generation').onclick=async()=>{
   const q=currentQuote;if(!q||busy)return;
