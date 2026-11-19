@@ -112,6 +112,111 @@ export const beautyLookCatalog={
       "instruction": "Black vinyl-finish eye makeup with glossy reflective eyelids and controlled edges, preserving facial anatomy.",
       "image": "./visuals/beauty/atelier/alter-makeup-vinyl-20261108-v2.webp",
       "preview": ""
+    },
+    {
+      "id": "clean-girl",
+      "label": "Clean Girl",
+      "instruction": "Clean Girl makeup: lightly groomed natural brows, even sheer base, subtle defined lashes, tiny neutral cheek flush and understated nude-pink lips; preserve real skin texture.",
+      "image": "./visuals/beauty/atelier/alter-makeup-clean-girl-20261119.webp",
+      "preview": ""
+    },
+    {
+      "id": "no-makeup",
+      "label": "No-Makeup Makeup",
+      "instruction": "No-makeup makeup: nearly invisible sheer complexion correction, minimal lash definition, natural brows and muted lip tint, leaving freckles and natural skin texture visible.",
+      "image": "./visuals/beauty/atelier/alter-makeup-no-makeup-20261119.webp",
+      "preview": ""
+    },
+    {
+      "id": "french-girl",
+      "label": "French Girl",
+      "instruction": "French-girl makeup: striking softly blurred classic red lipstick, minimal neutral eye definition, light mascara and otherwise natural unretouched-looking skin.",
+      "image": "./visuals/beauty/atelier/alter-makeup-french-girl-20261119.webp",
+      "preview": ""
+    },
+    {
+      "id": "glass-skin",
+      "label": "Glass Skin Glow",
+      "instruction": "Glass skin makeup: sheer foundation with smooth transparent luminous high points on cheeks, nose and eyelids, soft neutral lip tint; retain pores and realistic skin without artificial plastic shine.",
+      "image": "./visuals/beauty/atelier/alter-makeup-glass-skin-20261119.webp",
+      "preview": ""
+    },
+    {
+      "id": "siren-eyes",
+      "label": "Siren Eyes",
+      "instruction": "Siren eyes: elongated lifted smoky wing from the outer upper lash line toward the temples, fine inner-corner definition, neutral matte eye contour and restrained lips; precisely follow existing eye anatomy.",
+      "image": "./visuals/beauty/atelier/alter-makeup-siren-eyes-20261119.webp",
+      "preview": ""
+    },
+    {
+      "id": "pin-up",
+      "label": "Pin-Up Liner",
+      "instruction": "Classic pin-up makeup: clean precise black cat-eye flicks, elegant red lipstick with crisp edges, understated natural complexion and restrained blush.",
+      "image": "./visuals/beauty/atelier/alter-makeup-pin-up-20261119.webp",
+      "preview": ""
+    },
+    {
+      "id": "old-hollywood",
+      "label": "Old Hollywood",
+      "instruction": "Old Hollywood makeup: softly sculpted neutral eyes, defined lashes, full classic crimson lipstick with carefully shaped cupid's bow, understated satin complexion and subtle cheek contour.",
+      "image": "./visuals/beauty/atelier/alter-makeup-old-hollywood-20261119.webp",
+      "preview": ""
+    },
+    {
+      "id": "twiggy-lashes",
+      "label": "Twiggy Lashes",
+      "instruction": "1960s Twiggy-style makeup: bold upper and individually painted spaced lower lashes, pale soft lid shading and minimal natural lips, adapted to the subject's own eyes without changing their features.",
+      "image": "./visuals/beauty/atelier/alter-makeup-twiggy-lashes-20261119.webp",
+      "preview": ""
+    },
+    {
+      "id": "soft-goth",
+      "label": "Soft Goth",
+      "instruction": "Soft goth makeup: diffused charcoal smoky lids, softly darkened lower lash line, muted deep berry lips and pale-neutral contour relative to the source complexion; no changes to natural skin tone.",
+      "image": "./visuals/beauty/atelier/alter-makeup-soft-goth-20261119.webp",
+      "preview": ""
+    },
+    {
+      "id": "grunge-smudge",
+      "label": "Grunge Smudge",
+      "instruction": "1990s grunge makeup: intentionally lived-in smudged black and taupe liner around both lash lines, soft imperfect smoky edges and subdued brown-nude lips.",
+      "image": "./visuals/beauty/atelier/alter-makeup-grunge-smudge-20261119.webp",
+      "preview": ""
+    },
+    {
+      "id": "douyin-blush",
+      "label": "Douyin Blush",
+      "instruction": "Douyin-inspired blush: distinctly diffused cool-pink blush high on the cheeks and beneath the eyes, gentle rosy nose tint, delicate shimmer near inner eye corners and softly glossed pink lips.",
+      "image": "./visuals/beauty/atelier/alter-makeup-douyin-blush-20261119.webp",
+      "preview": ""
+    },
+    {
+      "id": "euphoria-glitter",
+      "label": "Euphoria Glitter",
+      "instruction": "Euphoria-inspired festival makeup: lavender and lilac shimmer on the lids, small pinpoint iridescent glitter accents around the outer eyes, fresh glossy lips and photorealistic skin; no new jewellery.",
+      "image": "./visuals/beauty/atelier/alter-makeup-euphoria-glitter-20261119.webp",
+      "preview": ""
+    },
+    {
+      "id": "sunburnt-blush",
+      "label": "Sunburnt Blush",
+      "instruction": "Sunburnt blush makeup: warm rose-coral blush crossing both cheeks and the bridge of the nose, softly blended and natural-looking, minimal lashes, soft peach lips and authentic freckles.",
+      "image": "./visuals/beauty/atelier/alter-makeup-sunburnt-blush-20261119.webp",
+      "preview": ""
+    },
+    {
+      "id": "mob-wife",
+      "label": "Mob Wife Glam",
+      "instruction": "Mob-wife glamour makeup: smoked espresso and black winged eyeliner, full dramatic lashes, sculpted warm cheek contour and sharply defined brown-nude lips with soft glossy finish.",
+      "image": "./visuals/beauty/atelier/alter-makeup-mob-wife-20261119.webp",
+      "preview": ""
+    },
+    {
+      "id": "latina-glam",
+      "label": "Latina Glam",
+      "instruction": "Modern Latina-inspired glam makeup: defined lifted liner, softly bronzed warm-neutral eyes, precise lip liner with blended caramel-rose nude lipstick, softly highlighted cheekbones; adapt flattering tones to the subject without changing complexion.",
+      "image": "./visuals/beauty/atelier/alter-makeup-latina-glam-20261119.webp",
+      "preview": ""
     }
   ],
   "hair": [
