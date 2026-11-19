@@ -2653,7 +2653,7 @@ test('Seedream 5.5 binds exact text/edit models and eight references without a p
       }
     }
     // 1.5K is a valid uncharged Seedream 5.5 quote at the same tier as 1K.
-    maxPrice='.02';
+    maxPrice='0.02';
     const mid=await req(env,'/api/quotes',{method:'POST',data:{settings:{...settings,resolution:'1.5k'},referenceSourceIds:[]}});
     assert.equal(mid.status,200,await mid.clone().text());
     assert.equal(quotedRequest.input.resolution,'1.5k');
