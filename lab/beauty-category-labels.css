@@ -11,3 +11,8 @@
   background-size:auto 170%;
   background-position:center top;
 }
+
+/* 2026-11-19: newer makeup photographs are clean full-face references. Keep
+   their visible lip/cheek work; the older baked-in-text samples retain the
+   tighter eye-area crop above. This affects previews only, not references. */
+#beauty-panel-makeup .beauty-choice-list .beauty-makeup-trend .beauty-choice-photo{background-size:cover;background-position:center 50%;filter:none}
