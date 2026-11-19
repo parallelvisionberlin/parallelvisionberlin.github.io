@@ -2,7 +2,7 @@ import {openLabSignIn} from './auth-google.js?v=20261117-pv-google1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createSessionRequest} from './session-request.js?v=20261015-canonical-studio1';
 import {createAccountMenu} from './account-menu.js?v=20261030-robin-partner1';
-import {beautySettings,validateBeautyQuote,BEAUTY_PROMPT_PREFIX,beautyAutoRatio} from './beauty-settings.js?v=20261119-makeup30-1';
+import {beautySettings,validateBeautyQuote,BEAUTY_PROMPT_PREFIX,beautyAutoRatio} from './beauty-settings.js?v=20261119-seedream55-15k-default1';
 import {beautyLookCatalog} from './beauty-look-catalog.js?v=20261119-makeup30-1';
 const API='https://parallel-vision-lab.parallelvision.workers.dev',$=id=>document.getElementById(id);
 const activeStates=new Set(['submitting','queued','running','saving','uncertain']);
@@ -279,6 +279,15 @@ $('beauty-photo-drop').addEventListener('drop',event=>{event.preventDefault();ev
 for(const id of ['beauty-makeup','beauty-hair','beauty-skin','beauty-light','beauty-color','beauty-model','beauty-resolution','beauty-ratio'])$(id).addEventListener('change',()=>{status('');invalidate();});
 $('beauty-model').addEventListener('change',()=>{
  const is55=$('beauty-model').value==='seedream55';
+ const resolution=$('beauty-resolution'),previous=resolution.value;
+ const tier=resolution.querySelector('option[value="1.5k"]');
+ if(is55){
+  if(!tier)resolution.add(new Option('1.5K','1.5k'),1);
+  if(previous==='1k')resolution.value='1.5k';
+ }else if(tier){
+  tier.remove();
+  if(previous==='1.5k')resolution.value='1k';
+ }
  const option=$('beauty-ratio').querySelector('option[value="4:5"]');option.disabled=is55;
  if(is55&&$('beauty-ratio').value==='4:5'){$('beauty-ratio').value='3:4';$('beauty-ratio').dispatchEvent(new Event('change',{bubbles:true}));}
  if(photoWidth&&photoHeight)$('beauty-ratio').querySelector('option[value="auto"]').textContent='Auto · '+beautyAutoRatio(photoWidth,photoHeight,$('beauty-model').value);
