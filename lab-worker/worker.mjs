@@ -453,7 +453,8 @@ async function prepareInput(env,owner,data,p,url) {
     // The browser's video-length label is not a billing authority. Inspect the
     // stored reference bytes before constructing any customer retail quote.
     if(p.mode==='reference'&&p.referenceVideoIds?.length){
-      let exactTotal=0;
+      let exactTotal=0,verifiedAll=true;
+      const billedCustomer=await isLabCustomer(env,owner);
       for(let i=0;i<p.referenceVideoIds.length;i++){
         const video=await source(env,owner,p.referenceVideoIds[i]);
         let metadata;
@@ -463,7 +464,12 @@ async function prepareInput(env,owner,data,p,url) {
             if(!chunk)throw Error('Stored reference video is unavailable.');
             return chunk.arrayBuffer();
           });
-        }catch(error){fail(400,'Cannot verify the motion reference duration. Re-upload a standard MP4 or MOV before checking the price.');}
+        }catch(error){
+          // Existing owner-only synthetic/legacy clips retain their old preview,
+          // but no customer can receive a discounted unverified quote.
+          if(billedCustomer)fail(400,'Cannot verify the motion reference duration. Re-upload a standard MP4 or MOV before checking the price.');
+          verifiedAll=false;break;
+        }
         const seconds=metadata.duration;
         if(!Number.isFinite(seconds)||seconds<2||seconds>30)
           fail(400,'Motion reference videos must each be between 2 and 30 seconds.');
@@ -471,11 +477,13 @@ async function prepareInput(env,owner,data,p,url) {
           fail(409,'Motion reference duration changed. Reopen the clip and review a fresh price.');
         exactTotal+=seconds;
       }
-      const billableTotal=Math.ceil(exactTotal);
-      if(exactTotal>30.05||billableTotal>30)
-        fail(400,'Use reference video clips with at most 30 billed seconds combined.');
-      p.referenceBillableVideoSeconds=billableTotal;
-      p.referenceFixedChargeVersion=REFERENCE_FIXED_RETAIL_VERSION;
+      if(verifiedAll){
+        const billableTotal=Math.ceil(exactTotal);
+        if(exactTotal>30.05||billableTotal>30)
+          fail(400,'Use reference video clips with at most 30 billed seconds combined.');
+        p.referenceBillableVideoSeconds=billableTotal;
+        p.referenceFixedChargeVersion=REFERENCE_FIXED_RETAIL_VERSION;
+      }
     }
     if(p.prompt)prepared.input.prompt=p.mode==='extend'?p.prompt:assembledPrompt(p);return prepared;
   }
@@ -2125,7 +2133,7 @@ async function route(request,env,ctx) {
       const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
       if(p.engine==='seedance'&&p.mode==='transform'&&maximum>TRANSFORM_MAX_ESTIMATE_MICROS)
         fail(409,'SpicyAPI Transform quote exceeds the $20 provider safety limit. Choose a shorter MP4 or lower resolution. Nothing submitted.');
-      if(p.engine==='seedance'&&p.mode==='reference'&&p.referenceVideoIds?.length){
+      if((customer||isFixedReferenceRetail(p))&&p.engine==='seedance'&&p.mode==='reference'&&p.referenceVideoIds?.length){
         // A 30-second vendor preauthorization is NOT a customer price. The
         // maximum must match the live published tier before prorating retail.
         const rateMicros={'480p':73800,'720p':165900,'1080p':408200}[p.resolution];
