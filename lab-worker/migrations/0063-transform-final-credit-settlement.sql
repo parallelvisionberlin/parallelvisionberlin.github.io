@@ -55,8 +55,11 @@ BEGIN
   FROM lab_transform_credit_holds h
   WHERE h.job_id=NEW.job_id AND h.customer_id=NEW.customer_id
     AND h.credits_held>MAX(7,CAST((CAST(ROUND(NEW.settled_cost_usd*1000000) AS INTEGER)*160+999999)/1000000 AS INTEGER))
+    -- SQLite propagates an outer INSERT OR REPLACE conflict policy into
+    -- triggered INSERT OR IGNORE. Skip an existing partial settlement row
+    -- explicitly to prevent a second credit to the wallet on status replays.
     AND NOT EXISTS(SELECT 1 FROM lab_credit_entries e
-      WHERE e.reference='refund:job:'||NEW.job_id);
+      WHERE e.reference IN ('refund:job:'||NEW.job_id,'settlement:job:'||NEW.job_id));
 END;
 DROP TRIGGER IF EXISTS lab_refund_transform_finance_update;
 CREATE TRIGGER lab_refund_transform_finance_update
@@ -73,8 +76,11 @@ BEGIN
   FROM lab_transform_credit_holds h
   WHERE h.job_id=NEW.job_id AND h.customer_id=NEW.customer_id
     AND h.credits_held>MAX(7,CAST((CAST(ROUND(NEW.settled_cost_usd*1000000) AS INTEGER)*160+999999)/1000000 AS INTEGER))
+    -- SQLite propagates an outer INSERT OR REPLACE conflict policy into
+    -- triggered INSERT OR IGNORE. Skip an existing partial settlement row
+    -- explicitly to prevent a second credit to the wallet on status replays.
     AND NOT EXISTS(SELECT 1 FROM lab_credit_entries e
-      WHERE e.reference='refund:job:'||NEW.job_id);
+      WHERE e.reference IN ('refund:job:'||NEW.job_id,'settlement:job:'||NEW.job_id));
 END;
 
 -- A rare late failed-state transition must not return the entire original

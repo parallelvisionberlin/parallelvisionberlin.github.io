@@ -1,4 +1,4 @@
-name: PV LAB Transform provider, price hold and final-credit release
+name: PV LAB Transform confirmed-cost release (idempotent credit hotfix)
 
 on:
   workflow_dispatch:
@@ -95,7 +95,7 @@ jobs:
           const dbTrigger=dbData.result?.[0]?.results?.[0]?.sql||'';
           if(!db.ok||!dbData.success||!dbTrigger.includes("'bytedance/seedance-2.5/video-edit'")||!dbTrigger.includes('THEN 160'))
             throw Error('Production D1 pricing trigger not updated for Transform.');
-          const settlementSql="SELECT name FROM sqlite_master WHERE type='trigger' AND name IN ('lab_capture_transform_credit_hold','lab_refund_transform_finance_insert','lab_refund_transform_finance_update') ORDER BY name";
+          const settlementSql="SELECT name,sql FROM sqlite_master WHERE type='trigger' AND name IN ('lab_capture_transform_credit_hold','lab_refund_transform_finance_insert','lab_refund_transform_finance_update') ORDER BY name";
           const settlementRes=await fetch('https://api.cloudflare.com/client/v4/accounts/'+process.env.CLOUDFLARE_ACCOUNT_ID+'/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query',{
             method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
             body:JSON.stringify({sql:settlementSql}),signal:AbortSignal.timeout(25000)});
@@ -104,5 +104,9 @@ jobs:
           if(!settlementRes.ok||!settlementData.success||
             ['lab_capture_transform_credit_hold','lab_refund_transform_finance_insert','lab_refund_transform_finance_update'].some(name=>!triggers.includes(name)))
             throw Error('Production D1 final-cost refund triggers missing.');
+          const textByName=Object.fromEntries((settlementData.result?.[0]?.results||[]).map(row=>[row.name,row.sql||'']));
+          for(const name of ['lab_refund_transform_finance_insert','lab_refund_transform_finance_update']){
+            if(!textByName[name].includes("'settlement:job:'"))throw Error('Production refund idempotency guard missing: '+name);
+          }
           console.log('WORKER/DB VERIFIED: SpicyAPI Transform 160-credit Worker, D1 debit and settlement refund triggers present; Cloudflare settings preserved. No checkout or paid generation executed.');
           NODE
