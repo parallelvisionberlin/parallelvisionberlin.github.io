@@ -57,6 +57,13 @@ WHERE f.last_state='completed' AND f.provider='spicy'
  AND NOT EXISTS(SELECT 1 FROM lab_credit_entries reversed
     WHERE reversed.customer_id=f.customer_id
     AND reversed.kind='refund' AND reversed.reference='refund:job:'||f.job_id)
+ -- Explicit guard is required: finance uses INSERT OR REPLACE and SQLite can
+ -- propagate the outer conflict policy into this triggered INSERT OR IGNORE.
+ -- Never replace a previously credited release (which would credit twice).
+ AND NOT EXISTS(SELECT 1 FROM lab_credit_entries earlier
+    WHERE earlier.customer_id=f.customer_id
+    AND (earlier.id='transform-credit-release:'||f.job_id
+      OR earlier.reference='settled:transform:job:'||f.job_id))
  AND (-debit.delta_credits)>MAX(7,CAST((CAST(ROUND(f.settled_cost_usd*1000000.0) AS INTEGER)*160+999999)/1000000 AS INTEGER));
 
 -- Finance snapshots are written by existing DB triggers when a job settles
