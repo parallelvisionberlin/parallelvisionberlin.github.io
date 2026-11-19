@@ -452,8 +452,8 @@ async function prepareInput(env,owner,data,p,url) {
     const prepared=await prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput});
     // The browser's video-length label is not a billing authority. Inspect the
     // stored reference bytes before constructing any customer retail quote.
-    if(p.mode==='reference'&&p.referenceVideoIds?.length&&await isLabCustomer(env,owner)){
-      let exactTotal=0,billableTotal=0;
+    if(p.mode==='reference'&&p.referenceVideoIds?.length){
+      let exactTotal=0;
       for(let i=0;i<p.referenceVideoIds.length;i++){
         const video=await source(env,owner,p.referenceVideoIds[i]);
         let metadata;
@@ -470,8 +470,8 @@ async function prepareInput(env,owner,data,p,url) {
         if(Math.abs(seconds-Number(p.referenceVideos[i]?.seconds))>0.5)
           fail(409,'Motion reference duration changed. Reopen the clip and review a fresh price.');
         exactTotal+=seconds;
-        billableTotal+=Math.ceil(seconds);
       }
+      const billableTotal=Math.ceil(exactTotal);
       if(exactTotal>30.05||billableTotal>30)
         fail(400,'Use reference video clips with at most 30 billed seconds combined.');
       p.referenceBillableVideoSeconds=billableTotal;
@@ -2125,7 +2125,7 @@ async function route(request,env,ctx) {
       const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
       if(p.engine==='seedance'&&p.mode==='transform'&&maximum>TRANSFORM_MAX_ESTIMATE_MICROS)
         fail(409,'SpicyAPI Transform quote exceeds the $20 provider safety limit. Choose a shorter MP4 or lower resolution. Nothing submitted.');
-      if(customer&&p.engine==='seedance'&&p.mode==='reference'&&p.referenceVideoIds?.length){
+      if(p.engine==='seedance'&&p.mode==='reference'&&p.referenceVideoIds?.length){
         // A 30-second vendor preauthorization is NOT a customer price. The
         // maximum must match the live published tier before prorating retail.
         const rateMicros={'480p':73800,'720p':165900,'1080p':408200}[p.resolution];
