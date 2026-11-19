@@ -48,7 +48,7 @@ import {reinterpretParameters,buildReinterpretInput} from './soul-reinterpret.mj
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
 import {seedanceVariantParameters,prepareSeedanceVariant} from './seedance-variants.mjs';
 import {seedreamLiteParameters,seedreamLiteInput,SEEDREAM_LITE_TEXT,SEEDREAM_LITE_EDIT} from './seedream-lite.mjs';
-import {creditsForJobUsd,isFixedTransformRetail,TRANSFORM_FIXED_RETAIL_VERSION} from './job-pricing.mjs';
+import {creditsForJobUsd,isFixedTransformRetail,TRANSFORM_FIXED_RETAIL_VERSION,isFixedReferenceRetail,REFERENCE_FIXED_RETAIL_VERSION} from './job-pricing.mjs';
 import {NANO21_MODEL,NANO21_STANDARD_MICROS,nano21Request,nano21ImagePart} from './nano-banana-21.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
@@ -450,6 +450,33 @@ async function prepareInput(env,owner,data,p,url) {
     return prepareSeedanceVariant(env,owner,data,p,url,{fail,source,sources,signedInput});
   if(p.engine==='seedance'){
     const prepared=await prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput});
+    // The browser's video-length label is not a billing authority. Inspect the
+    // stored reference bytes before constructing any customer retail quote.
+    if(p.mode==='reference'&&p.referenceVideoIds?.length&&await isLabCustomer(env,owner)){
+      let exactTotal=0,billableTotal=0;
+      for(let i=0;i<p.referenceVideoIds.length;i++){
+        const video=await source(env,owner,p.referenceVideoIds[i]);
+        let metadata;
+        try{
+          metadata=await inspectUpscaleVideoRanges(video.bytes,async(offset,length)=>{
+            const chunk=await env.LAB_MEDIA.get(video.object_key,{range:{offset,length}});
+            if(!chunk)throw Error('Stored reference video is unavailable.');
+            return chunk.arrayBuffer();
+          });
+        }catch(error){fail(400,'Cannot verify the motion reference duration. Re-upload a standard MP4 or MOV before checking the price.');}
+        const seconds=metadata.duration;
+        if(!Number.isFinite(seconds)||seconds<2||seconds>30)
+          fail(400,'Motion reference videos must each be between 2 and 30 seconds.');
+        if(Math.abs(seconds-Number(p.referenceVideos[i]?.seconds))>0.5)
+          fail(409,'Motion reference duration changed. Reopen the clip and review a fresh price.');
+        exactTotal+=seconds;
+        billableTotal+=Math.ceil(seconds);
+      }
+      if(exactTotal>30.05||billableTotal>30)
+        fail(400,'Use reference video clips with at most 30 billed seconds combined.');
+      p.referenceBillableVideoSeconds=billableTotal;
+      p.referenceFixedChargeVersion=REFERENCE_FIXED_RETAIL_VERSION;
+    }
     if(p.prompt)prepared.input.prompt=p.mode==='extend'?p.prompt:assembledPrompt(p);return prepared;
   }
   if(p.provider==='fal'&&['h3maxfal','omni'].includes(p.engine)){
@@ -2098,6 +2125,14 @@ async function route(request,env,ctx) {
       const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
       if(p.engine==='seedance'&&p.mode==='transform'&&maximum>TRANSFORM_MAX_ESTIMATE_MICROS)
         fail(409,'SpicyAPI Transform quote exceeds the $20 provider safety limit. Choose a shorter MP4 or lower resolution. Nothing submitted.');
+      if(customer&&p.engine==='seedance'&&p.mode==='reference'&&p.referenceVideoIds?.length){
+        // A 30-second vendor preauthorization is NOT a customer price. The
+        // maximum must match the live published tier before prorating retail.
+        const rateMicros={'480p':73800,'720p':165900,'1080p':408200}[p.resolution];
+        const verifiedMaximum=rateMicros*(30+p.duration);
+        if(!isFixedReferenceRetail(p)||Math.abs(maximum-verifiedMaximum)>10000)
+          fail(409,'Reference-video pricing changed at the provider. No generation or customer debit occurred. Review the rate before continuing.');
+      }
       if(customer&&p.engine==='seedance'&&p.mode==='transform'){
         // Only a live, genuinely 30s-bound provider quote can be prorated into
         // a fixed customer price. If SpicyAPI changes its rates or pricing basis,
@@ -2155,6 +2190,9 @@ async function route(request,env,ctx) {
     }
     if(params.engine==='klinghf'||/^kling-video\/v3\.0\/pro\//.test(params.model||''))
       fail(409,'Legacy Higgsfield Kling quotes are disabled. Select Kling 3.0 and review a fresh SpicyAPI price. Nothing submitted.');
+    if(customer&&params.engine==='seedance'&&params.mode==='reference'&&params.referenceVideoIds?.length&&
+       !isFixedReferenceRetail(params))
+      fail(409,'Reference-video pricing has changed. Review a fresh duration-based quote; nothing submitted.');
     if(params.engine==='seedance'&&params.mode==='transform'){
       if(params.provider!=='spicy'||q.vendor_quote_id==='higgsfield-video-transform-character-v1')
         fail(409,'This is an old Higgsfield Transform quote. Review a new SpicyAPI price; nothing submitted.');
