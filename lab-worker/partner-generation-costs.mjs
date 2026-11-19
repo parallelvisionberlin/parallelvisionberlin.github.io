@@ -90,11 +90,12 @@ export function allocateGenerationCosts(entries,finance,rates=[]){
   const pending=!f||!terminal.has(f.state)||cost===null;
   const allocationWeights=job.allocations.map(a=>job.refunded?a.credits:a.credits-a.returned);
   const totalWeight=allocationWeights.reduce((sum,n)=>sum+n,0);
+  const lastWeighted=allocationWeights.findLastIndex(n=>n>0);
   let assigned=0n;
   job.allocations.forEach((a,i)=>{
    a.lot.pending ||= pending;
    if(cost!==null&&totalWeight>0){
-    const portion=i===job.allocations.length-1?cost-assigned:cost*BigInt(allocationWeights[i])/BigInt(totalWeight);
+    const portion=i===lastWeighted?cost-assigned:cost*BigInt(allocationWeights[i])/BigInt(totalWeight);
     a.lot.costMicros+=portion;assigned+=portion;
    }
   });
