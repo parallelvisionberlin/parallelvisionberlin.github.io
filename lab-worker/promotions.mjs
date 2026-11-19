@@ -314,7 +314,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
         FROM lab_generation_finance f JOIN lab_customers c ON c.id=f.customer_id
         WHERE f.created_at>=? AND f.created_at<?`,start,end),
       one(env,`SELECT COALESCE(SUM(CASE WHEN kind='generation' THEN -delta_credits
-          WHEN kind='refund' THEN -delta_credits ELSE 0 END),0) AS netSpent
+          WHEN kind='refund' OR (kind='adjustment' AND reference LIKE 'settled:transform:job:%') THEN -delta_credits ELSE 0 END),0) AS netSpent
         FROM lab_credit_entries WHERE created_at>=? AND created_at<?`,start,end),
       one(env,`SELECT COUNT(*) AS starts,COALESCE(SUM(CASE WHEN paid_at IS NOT NULL THEN 1 ELSE 0 END),0) AS paid
         FROM lab_checkout_attempts WHERE created_at>=? AND created_at<?`,start,end),
@@ -353,7 +353,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
         LEFT JOIN (
           SELECT customer_id,
             SUM(CASE WHEN kind='generation' THEN -delta_credits
-              WHEN kind='refund' THEN -delta_credits ELSE 0 END) AS creditsSpent,
+              WHEN kind='refund' OR (kind='adjustment' AND reference LIKE 'settled:transform:job:%') THEN -delta_credits ELSE 0 END) AS creditsSpent,
             SUM(CASE WHEN kind='adjustment' AND reference='welcome:'||customer_id
               THEN delta_credits ELSE 0 END) AS welcomeCredits
           FROM lab_credit_entries GROUP BY customer_id
@@ -427,13 +427,13 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
           THEN estimated_microusd/1000000.0 ELSE 0 END),0) AS providerExposureUsd
         FROM lab_generation_finance WHERE customer_id=?`,customerId),
       one(env,`SELECT COALESCE(SUM(CASE WHEN kind='generation' THEN -delta_credits ELSE 0 END),0) AS creditsCharged,
-        COALESCE(SUM(CASE WHEN kind='refund' THEN delta_credits ELSE 0 END),0) AS creditsRefunded
+        COALESCE(SUM(CASE WHEN kind='refund' OR (kind='adjustment' AND reference LIKE 'settled:transform:job:%') THEN delta_credits ELSE 0 END),0) AS creditsRefunded
         FROM lab_credit_entries WHERE customer_id=?`,customerId),
       all(env,`SELECT j.id,j.params,j.state,j.created_at AS createdAt,j.updated_at AS updatedAt,
         COALESCE((SELECT -SUM(e.delta_credits) FROM lab_credit_entries e
           WHERE e.customer_id=? AND e.kind='generation' AND e.reference='job:'||j.id),0) AS chargedCredits,
         COALESCE((SELECT SUM(e.delta_credits) FROM lab_credit_entries e
-          WHERE e.customer_id=? AND e.kind='refund' AND e.reference='refund:job:'||j.id),0) AS refundedCredits
+          WHERE e.customer_id=? AND ((e.kind='refund' AND e.reference='refund:job:'||j.id) OR (e.kind='adjustment' AND e.reference='settled:transform:job:'||j.id))),0) AS refundedCredits
         FROM jobs j WHERE j.owner_id=? ORDER BY j.created_at DESC,j.id DESC LIMIT 50`,customerId,customerId,customerId),
       all(env,`SELECT kind,delta_credits AS credits,reference,created_at AS createdAt
         FROM lab_credit_entries WHERE customer_id=? ORDER BY created_at DESC,id DESC LIMIT 80`,customerId),
@@ -474,7 +474,8 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       creditsRefunded:Number(creditTotals?.creditsRefunded)||0,
       netCreditsSpent:(Number(creditTotals?.creditsCharged)||0)-(Number(creditTotals?.creditsRefunded)||0)
     },jobs:history,archivedFinance,entries:entries.map(e=>({createdAt:e.createdAt,credits:e.credits,kind:e.kind,
-      description:e.kind==='adjustment'&&e.reference?.startsWith('welcome:')?'Welcome credits':
+      description:e.kind==='adjustment'&&e.reference?.startsWith('settled:transform:job:')?'Unused Transform credits returned':
+         e.kind==='adjustment'&&e.reference?.startsWith('welcome:')?'Welcome credits':
         e.kind==='adjustment'&&e.reference?.startsWith('voucher:')?'Voucher credits':
         e.kind==='adjustment'&&e.reference?.startsWith('referral:')?'Referral credits':
         descriptions[e.kind]||'Credit movement'})),
