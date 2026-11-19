@@ -4,6 +4,20 @@
 import {NANO21_CREDITS,isNano21Job} from './nano-banana-21.mjs';
 export const DEFAULT_CREDITS_PER_USD=460;
 export const SOUL_ID_TRAINING_CREDITS=400;
+export const TRANSFORM_FIXED_RETAIL_VERSION='source-seconds-v1';
+// Retail price is charged once for the SOURCE VIDEO, rounded up to full seconds.
+// SpicyAPI can separately preauthorize 30s against the owner's provider balance.
+// This route is set by the Worker after verifying private MP4 timing, never by
+// the client. A mismatch falls back to the existing debit and quote parity guard.
+export function isFixedTransformRetail(settings={}){
+  return settings.type==='video'&&settings.provider==='spicy'&&
+    settings.engine==='seedance'&&settings.mode==='transform'&&
+    settings.model==='bytedance/seedance-2.5/video-edit'&&
+    settings.transformFixedChargeVersion===TRANSFORM_FIXED_RETAIL_VERSION&&
+    Number.isInteger(settings.transformBillableSeconds)&&
+    settings.transformBillableSeconds>=4&&settings.transformBillableSeconds<=30;
+}
+
 export const MODEL_CREDITS_PER_USD=Object.freeze({
   seedance15:320,
   seedance15Silent720:300,
@@ -42,6 +56,11 @@ export function creditsForJobMicros(micros,settings={}){
   if(settings.type==='image'&&settings.provider==='fal'&&settings.mode==='upscale'&&settings.upscaleEngine==='seedvr2'&&settings.model==='fal-ai/seedvr/upscale/image'&&(settings.scale===2||settings.scale===4))return settings.scale===2?10:18;
   // Fixed introductory price for exact Google Nano Banana 2.1 routes only.
   if(isNano21Job(settings))return NANO21_CREDITS[settings.resolution];
+  // Exact bounded Transform quote remains the 30s provider hold, but PV LAB
+  // charges the customer only the source duration. Integer micro-USD parity with
+  // migration 0064 prevents floating point drift and rejects forged quotes.
+  if(isFixedTransformRetail(settings))return Math.max(7,
+    Math.ceil(micros*settings.transformBillableSeconds*160/30000000));
   // All customer job quote amounts round upward. Minimum applies to all models.
   const calculated=Math.max(7,Math.ceil(micros*creditsPerUsdForJob(settings)/1000000));
   // A real, non-fixed SpicyAPI image generation has one clear five-credit retail increment.
