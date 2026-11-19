@@ -91,8 +91,8 @@ for(const [width,height] of [[390,730],[320,590],[768,900]]){
  });
  await page.getByRole('button',{name:'Select Dream Blur',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('#composer-moods-summary')?.textContent==='Dream Blur');
- assert.equal(await page.locator('#image-composer-resolution').inputValue(),'1k',
-   'Owner Seedream keeps the 1K deck default when selecting a Mood');
+ assert.equal(await page.locator('#image-composer-resolution').inputValue(),'1.5k',
+   'Owner Seedream 5.5 keeps the 1.5K deck default when selecting a Mood');
  await page.click('#mobile-advanced');
  await page.locator('#image-composer-resolution').selectOption('2k');
  await page.click('#mobile-advanced');
