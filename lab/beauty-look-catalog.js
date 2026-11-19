@@ -112,7 +112,7 @@ export const beautyLookCatalog={
       "instruction": "Black vinyl-finish eye makeup with glossy reflective eyelids and controlled edges, preserving facial anatomy.",
       "image": "./visuals/beauty/atelier/alter-makeup-vinyl-20261108-v2.webp",
       "preview": ""
-    ,
+    },
     {
       "id": "clean-girl",
       "label": "Clean Girl",
