@@ -529,6 +529,9 @@ try{
   await page.locator('#beauty-model').selectOption('seedream55');
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'));
   assert.equal(s.quotes.at(-1).settings.engine,'seedream55');
+   assert.deepEqual(await page.locator('#beauty-resolution option').evaluateAll(opts=>opts.map(o=>o.value)),['1k','1.5k','2k']);
+   assert.equal(await page.locator('#beauty-resolution').inputValue(),'1.5k','Seedream 5.5 must select its 1.5K default');
+   assert.equal(s.quotes.at(-1).settings.resolution,'1.5k','The 1.5K choice must reach the bound quote');
   assert.deepEqual(s.quotes.at(-1).settings.referenceSourceIds,references,'Changing models reuses the makeup asset');
   assert.equal(s.uploads,2,'Repeated quotes do not upload the same makeup twice');
   await page.locator('#beauty-generate').click();
