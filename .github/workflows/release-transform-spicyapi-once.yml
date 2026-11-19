@@ -1,4 +1,4 @@
-name: PV LAB Transform confirmed-cost release (idempotent credit hotfix)
+name: PV LAB Transform fixed customer retail + provider hold release
 
 on:
   workflow_dispatch:
@@ -35,7 +35,7 @@ jobs:
           node --check lab-worker/seedance.mjs
           node --check lab-worker/higgsfield-video-transform.mjs
           node --check lab/lab.js
-          node --test tests/lab-video-transform.test.mjs tests/lab-video-transform-quote.test.mjs tests/lab-video-transform-settlement.test.mjs tests/lab-partner-generation-costs.test.mjs tests/lab-worker.test.mjs tests/lab-pricing-integrity.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-generation-finance.test.mjs tests/lab-customer-lifecycle.test.mjs
+          node --test tests/lab-video-transform.test.mjs tests/lab-video-transform-quote.test.mjs tests/lab-video-transform-settlement.test.mjs tests/lab-transform-fixed-retail.test.mjs tests/lab-transform-customer-quote-ui.test.mjs tests/lab-partner-generation-costs.test.mjs tests/lab-worker.test.mjs tests/lab-pricing-integrity.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-generation-finance.test.mjs tests/lab-customer-lifecycle.test.mjs
       - name: Verify existing Cloudflare bindings and capture original configuration
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -66,6 +66,7 @@ jobs:
           preCommands: |
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0062-transform-seedance-credit-parity.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0063-transform-final-credit-settlement.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0064-transform-source-seconds-retail.sql --yes
           command: deploy --keep-vars
       - name: Verify live Transform version and configuration unchanged
         env:
@@ -77,7 +78,7 @@ jobs:
           for(let attempt=0;attempt<8;attempt++){
             const res=await fetch('https://parallel-vision-lab.parallelvision.workers.dev/health',{signal:AbortSignal.timeout(15000)});
             const payload=await res.json();
-            if(res.ok&&payload.ok&&payload.videoTransformProvider==='spicyapi-seedance25-edit-20261119'&&payload.videoTransformCreditRate==='20261119-seedance25-160'){found=true;break;}
+            if(res.ok&&payload.ok&&payload.videoTransformProvider==='spicyapi-seedance25-edit-20261119'&&payload.videoTransformCreditRate==='20261119-seedance25-160'&&payload.videoTransformRetailCharge==='20261119-source-seconds-v1'){found=true;break;}
             await new Promise(resolve=>setTimeout(resolve,3500));
           }
           if(!found)throw Error('Production health does not confirm SpicyAPI Transform version.');
@@ -93,7 +94,7 @@ jobs:
             method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({sql}),signal:AbortSignal.timeout(25000)});
           const dbData=await db.json();
           const dbTrigger=dbData.result?.[0]?.results?.[0]?.sql||'';
-          if(!db.ok||!dbData.success||!dbTrigger.includes("'bytedance/seedance-2.5/video-edit'")||!dbTrigger.includes('THEN 160'))
+          if(!db.ok||!dbData.success||!dbTrigger.includes("'bytedance/seedance-2.5/video-edit'")||!dbTrigger.includes('THEN 160')||!dbTrigger.includes('transformBillableSeconds'))
             throw Error('Production D1 pricing trigger not updated for Transform.');
           const settlementSql="SELECT name,sql FROM sqlite_master WHERE type='trigger' AND name IN ('lab_capture_transform_credit_hold','lab_refund_transform_finance_insert','lab_refund_transform_finance_update') ORDER BY name";
           const settlementRes=await fetch('https://api.cloudflare.com/client/v4/accounts/'+process.env.CLOUDFLARE_ACCOUNT_ID+'/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query',{
@@ -105,8 +106,10 @@ jobs:
             ['lab_capture_transform_credit_hold','lab_refund_transform_finance_insert','lab_refund_transform_finance_update'].some(name=>!triggers.includes(name)))
             throw Error('Production D1 final-cost refund triggers missing.');
           const textByName=Object.fromEntries((settlementData.result?.[0]?.results||[]).map(row=>[row.name,row.sql||'']));
+          if(!textByName.lab_capture_transform_credit_hold?.includes("<>'source-seconds-v1'"))
+            throw Error('Production D1 still reserves customer credits for fixed-price Transform.');
           for(const name of ['lab_refund_transform_finance_insert','lab_refund_transform_finance_update']){
             if(!textByName[name].includes("'settlement:job:'"))throw Error('Production refund idempotency guard missing: '+name);
           }
-          console.log('WORKER/DB VERIFIED: SpicyAPI Transform 160-credit Worker, D1 debit and settlement refund triggers present; Cloudflare settings preserved. No checkout or paid generation executed.');
+          console.log('WORKER/DB VERIFIED: verified-source retail fixed price, legacy refund isolation, D1 quote/debit agreement, and unchanged Cloudflare bindings. No checkout or paid generation executed.');
           NODE

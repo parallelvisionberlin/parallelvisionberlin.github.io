@@ -24,7 +24,8 @@ BEGIN
    AND json_extract(j.params,'$.provider')='spicy'
    AND json_extract(j.params,'$.engine')='seedance'
    AND json_extract(j.params,'$.mode')='transform'
-   AND json_extract(j.params,'$.model')='bytedance/seedance-2.5/video-edit';
+   AND json_extract(j.params,'$.model')='bytedance/seedance-2.5/video-edit'
+ AND COALESCE(json_extract(j.params,'$.transformFixedChargeVersion'),'')<>'source-seconds-v1';
 END;
 -- Preserve eligible unsettled claims even if source/result media or History
 -- are deleted before the provider publishes its final charge.
@@ -36,7 +37,8 @@ INSERT OR IGNORE INTO lab_transform_credit_holds(job_id,customer_id,credits_held
  AND json_extract(j.params,'$.provider')='spicy'
  AND json_extract(j.params,'$.engine')='seedance'
  AND json_extract(j.params,'$.mode')='transform'
- AND json_extract(j.params,'$.model')='bytedance/seedance-2.5/video-edit';
+ AND json_extract(j.params,'$.model')='bytedance/seedance-2.5/video-edit'
+ AND COALESCE(json_extract(j.params,'$.transformFixedChargeVersion'),'')<>'source-seconds-v1';
 
 -- lab_generation_finance persists after history deletion and changes only on
 -- real provider cost readback. INSERT OR REPLACE is used by existing job state

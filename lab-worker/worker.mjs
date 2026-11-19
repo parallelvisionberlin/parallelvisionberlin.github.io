@@ -48,7 +48,7 @@ import {reinterpretParameters,buildReinterpretInput} from './soul-reinterpret.mj
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
 import {seedanceVariantParameters,prepareSeedanceVariant} from './seedance-variants.mjs';
 import {seedreamLiteParameters,seedreamLiteInput,SEEDREAM_LITE_TEXT,SEEDREAM_LITE_EDIT} from './seedream-lite.mjs';
-import {creditsForJobUsd} from './job-pricing.mjs';
+import {creditsForJobUsd,isFixedTransformRetail,TRANSFORM_FIXED_RETAIL_VERSION} from './job-pricing.mjs';
 import {NANO21_MODEL,NANO21_STANDARD_MICROS,nano21Request,nano21ImagePart} from './nano-banana-21.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
@@ -409,6 +409,28 @@ async function prepareInput(env,owner,data,p,url) {
   if(p.engine==='seedance'&&p.mode==='extend'&&data.referenceSourceIds?.length)return prepareVideoExtension(env,owner,data,p,{fail,source,sources});
   if(p.engine==='seedance'&&p.mode==='transform'){
     const {original,images}=await prepareCharacterTransform(env,owner,data,p,{fail,source,sources});
+    // Customer retail price must follow the actual MP4's video timing, NOT the
+    // editable browser label or the 30-second wholesale preauthorization.
+    // Keep owner-only Transform unchanged.
+    if(await isLabCustomer(env,owner)){
+      let metadata;
+      try{
+        metadata=await inspectUpscaleVideoRanges(original.bytes,async(offset,length)=>{
+          const chunk=await env.LAB_MEDIA.get(original.object_key,{range:{offset,length}});
+          if(!chunk)throw Error('Source video is missing from private storage.');
+          return chunk.arrayBuffer();
+        });
+      }catch(error){fail(400,'Cannot verify the uploaded Transform video duration. Export as a standard H.264 MP4 before checking the price.');}
+      const verified=metadata.duration;
+      if(!Number.isFinite(verified)||verified<4||verified>30)
+        fail(400,'Transform source video must be between 4 and 30 seconds.');
+      if(Math.abs(verified-p.sourceDurationSeconds)>0.5)
+        fail(409,'Video duration changed. Reopen the source and review a fresh price.');
+      p.sourceDurationSeconds=verified;
+      p.transformBillableSeconds=Math.ceil(verified);
+      p.transformFixedChargeVersion=TRANSFORM_FIXED_RETAIL_VERSION;
+      p.duration=p.transformBillableSeconds;
+    }
     return {primary:original,input:{
       video_url:await signedInput(env,url,original.id,3600),
       reference_image_urls:await Promise.all(images.map(a=>signedInput(env,url,a.id,3600))),
@@ -1417,7 +1439,7 @@ async function route(request,env,ctx) {
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range,X-PV-Lab-Client,X-Replacement-Job-Id','Access-Control-Max-Age':'600'}});
   if(url.pathname==='/api/public/local-currency'&&request.method==='GET')return localCurrency(request);
-  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1',seedanceExtendReferences:'20261112-extend-refs1',seedream55:'20261113-seedream55-1',videoUpscaleInputs:'20261118-large-video-2',videoTransformProvider:'spicyapi-seedance25-edit-20261119',videoTransformCreditRate:'20261119-seedance25-160'});
+  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION,operations:OWNER_OPERATIONS_VERSION,imageReplacement:'20261106-replacement1',seedanceExtendReferences:'20261112-extend-refs1',seedream55:'20261113-seedream55-1',videoUpscaleInputs:'20261118-large-video-2',videoTransformProvider:'spicyapi-seedance25-edit-20261119',videoTransformCreditRate:'20261119-seedance25-160',videoTransformRetailCharge:'20261119-source-seconds-v1'});
   if(url.pathname.startsWith('/api/music/public/'))return musicPublicRoute(request,env);
   // PV LAB anonymous traffic uses its own origin-checked, bounded payload.
   if(url.pathname==='/api/public/traffic'&&request.method==='POST')return recordLabTraffic(request,env);
@@ -2076,6 +2098,15 @@ async function route(request,env,ctx) {
       const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
       if(p.engine==='seedance'&&p.mode==='transform'&&maximum>TRANSFORM_MAX_ESTIMATE_MICROS)
         fail(409,'SpicyAPI Transform quote exceeds the $20 provider safety limit. Choose a shorter MP4 or lower resolution. Nothing submitted.');
+      if(customer&&p.engine==='seedance'&&p.mode==='transform'){
+        // Only a live, genuinely 30s-bound provider quote can be prorated into
+        // a fixed customer price. If SpicyAPI changes its rates or pricing basis,
+        // fail closed rather than silently undercharge or mislead customers.
+        const published30SecondMicros={'480p':6120000,'720p':13680000,'1080p':34200000}[p.resolution];
+        if(!isFixedTransformRetail(p)||!published30SecondMicros||
+           Math.abs(maximum-published30SecondMicros)>10000)
+          fail(409,'Transform fixed price could not be verified against the live provider quote. Nothing submitted.');
+      }
       if(q.currency!=='USD'||typeof q.quoteId!=='string'||!q.quoteId||maximum<estimate||
          (customer&&maximum===0)||!Number.isFinite(expiry)||expiry<=time)
         fail(502,'Provider did not return a usable, bounded quote. Nothing submitted.');
@@ -2129,6 +2160,8 @@ async function route(request,env,ctx) {
         fail(409,'This is an old Higgsfield Transform quote. Review a new SpicyAPI price; nothing submitted.');
       if(customer&&env.LAB_CUSTOMER_VIDEO_TRANSFORM_ENABLED!=='true')
         fail(403,'Transform customer billing is not enabled. Nothing submitted.');
+      if(customer&&!isFixedTransformRetail(params))
+        fail(409,'Transform pricing has changed. Review a new source-duration price; nothing submitted.');
       if(q.estimate_microusd>TRANSFORM_MAX_ESTIMATE_MICROS||savedPayload.model!=='bytedance/seedance-2.5/video-edit'||
          !savedPayload.input?.video_url||!Array.isArray(savedPayload.input.reference_image_urls)||
          savedPayload.input.reference_image_urls.length!==params.referenceSourceIds?.length)
