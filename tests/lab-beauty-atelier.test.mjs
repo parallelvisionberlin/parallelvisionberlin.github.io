@@ -14,7 +14,7 @@ test('All 52 visible choices compile through the existing image route',()=>{
  const selects=[...source.matchAll(/<select id="beauty-(makeup|hair|skin|light|color)"[^>]*>([\s\S]*?)<\/select>/g)];
  assert.equal(selects.length,5);
  for(const [,category,options] of selects){
-  const values=[...options.matchAll(/<option value="([^"]+)"/g)].map(m=>m[1]);assert.equal(values.length,category==='makeup'?16:9);
+  const values=[...options.matchAll(/<option value="([^"]+)"/g)].map(m=>m[1]);assert.equal(values.length,category==='makeup'?31:9);
   for(const value of values){const s=beautySettings({[category]:value});assert.equal(s.type,'image');assert.equal(s.engine,'seedream');assert.equal(s.mode,'image');assert.equal(s.referenceRoles[0].role,'identity');}
  }
 });
