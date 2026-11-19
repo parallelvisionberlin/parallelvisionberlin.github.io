@@ -10,22 +10,22 @@ test('ALTER defaults remain Original / Original / Natural / 50 and preserve the 
  for(const [id,value] of [['makeup','keep'],['hair','keep'],['skin','natural'],['light','keep'],['color','keep']])assert.match(source,new RegExp(`id="beauty-${id}"[\\s\\S]*?<option value="${value}" selected>`));
  assert.match(source,/id="beauty-strength"[^>]*value="50"/);
 });
-test('All 52 visible choices compile through the existing image route',()=>{
+test('All 67 visible choices compile through the existing image route',()=>{
  const selects=[...source.matchAll(/<select id="beauty-(makeup|hair|skin|light|color)"[^>]*>([\s\S]*?)<\/select>/g)];
  assert.equal(selects.length,5);
  for(const [,category,options] of selects){
   const values=[...options.matchAll(/<option value="([^"]+)"/g)].map(m=>m[1]);assert.equal(values.length,category==='makeup'?31:9);
-  for(const value of values){const s=beautySettings({[category]:value});assert.equal(s.type,'image');assert.equal(s.engine,'seedream');assert.equal(s.mode,'image');assert.equal(s.referenceRoles[0].role,'identity');}
+  for(const value of values){const s=beautySettings({[category]:value});assert.equal(s.type,'image');assert.equal(s.engine,'seedream');assert.equal(s.mode,'image');assert.equal(s.referenceRoles[0].role,s.referenceRoles.length===2?'base':'identity');}
  }
 });
 test('Light and color are prompt-only instructions, scaled to strength and quote-bound',()=>{
- const settings=beautySettings({light:'flash',color:'mono'});
+ const settings=beautySettings({makeup:'keep',light:'flash',color:'mono'});
  assert.match(settings.prompt,/Direct on-camera flash/);assert.match(settings.prompt,/black-and-white/);
  assert.deepEqual(Object.keys(settings),Object.keys(beautySettings()));
- assert.doesNotMatch(beautySettings({light:'flash',color:'mono',strength:0}).prompt,/on-camera flash|black-and-white/);
+ assert.doesNotMatch(beautySettings({makeup:'keep',light:'flash',color:'mono',strength:0}).prompt,/on-camera flash|black-and-white/);
  const q={id:'q',creditCost:23,expiresAt:2000,settings:{...settings,referenceSourceIds:['source']}};
  assert.equal(validateBeautyQuote(q,settings,'source',1000),q);
- assert.throws(()=>validateBeautyQuote(q,beautySettings({light:'softbox',color:'mono'}),'source',1000));
+ assert.throws(()=>validateBeautyQuote(q,beautySettings({makeup:'keep',light:'softbox',color:'mono'}),'source',1000));
  for(const category of ['makeup','hair','skin','light','color'])for(const value of ['invalid','constructor','__proto__'])assert.throws(()=>beautySettings({[category]:value}));
 });
 test('Presentation never adds a provider or automatic generation path',()=>{
@@ -74,6 +74,6 @@ test('Wide-panel refinement preserves locked hero crop, editor controls and orig
  assert.match(css,/\.beauty-looks\s*\{\s*margin-top:/);
  assert.doesNotMatch(css,/(?:::before|::after|background(?:-image|-size|-position)?\s*:|mask(?:-image)?\s*:|\.beauty-looks-list\s*>\s*button|\.beauty-editorial-heading\s*\{|\.beauty-photo\s*\{)/);
  const choices=[...source.matchAll(/data-beauty-choice="beauty-(makeup|hair|skin|light|color)"/g)];
- assert.equal(choices.length,52);
+ assert.equal(choices.length,67);
  assert.equal([...source.matchAll(/data-look="/g)].length,20);
 });
