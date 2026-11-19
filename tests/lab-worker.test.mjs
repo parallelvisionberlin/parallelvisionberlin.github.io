@@ -2652,6 +2652,13 @@ test('Seedream 5.5 binds exact text/edit models and eight references without a p
         assert.equal(createCount,1);
       }
     }
+    // 1.5K is a valid uncharged Seedream 5.5 quote at the same tier as 1K.
+    maxPrice='.02';
+    const mid=await req(env,'/api/quotes',{method:'POST',data:{settings:{...settings,resolution:'1.5k'},referenceSourceIds:[]}});
+    assert.equal(mid.status,200,await mid.clone().text());
+    assert.equal(quotedRequest.input.resolution,'1.5k');
+    assert.equal((await mid.json()).creditCost,10);
+    assert.equal(createCount,1,'Reviewing the new default must not create another paid task');
     const before=calls.length;
     for(const bad of [{resolution:'4k'},{aspectRatio:'4:5'},{aspectRatio:'auto'}]){
       const r=await req(env,'/api/quotes',{method:'POST',data:{settings:{...settings,...bad},referenceSourceIds:[]}});

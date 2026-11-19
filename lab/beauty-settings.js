@@ -17,10 +17,10 @@ const skin=beautyChoiceMap('skin');
 // nothing, preserving byte-identical legacy prompts and quote validation by default.
 const light=beautyChoiceMap('light');
 const color=beautyChoiceMap('color');
-export function beautySettings({makeup:makeupId='editorial',hair:hairId='keep',skin:skinId='natural',light:lightId='keep',color:colorId='keep',strength=50,direction='',model='seedream',resolution='1k',aspectRatio='4:5',sourceWidth=0,sourceHeight=0,filename='Your photo'}={}){
- const value=Number(strength);
+export function beautySettings({makeup:makeupId='editorial',hair:hairId='keep',skin:skinId='natural',light:lightId='keep',color:colorId='keep',strength=50,direction='',model='seedream',resolution,aspectRatio='4:5',sourceWidth=0,sourceHeight=0,filename='Your photo'}={}){
+ const value=Number(strength),selectedResolution=resolution??(model==='seedream55'?'1.5k':'1k');
  if(!Object.hasOwn(makeup,makeupId)||!Object.hasOwn(hair,hairId)||!Object.hasOwn(skin,skinId)||!Object.hasOwn(light,lightId)||!Object.hasOwn(color,colorId)||!Number.isInteger(value)||value<0||value>100)throw Error('Choose valid beauty settings.');
- if(!['seedream55','seedream','seedream-pro','flash'].includes(model)||!['1k','2k'].includes(resolution)||!['4:5','1:1','3:4','9:16','auto'].includes(aspectRatio))throw Error('Choose valid image settings.');
+ if(!['seedream55','seedream','seedream-pro','flash'].includes(model)||!(model==='seedream55'?['1k','1.5k','2k']:['1k','2k']).includes(selectedResolution)||!['4:5','1:1','3:4','9:16','auto'].includes(aspectRatio))throw Error('Choose valid image settings.');
  if(model==='seedream55'&&aspectRatio==='4:5')throw Error('Seedream 5.5 does not support 4:5. Choose 3:4 or Auto.');
  const extra=String(direction).trim();if(extra.length>1500)throw Error('Keep the extra direction within 1,500 characters.');
  const makeupChoice=value>0&&makeupId!=='keep'?beautyLookCatalog.makeup.find(c=>c.id===makeupId):null;
@@ -33,7 +33,7 @@ export function beautySettings({makeup:makeupId='editorial',hair:hairId='keep',s
  const quotedAspectRatio=aspectRatio==='auto'?beautyAutoRatio(sourceWidth,sourceHeight,model):aspectRatio;
  const referenceRoles=[{name:String(filename).slice(0,160),role:makeupReference?'base':'identity',note:makeupReference?'This is the final photograph. Keep the exact person, facial features, skin tone, pose, framing, clothes and background. Preserve original lighting unless the Light control requests a change; apply only that selected lighting adjustment.':'Preserve the identity and distinctive facial features of this person.'}];
  if(makeupReference)referenceRoles.push({name:'ALTER makeup: '+makeupChoice.label,role:'custom',note:'Transfer only the precise makeup on this face onto Reference 1. Match makeup colour, placement, shape, edges, blending and finish. Never copy the reference face, anatomy, hair, skin, lighting or background.'});
- return {type:'image',mode:'image',engine:model==='seedream-pro'?'seedream':model,referenceMode:'references',prompt,resolution,aspectRatio:quotedAspectRatio,outputFormat:'png',referenceRoles};
+ return {type:'image',mode:'image',engine:model==='seedream-pro'?'seedream':model,referenceMode:'references',prompt,resolution:selectedResolution,aspectRatio:quotedAspectRatio,outputFormat:'png',referenceRoles};
 }
 export function validateBeautyQuote(quote,settings,sourceId,at=Date.now(),makeupSourceId=null){
  if(typeof quote?.id!=='string'||!quote.id||quote.id.length>100||!Number.isSafeInteger(quote.creditCost)||quote.creditCost<1||!Number.isFinite(quote.expiresAt)||quote.expiresAt<=at)throw Error('The server could not confirm a current credit price. Nothing was generated.');

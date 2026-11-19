@@ -654,13 +654,13 @@ try{
   assert.ok(cardClearance.titleTop>=cardClearance.headerBottom+14,
     'The stationary desktop heading stays below navigation: '+JSON.stringify(cardClearance));
   assert.equal((await field.inputValue()).trimEnd(),enteredText.trimEnd(),'Selecting a Mood preserves the user text');
-  assert.equal(await page.locator('#image-composer-resolution').inputValue(),'1k',
-    'Applying a Mood to existing customer text does not override image resolution');
+  assert.equal(await page.locator('#image-composer-resolution').inputValue(),'1.5k',
+    'Applying a Mood to existing customer text keeps Seedream 5.5 default resolution');
   assert.equal(await button.isEnabled(),true,'Green Haze must enable Generate in the same click');
   await page.locator('[data-welcome-mood="dream-blur"]').click();
   assert.equal((await field.inputValue()).trimEnd(),enteredText.trimEnd(),'Changing Moods preserves the user text');
-  assert.equal(await page.locator('#image-composer-resolution').inputValue(),'1k',
-    'Switching Moods preserves a compatible current resolution');
+  assert.equal(await page.locator('#image-composer-resolution').inputValue(),'1.5k',
+    'Switching Moods preserves the current 1.5K resolution');
   assert.doesNotMatch(await button.getAttribute('data-credits')||'',/Confirming credits/i,
     'The preflight must not put Confirming credits inside Generate');
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
@@ -686,7 +686,7 @@ try{
   // not reopen Inspiration until the real completion handler has finished.
   await page.waitForFunction(()=>window.__welcomeMockSubmissionPending()===false);
   const submission=requests.find(x=>x.path==='/api/jobs'&&x.method==='POST');
-  assert.equal(quotes.get(submission.data.quoteId)?.settings.resolution,'1k',
+  assert.equal(quotes.get(submission.data.quoteId)?.settings.resolution,'1.5k',
     'Paid submission must reuse the exact customer resolution from its bound quote');
   const dreamQuote=requests.find(r=>r.path==='/api/quotes'&&r.data.settings?.moodId==='dream-blur');
   assert.ok(dreamQuote,'Dream Blur Inspiration reaches the bound quote');
@@ -695,7 +695,7 @@ try{
   assert.deepEqual(dreamQuote.data.settings.referenceRoles.map(r=>r.role),
     ['style','style','style','style'],'Built-in Style photos are not Base or identity');
   assert.equal(quotes.get(submission.data.quoteId)?.creditCost,20,
-    'Mock credit cost must come from the 1K bound quote without repricing');
+    'Mock credit cost must come from the 1.5K bound quote without repricing');
   assert.equal(requests.filter(x=>x.path==='/api/quotes').length>=1,true);
   assert.ok(quotes.size>=1);
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,

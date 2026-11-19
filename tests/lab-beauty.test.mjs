@@ -11,6 +11,14 @@ test('Beauty controls compile an identity-preserving edit and never borrow the e
  assert.equal(beautySettings({model:'flash'}).engine,'flash');
  for(const options of [{strength:101},{strength:-1},{makeup:'bad'},{model:'unknown'},{aspectRatio:'bad'},{direction:'x'.repeat(1501)}])assert.throws(()=>beautySettings(options));
 });
+test('ALTER defaults only Seedream 5.5 to 1.5K and preserves explicit resolution choices',()=>{
+ const seedream55=(resolution)=>beautySettings({model:'seedream55',aspectRatio:'auto',...(resolution?{resolution}:{})});
+ assert.equal(seedream55().resolution,'1.5k');
+ assert.equal(beautySettings({model:'seedream'}).resolution,'1k');
+ assert.equal(beautySettings({model:'flash'}).resolution,'1k');
+ for(const resolution of ['1k','1.5k','2k'])assert.equal(seedream55(resolution).resolution,resolution);
+ for(const model of ['seedream','flash'])assert.throws(()=>beautySettings({model,resolution:'1.5k'}),/valid image settings/);
+});
 test('Beauty Auto derives provider-supported aspect ratio from uploaded photo',()=>{
  for(const model of ['seedream','seedream-pro','flash']){
   const settings=beautySettings({model,aspectRatio:'auto',sourceWidth:800,sourceHeight:1200,filename:'portrait.webp'});
