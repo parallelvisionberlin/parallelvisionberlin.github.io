@@ -35,7 +35,7 @@ jobs:
           node --check lab-worker/seedance.mjs
           node --check lab-worker/higgsfield-video-transform.mjs
           node --check lab/lab.js
-          node --test tests/lab-video-transform.test.mjs tests/lab-worker.test.mjs tests/lab-pricing-integrity.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-generation-finance.test.mjs tests/lab-customer-lifecycle.test.mjs tests/lab-provider-settlement.test.mjs tests/lab-transform-credit-settlement.test.mjs tests/lab-transform-quote-preview.test.mjs
+          node --test tests/lab-video-transform.test.mjs tests/lab-worker.test.mjs tests/lab-pricing-integrity.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-generation-finance.test.mjs tests/lab-customer-lifecycle.test.mjs tests/lab-provider-settlement.test.mjs tests/lab-transform-credit-settlement.test.mjs tests/lab-transform-quote-preview.test.mjs tests/lab-partner-generation-costs.test.mjs tests/lab-promotions.test.mjs
       - name: Verify existing Cloudflare bindings and capture original configuration
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
