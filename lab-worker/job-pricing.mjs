@@ -5,6 +5,19 @@ import {NANO21_CREDITS,isNano21Job} from './nano-banana-21.mjs';
 export const DEFAULT_CREDITS_PER_USD=460;
 export const SOUL_ID_TRAINING_CREDITS=400;
 export const TRANSFORM_FIXED_RETAIL_VERSION='source-seconds-v1';
+// Reference-to-Video vendor reserves all 30 potential input seconds. Retail is
+// for verified source-video seconds plus selected output seconds, not that hold.
+export const REFERENCE_FIXED_RETAIL_VERSION='reference-seconds-v1';
+export function isFixedReferenceRetail(settings={}){
+  return settings.type==='video'&&settings.engine==='seedance'&&settings.mode==='reference'&&
+    settings.model==='bytedance/seedance-2.5/reference-to-video'&&
+    settings.provider!=='fal'&&settings.provider!=='higgsfield'&&
+    settings.referenceFixedChargeVersion===REFERENCE_FIXED_RETAIL_VERSION&&
+    Number.isInteger(settings.referenceBillableVideoSeconds)&&
+    settings.referenceBillableVideoSeconds>=2&&settings.referenceBillableVideoSeconds<=30&&
+    Number.isInteger(settings.duration)&&settings.duration>=4&&settings.duration<=30;
+}
+
 // Retail price is charged once for the SOURCE VIDEO, rounded up to full seconds.
 // SpicyAPI can separately preauthorize 30s against the owner's provider balance.
 // This route is set by the Worker after verifying private MP4 timing, never by
@@ -61,6 +74,12 @@ export function creditsForJobMicros(micros,settings={}){
   // migration 0064 prevents floating point drift and rejects forged quotes.
   if(isFixedTransformRetail(settings))return Math.max(7,
     Math.ceil(micros*settings.transformBillableSeconds*160/30000000));
+  // The provider holds 30s of reference video plus requested output seconds.
+  // Price only the verified input duration plus output duration; retain the
+  // wholesale maximum in the quote for provider admission and owner risk.
+  if(isFixedReferenceRetail(settings))return Math.max(7,Math.ceil(
+    micros*160*(settings.referenceBillableVideoSeconds+settings.duration)/
+    (1000000*(30+settings.duration))));
   // All customer job quote amounts round upward. Minimum applies to all models.
   const calculated=Math.max(7,Math.ceil(micros*creditsPerUsdForJob(settings)/1000000));
   // A real, non-fixed SpicyAPI image generation has one clear five-credit retail increment.
