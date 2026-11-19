@@ -82,7 +82,7 @@ export async function ownerQualityReviewRoute(request,env,owner){
         COALESCE((SELECT -SUM(e.delta_credits) FROM lab_credit_entries e WHERE e.customer_id=j.owner_id
           AND e.kind='generation' AND e.reference='job:'||j.id),0) AS chargedCredits,
         COALESCE((SELECT SUM(e.delta_credits) FROM lab_credit_entries e WHERE e.customer_id=j.owner_id
-          AND e.kind='refund' AND e.reference='refund:job:'||j.id),0) AS refundedCredits
+          AND e.kind='refund' AND e.reference IN ('refund:job:'||j.id,'settlement:job:'||j.id)),0) AS refundedCredits
         ${JOIN} LEFT JOIN assets a ON a.id=j.output_id AND a.owner_id=j.owner_id
         ${where} ORDER BY j.created_at DESC,j.id DESC LIMIT ? OFFSET ?`,...values,PAGE_SIZE,(page-1)*PAGE_SIZE)
     ]);
