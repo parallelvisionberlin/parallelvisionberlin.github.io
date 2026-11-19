@@ -17,6 +17,24 @@
 <link rel="stylesheet" href="./full-editorial-identity-refresh.css?v=20261118-comp-face1">
 <link rel="stylesheet" href="./full-editorial-world-preset.css?v=20261111-chrome-desert-world1">
 <link rel="stylesheet" href="./studios-menu.css?v=20261101-unified-reveal1">
+<!-- FULL_EDITORIAL_PINCH_GUARD_20261119: keep the editor at its layout scale on touch devices.
+     Single-finger vertical scrolling and horizontal gallery swipes remain native. -->
+<style>
+@media (hover: none) and (pointer: coarse) {
+  #editorial-flow { touch-action: pan-x pan-y; }
+}
+</style>
+<script>
+(() => {
+  const preventWorkflowPinch = event => {
+    if (event.cancelable && event.target instanceof Element && event.target.closest('#editorial-flow')) {
+      event.preventDefault();
+    }
+  };
+  document.addEventListener('gesturestart', preventWorkflowPinch, { passive: false });
+  document.addEventListener('gesturechange', preventWorkflowPinch, { passive: false });
+})();
+</script>
 </head>
 <body>
 <a class="skip" href="#editorial-main">Skip to content</a>

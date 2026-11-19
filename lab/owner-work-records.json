@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T11:59:43Z",
+  "updatedAt": "2026-11-18T23:41:32.781Z",
   "handoffs": [
     {
       "id": "owner",
@@ -4655,6 +4655,58 @@
         "Preserve the unrelated invalid alter-makeup-reference-transfer work record."
       ],
       "updatedAt": "2026-11-18"
+    },
+    {
+      "id": "full-editorial-mobile-pinch-20261119",
+      "title": "Full Editorial mobile Safari unintended page zoom",
+      "component": "PV LAB Full Editorial mobile web / four-step workflow",
+      "status": "in_progress",
+      "summary": "Restrict unintended two-finger page pinch scale only inside Full Editorial's workflow; allow native single-finger vertical and horizontal gallery scrolling, preserve desktop and outside-editor zoom, unchanged original viewport, credits and generation.",
+      "nextAction": "Review scoped PR checks, merge only after passing relevant CI, confirm Cloudflare pvlab-studio deployment and exact HTML bytes on pvlab.studio, then test physical iPhone Safari pinch, vertical scroll, horizontal Styling/Identity galleries and keyboard input.",
+      "baselineSha": "4181f5687bd47dced7c6ca20acd4540813e8bb4d",
+      "reviewedSha": null,
+      "branch": "fix/full-editorial-mobile-pinch-zoom-20261119",
+      "files": [
+        "lab/full-editorial.html",
+        "tests/lab-full-editorial-mobile-pinch.test.mjs",
+        "lab/FULL-EDITORIAL-WORK-STATE.md",
+        "lab/owner-work-records.json"
+      ],
+      "links": [
+        {
+          "label": "Scoped Full Editorial work state",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/FULL-EDITORIAL-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Scoped syntax and structural guard",
+          "result": "passed",
+          "scope": "HTML retains a single default viewport; touch-action enables both pan directions and omits pinch; Safari gesture listeners are nonpassive and scoped to #editorial-flow."
+        },
+        {
+          "label": "GitHub browser/unit CI and physical iPhone",
+          "result": "not_run",
+          "scope": "Pending PR checks and native Safari gesture verification."
+        }
+      ],
+      "deployment": {
+        "state": "unverified",
+        "sourceSha": null,
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "Branch edits do not prove production publication.",
+          "Actual iPhone Safari pinching, swiping and scrolling remain unverified.",
+          "In-workflow pinch magnification is intentionally restricted; review accessibility tradeoff."
+        ]
+      },
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not add global user-scalable=no or prevent all touchmove: they impair accessibility and scrolling.",
+        "Do not alter Identity or Styling gallery cards, images, footer, pricing or generation."
+      ],
+      "updatedAt": "2026-11-19",
+      "evidence": []
     }
   ]
 }
