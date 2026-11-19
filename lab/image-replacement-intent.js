@@ -126,5 +126,9 @@ export function replacementIntent(prompt, referenceLabels = []) {
 
 export function replacementIntentIssue(prompt, referenceLabels = []) {
   const request = replacementRequest(prompt, referenceLabels);
+  // Let the normal multi-reference edit handle loose identity photos together.
+  if (request && ['person', 'face'].includes(request.scope) &&
+      referenceLabels.some(ref => ref?.role === 'identity') &&
+      referenceLabels.every(ref => !(ref?.elementCategory === 'characters' || ['identity', 'body'].includes(ref?.role)) || (!ref.elementId && !ref.elementName))) return '';
   return request ? resolveReference(request).issue || '' : '';
 }
