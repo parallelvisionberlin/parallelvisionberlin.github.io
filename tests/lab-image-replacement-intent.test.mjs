@@ -136,5 +136,6 @@ test('a clear shared filename stem groups manual Character views without conflat
   assert.equal(replacementIntentIssue('Replace her with Alma.', [base, ...named]), '');
   const unnamed = [{role:'identity', name:'image-1.png'}, {role:'identity', name:'image-2.png'}];
   assert.equal(replacementIntent('Replace her.', [base, ...unnamed]), null);
-  assert.match(replacementIntentIssue('Replace her.', [base, ...unnamed]), /Name the Character reference/);
+  assert.equal(replacementIntentIssue('Replace her.', [base, ...unnamed]), '');
+  assert.equal(replacementIntentIssue('Replace woman base image identity using Alma images.', [base, ...unnamed]), '');
 });
