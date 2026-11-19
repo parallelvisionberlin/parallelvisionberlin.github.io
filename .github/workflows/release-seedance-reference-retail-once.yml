@@ -1,0 +1,95 @@
+name: Release PV LAB Seedance Reference retail once
+on:
+  push:
+    branches: [main]
+    paths:
+      - lab-worker/migrations/0065-reference-video-source-seconds-retail.sql
+permissions:
+  contents: read
+concurrency:
+  group: parallel-vision-lab-production
+  cancel-in-progress: false
+jobs:
+  release:
+    # A reviewed, explicitly named squash merge only; other pushes cannot deploy.
+    if: startsWith(github.event.head_commit.message, 'Release Seedance reference duration retail')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      CLOUDFLARE_ACCOUNT_ID: a40ce1725295563a7b7db9fc3160480a
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Verify source-duration retail, wallet settlement, unrelated Transform and Worker syntax
+        run: |
+          set -euo pipefail
+          node --check lab-worker/worker.mjs
+          node --check lab-worker/job-pricing.mjs
+          node --check lab-worker/seedance.mjs
+          node --test tests/lab-seedance-reference-retail.test.mjs tests/lab-transform-fixed-retail.test.mjs tests/lab-video-transform-settlement.test.mjs tests/lab-pricing-integrity.test.mjs
+      - name: Check prerequisite production database and save Cloudflare bindings
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {writeFileSync} from 'node:fs';
+          const token=(process.env.CLOUDFLARE_API_TOKEN||'').trim();
+          if(!token)throw Error('Missing Cloudflare deployment credential.');
+          const account=process.env.CLOUDFLARE_ACCOUNT_ID;
+          const headers={Authorization:'Bearer '+token};
+          const settings=await fetch('https://api.cloudflare.com/client/v4/accounts/'+account+'/workers/scripts/parallel-vision-lab/settings',{headers,signal:AbortSignal.timeout(20000)});
+          const response=await settings.json();
+          if(!settings.ok||!response.success||!Array.isArray(response.result?.bindings))throw Error('Cloudflare Worker settings unavailable.');
+          const bindings=response.result.bindings;
+          for(const name of ['LAB_DB','LAB_MEDIA','OWNER_DB'])if(!bindings.some(b=>b.name===name))throw Error('Required binding missing: '+name);
+          const canonical=JSON.stringify(bindings.map(b=>Object.fromEntries(Object.entries(b).sort())).sort((a,b)=>a.name.localeCompare(b.name)));
+          writeFileSync(process.env.RUNNER_TEMP+'/reference-retail-bindings.json',canonical);
+          const db=await fetch('https://api.cloudflare.com/client/v4/accounts/'+account+'/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query',{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify({sql:"SELECT name FROM sqlite_master WHERE type='trigger' AND name IN ('lab_transform_fixed_price_validity','lab_assert_generation_quote_cost')"}),signal:AbortSignal.timeout(20000)});
+          const snapshot=await db.json();
+          if(!db.ok||!snapshot.success||snapshot.result?.[0]?.results?.length!==2)throw Error('Prerequisite Transform pricing and quote/debit parity triggers missing.');
+          console.log('PASS: prerequisites and production bindings verified. No write yet.');
+          NODE
+      - name: Apply reference retail trigger and deploy exact Worker, preserving variables
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: a40ce1725295563a7b7db9fc3160480a
+          workingDirectory: lab-worker
+          wranglerVersion: '4'
+          preCommands: |
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0065-reference-video-source-seconds-retail.sql --yes
+          command: deploy --keep-vars
+      - name: Verify live Worker version, D1 reference price trigger and unchanged bindings
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          let matched=false;
+          for(let attempt=0;attempt<8;attempt++){
+            const res=await fetch('https://parallel-vision-lab.parallelvision.workers.dev/health',{signal:AbortSignal.timeout(15000)});
+            const data=await res.json();
+            if(res.ok&&data.ok&&data.videoReferenceRetailCharge==='20261119-reference-seconds-v1'){matched=true;break;}
+            await new Promise(resolve=>setTimeout(resolve,3000));
+          }
+          if(!matched)throw Error('Live Worker does not advertise new reference retail version.');
+          const account=process.env.CLOUDFLARE_ACCOUNT_ID,token=(process.env.CLOUDFLARE_API_TOKEN||'').trim();
+          const headers={Authorization:'Bearer '+token};
+          const settings=await fetch('https://api.cloudflare.com/client/v4/accounts/'+account+'/workers/scripts/parallel-vision-lab/settings',{headers,signal:AbortSignal.timeout(20000)});
+          const response=await settings.json();
+          if(!settings.ok||!response.success)throw Error('Cannot verify production bindings after release.');
+          const canonical=JSON.stringify(response.result.bindings.map(b=>Object.fromEntries(Object.entries(b).sort())).sort((a,b)=>a.name.localeCompare(b.name)));
+          if(canonical!==readFileSync(process.env.RUNNER_TEMP+'/reference-retail-bindings.json','utf8'))throw Error('Production bindings changed during release.');
+          const db=await fetch('https://api.cloudflare.com/client/v4/accounts/'+account+'/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query',{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify({sql:"SELECT name,sql FROM sqlite_master WHERE type='trigger' AND name IN ('lab_charge_job','lab_reference_fixed_price_validity','lab_assert_generation_quote_cost','lab_transform_fixed_price_validity') ORDER BY name"}),signal:AbortSignal.timeout(20000)});
+          const data=await db.json(),arr=data.result?.[0]?.results||[];
+          if(!db.ok||!data.success||arr.length!==4)throw Error('Pricing/validity triggers missing in production D1.');
+          const by=Object.fromEntries(arr.map(x=>[x.name,x.sql||'']));
+          if(!by.lab_charge_job.includes('referenceBillableVideoSeconds')||!by.lab_reference_fixed_price_validity.includes('reference-seconds-v1')||
+             !by.lab_assert_generation_quote_cost.includes('customerChargeCredits')||
+             !by.lab_transform_fixed_price_validity.includes('source-seconds-v1'))throw Error('Production reference/Transform quote-debit parity not verified.');
+          console.log('PASS: Reference retail version live, SQL debit guards present, all bindings unchanged. No paid generation or Stripe operation attempted.');
+          NODE

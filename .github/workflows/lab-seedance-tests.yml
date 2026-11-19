@@ -27,7 +27,7 @@ jobs:
       - name: Syntax and scoped Seedance backend checks
         run: |
           find lab lab-worker -type f \( -name '*.js' -o -name '*.mjs' \) -exec node --check {} \;
-          node --test tests/lab-seedance.test.mjs
+          node --test tests/lab-seedance.test.mjs tests/lab-seedance-reference-retail.test.mjs
       - name: Browser dependencies
         run: |
           npm install --prefix /tmp/pv-standard-ui --no-save playwright@1.57.0
