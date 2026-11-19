@@ -291,7 +291,7 @@ async function restoreStudioEntry(requestedRoute=studioRoute()){
         moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70,...(mood.id==='hong-kong-nights'?{moodVariant:query.get('variation')||'original'}:{})},true);
         title=mood.name;
       }
-      if(!ownerAccount&&['seedream','seedream55'].includes(imageEngine))$('resolution').value='2k';
+      if(!ownerAccount&&imageEngine==='seedream')$('resolution').value='2k';
       let hadPhoto=false,generation=null;
       if(query.has('handoff')){
         try{
@@ -465,9 +465,9 @@ const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-compo
   onEditPersonal:board=>location.assign('./mood-creator.html?board='+encodeURIComponent(board.id)),
   onChange:change=>{
     if(change?.selectedMood||!moodUI.active())inspirationMoodId=null;
-    // Customer Moods retain their approved 2K default. Owner Moods keep
-    // the deck's 1K default or the owner's explicit resolution selection.
-    if(change?.selectedMood&&moodUI.selected()&&['seedream','seedream55'].includes(imageEngine)&&!ownerAccount&&!busy)
+    // Seedream 5 Pro customer Moods retain 2K. Seedream 5.5 Moods keep
+    // the deck's 1.5K default or the user's explicit resolution selection.
+    if(change?.selectedMood&&moodUI.selected()&&imageEngine==='seedream'&&!ownerAccount&&!busy)
       $('resolution').value='2k';
     autoPreview=null;update();
     // Bypass the generic typing debounce on an intentional Mood selection.
@@ -1339,7 +1339,7 @@ function setTool(value){
   $('engine-name').textContent=upscale?'BYTEDANCE SEEDVR2':image?(imageEngine==='gemini21'?'NANO BANANA 2.1':imageEngine==='gemini'?'NANO BANANA PRO':imageEngine==='soulpro'?'PV SOUL PRO':imageEngine==='soul'?'PV SOUL':imageEngine==='fal'?'CONTROLLED POSE · FAL':imageEngine==='seedream55'?'SEEDREAM 5.5':imageEngine==='seedreamlite'?'SEEDREAM 5 LITE':imageEngine==='qwen3'?'QWEN IMAGE 3.0':imageEngine==='zspicy'?'Z-IMAGE SPICY':'SEEDREAM 5.0 PRO'):'WAN 3.0';
   $('prompt-label').textContent=image?'Image direction':'Motion direction';$('prompt').maxLength=image?(imageEngine==='seedreamlite'?3000:5000):6000;
   $('prompt').placeholder=image?(imageEngine==='zspicy'?'Describe an original image from words. This model does not accept photographs.':'Describe the image. Add references for identity, wardrobe, a room or an object, or start with text only.'):'One clear action, one camera move, light, atmosphere and sound.';
-  options('resolution',upscale?['2k','4k','8k']:image?(imageEngine==='soulpro'?['source']:imageEngine==='fal'?['1k']:['gemini','gemini21'].includes(imageEngine)?['1k','2k','4k']:imageEngine==='zspicy'?['1k','1.5k']:imageEngine==='seedream55'?['1k','1.5k','2k']:imageEngine==='seedreamlite'?['2k']:imageEngine==='soul'?(isReinterpret()?['1k','1.5k']:['native']):['1k','2k']):['480p','720p','1080p'],upscale?'4k':image?(imageEngine==='soulpro'?'source':imageEngine==='soul'?(isReinterpret()?'1.5k':'native'):imageEngine==='zspicy'?'1.5k':['fal','seedream55','seedream','kling'].includes(imageEngine)?'1k':'2k'):engine==='seedance'?'720p':'1080p');
+  options('resolution',upscale?['2k','4k','8k']:image?(imageEngine==='soulpro'?['source']:imageEngine==='fal'?['1k']:['gemini','gemini21'].includes(imageEngine)?['1k','2k','4k']:imageEngine==='zspicy'?['1k','1.5k']:imageEngine==='seedream55'?['1k','1.5k','2k']:imageEngine==='seedreamlite'?['2k']:imageEngine==='soul'?(isReinterpret()?['1k','1.5k']:['native']):['1k','2k']):['480p','720p','1080p'],upscale?'4k':image?(imageEngine==='soulpro'?'source':imageEngine==='soul'?(isReinterpret()?'1.5k':'native'):imageEngine==='zspicy'?'1.5k':imageEngine==='seedream55'?'1.5k':['fal','seedream','kling'].includes(imageEngine)?'1k':'2k'):engine==='seedance'?'720p':'1080p');
   if(upscale)for(const option of $('resolution').options)option.textContent=option.value.toUpperCase()+' · ~'+({'2k':4,'4k':17,'8k':67}[option.value])+' MP';
   options('output-format',upscale&&!isFalUpscale()?['png','jpeg','webp']:['png','jpeg'],'png');
   if(!file)$('filemeta').textContent=sourceHelp();
@@ -1795,7 +1795,7 @@ function restoreGuestImageDraft(){
     // A draft from the public six-card preview remains a visible-prompt-only Inspiration selection.
     inspirationMoodId=draftMood;
     if(draftMood==='fisheye-2000')inspirationMoodId=null;
-    $('resolution').value=ownerAccount&&['seedream','seedream55'].includes(imageEngine)?'1k':'2k';
+    $('resolution').value=imageEngine==='seedream55'?'1.5k':ownerAccount&&imageEngine==='seedream'?'1k':'2k';
     if(draft.mood==='chrome-couture'&&!stagedFiles.length){$('ratio').value=CHROME_COUTURE_DEFAULTS.aspectRatio;$('image-count').value=String(CHROME_COUTURE_DEFAULTS.count);}
   }
   $('prompt').value=prompt;
@@ -1888,7 +1888,7 @@ function useWelcomeMood(id){
   // Keep customer settings and user-uploaded photographs when applying the aesthetic to their own work.
   if(!preserveWorkspace){
     imageProcessing='normal';$('image-processing').value='normal';
-    $('resolution').value=ownerAccount&&['seedream','seedream55'].includes(imageEngine)?'1k':'2k';$('image-count').value='1';
+    $('resolution').value=imageEngine==='seedream55'?'1.5k':ownerAccount&&imageEngine==='seedream'?'1k':'2k';$('image-count').value='1';
     if(!references.length&&!file){$('ratio').value='16:9';imageRatioExplicit=false;}
   }
   // A seventh look can provide a distinct visible prompt without creating
@@ -4374,7 +4374,7 @@ async function restore(job){
   if(soulPro){$('soul-pro-model').value=soulProModel;$('soul-pro-seed').value=p.seed??'';}
   if(p.duration&&!([...$('duration').options].some(o=>Number(o.value)===p.duration)))$('duration').add(new Option(p.duration+' sec',String(p.duration)));
   $('duration').value=p.duration||15;
-  if(!isFalUpscale())$('resolution').value=p.resolution||(tool==='upscale'?'4k':tool==='image'?(['seedream','seedream55'].includes(imageEngine)?'1k':'2k'):'1080p');
+  if(!isFalUpscale())$('resolution').value=p.resolution||(tool==='upscale'?'4k':tool==='image'?(imageEngine==='seedream55'?'1.5k':ownerAccount&&imageEngine==='seedream'?'1k':'2k'):'1080p');
   $('ratio').value=p.aspectRatio||'auto';$('seed').value=p.seed??'';$('audio').checked=p.audio!==false;$('video-camera-lock').checked=p.cameraFixed===true;$('output-format').value=p.outputFormat||'jpeg';
   if(controlledPose){$('pose-strength').value=String(p.poseStrength??1);$('identity-strength').value=String(p.identityStrength??0.7);$('controlled-pose-seed').value=p.seed??'';$('pose-strength-value').textContent=Number(p.poseStrength??1).toFixed(2);$('identity-strength-value').textContent=Number(p.identityStrength??0.7).toFixed(2);$('pose-preview-status').textContent=poseMapSourceId?'Saved pose map will be reused.':'';}
   if(p.engine==='seedance'||engineFor(p)==='seedance')await mediaRefs.restore(p);
@@ -5302,7 +5302,7 @@ async function refineInSeedream(job,preset='full'){
   const file=await assetFile(job.outputId,'pv-soul-refine-source');
   await addReferences([file],[job.outputId],[{name:file.name,role:'none',note:'Primary image. Preserve identity, body, pose, composition, camera and lighting; refine only requested defects.'}]);
   $('prompt').value=prompts[preset]||prompts.full;
-  $('resolution').value='1k';$('ratio').value='auto';$('image-count').value='1';update();
+  $('resolution').value='1.5k';$('ratio').value='auto';$('image-count').value='1';update();
   notify('Loaded into Seedream Refine. Review the preset prompt, then click Generate. Nothing has been submitted yet.');
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -5928,7 +5928,7 @@ if(window.__PV_LAB_NATIVE__===1&&window.ReactNativeWebView){
         if(command.action==='mood'){
           if(command.moodboard){await myMoods.refresh();const board=myMoods.find(command.moodboard);if(!board)throw Error('This Mood is unavailable.');moodUI.restore({moodId:'custom',customMoodBoardId:board.id,moodIntensity:board.intensity});}
           else {const mood=moodById(command.mood);if(!mood)throw Error('This Mood is unavailable.');moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70});}
-          if(!ownerAccount&&['seedream','seedream55'].includes(imageEngine))$('resolution').value='2k';
+          if(!ownerAccount&&imageEngine==='seedream')$('resolution').value='2k';
           update();
         }
         if(command.handoff){
