@@ -55,6 +55,20 @@ export function allocateGenerationCosts(entries,finance,rates=[]){
  for(const e of ordered){
   if(!Number.isSafeInteger(e.deltaCredits)||!e.deltaCredits){incomplete=true;continue;}
   if(e.deltaCredits>0){
+   // Recovered Transform hold credits go back to their original FIFO funding
+   // lots, not a fabricated zero-cost gift that distorts partner expenses.
+   if(e.kind==='adjustment'&&e.reference.startsWith('settled:transform:job:')){
+    const job=jobs.get(e.reference.slice('settled:transform:job:'.length));
+    if(!job||job.refunded||job.settlementReleased||e.deltaCredits>=job.credits){incomplete=true;continue;}
+    let remaining=e.deltaCredits;
+    for(const a of [...job.allocations].reverse()){
+     const restored=Math.min(a.credits,remaining);
+     a.credits-=restored;a.lot.remaining+=restored;remaining-=restored;
+     if(!remaining)break;
+    }
+    if(remaining){incomplete=true;continue;}
+    job.credits-=e.deltaCredits;job.settlementReleased=true;continue;
+   }
    const job=e.kind==='refund'&&e.reference.startsWith('refund:job:')?jobs.get(e.reference.slice(11)):null;
    if(job){
     if(job.refunded||e.deltaCredits!==job.credits){incomplete=true;continue;}
