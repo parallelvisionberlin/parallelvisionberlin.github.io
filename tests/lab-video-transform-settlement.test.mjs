@@ -39,7 +39,10 @@ test('12s edit reserves 2189 credits but returns 1313 after confirmed $5.472 com
  assert.equal(f.balance(),9124);
  assert.equal(f.get("SELECT delta_credits AS c FROM lab_credit_entries WHERE reference='settlement:job:transform'").c,1313);
  f.write("UPDATE jobs SET settled_cost=5.472 WHERE id='transform'");
- assert.equal(f.balance(),9124,'repeat settlement readback never duplicates rebate');
+ f.write("UPDATE jobs SET state='completed' WHERE id='transform'");
+ f.write("UPDATE jobs SET settled_cost=5.472 WHERE id='transform'");
+ assert.equal(f.balance(),9124,'repeated INSERT OR REPLACE finance snapshots must never recredit wallet');
+ assert.equal(f.get("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE reference='settlement:job:transform'").n,1);
 });
 test('survives deleting History: final provider readback credits completed job with durable claim',t=>{
  const f=fixture(t);f.job('deleted');
