@@ -433,7 +433,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
         COALESCE((SELECT -SUM(e.delta_credits) FROM lab_credit_entries e
           WHERE e.customer_id=? AND e.kind='generation' AND e.reference='job:'||j.id),0) AS chargedCredits,
         COALESCE((SELECT SUM(e.delta_credits) FROM lab_credit_entries e
-          WHERE e.customer_id=? AND e.kind='refund' AND e.reference='refund:job:'||j.id),0) AS refundedCredits
+          WHERE e.customer_id=? AND e.kind='refund' AND e.reference IN ('refund:job:'||j.id,'settlement:job:'||j.id)),0) AS refundedCredits
         FROM jobs j WHERE j.owner_id=? ORDER BY j.created_at DESC,j.id DESC LIMIT 50`,customerId,customerId,customerId),
       all(env,`SELECT kind,delta_credits AS credits,reference,created_at AS createdAt
         FROM lab_credit_entries WHERE customer_id=? ORDER BY created_at DESC,id DESC LIMIT 80`,customerId),
