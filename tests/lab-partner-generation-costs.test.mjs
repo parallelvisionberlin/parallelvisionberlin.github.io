@@ -48,3 +48,16 @@ test('ECB parser validates source, dated USD quotes, duplicates, stale feeds and
  assert.throws(()=>parseEcbRates(feed('2026-10-27','0'),at));
  assert.throws(()=>parseEcbRates(feed()+feed(),at));
 });
+
+test('completed Transform credit release restores original funding instead of a new free lot',()=>{
+ const ledger=[entry('checkout:first',1000,'purchase',0),entry('checkout:second',2000,'purchase',10),
+  entry('job:transform',2189,'generation',20),
+  entry('settled:transform:job:transform',1313,'adjustment',30),
+  entry('job:next',2000,'generation',40)];
+ const result=allocateGenerationCosts(ledger,[job('transform',5.472),job('next',2)],rates);
+ assert.equal(result.size,2,'Credit release must not create a new funding lot');
+ assert.equal(result.get('checkout:first').remainingCredits,0);
+ assert.equal(result.get('checkout:second').remainingCredits,124);
+ assert.equal(result.get('checkout:first').costCents>0,true);
+ assert.equal(result.get('checkout:second').costCents>0,true);
+});
