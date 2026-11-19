@@ -126,7 +126,7 @@ WHEN NEW.state<>'draft' AND EXISTS(SELECT 1 FROM lab_customers WHERE id=NEW.owne
    AND json_extract(NEW.params,'$.referenceBillableVideoSeconds') BETWEEN 2 AND 30
    AND json_type(NEW.params,'$.duration')='integer'
    AND json_extract(NEW.params,'$.duration') BETWEEN 4 AND 30
-   AND NEW.estimate_microusd BETWEEN 1 AND 20000000
+   AND NEW.estimate_microusd BETWEEN 1 AND 40000000
  )
 BEGIN
  SELECT RAISE(ABORT,'Invalid Reference video fixed retail quote; nothing submitted');
