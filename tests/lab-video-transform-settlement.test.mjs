@@ -10,8 +10,9 @@ const transform={type:'video',provider:'spicy',engine:'seedance',mode:'transform
 function fixture(t){
  const db=new DatabaseSync(':memory:');t.after(()=>db.close());
  db.exec(sql('schema.sql'));
- for(const id of ['0006-customers-billing','0020-wan-seedance-budget-pricing',
-   '0021-spicy-image-credit-steps','0028-generation-finance-ledger',
+ for(const id of ['0006-customers-billing','0011-customer-lifecycle',
+   '0015-lab-promotional-credits','0024-owner-acquisition','0025-promo-generation-holds',
+   '0020-wan-seedance-budget-pricing','0021-spicy-image-credit-steps','0028-generation-finance-ledger',
    '0029-pricing-debit-parity','0062-transform-seedance-credit-parity',
    '0063-transform-final-credit-settlement']){
   db.exec(sql('migrations/'+id+'.sql'));
