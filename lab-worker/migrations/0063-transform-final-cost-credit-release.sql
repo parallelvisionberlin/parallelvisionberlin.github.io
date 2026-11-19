@@ -88,5 +88,11 @@ BEGIN
         'settled:transform:job:'||job_id,CAST(strftime('%s','now') AS INTEGER)*1000
  FROM lab_transform_credit_release_due WHERE job_id=NEW.job_id AND customer_id=NEW.customer_id;
 END;
+-- Repair already-settled Transform holds when confirmed final costs exist.
+-- Never edit a historical purchase, payment or completed generation record.
+INSERT OR IGNORE INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at)
+SELECT 'transform-credit-release:'||job_id,customer_id,credits_to_release,'adjustment',
+       'settled:transform:job:'||job_id,CAST(strftime('%s','now') AS INTEGER)*1000
+FROM lab_transform_credit_release_due;
 INSERT OR IGNORE INTO lab_migrations(id,applied_at)
 VALUES('0063-transform-final-cost-credit-release',CAST(strftime('%s','now') AS INTEGER)*1000);
