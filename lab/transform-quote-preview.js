@@ -10,5 +10,6 @@ export function transformVideoEditPreview(quote){
   if(!rate||!Number.isFinite(duration)||duration<4||duration>30||
      !Number.isFinite(cap)||cap<=0||Math.abs(cap-rate*30)>0.01)return null;
   const seconds=Math.ceil(duration);if(seconds>=30)return null;
-  return {seconds,estimatedUsd:Math.round(rate*seconds*1000)/1000,maxUsd:cap};
+  const estimateMicros=Math.round(rate*seconds*1000000);
+  return {seconds,estimatedUsd:estimateMicros/1000000,estimatedCredits:Math.max(7,Math.ceil(estimateMicros*160/1000000)),maxUsd:cap};
 }
