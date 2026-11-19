@@ -64,6 +64,7 @@ test('tampered browser price and invalid fixed metadata fail closed',t=>{
 });
 test('provider reservation bounds and output durations retain exact JS to SQLite parity',t=>{
  const f=fixture(t);
+ f.run("INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES('test-topup',?,200000,'purchase','checkout:topup',?)",user,now+1);
  for(const [resolution,rate] of [['480p',73800],['720p',165900],['1080p',408200]]){
   for(const seconds of [4,5,12,30]){
    const input=13,max=(30+seconds)*rate,p={...settings(input,seconds),resolution};
