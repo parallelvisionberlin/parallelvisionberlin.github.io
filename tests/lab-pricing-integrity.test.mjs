@@ -12,7 +12,7 @@ function fixture(t){
   const db=new DatabaseSync(':memory:');t.after(()=>db.close());
   db.exec(migration('schema.sql'));
   for(const file of ['0006-customers-billing','0020-wan-seedance-budget-pricing',
-    '0021-spicy-image-credit-steps','0029-pricing-debit-parity'])
+    '0021-spicy-image-credit-steps','0029-pricing-debit-parity','0062-transform-seedance-credit-parity'])
     db.exec(migration('migrations/'+file+'.sql'));
   db.prepare('INSERT INTO lab_customers(id,clerk_subject,created_at,updated_at) VALUES(?,?,?,?)')
     .run(user,user,t0,t0);
@@ -63,6 +63,12 @@ test('JavaScript price equals atomic SQLite debit for all provider exceptions an
     ['Seedance15 720p sound',{type:'video',provider:'spicy',engine:'seedance15',model:'bytedance/seedance-1.5-pro/text-to-video',resolution:'720p',audio:true},227000,73],
     ['Seedance15 fal exclusion',{type:'video',provider:'fal',engine:'seedance15',model:'bytedance/seedance-1.5-pro/image-to-video',resolution:'720p',audio:true},227000,105],
     ['Seedance25 normal',{type:'video',provider:'spicy',engine:'seedance',model:'bytedance/seedance-2.5/reference-to-video',resolution:'720p'},2773000,444],
+    ['Seedance25 Transform SpicyAPI 720p example',{type:'video',provider:'spicy',engine:'seedance',mode:'transform',model:'bytedance/seedance-2.5/video-edit',resolution:'720p'},4560000,730],
+    ['Seedance25 Transform SpicyAPI $1',{type:'video',provider:'spicy',engine:'seedance',mode:'transform',model:'bytedance/seedance-2.5/video-edit',resolution:'480p'},1000000,160],
+    ['Seedance25 Transform SpicyAPI boundary',{type:'video',provider:'spicy',engine:'seedance',mode:'transform',model:'bytedance/seedance-2.5/video-edit',resolution:'720p'},1000001,161],
+    ['Seedance25 Transform Higgsfield excluded',{type:'video',provider:'higgsfield',engine:'seedance',mode:'transform',model:'bytedance/seedance-2.5/video-edit',resolution:'720p'},1000000,460],
+    ['Seedance25 Transform fal excluded',{type:'video',provider:'fal',engine:'seedance',mode:'transform',model:'bytedance/seedance-2.5/video-edit',resolution:'720p'},1000000,460],
+    ['Seedance25 Transform incorrect engine excluded',{type:'video',provider:'spicy',engine:'other',mode:'transform',model:'bytedance/seedance-2.5/video-edit',resolution:'720p'},1000000,460],
     ['Seedance25 fal exclusion',{type:'video',provider:'fal',engine:'seedance',model:'bytedance/seedance-2.5/reference-to-video',resolution:'720p'},100000,46],
     ['Seedance25 higgsfield exclusion',{type:'video',provider:'higgsfield',engine:'seedance',model:'bytedance/seedance-2.5/text-to-video',resolution:'480p'},100000,46],
     ['Seedance4k normal',{type:'video',provider:'spicy',engine:'seedance4k',model:'bytedance/seedance-2.5-spicy/image-to-video'},100000,19],
@@ -80,6 +86,15 @@ test('JavaScript price equals atomic SQLite debit for all provider exceptions an
   }
   assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE kind='generation'").get().n,cases.length);
   assert.equal(creditsPerUsdForJob({type:'video',provider:'fal',engine:'seedance15',model:'bytedance/seedance-1.5-pro/image-to-video'}),460);
+});
+
+test('Transform pre-migration 460-credit quote is rejected rather than silently debited at 160',t=>{
+  const f=fixture(t),before=f.balance();
+  const settings={type:'video',provider:'spicy',engine:'seedance',mode:'transform',model:'bytedance/seedance-2.5/video-edit',resolution:'720p'};
+  assert.equal(creditsForJobMicros(4560000,settings),730);
+  assert.throws(()=>f.insert(settings,4560000,2098),/quote and debit disagree/);
+  assert.equal(f.balance(),before);
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM jobs").get().n,0);
 });
 
 test('quote/debit disagreement aborts the job, preserves balance and prevents a vendor submission',t=>{

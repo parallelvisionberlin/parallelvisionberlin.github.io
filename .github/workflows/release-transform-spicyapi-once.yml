@@ -1,4 +1,4 @@
-name: One-time PV LAB Transform SpicyAPI Worker release
+name: One-time PV LAB Transform 160-credit release
 
 on:
   workflow_dispatch:
@@ -31,6 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check lab-worker/worker.mjs
+          node --check lab-worker/job-pricing.mjs
           node --check lab-worker/seedance.mjs
           node --check lab-worker/higgsfield-video-transform.mjs
           node --check lab/lab.js
@@ -62,6 +63,8 @@ jobs:
           accountId: a40ce1725295563a7b7db9fc3160480a
           workingDirectory: lab-worker
           wranglerVersion: '4'
+          preCommands: |
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0062-transform-seedance-credit-parity.sql --yes
           command: deploy --keep-vars
       - name: Verify live Transform version and configuration unchanged
         env:
@@ -73,7 +76,7 @@ jobs:
           for(let attempt=0;attempt<8;attempt++){
             const res=await fetch('https://parallel-vision-lab.parallelvision.workers.dev/health',{signal:AbortSignal.timeout(15000)});
             const payload=await res.json();
-            if(res.ok&&payload.ok&&payload.videoTransformProvider==='spicyapi-seedance25-edit-20261119'){found=true;break;}
+            if(res.ok&&payload.ok&&payload.videoTransformProvider==='spicyapi-seedance25-edit-20261119'&&payload.videoTransformCreditRate==='20261119-seedance25-160'){found=true;break;}
             await new Promise(resolve=>setTimeout(resolve,3500));
           }
           if(!found)throw Error('Production health does not confirm SpicyAPI Transform version.');
@@ -84,5 +87,12 @@ jobs:
           if(!res.ok||!response.success)throw Error('Cannot verify post-deployment Cloudflare bindings.');
           const canon=JSON.stringify(response.result.bindings.map(b=>Object.fromEntries(Object.entries(b).sort())).sort((a,b)=>a.name.localeCompare(b.name)));
           if(canon!==readFileSync(process.env.RUNNER_TEMP+'/transform-worker-bindings.json','utf8'))throw Error('Production bindings changed during release.');
-          console.log('LIVE VERIFIED: SpicyAPI Transform Worker is deployed; Cloudflare settings match prior configuration. No D1 migrations, checkout or paid generation executed.');
+          const sql='SELECT sql FROM sqlite_master WHERE type=\'trigger\' AND name=\'lab_charge_job\'';
+          const db=await fetch('https://api.cloudflare.com/client/v4/accounts/'+process.env.CLOUDFLARE_ACCOUNT_ID+'/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query',{
+            method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({sql}),signal:AbortSignal.timeout(25000)});
+          const dbData=await db.json();
+          const dbTrigger=dbData.result?.[0]?.results?.[0]?.sql||'';
+          if(!db.ok||!dbData.success||!dbTrigger.includes("'bytedance/seedance-2.5/video-edit'")||!dbTrigger.includes('THEN 160'))
+            throw Error('Production D1 pricing trigger not updated for Transform.');
+          console.log('LIVE VERIFIED: SpicyAPI Transform 160-credit Worker and D1 debit agree; Cloudflare settings preserved. No checkout or paid generation executed.');
           NODE
