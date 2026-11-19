@@ -49,6 +49,7 @@ import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} fro
 import {seedanceVariantParameters,prepareSeedanceVariant} from './seedance-variants.mjs';
 import {seedreamLiteParameters,seedreamLiteInput,SEEDREAM_LITE_TEXT,SEEDREAM_LITE_EDIT} from './seedream-lite.mjs';
 import {creditsForJobUsd,isFixedTransformRetail,TRANSFORM_FIXED_RETAIL_VERSION,isFixedReferenceRetail,REFERENCE_FIXED_RETAIL_VERSION} from './job-pricing.mjs';
+import {settledProviderCostMicros} from './spicy-settlement-cost.mjs';
 import {NANO21_MODEL,NANO21_STANDARD_MICROS,nano21Request,nano21ImagePart} from './nano-banana-21.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
@@ -1219,7 +1220,13 @@ async function refreshJob(env,j,ctx=null,forcedByBoundCallback=false) {
     const c=await config(env,j.owner_id);if(!c)return;
     const key=await decryptKey(env,c.encrypted_key);
     const result=await vendorRequest('/jobs/recordInfo?taskId='+encodeURIComponent(j.provider_id),key);
-    if(result.settled===true&&result.cost!==undefined){const cost=micros(result.cost);await run(env,'UPDATE jobs SET settled_cost=? WHERE id=?',cost/1000000,j.id);}
+    // SpicyAPI may report a terminal output before final billing is readable.
+    // A null/overprecise/malformed cost must not strand an already-paid video.
+    // Unknown settlement is left NULL for later financial reconciliation.
+    if(result.settled===true){
+      const cost=settledProviderCostMicros(result.cost);
+      if(cost!==null)await run(env,'UPDATE jobs SET settled_cost=? WHERE id=?',cost/1000000,j.id);
+    }
     if(result.state==='succeeded') {
       const kind=JSON.parse(j.params).type==='image'?'image/':'video/';
       const asset=result.output?.assets?.find(a=>a.mime?.startsWith(kind)&&a.url);
