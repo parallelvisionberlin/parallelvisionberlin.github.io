@@ -13,7 +13,7 @@ export const MODEL_CREDITS_PER_USD=Object.freeze({
 });
 const VIDEO_ROUTES=Object.freeze({
   seedance15:/^bytedance\/seedance-1\.5-pro\/(image-to-video|text-to-video)$/,
-  seedance:/^bytedance\/seedance-2\.5\/(image-to-video|reference-to-video|text-to-video|video-extend)$/,
+  seedance:/^bytedance\/seedance-2\.5\/(image-to-video|reference-to-video|text-to-video|video-extend|video-edit)$/,
   seedance4k:/^bytedance\/seedance-2\.5-spicy\/image-to-video$/,
   wan:/^alibaba\/wan-3\.0\/(image-to-video|reference-to-video)$/
 });
