@@ -6,7 +6,7 @@ const read=p=>readFileSync(new URL('../lab-worker/'+p,import.meta.url),'utf8');
 function setup(t){
  const db=new DatabaseSync(':memory:');t.after(()=>db.close());
  db.exec(read('schema.sql'));
- for(const name of ['0006-customers-billing','0028-generation-finance-ledger','0041-provider-settlement','0062-transform-seedance-credit-parity','0063-transform-final-cost-credit-release'])db.exec(read('migrations/'+name+'.sql'));
+ for(const name of ['0006-customers-billing','0011-customer-lifecycle','0015-lab-promotional-credits','0024-owner-acquisition','0025-promo-generation-holds','0028-generation-finance-ledger','0041-provider-settlement','0062-transform-seedance-credit-parity','0063-transform-final-cost-credit-release'])db.exec(read('migrations/'+name+'.sql'));
  const user='user_TransformPrice';
  db.prepare('INSERT INTO lab_customers(id,clerk_subject,created_at,updated_at) VALUES(?,?,?,?)').run(user,user,100,100);
  db.prepare("INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES(?,?,?,?,?,?)").run('initial',user,10000,'purchase','initial-funds',100);
