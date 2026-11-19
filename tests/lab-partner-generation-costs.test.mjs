@@ -39,6 +39,32 @@ test('orphan refunds or insufficient credit history never release a guessed fina
  const entries=[entry('checkout:first',1000,'purchase',0),entry('refund:job:missing',10,'refund',10),entry('job:a',1010,'generation',20)];
  const result=allocateGenerationCosts(entries,[job('a',0)],rates).get('checkout:first');assert.equal(result.final,false);assert.equal(result.allocationIncomplete,true);
 });
+test('partial Transform settlement restores original FIFO funding and assigns expense only to consumed credits',()=>{
+ const ledger=[
+  entry('checkout:first',1000,'purchase',0),
+  entry('checkout:second',2000,'purchase',1),
+  entry('job:transform',2189,'generation',10),
+  entry('settlement:job:transform',1313,'refund',20)
+ ];
+ const funds=allocateGenerationCosts(ledger,[job('transform',5.472)],rates);
+ assert.equal(funds.get('checkout:first').remainingCredits,124);
+ assert.equal(funds.get('checkout:second').remainingCredits,2000);
+ assert.equal(funds.get('checkout:first').costCents,547);
+ assert.equal(funds.get('checkout:second').costCents,0);
+ assert.equal(funds.get('checkout:first').allocationIncomplete,false);
+});
+test('late failed-state refund after partial settlement restores only the remaining original funding',()=>{
+ const ledger=[
+  entry('checkout:first',2189,'purchase',0),
+  entry('job:transform',2189,'generation',10),
+  entry('settlement:job:transform',1313,'refund',20),
+  entry('refund:job:transform',876,'refund',30)
+ ];
+ const result=allocateGenerationCosts(ledger,[job('transform',5.472,'failed')],rates).get('checkout:first');
+ assert.equal(result.remainingCredits,2189);
+ assert.equal(result.allocationIncomplete,false);
+ assert.equal(result.costCents,547);
+});
 test('ECB parser validates source, dated USD quotes, duplicates, stale feeds and absence of invented exchange rates',()=>{
  const feed=(date='2026-10-27',rate='1.1150')=>`<gesmes:Envelope xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref"><Cube><Cube time='${date}'><Cube currency='USD' rate='${rate}'/></Cube></Cube></gesmes:Envelope>`;
  assert.deepEqual(parseEcbRates(feed(),at),[{day:'2026-10-27',usdPerEurMicros:1115000}]);
