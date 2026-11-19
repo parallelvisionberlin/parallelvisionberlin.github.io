@@ -126,7 +126,7 @@ try{
    assert.equal(editorial.background,'rgba(0, 0, 0, 0)','Hero no longer has the hard gray rectangle');
    assert.equal(editorial.overflow,'visible','Hero is not clipped at its former hard bottom');
    assert.ok(editorial.panelWidth>=(width>=1366?365:330),'Edit Look panel remains full-size: '+width+'px '+editorial.panelWidth);
-   assert.equal(editorial.thumbnails,16,'Makeup displays sixteen genuine photographic options');
+   assert.equal(editorial.thumbnails,31,'Makeup displays thirty photograph presets plus Original');
    assert.ok(editorial.minThumbHeight>=80,'Right-hand visual presets are readable, not tiny');
    assert.equal(editorial.fullDeck,false,'Archive has true horizontal overflow instead of squeezing six cards');
    if(width>=1440)assert.ok(editorial.titleSize>=70,'Desktop ALTER title has the approved editorial scale');
@@ -174,7 +174,7 @@ try{
  // Visual shortcuts must control the native fields used by credit quotes and generation.
  {
   const s=await scenario({role:'guest',width:1448}),{page}=s;
-  assert.equal(await page.locator('[data-beauty-choice]').count(),52,'Makeup has sixteen choices and four other categories have nine each');
+  assert.equal(await page.locator('[data-beauty-choice]').count(),67,'Makeup has thirty looks plus Original and four other categories have nine each');
   const src=await page.locator('.beauty-looks-list .beauty-look-photo').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('src')));
   assert.equal(src.length,20,'Twenty editorial cards are in the archive');
   assert.equal(new Set(src).size,20,'Every editorial direction has a distinct photographic asset');
@@ -231,7 +231,7 @@ try{
     const buttons=[...el.children];const rects=buttons.map(n=>n.getBoundingClientRect());
     return {count:buttons.length,rows:new Set(rects.map(r=>Math.round(r.top))).size,cols:new Set(rects.map(r=>Math.round(r.left))).size,clipped:rects.some(r=>r.bottom>el.getBoundingClientRect().bottom+1)};
    });
-   assert.deepEqual(geometry,{count:tab==='makeup'?16:9,rows:tab==='makeup'?6:3,cols:3,clipped:tab==='makeup'});
+   assert.deepEqual(geometry,{count:tab==='makeup'?31:9,rows:tab==='makeup'?11:3,cols:3,clipped:tab==='makeup'});
   }
   await page.locator('#beauty-tab-makeup').click();
   const track=page.locator('#beauty-looks-list');await track.scrollIntoViewIfNeeded();
