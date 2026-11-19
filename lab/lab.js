@@ -33,6 +33,7 @@ import {createVideoModelPicker} from './video-model-picker.js?v=20261111-spicy-e
 import {readProviderPolicyDetails} from './model-policy-preferences.js?v=20261028-1';
 import {videoCustomerQuoteLabels,videoCreditPreview} from './video-euro-pricing.js?creditPreview=20261029-1&v=20261024-credits1';
 import {transformEditQuoteEstimate} from './video-transform-quote.js?v=20261119-quote-hold1';
+import {seedanceReferenceOwnerEstimate} from './video-reference-owner-quote.js?v=20261119-owner-v1';
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1&seedream55=1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,AUTO_IMAGE_REINTERPRET_PROMPT,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?characterAllViews=20261103v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1&fisheye=20261020v1&hkRefs=20261023two1&photoOnlyAuto=20261022v3&hkCinema=20261025v1&replaceCompact=20261108-v1&fallenAngel=20261112a&seedream55=1';
 import {createInspirationRotation,INSPIRATION_VARIATIONS,CHROME_COUTURE_DEFAULTS} from './inspiration-looks.js?v=20261019-chrome1&fisheyeCover=20261021v1&fisheyeY2K=20261024v1&chromeQwen20=20261031v1&dreamBlurExposure=20261102v2&sunFadeInspiration=20261104v1&promptSwitch=20261112v1';
@@ -4188,17 +4189,23 @@ $('generate').onclick=async()=>{if(tool==='image')return submitImageSnapshot();
   const quotedCredits=Number.isSafeInteger(q.creditCost)&&q.creditCost>0?q.creditCost.toLocaleString()+' credits':'Price unavailable';
   const videoLabels=customerMode&&!isImage?videoCustomerQuoteLabels(q.creditCost):null;
   const editEstimate=transformEditQuoteEstimate(q);
+  const referenceOwnerEstimate=!customerMode?seedanceReferenceOwnerEstimate(q):null;
   const fixedTransformRetail=customerMode&&q.settings.mode==='transform'&&q.settings.transformFixedChargeVersion==='source-seconds-v1'&&Number.isSafeInteger(q.creditCost)&&q.creditCost>=7;
   // Never expose supplier preauthorization mechanics in the customer price review.
   // Customers must still see the actual maximum PV credits debited on confirmation:
   // showing only the estimated final cost would misrepresent the temporary debit.
-  $('quote-price').textContent=fixedTransformRetail?q.creditCost.toLocaleString()+' PV credits':editEstimate?(customerMode?'Up to '+quotedCredits:'~'+money(editEstimate.estimatedUsd)):(videoLabels?.primary||(customerMode?quotedCredits:money(q.estimatedUsd)));
-  $('quote-limit').textContent=fixedTransformRetail?`${Number(q.settings.sourceDurationSeconds).toFixed(1)}s original video · ${q.settings.transformBillableSeconds} billed seconds. One fixed PV LAB credit charge.`:editEstimate
+  $('quote-price').textContent=referenceOwnerEstimate?money(referenceOwnerEstimate.estimatedUsd):fixedTransformRetail?q.creditCost.toLocaleString()+' PV credits':editEstimate?(customerMode?'Up to '+quotedCredits:'~'+money(editEstimate.estimatedUsd)):(videoLabels?.primary||(customerMode?quotedCredits:money(q.estimatedUsd)));
+  $('quote-limit').textContent=referenceOwnerEstimate
+    ?`Expected provider usage: ${referenceOwnerEstimate.billableVideoSeconds}s motion reference + ${referenceOwnerEstimate.outputSeconds}s generated. SpicyAPI temporarily reserves ${money(referenceOwnerEstimate.maxUsd)} USD, then releases any unused amount after settlement.`
+    :fixedTransformRetail?`${Number(q.settings.sourceDurationSeconds).toFixed(1)}s original video · ${q.settings.transformBillableSeconds} billed seconds. One fixed PV LAB credit charge.`:editEstimate
     ?(customerMode?`Estimated final cost: ${editEstimate.estimatedCredits.toLocaleString()} PV credits for ${editEstimate.billedSeconds}s of source video. Unused credits return to your balance automatically after completion.`
       :`Expected final cost for ${editEstimate.billedSeconds}s of source at ${q.settings.resolution}. Internal supplier authorization limit: ${money(q.maxUsd)} USD.`)
     :(videoLabels?.detail||(customerMode?`Maximum charged before generation: ${quotedCredits}`:q.priceIsEstimate?`Estimated provider charge: ${money(q.maxUsd)} USD`:`Quoted maximum: ${money(q.maxUsd)} USD`));
   $('confirm-generation').textContent=fixedTransformRetail?`Generate · ${q.creditCost.toLocaleString()} credits`:editEstimate?(customerMode?`Generate · up to ${quotedCredits}`:'Confirm & generate'):(videoLabels?.confirm||'Confirm & generate');
   $('quote-expiry').textContent='Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No automatic repricing. '+(q.settings.transferNotes||[]).join(' ');
+  $('quote-provider-caution').textContent=referenceOwnerEstimate
+    ?'Expected cost is calculated from verified source duration and the provider quote, not a final SpicyAPI settlement. The provider can temporarily hold the quoted maximum; its final charge can differ. A completed generation may still be charged even if you dislike the result.'
+    :'Your prompt and selected inputs are shared with the provider only after confirmation. Provider estimates and final billed amounts may differ. A result you dislike can still be charged. PV LAB never automatically submits a second generation.';
   $('quote-notice').textContent=fixedTransformRetail?'This is the total PV LAB credit charge for this edit. No additional credit hold or later debit is taken from your balance. Failed jobs are refunded under the generation policy.':editEstimate&&customerMode
     ?'A successful edit is billed according to the original video length. Remaining PV credits return automatically after the provider confirms the final cost. A completed generation is charged even if you dislike the result.'
     :(editEstimate?'A supplier preauthorization is separate from the final measured usage. ':'')+(q.notice||'');
