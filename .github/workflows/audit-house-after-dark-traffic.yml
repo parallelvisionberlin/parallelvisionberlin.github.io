@@ -26,6 +26,9 @@ jobs:
             (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='click') AS aggregate_clicks,
             (SELECT COUNT(*) FROM music_link_receipts WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view') AS recent_receipts,
             (SELECT COUNT(*) FROM music_visit_receipts WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark')) AS recent_matched_views,
+            (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view' AND day_utc>=date('now','-29 days')) AS last30_views,
+            (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view' AND day_utc=date('now')) AS today_views,
+            (SELECT COUNT(*) FROM music_releases WHERE slug='house-after-dark' AND created_by IN (SELECT account_id FROM music_user_settings)) AS in_customer_workspace,
             (SELECT COALESCE(SUM(count),0) FROM music_analytics_hourly WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view') AS detailed_views`;
           const response=await fetch(url,{
             method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
@@ -41,6 +44,9 @@ jobs:
           console.log('House After Dark published:',result.published===1?'YES':'NO');
           console.log('Aggregated page views recorded:',result.aggregate_views>0?'YES':'NO');
           console.log('Aggregated Spotify or other music clicks:',result.aggregate_clicks>0?'YES':'NO');
+          console.log('Visits in last 30 days:',result.last30_views>0?'YES':'NO');
+          console.log('Visits today UTC:',result.today_views>0?'YES':'NO');
+          console.log('Record belongs to customer workspace:',result.in_customer_workspace>0?'YES':'NO');
           console.log('Recent raw view receipts:',result.recent_receipts>0?'YES':'NO');
           console.log('Recent visit attribution receipts:',result.recent_matched_views>0?'YES':'NO');
           console.log('Detailed hourly views recorded:',result.detailed_views>0?'YES':'NO');
