@@ -48,3 +48,8 @@ dialog{background:#fff;color:var(--ink);border:1px solid var(--line);border-radi
 .release-form .pixel-choice details label{margin-top:14px}
 .release-form .pixel-choice details .field-note{margin:7px 0 0}
 @media(max-width:500px){.release-form .pixel-choice-title{flex-direction:column;gap:3px}}
+
+/* A published release or playlist title is a direct link to its public landing. */
+.release-identity .smart-link-title-link{color:inherit;text-decoration:none}
+.release-identity .smart-link-title-link:hover{text-decoration:underline;text-underline-offset:4px}
+.release-identity .smart-link-title-link:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:2px}
