@@ -108,11 +108,20 @@ export async function analyzeElementProfile(env,owner,packId,ctx,{first,run,now,
   const global=await run(env,
     'INSERT INTO element_analysis_global(day_key,used) VALUES(?,1) ON CONFLICT(day_key) DO UPDATE SET used=used+1 WHERE used<?',
     day,ELEMENT_ANALYSIS_GLOBAL_DAILY);
-  if(!global?.meta?.changes)fail(429,'Elements visual analysis has reached its daily platform limit.');
+  if(!global?.meta?.changes)fail(429,'Optional visual refinement is unavailable right now. Your saved photos can still be used.');
   const account=await run(env,
     'INSERT INTO element_analysis_quota(owner_id,day_key,used) VALUES(?,?,1) ON CONFLICT(owner_id,day_key) DO UPDATE SET used=used+1 WHERE used<?',
     owner,day,ELEMENT_ANALYSIS_USER_DAILY);
-  if(!account?.meta?.changes)fail(429,'Your daily Elements visual analyses are used. Saved photos still work.');
+  if(!account?.meta?.changes){
+    // The platform slot was reserved before the account check. Release it
+    // when the account is already at its daily limit.
+    await run(env,'UPDATE element_analysis_global SET used=used-1 WHERE day_key=? AND used>0',day);
+    fail(429,'Optional visual refinement is unavailable right now. Your saved photos can still be used.');
+  }
+  // A provider failure must never exhaust a customer's allowance. Keep
+  // both reservations while the bounded provider call is in flight.
+  let completed=false;
+  try{
   const parts=[{text:elementAnalysisInstruction(entry.category,entry.name,shots.length)}];
   shots.forEach((shot,i)=>{
     parts.push({text:'Element photo '+(i+1)+' of '+shots.length+' (index '+i+').'});
@@ -193,5 +202,17 @@ export async function analyzeElementProfile(env,owner,packId,ctx,{first,run,now,
     if(current)return {profile:JSON.parse(current.profile_json),cached:true};
     fail(409,'Saved photographs changed during analysis. Open the Character to analyze the current photos.');
   }
+  completed=true;
   return {profile,cached:false};
+  }finally{
+    if(!completed){
+      try{
+        await run(env,'UPDATE element_analysis_quota SET used=used-1 WHERE owner_id=? AND day_key=? AND used>0',owner,day);
+        await run(env,'UPDATE element_analysis_global SET used=used-1 WHERE day_key=? AND used>0',day);
+      }catch{
+        // Do not mask the original provider error or log customer details.
+        console.warn('PV LAB Elements quota cleanup failed');
+      }
+    }
+  }
 }
