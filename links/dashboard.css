@@ -37,3 +37,14 @@ dialog{background:#fff;color:var(--ink);border:1px solid var(--line);border-radi
 .release-form .type-option small{font-size:10px;font-weight:400;line-height:1.5;color:#687084}
 .release-form .field-name{font-size:12px;color:#4d5566}
 @media(max-width:460px){.release-form .type-selector{gap:7px}.release-form .type-option{padding:12px 10px}.release-form .type-option>span{font-size:12px}}
+
+/* Make the inherited Meta pixel clear; per-link customization remains optional. */
+.release-form .pixel-choice{display:grid;gap:8px;padding:15px 16px;border:1px solid #dde1e7;border-radius:3px;background:#f7f8fa;min-width:0}
+.release-form .pixel-choice-title{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin:0;font-size:12px;color:#4d5566}
+.release-form .pixel-choice-title strong{font-size:12px;font-weight:700;letter-spacing:0;color:#111}
+.release-form .pixel-choice>.field-note{margin:0}
+.release-form .pixel-choice details{border-top:1px solid #dee2e8;padding-top:12px}
+.release-form .pixel-choice summary{font-size:12px;color:#434b59;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.release-form .pixel-choice details label{margin-top:14px}
+.release-form .pixel-choice details .field-note{margin:7px 0 0}
+@media(max-width:500px){.release-form .pixel-choice-title{flex-direction:column;gap:3px}}
