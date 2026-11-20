@@ -29,6 +29,9 @@ jobs:
             (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view' AND day_utc>=date('now','-29 days')) AS last30_views,
             (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view' AND day_utc=date('now')) AS today_views,
             (SELECT COUNT(*) FROM music_releases WHERE slug='house-after-dark' AND created_by IN (SELECT account_id FROM music_user_settings)) AS in_customer_workspace,
+            (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view' AND source IN ('meta','facebook','instagram')) AS ads_source_views,
+            (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='click' AND source IN ('meta','facebook','instagram')) AS ads_source_clicks,
+            (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view' AND source='direct') AS direct_views,
             (SELECT COALESCE(SUM(count),0) FROM music_analytics_hourly WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view') AS detailed_views`;
           const response=await fetch(url,{
             method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
@@ -46,6 +49,9 @@ jobs:
           console.log('Aggregated Spotify or other music clicks:',result.aggregate_clicks>0?'YES':'NO');
           console.log('Visits in last 30 days:',result.last30_views>0?'YES':'NO');
           console.log('Visits today UTC:',result.today_views>0?'YES':'NO');
+          console.log('Meta/Facebook/Instagram-sourced visits:',result.ads_source_views>0?'YES':'NO');
+          console.log('Meta/Facebook/Instagram-sourced outbound clicks:',result.ads_source_clicks>0?'YES':'NO');
+          console.log('Direct-sourced visits:',result.direct_views>0?'YES':'NO');
           console.log('Record belongs to customer workspace:',result.in_customer_workspace>0?'YES':'NO');
           console.log('Recent raw view receipts:',result.recent_receipts>0?'YES':'NO');
           console.log('Recent visit attribution receipts:',result.recent_matched_views>0?'YES':'NO');
