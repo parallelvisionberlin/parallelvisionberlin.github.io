@@ -1,7 +1,7 @@
 import {initWorkspaceTools,reportQuery,renderWorkspaceReports,resetWorkspaceTools} from './workspace-tools.mjs?v=20261103-clean2';
 import {API,SERVICES,slugify,releaseUrl,validateLinks,newId,validatePresave,PLAYLIST_CATALOGUE,contentTypeOf} from './shared.mjs?v=20261120-house-layout2';
 import {renderRelease} from './release-view.mjs?v=20261120-house-layout2';
-import {loadLabAccount} from '../lab/native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
+import {loadSmartLinksAccount,createSmartLinksAuthRecovery} from './account-bootstrap.mjs?v=20261120-smartlinks-auth1';
 import {createSessionRequest} from '../lab/session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 const $=id=>document.getElementById(id),form=$('release-form'),editor=$('editor');
 const el=(tag,cls,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value!==undefined)n.textContent=value;return n;};
@@ -202,11 +202,34 @@ function refreshWhenStale(){
 window.setInterval?.(refreshWhenStale,60000);
 document.addEventListener('visibilitychange',refreshWhenStale);
 $('refresh').addEventListener('click',()=>void refresh());$('days').addEventListener('change',()=>{if($('days').value!=='custom')void refresh();});$('search').addEventListener('input',renderRecords);$('filter').addEventListener('change',renderRecords);
-$('signin').addEventListener('click',()=>{if(clerk?.session){void refresh();}else clerk?.openSignIn();});$('signout').addEventListener('click',()=>void clerk?.signOut());
+$('signout').addEventListener('click',()=>void clerk?.signOut());
 function authChanged(){
   const next=clerk?.session?.id||'';if(next===sessionId)return;sessionId=next;generation++;fetchSerial++;analyticsData=null;resetWorkspaceTools();$('report-source').value='';$('report-release').value='';records=[];settings=null;editing=null;
   $('dashboard').hidden=true;$('gate').hidden=!!next;$('signin').textContent='Sign in';$('new-release').disabled=true;$('release-rows').replaceChildren();$('signout').hidden=!next;editor.close();
   if(!next){$('gate').querySelector('h2').textContent='Your smart links live here.';$('gate').querySelector('p:not(.eyebrow)').textContent='Sign in with your Parallel Vision account to create pages and see their performance.';notice('Sign in to manage your smart links.');return;}void refresh();
 }
-try{clerk=await loadLabAccount();$('signin').disabled=false;clerk.addListener(authChanged);authChanged();}
-catch{notice('Sign-in could not load. Reload this page to try again.');}
+let authFailed=false;
+const authRecovery=createSmartLinksAuthRecovery({
+  load:loadSmartLinksAccount,
+  onReady:account=>{
+    authFailed=false;
+    clerk=account;
+    clerk.addListener(authChanged);
+    authChanged(); // Existing main-site Clerk session opens the workspace automatically.
+  },
+  onFailure:error=>{
+    authFailed=true;
+    const code=['AUTH_SDK','AUTH_UI','AUTH_SESSION'].includes(error?.code)?error.code:'AUTH_LOAD';
+    notice('Sign-in connection failed ('+code+'). Tap Retry sign-in.');
+    $('gate').hidden=false;
+  },
+  onBusy:busy=>{
+    $('signin').disabled=busy;
+    $('signin').textContent=busy?'Connecting…':authFailed?'Retry sign-in':'Sign in';
+  }
+});
+$('signin').addEventListener('click',()=>{
+  if(clerk?.session){void refresh();return;}
+  void authRecovery.connect({interactive:true});
+});
+void authRecovery.connect();
