@@ -9,6 +9,7 @@ export async function loadSmartLinksAccount({
   primary=loadLabAccount,
   importFallback=()=>import('https://esm.sh/@clerk/clerk-js@6?bundle'),
   hostname=location.hostname,
+  returnUrl=location.href,
   getUI=()=>globalThis.window?.__internal_ClerkUICtor,
   timeoutMs=12000
 }={}){
@@ -21,7 +22,7 @@ export async function loadSmartLinksAccount({
     if(typeof module?.Clerk!=='function')throw Error('Clerk SDK fallback is unavailable.');
     const clerk=new module.Clerk(publishableKey);
     const ui=getUI();
-    const options={signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href};
+    const options={signInFallbackRedirectUrl:returnUrl,signUpFallbackRedirectUrl:returnUrl};
     if(typeof ui==='function')options.ui={ClerkUI:ui};
     let timer;
     try{
@@ -49,8 +50,8 @@ export function createSmartLinksAuthRecovery({load,onReady,onFailure,onBusy}){
       pending=(async()=>{
         try{
           const loaded=await load();
-          account=loaded;
           onReady(loaded);
+          account=loaded;
           return loaded;
         }catch(error){
           onFailure(error);
