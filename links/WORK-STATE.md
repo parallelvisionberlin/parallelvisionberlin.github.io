@@ -1,3 +1,16 @@
+# Smart Links Pixel and playlist layout refinement (20 November 2026)
+
+- Owner screenshot revealed the creator's optional `Pixel override` field was confusing and browser-native pattern validation blocked submit. The workspace music pixel `1746851780072706` already exists; do not require re-entry per release.
+- Implemented a visible `Meta Pixel` status row that inherits the workspace pixel automatically, plus a collapsed `Use a different pixel for this smart link` control for exceptional per-link overrides.
+- Removed browser-native pattern validation only from the creator's optional per-link pixel input; strip pasted whitespace / zero-width characters and validate optional digits (8–20) in the creator with a clear error. Server validation and workspace Tracking settings remain intact.
+- Reduced Instagram circle to 32px and glyph to 16px. Increased gap before the Spotify call to action for single-destination pages, with additional playlist-only spacing, on phone and desktop. Other multi-platform release layouts retain compact spacing.
+- PR https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1076 merged as `197929981f7a0e493e68492fa7d53b68042db47e`; music-link, static-site and PV LAB image-UI checks passed. GitHub Pages build/deploy `44734261636` completed successfully.
+- Files: `links/index.html`, `links/dashboard.mjs`, `links/dashboard.css`, `links/release-view.mjs`, `links/release.css`, `listen/index.html`, `tests/music-links.test.mjs`.
+- Verification: source merged and Pages deployment succeeded. Authenticated creator save and published live pixel attribution not independently tested. The public crawler may return older cached HTML; do not misrepresent cached content as current or claim a live signed-in save.
+- Next: reload the existing creator, keep the inherited Parallel Vision pixel, publish the House After Dark playlist using its direct Spotify link, and validate Meta Test Events before restarting ad spend.
+
+---
+
 # Smart Links: releases + Spotify playlists (20 November 2026)
 
 - Owner request: select **Music release** or **Spotify playlist** in the existing Smart Link Creator, retaining the approved white workspace and dark public landing design.
