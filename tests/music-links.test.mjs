@@ -73,6 +73,20 @@ test('playlist smart links persist, publish, and remain editable without a Worke
   assert.match(creator,/name="contentType" value="playlist"/);
   assert.match(renderer,/Listen to the playlist/);assert.match(renderer,/Open playlist/);
 });
+test('link creator keeps inherited Meta pixel optional with a clear alternate-pixel setting',()=>{
+  const creator=readFileSync(new URL('../links/index.html',import.meta.url),'utf8');
+  const controller=readFileSync(new URL('../links/dashboard.mjs',import.meta.url),'utf8');
+  const view=readFileSync(new URL('../links/release-view.mjs',import.meta.url),'utf8');
+  const layout=readFileSync(new URL('../links/release.css',import.meta.url),'utf8');
+  assert.match(creator,/Meta Pixel/);
+  assert.match(creator,/Use a different pixel for this smart link/);
+  assert.doesNotMatch(creator.slice(creator.indexOf('<dialog id="editor"')),/name="pixelId"[^>]*pattern=/);
+  assert.match(controller,/function pixelInput/);
+  assert.match(controller,/function syncPixelInfo/);
+  assert.match(view,/playlist-frame/);
+  assert.match(layout,/\.playlist-frame \.listening-dock/);
+  assert.match(layout,/\.instagram-link\{width:32px/);
+});
 test('duplicates and create retries cannot create additional records',async t=>{
   const f=fixture(t),input=fixtureRelease();await f.admin('/releases',{method:'POST',data:input});
   await assert.rejects(()=>f.admin('/releases',{method:'POST',data:{...input,id:crypto.randomUUID()}}),e=>e.status===409);
