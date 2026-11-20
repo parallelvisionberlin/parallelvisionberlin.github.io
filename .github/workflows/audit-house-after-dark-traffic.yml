@@ -1,0 +1,49 @@
+name: Read-only House After Dark traffic audit
+on:
+  workflow_dispatch:
+  push:
+    branches: [audit/house-after-dark-traffic-20261120]
+    paths: [.github/workflows/audit-house-after-dark-traffic.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Examine only aggregated music link counters (never expose user events)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          node --input-type=module <<'NODE'
+          const token=(process.env.CLOUDFLARE_API_TOKEN||'').trim();
+          if(!token)throw Error('Cloudflare token is not configured');
+          console.log('::add-mask::'+token);
+          const url='https://api.cloudflare.com/client/v4/accounts/a40ce1725295563a7b7db9fc3160480a/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query';
+          const sql=`SELECT
+            (SELECT COUNT(*) FROM music_releases WHERE slug='house-after-dark' AND status='published') AS published,
+            (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view') AS aggregate_views,
+            (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='click') AS aggregate_clicks,
+            (SELECT COUNT(*) FROM music_link_receipts WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view') AS recent_receipts,
+            (SELECT COUNT(*) FROM music_visit_receipts WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark')) AS recent_matched_views,
+            (SELECT COALESCE(SUM(count),0) FROM music_analytics_hourly WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view') AS detailed_views`;
+          const response=await fetch(url,{
+            method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+            body:JSON.stringify({sql,params:[]}),signal:AbortSignal.timeout(30000)
+          });
+          const json=await response.json();
+          if(!response.ok||!json.success){
+            const codes=(json.errors||[]).map(x=>x.code).join(',');
+            throw Error('Read-only D1 audit could not query: HTTP '+response.status+'; error codes: '+codes);
+          }
+          const result=json.result?.[0]?.results?.[0];
+          if(!result)throw Error('D1 returned no summary');
+          console.log('House After Dark published:',result.published===1?'YES':'NO');
+          console.log('Aggregated page views recorded:',result.aggregate_views>0?'YES':'NO');
+          console.log('Aggregated Spotify or other music clicks:',result.aggregate_clicks>0?'YES':'NO');
+          console.log('Recent raw view receipts:',result.recent_receipts>0?'YES':'NO');
+          console.log('Recent visit attribution receipts:',result.recent_matched_views>0?'YES':'NO');
+          console.log('Detailed hourly views recorded:',result.detailed_views>0?'YES':'NO');
+          console.log('Counter consistency:',result.aggregate_views===result.detailed_views?'MATCH':'MISMATCH');
+          console.log('No writes, individual event data, personal details or customer content retrieved.');
+          NODE
