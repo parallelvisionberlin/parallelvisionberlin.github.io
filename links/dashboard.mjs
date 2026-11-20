@@ -6,6 +6,12 @@ import {createSessionRequest} from '../lab/session-request.js?v=20260927-auth1&s
 const $=id=>document.getElementById(id),form=$('release-form'),editor=$('editor');
 const el=(tag,cls,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value!==undefined)n.textContent=value;return n;};
 const format=n=>Number(n||0).toLocaleString('en-GB');
+function pixelInput(){const input=field('pixelId');input.value=input.value.replace(/[\s\u200b-\u200d\ufeff]/g,'').trim();return input.value;}
+function syncPixelInfo(){
+  const value=field('pixelId').value.trim(),workspace=settings?.pixelId||'';
+  $('link-pixel-active').textContent=value?'Custom pixel '+value:workspace?'Parallel Vision · '+workspace:'Workspace default (no pixel configured)';
+  $('link-pixel-details').open=!!value;
+}
 let clerk=null,sessionId=null,generation=0,records=[],settings=null,editing=null,createId='',slugEdited=false,saving=false,uploading=false,fetchSerial=0;
 let analyticsData=null;
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
@@ -30,14 +36,14 @@ function syncContentType(){
   $('playlist-help').hidden=!playlist;$('release-platform-help').hidden=playlist;
   field('service-spotify').placeholder=playlist?'https://open.spotify.com/playlist/…':'https://…';
 }
-function draft(){const playlist=field('contentType').value==='playlist';return {contentType:playlist?'playlist':'release',presave:playlist?{mode:'off',url:''}:{mode:field('presaveMode').value,url:field('presaveUrl').value.trim()},id:editing?.id||createId,background:field('background').value,title:field('title').value.trim(),artist:field('artist').value.trim(),slug:field('slug').value.trim(),catalogue:playlist?PLAYLIST_CATALOGUE:field('catalogue').value.trim(),description:field('description').value.trim(),artworkUrl:field('artworkUrl').value.trim(),audioUrl:playlist?'':field('audioUrl').value.trim(),releaseDate:playlist?'':field('releaseDate').value,pixelId:field('pixelId').value.trim(),status:field('status').value,revision:editing?.revision,links:SERVICES.map(s=>({service:s.id,url:field('service-'+s.id).value.trim()})).filter(l=>l.url&&(!playlist||l.service==='spotify'))};}
+function draft(){const playlist=field('contentType').value==='playlist';return {contentType:playlist?'playlist':'release',presave:playlist?{mode:'off',url:''}:{mode:field('presaveMode').value,url:field('presaveUrl').value.trim()},id:editing?.id||createId,background:field('background').value,title:field('title').value.trim(),artist:field('artist').value.trim(),slug:field('slug').value.trim(),catalogue:playlist?PLAYLIST_CATALOGUE:field('catalogue').value.trim(),description:field('description').value.trim(),artworkUrl:field('artworkUrl').value.trim(),audioUrl:playlist?'':field('audioUrl').value.trim(),releaseDate:playlist?'':field('releaseDate').value,pixelId:pixelInput(),status:field('status').value,revision:editing?.revision,links:SERVICES.map(s=>({service:s.id,url:field('service-'+s.id).value.trim()})).filter(l=>l.url&&(!playlist||l.service==='spotify'))};}
 function preview(){const data=draft();for(const key of ['artworkUrl','audioUrl'])if(data[key]&&!/^https:\/\//i.test(data[key]))data[key]='';renderRelease($('release-preview'),data,{preview:true});}
 function controls(){const busy=saving||uploading;$('save-release').disabled=busy;$('save-draft').disabled=busy;$('close-editor').disabled=busy;$('artwork-file').disabled=busy;$('audio-file').disabled=busy;}
 function openEditor(record=null){
   if(saving||uploading)return;editing=record;createId=newId();slugEdited=!!record;form.reset();
   field('contentType').value=contentTypeOf(record);
   for(const name of ['title','artist','slug','catalogue','description','artworkUrl','audioUrl','releaseDate','pixelId','status','background'])field(name).value=name==='catalogue'&&contentTypeOf(record)==='playlist'?'':record?.[name]||(name==='status'?'draft':name==='background'?'blur':'');
-  syncContentType();
+  syncContentType();syncPixelInfo();
   field('presaveMode').value=record?.presave?.mode||'off';field('presaveUrl').value=record?.presave?.url||'';
   for(const link of record?.links||[])field('service-'+link.service).value=link.url;
   field('slug').readOnly=!!record;$('editor-title').textContent=record?'Edit smart link.':'New smart link.';
@@ -53,9 +59,10 @@ form.addEventListener('input',event=>{
   if(event.target.name==='title'&&!slugEdited)field('slug').value=slugify(field('title').value);
   if(event.target.name==='status')$('save-release').textContent=field('status').value==='published'?'Publish smart link':'Save smart link';
   if(event.target.name==='contentType')syncContentType();
+  if(event.target.name==='pixelId')syncPixelInfo();
   preview();
 });
-form.addEventListener('change',()=>{syncContentType();preview();$('save-release').textContent=field('status').value==='published'?'Publish smart link':'Save smart link';});
+form.addEventListener('change',()=>{syncContentType();syncPixelInfo();preview();$('save-release').textContent=field('status').value==='published'?'Publish smart link':'Save smart link';});
 async function upload(input,kind){
   const file=input.files?.[0];if(!file)return;
   const isArtwork=kind==='artwork',max=(isArtwork?6:12)*1024*1024;
@@ -142,7 +149,7 @@ async function refresh(){
   try{const data=await call('/dashboard?'+query);if(serial!==fetchSerial)return;records=data.releases;settings=data.settings;analyticsData=data;
     const selection=$('report-release').value;$('report-release').replaceChildren();const all=el('option','','All smart links');all.value='';$('report-release').append(all);for(const r of data.availableReleases||data.releases){const option=el('option','',r.title+' / '+r.artist);option.value=r.id;$('report-release').append(option);}$('report-release').value=selection;renderAnalytics(data);renderWorkspaceReports(data);updatePixelState();
     $('visits').textContent=format(data.summary.views);$('clicks').textContent=format(data.summary.clicks);$('published').textContent=format(data.summary.published);
-    $('rate').textContent=(data.summary.views?100*data.summary.clicks/data.summary.views:0).toLocaleString('en-GB',{maximumFractionDigits:1})+'%';
+    $('rate').textContent=(data.summary.views?100*data.summary.clicks/data.summary.views:0).toLocaleString('en-GB',{maximumFractionDigits:1})+'%';syncPixelInfo();
     $('pixel-id').value=settings.pixelId;$('click-event').value=settings.clickEvent;renderRecords();
     report($('platforms'),data.platforms,item=>SERVICES.find(s=>s.id===item.service)?.name||item.service,item=>format(item.count)+' clicks','Platform clicks will appear when someone uses your smart links.');
     report($('sources'),data.sources,item=>item.source==='meta'?'Meta Ads':item.source[0].toUpperCase()+item.source.slice(1),item=>format(item.views)+' visits / '+format(item.clicks)+' clicks','Visitor sources will appear here.');
@@ -152,7 +159,9 @@ async function refresh(){
 }
 form.addEventListener('submit',async event=>{
   event.preventDefault();if(saving||uploading)return;const data=draft();if(event.submitter?.value==='draft')data.status='draft';
-  try{data.links=validateLinks(data.links);data.presave=validatePresave(data.presave);
+  try{
+    if(data.pixelId&&!/^\d{8,20}$/.test(data.pixelId))throw Error('Meta Pixel ID must be 8–20 digits, or leave it blank to use the Parallel Vision pixel.');
+    data.links=validateLinks(data.links);data.presave=validatePresave(data.presave);
     if(data.contentType==='playlist'){
       const spotify=data.links.find(link=>link.service==='spotify')?.url||'';
       if(data.status==='published'&&!spotify)throw Error('Add a Spotify playlist URL before publishing.');
