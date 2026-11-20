@@ -1,8 +1,8 @@
 import {createMeasurementTransport} from './measurement-transport.mjs?v=20261030-reliable1';
-import {API,SLUG,metaDetails,newId,contentTypeOf} from '../links/shared.mjs?v=20261120-playlists1';
-import {renderRelease} from '../links/release-view.mjs?v=20261120-playlists1';
+import {API,SLUG,metaDetails,newId,contentTypeOf} from '../links/shared.mjs?v=20261120-house-layout2';
+import {renderRelease} from '../links/release-view.mjs?v=20261120-house-layout2';
 const root=document.getElementById('release'),params=new URLSearchParams(location.search);
-const slug=params.get('release')||'',consentKey='pv-music-meta-consent-v1';
+const slug=params.get('release')||root.dataset?.releaseSlug||'',consentKey='pv-music-meta-consent-v1';
 let release=null,tracking=null,initialized=false,choice='default';
 try{const stored=localStorage.getItem(consentKey);if(stored==='granted'||stored==='denied')choice=stored;}catch{}
 function bootMeta(){
@@ -53,7 +53,7 @@ try{
   const playlist=contentTypeOf(release)==='playlist';
   document.title=playlist?release.title+' / '+release.artist+' / Parallel Vision':release.artist+' / '+release.title+' / Parallel Vision';
   document.querySelector('meta[name="description"]').content=playlist?'Listen to '+release.title+', a playlist curated by '+release.artist+'. Parallel Vision.':'Listen to '+release.title+' by '+release.artist+'. Parallel Vision.';
-  document.querySelector('link[rel="canonical"]').href=release.url;
+  document.querySelector('link[rel="canonical"]').href=slug==='house-after-dark'?'https://parallelvisionlabel.com/house-after-dark/':release.url;
   let previewPlayed=false;const render=()=>{renderRelease(root,release,{onClick:clicked,onPresave:()=>measure('presave')});root.querySelector?.('audio')?.addEventListener('play',()=>{if(!previewPlayed){previewPlayed=true;measure('preview');}},{once:true});};render();measure('view');
   const switchIn=Date.parse((release.releaseDate||'')+'T00:00:00Z')-Date.now();
   if(release.presave?.mode==='before-release'&&switchIn>0&&switchIn<2147483000)setTimeout(render,switchIn+500);
