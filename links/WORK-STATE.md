@@ -1,3 +1,17 @@
+# Smart Links editorial copy and Meta tracking verification status (20 Nov 2026)
+
+- User approved restrained visual refinements, **not** a change of page layout. The 2-column desktop artwork/CTA design and original mobile presentation are locked.
+- PR [#1080](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1080), merge `77b3c3ca2a93264d63f1f8fbb4d4d5750123f4ac`: desktop title `clamp(36px,3.1vw,54px)`; secondary artist/curator line `clamp(18px,1.5vw,24px)`; remove repeated exact `Curated by <artist>` phrase from displayed playlist description, without editing saved text.
+- Changed `links/release-view.mjs`, `links/release.css`, `links/index.html`, `listen/index.html`, `house-after-dark/index.html`, `tests/music-links.test.mjs`. Pixel configuration, tracking logic, paid campaigns, backend/Worker/D1, PV LAB, and short alias remain unchanged.
+- Existing `MusicLinkClick` browser event fired via `fbq('trackSingleCustom', pixelId, clickEvent, metadata)` from `listen/listen.mjs` when the user follows a platform link. Unit test now checks actual pixel `1746851780072706`, custom event name `MusicLinkClick`, Spotify service and content ID; CI `Parallel Vision release links`, `Validate static site`, `PV LAB approved Image UI contract` passed.
+- GitHub Pages production deployment: run `44748256093` completed successfully. This confirms publishing, not live browser interactions.
+- Direct **Meta Events Manager receipt is NOT verified**. Connected Windsor.ai Meta Ads data is ad-attributed, not a raw pixel Test Events feed. On Nov 16–20 the still-ACTIVE legacy `PLAYLIST HOUSE  + TIER TWO` campaign spent €4.82, 18 attributed link clicks, 0 landing page views and 0 custom pixel conversions. No campaign was paused/changed, and these figures do not prove raw events did not arrive. Live confirmation requires authorized Meta Events Manager Test Events access and a real Spotify click (browser tracker not blocked).
+- Both House After Dark URLs remain usable: `/listen/?release=house-after-dark` and `/house-after-dark/`; the shorter one is shown by the dashboard for that playlist.
+- Future fully automatic vanity URLs like `/come-back/` are **not** implemented. GitHub Pages is a static host and the creator stores releases in the Worker/D1; no authorized custom-domain dynamic routing or secure write-to-GitHub webhook is available. Do not create arbitrary 404-based routes for paid advertising, since they may be rejected by Meta. Avoid guessing that saved links will automatically have root vanity paths.
+- Follow-ups (requires access or explicit scope): (1) observe `MusicLinkClick` in Meta Events Manager Test Events and configure conversion for Spotify clicks to House After Dark; (2) pause or replace old Hypeddit-targeted campaign only with explicit user authorization; (3) implement dynamic pretty-path routing using an authorized Cloudflare zone/edge route or approved hosting migration; (4) separately assess EU tracking consent (existing page defaults to marketing measurement unless user opts out).
+
+---
+
 # Restore approved House After Dark desktop + artwork loading fix (20 Nov 2026)
 
 - User clarified the only requested change was a practical short URL, **not** a desktop redesign. The compact vertical page introduced in PR #1078 was unapproved; original desktop two-column art/text layout is locked reference (user screenshot image 3).
