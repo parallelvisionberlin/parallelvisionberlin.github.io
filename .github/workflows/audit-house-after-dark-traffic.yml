@@ -57,5 +57,17 @@ jobs:
           console.log('Recent visit attribution receipts:',result.recent_matched_views>0?'YES':'NO');
           console.log('Detailed hourly views recorded:',result.detailed_views>0?'YES':'NO');
           console.log('Counter consistency:',result.aggregate_views===result.detailed_views?'MATCH':'MISMATCH');
+          // Read-only DNS check: can we support automatic clean paths using an isolated Worker?
+          try{
+            const zoneResponse=await fetch('https://api.cloudflare.com/client/v4/zones?name=parallelvisionlabel.com',{headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(12000)});
+            const zoneData=await zoneResponse.json();
+            if(zoneResponse.ok&&zoneData.success&&zoneData.result?.length){
+              console.log('Parallel Vision DNS zone managed by Cloudflare: YES');
+              const zoneId=zoneData.result[0].id;
+              const dnsResponse=await fetch('https://api.cloudflare.com/client/v4/zones/'+zoneId+'/dns_records?name=parallelvisionlabel.com',{headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(12000)});
+              const dnsData=await dnsResponse.json();
+              console.log('Apex domain proxied by Cloudflare:',dnsResponse.ok&&dnsData.success&&dnsData.result?.some(r=>r.proxied)?'YES':'NO/UNKNOWN');
+            }else console.log('Parallel Vision DNS zone managed by Cloudflare: NO/UNVERIFIED');
+          }catch{console.log('Parallel Vision DNS zone managed by Cloudflare: NOT ACCESSIBLE');}
           console.log('No writes, individual event data, personal details or customer content retrieved.');
           NODE
