@@ -1,3 +1,16 @@
+# House After Dark Meta Ads cutover prepared, paused (20 Nov 2026)
+
+- **All paid delivery remains paused** after the user's explicit authorization to migrate the two ad sets without activating budget. Meta confirmed the legacy campaign, both original ad sets, both replacement ad sets and four replacement ads are paused. No campaign, ad set or ad was enabled.
+- Meta Events Manager screenshot verified `MusicLinkClick` processed by pixel `1746851780072706` from browser. Existing active custom conversion `Parallel Vision – Spotify Click` (`1756394412122237`) filters `MusicLinkClick` and `music_service=spotify`. Do **not** create a duplicate.
+- Meta rejected direct conversion changes to published ad sets (error 3260011). Two **new paused** ad sets were created under the existing paused playlist campaign, preserving original targeting and the verified regional advertiser identities, with an additional Explore placement required by Meta.
+- Four replacement ads were created paused: one previously valid Parallel Vision RAVE creative reused in Tier One and Tier Two, plus two paused recreated video ads (original video, headline, caption and CTA) pointing to `/house-after-dark/` with campaign UTMs. The reused RAVE creative retains the working long `/listen/?release=house-after-dark` URL and its original post media.
+- Old ad sets, including the ads linking to Hypeddit and their obsolete `Hypeddit Smart Link Click` conversion, remain saved for history but **PAUSED**. Do not resume them with the new set. The replacement ad sets and ads must be enabled deliberately when launching.
+- Meta confirmed each create/pause request. Windsor's Free plan did not permit `force_refresh` and cached insights exclude zero-delivery new ads; no independent ad preview/review or performance result was claimed. No spend or conversion result can be attributed to the new ads before they run.
+- User-approved design and both existing House After Dark landing URLs remain unchanged by this ad migration. D1 production audit independently confirmed Meta-sourced traffic, direct visits and music-platform clicks are recorded and counts reconcile.
+- Follow-up before spend: preview newly created ads and verify destination/copy on each placement, check any Meta review warnings, then launch chosen replacement ad sets with a controlled budget; leave legacy ad sets paused. Future automatic clean paths for new releases remain a separate infrastructure task, not completed by this ad migration.
+
+---
+
 # Smart Links editorial copy and Meta tracking verification status (20 Nov 2026)
 
 - User approved restrained visual refinements, **not** a change of page layout. The 2-column desktop artwork/CTA design and original mobile presentation are locked.
