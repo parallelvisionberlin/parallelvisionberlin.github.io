@@ -1,3 +1,17 @@
+# House After Dark public landing and clean campaign URL (20 November 2026)
+
+- User rejected the appearance and share URL of the newly published House After Dark landing. The preview was compact and vertical while the public desktop CSS rendered a huge two-column layout with a title up to 128px.
+- PR [#1078](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1078) merged as `c74cac99227729c310515f1db7785e6ca3bd7b6f`. Scope: public landing + exact House After Dark vanity route; no Worker, D1, credentials, customer records, billing or paid ads changed.
+- Added a static `/house-after-dark/` HTTP-success page loading the same existing public music-link record, `MusicLinkClick` event, campaign UTM tracking and Meta pixel. The legacy `/listen/?release=house-after-dark` link remains supported.
+- Updated dashboard title, Open, Copy link and after-save URL to use the short route for House After Dark; other link URLs remain unchanged.
+- Scoped new vertically stacked, artwork-centered styling to public playlist pages, retaining prior visual references and making CTA layout match editor. Releases and backend tracking remain unchanged.
+- Compatibility: legacy releases with no catalogue/date and one direct Spotify playlist destination are recognized as playlists in the UI; future edits can migrate them to the explicit catalogue marker. Does not mutate stored data.
+- PR checks passed: Parallel Vision release links, Validate static site, PV LAB approved Image UI contract. Regression test covers short alias, music API request, canonical, Meta event, source and UTM campaign.
+- Deployment: GitHub Pages workflow `44738480621`; final status must be verified separately before claiming live publication. An authenticated real browser check of the public landing was not available through current tools.
+- Note: only this playlist has the new physical vanity path; automatic clean routes for all future smart links are not yet implemented and must not be advertised as available.
+
+---
+
 # Smart Links Pixel and playlist layout refinement (20 November 2026)
 
 - Owner screenshot revealed the creator's optional `Pixel override` field was confusing and browser-native pattern validation blocked submit. The workspace music pixel `1746851780072706` already exists; do not require re-entry per release.
