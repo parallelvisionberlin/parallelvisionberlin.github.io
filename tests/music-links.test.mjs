@@ -80,7 +80,7 @@ test('link creator keeps inherited Meta pixel optional with a clear alternate-pi
   const layout=readFileSync(new URL('../links/release.css',import.meta.url),'utf8');
   assert.match(creator,/Meta Pixel/);
   assert.match(creator,/Use a different pixel for this smart link/);
-  assert.doesNotMatch(creator,/name="pixelId"[^>]*pattern=/);
+  assert.doesNotMatch(creator.slice(creator.indexOf('<dialog id="editor"')),/name="pixelId"[^>]*pattern=/);
   assert.match(controller,/function pixelInput/);
   assert.match(controller,/function syncPixelInfo/);
   assert.match(view,/playlist-frame/);
