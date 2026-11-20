@@ -83,7 +83,13 @@ function renderRecords(){
     const art=el('div','release-artwork');
     if(release.artworkUrl){const image=el('img','release-thumb');image.src=release.artworkUrl;image.alt=release.title+' artwork';image.width=144;image.height=144;image.loading='lazy';image.referrerPolicy='no-referrer';art.append(image);}
     else art.append(el('span','artwork-placeholder','PV'));
-    const names=el('div','release-identity');names.append(el('span','badge '+release.status,release.status),el('h2','',release.title),el('p','release-artist-name',release.artist));
+    const names=el('div','release-identity'),title=el('h2');
+    if(release.status==='published'){
+      const link=el('a','smart-link-title-link',release.title);link.href=release.url||releaseUrl(release.slug);
+      link.target='_blank';link.rel='noopener noreferrer';link.setAttribute('aria-label','Open '+release.title+' landing page');
+      title.append(link);
+    }else title.textContent=release.title;
+    names.append(el('span','badge '+release.status,release.status),title,el('p','release-artist-name',release.artist));
     if(contentTypeOf(release)==='playlist')names.append(el('p','release-catalogue','SPOTIFY PLAYLIST'));else if(release.catalogue)names.append(el('p','release-catalogue',release.catalogue));
     const platforms=el('div','release-services');
     for(const link of release.links||[]){const service=SERVICES.find(s=>s.id===link.service);if(service){const item=el('span','service '+service.id,service.name);platforms.append(item);}}
@@ -159,6 +165,7 @@ async function refresh(){
 }
 form.addEventListener('submit',async event=>{
   event.preventDefault();if(saving||uploading)return;const data=draft();if(event.submitter?.value==='draft')data.status='draft';
+  const closeAfterPublish=event.submitter?.id==='save-release'&&data.status==='published';
   try{
     if(data.pixelId&&!/^\d{8,20}$/.test(data.pixelId))throw Error('Meta Pixel ID must be 8–20 digits, or leave it blank to use the Parallel Vision pixel.');
     data.links=validateLinks(data.links);data.presave=validatePresave(data.presave);
@@ -173,6 +180,7 @@ form.addEventListener('submit',async event=>{
     editing=result.release;field('status').value=editing.status;field('slug').readOnly=true;slugEdited=true;$('editor-title').textContent='Edit smart link.';
     $('save-status').textContent=editing.status==='published'?'Your smart link is live.':editing.status==='archived'?'Smart link archived. The public page is unavailable.':'Draft saved. Only your account can see it.';
     $('saved-link').hidden=editing.status!=='published';$('saved-url').value=releaseUrl(editing.slug);$('open-saved').href=releaseUrl(editing.slug);await refresh();
+    if(closeAfterPublish&&revision===generation&&editor.open){editor.close();editing=null;notice('Published '+result.release.title+'.');}
   }catch(error){if(revision===generation)$('save-status').textContent=error.message;}
   finally{saving=false;controls();}
 });
