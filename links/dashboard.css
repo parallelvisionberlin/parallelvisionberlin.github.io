@@ -26,3 +26,14 @@ dialog{background:#fff;color:var(--ink);border:1px solid var(--line);border-radi
 
 /* Notes stay optional inside Performance; the Smart Links list keeps its original layout. */
 .notes-panel{margin-top:22px}.notes-panel>summary{font-size:16px;font-weight:650;cursor:pointer;list-style:revert}.notes-panel[open]>summary{margin-bottom:24px}.notes-layout{max-width:780px}.notes-form-panel>h2{font-size:20px}.notes-panel .experiment-entry{border-width:1px 0 0;padding:22px 0;margin-top:26px}.analytics-controls>.subtle{align-self:end}.notes-panel .experiment-form .measurement-note{margin:0}
+
+/* Content type selector; same monochrome layout on desktop and phone. */
+.release-form .type-selector{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.release-form .type-option{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:16px 15px;border:1px solid #dce0e7;border-radius:3px;background:#f8f9fb;cursor:pointer;min-width:0}
+.release-form .type-option:has(input:checked){border-color:#141619;background:#f0f1f3}
+.release-form .type-option:focus-within{outline:2px solid #111;outline-offset:2px}
+.release-form .type-option input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.release-form .type-option>span{font-size:13px;font-weight:700;color:#171a1f}
+.release-form .type-option small{font-size:10px;font-weight:400;line-height:1.5;color:#687084}
+.release-form .field-name{font-size:12px;color:#4d5566}
+@media(max-width:460px){.release-form .type-selector{gap:7px}.release-form .type-option{padding:12px 10px}.release-form .type-option>span{font-size:12px}}

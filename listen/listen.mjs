@@ -1,6 +1,6 @@
 import {createMeasurementTransport} from './measurement-transport.mjs?v=20261030-reliable1';
-import {API,SLUG,metaDetails,newId} from '../links/shared.mjs?v=20261103-workspace1';
-import {renderRelease} from '../links/release-view.mjs?v=20261103-workspace1';
+import {API,SLUG,metaDetails,newId,contentTypeOf} from '../links/shared.mjs?v=20261120-playlists1';
+import {renderRelease} from '../links/release-view.mjs?v=20261120-playlists1';
 const root=document.getElementById('release'),params=new URLSearchParams(location.search);
 const slug=params.get('release')||'',consentKey='pv-music-meta-consent-v1';
 let release=null,tracking=null,initialized=false,choice='default';
@@ -46,19 +46,20 @@ function clicked(service){
   if(choice!=='denied'&&initialized)window.fbq('trackSingleCustom',tracking.pixelId,tracking.clickEvent,metaDetails(release,service),{eventID:newId()});
 }
 try{
-  if(slug.length>80||!SLUG.test(slug))throw Error('Choose a release link to listen.');
+  if(slug.length>80||!SLUG.test(slug))throw Error('Choose a smart link to listen.');
   const response=await fetch(API+'/api/music/public/releases/'+encodeURIComponent(slug),{credentials:'omit',cache:'no-store',signal:AbortSignal.timeout(15000)});
   const data=await response.json();if(!response.ok)throw Error(data.error||'This release is not available.');
   release=data.release;tracking=data.tracking;
-  document.title=release.artist+' / '+release.title+' / Parallel Vision';
-  document.querySelector('meta[name="description"]').content='Listen to '+release.title+' by '+release.artist+'. Parallel Vision.';
+  const playlist=contentTypeOf(release)==='playlist';
+  document.title=playlist?release.title+' / '+release.artist+' / Parallel Vision':release.artist+' / '+release.title+' / Parallel Vision';
+  document.querySelector('meta[name="description"]').content=playlist?'Listen to '+release.title+', a playlist curated by '+release.artist+'. Parallel Vision.':'Listen to '+release.title+' by '+release.artist+'. Parallel Vision.';
   document.querySelector('link[rel="canonical"]').href=release.url;
   let previewPlayed=false;const render=()=>{renderRelease(root,release,{onClick:clicked,onPresave:()=>measure('presave')});root.querySelector?.('audio')?.addEventListener('play',()=>{if(!previewPlayed){previewPlayed=true;measure('preview');}},{once:true});};render();measure('view');
   const switchIn=Date.parse((release.releaseDate||'')+'T00:00:00Z')-Date.now();
   if(release.presave?.mode==='before-release'&&switchIn>0&&switchIn<2147483000)setTimeout(render,switchIn+500);
   bootMeta();
 }catch(error){
-  root.className='release-error';root.replaceChildren();const title=document.createElement('h1');title.textContent='Release unavailable.';
+  root.className='release-error';root.replaceChildren();const title=document.createElement('h1');title.textContent='Music link unavailable.';
   const message=document.createElement('p');message.textContent=error.message||'Please try again shortly.';
   const link=document.createElement('a');link.href='/';link.textContent='Visit Parallel Vision';root.append(title,message,link);
 }

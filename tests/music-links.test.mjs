@@ -4,7 +4,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {musicAdminRoute,musicPublicRoute,pruneMusicEvents,validateRelease} from '../lab-worker/music-links.mjs';
-import {validateLinks,slugify,metaDetails,MUSIC_PIXEL,newId,SERVICES} from '../links/shared.mjs';
+import {validateLinks,slugify,metaDetails,MUSIC_PIXEL,newId,SERVICES,contentTypeOf,PLAYLIST_CATALOGUE} from '../links/shared.mjs';
 const NOW=Date.parse('2026-10-30T12:00:00Z'),BASE='https://parallel-vision-lab.parallelvision.workers.dev/api/music';
 const fixtureRelease=(change={})=>({id:crypto.randomUUID(),title:'Test Release',artist:'Artist',slug:'test-release',catalogue:'PV999',description:'A new single.',artworkUrl:'https://parallelvisionlabel.com/cover.jpg',audioUrl:'',releaseDate:'2026-11-06',links:[{service:'spotify',url:'https://open.spotify.com/track/example'}],pixelId:'',status:'draft',...change});
 function fixture(t){
@@ -57,6 +57,21 @@ test('draft create, publish, edit and archive preserve public visibility and sta
   await f.admin('/releases/'+saved.id,{method:'POST',data:{...saved,status:'archived'}});
   await assert.rejects(()=>f.pub('/releases/'+saved.slug),e=>e.status===404);
   assert.equal((await(await f.admin('/dashboard')).json()).releases.find(x=>x.id===saved.id).status,'archived');
+});
+test('playlist smart links persist, publish, and remain editable without a Worker migration',async t=>{
+  const f=fixture(t),input=fixtureRelease({slug:'house-after-dark',title:'House After Dark',artist:'Parallel Vision',catalogue:PLAYLIST_CATALOGUE,releaseDate:'',status:'published',links:[{service:'spotify',url:'https://open.spotify.com/playlist/37i9dQZF1DX0XUsuxWHRQd'}]});
+  assert.equal(contentTypeOf(input),'playlist');assert.equal(contentTypeOf(fixtureRelease()),'release');
+  const response=await f.admin('/releases',{method:'POST',data:input});assert.equal(response.status,201);
+  let saved=(await response.json()).release;assert.equal(contentTypeOf(saved),'playlist');
+  assert.equal(saved.links[0].service,'spotify');assert.equal(saved.catalogue,PLAYLIST_CATALOGUE);
+  const publicRelease=(await(await f.pub('/releases/house-after-dark')).json()).release;
+  assert.equal(contentTypeOf(publicRelease),'playlist');
+  saved=(await(await f.admin('/releases/'+saved.id,{method:'POST',data:{...saved,description:'A curated selection of house music.'}})).json()).release;
+  assert.equal(contentTypeOf(saved),'playlist');assert.equal(saved.description,'A curated selection of house music.');
+  const creator=readFileSync(new URL('../links/index.html',import.meta.url),'utf8');
+  const renderer=readFileSync(new URL('../links/release-view.mjs',import.meta.url),'utf8');
+  assert.match(creator,/name="contentType" value="playlist"/);
+  assert.match(renderer,/Listen to the playlist/);assert.match(renderer,/Open playlist/);
 });
 test('duplicates and create retries cannot create additional records',async t=>{
   const f=fixture(t),input=fixtureRelease();await f.admin('/releases',{method:'POST',data:input});
@@ -142,7 +157,7 @@ async function publicBrowser({consent=null,releaseOverrides={}}={}){
   const doc={getElementById:get,querySelector:s=>get(s),querySelectorAll:()=>buttons,createElement:()=>element(),head:{append(script){scripts.push(script);}},referrer:''};
   const release={id:crypto.randomUUID(),slug:'test',title:'Single',artist:'Artist',links:[{service:'spotify',url:'https://open.spotify.com/track/x'}],url:'https://parallelvisionlabel.com/listen/?release=test',...releaseOverrides};
   const win={};
-  const context={createMeasurementTransport:()=>({send(url,data){sent.push({url,data});},flush(){}}),API:'https://api.example',SLUG:/^[a-z]+$/,metaDetails,newId,renderRelease(root,r,{onClick,onPresave}){click=onClick;presave=onPresave;},document:doc,window:win,location:{search:'?release=test&utm_source=meta&utm_campaign=test',hostname:'parallelvisionlabel.com'},localStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)},navigator:{sendBeacon(url,data){sent.push({url,data});return true;}},crypto,URL,URLSearchParams,AbortSignal,Blob,Date,fetch:async()=>new Response(JSON.stringify({release,tracking:{pixelId:MUSIC_PIXEL,clickEvent:'MusicLinkClick'}})),Response,Error};
+  const context={createMeasurementTransport:()=>({send(url,data){sent.push({url,data});},flush(){}}),API:'https://api.example',SLUG:/^[a-z]+$/,metaDetails,newId,contentTypeOf,renderRelease(root,r,{onClick,onPresave}){click=onClick;presave=onPresave;},document:doc,window:win,location:{search:'?release=test&utm_source=meta&utm_campaign=test',hostname:'parallelvisionlabel.com'},localStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)},navigator:{sendBeacon(url,data){sent.push({url,data});return true;}},crypto,URL,URLSearchParams,AbortSignal,Blob,Date,fetch:async()=>new Response(JSON.stringify({release,tracking:{pixelId:MUSIC_PIXEL,clickEvent:'MusicLinkClick'}})),Response,Error};
   let source=readFileSync(new URL('../listen/listen.mjs',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
   await vm.runInNewContext('(async()=>{'+source+'})()',context);
   return {elements,scripts,sent,stored,buttons,click,presave,get,win,calls};
