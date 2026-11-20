@@ -12,13 +12,15 @@
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 .platform-presave{background:#fff;color:#111;border-color:#fff}.platform-presave .platform-action{background:#111;color:#fff;border-color:#111}.platform-presave .platform-name{font-weight:650}
 
-/* Playlist-specific visual rhythm, matching the more spacious listening CTA.
-   Release cards keep their established spacing. */
-.playlist-frame .listening-dock{margin-top:clamp(34px,4vw,60px)}
+/* A single Spotify CTA sits lower, like the playlist landing reference.
+   Multi-platform release layouts retain their compact flow. */
+.release-details:has(.platform-list .platform-button:only-child) .listening-dock{margin-top:clamp(30px,3vw,46px)}
+.playlist-frame .listening-dock{margin-top:clamp(44px,4vw,60px)}
 .release-socials{margin-top:22px}
 .instagram-link{width:32px;height:32px;padding:7px}
 .instagram-link svg{width:16px;height:16px}
 @media(max-width:700px){
+  .release-details:has(.platform-list .platform-button:only-child) .listening-dock{margin-top:60px}
   .playlist-frame .listening-dock{margin-top:78px}
   .release-socials{margin-top:22px}
 }
