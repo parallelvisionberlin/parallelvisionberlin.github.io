@@ -93,7 +93,7 @@ test('House After Dark has a clean public alias and legacy playlist records rend
   assert.match(alias,/https:\/\/parallelvisionlabel\.com\/house-after-dark\//);
   assert.match(publicPage,/params\.get\('release'\)\|\|root\.dataset\?\.releaseSlug/);
   assert.match(dashboard,/const publicLanding=record=>/);
-  assert.match(css,/\.release-page \.playlist-frame\{\s*display:flex;flex-direction:column/);
+  assert.doesNotMatch(css,/\.release-page \.playlist-frame\{\s*display:flex;flex-direction:column/);
   assert.equal(contentTypeOf({slug:'house-after-dark',catalogue:'',releaseDate:'',links:[{service:'spotify',url:'https://open.spotify.com/playlist/abcdef12345'}]}),'playlist');
   assert.equal(contentTypeOf({slug:'stay-low',catalogue:'PV013',links:[{service:'spotify',url:'https://open.spotify.com/track/abcdef12345'}]}),'release');
 });
@@ -193,10 +193,10 @@ async function publicBrowser({consent=null,releaseOverrides={},aliasSlug=''}={})
   const get=id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);};
   if(aliasSlug)get('release').dataset.releaseSlug=aliasSlug;
   const buttons=['denied','granted'].map(choice=>{const e=element();e.dataset.consent=choice;return e;});
-  const doc={getElementById:get,querySelector:s=>get(s),querySelectorAll:()=>buttons,createElement:()=>element(),head:{append(script){scripts.push(script);}},referrer:''};
+  const doc={getElementById:get,querySelector:s=>get(s),querySelectorAll:()=>buttons,createElement:tag=>{const e=element();if(tag==='img')e.decode=async()=>{calls.push('artwork-decoded');};return e;},head:{append(script){scripts.push(script);}},referrer:''};
   const release={id:crypto.randomUUID(),slug:'test',title:'Single',artist:'Artist',links:[{service:'spotify',url:'https://open.spotify.com/track/x'}],url:'https://parallelvisionlabel.com/listen/?release=test',...releaseOverrides};
   const win={},requests=[];
-  const context={createMeasurementTransport:()=>({send(url,data){sent.push({url,data});},flush(){}}),API:'https://api.example',SLUG:/^[a-z0-9]+(?:-[a-z0-9]+)*$/,metaDetails,newId,contentTypeOf,renderRelease(root,r,{onClick,onPresave}){click=onClick;presave=onPresave;},document:doc,window:win,location:{search:aliasSlug?'?utm_source=meta&utm_campaign=test':'?release=test&utm_source=meta&utm_campaign=test',hostname:'parallelvisionlabel.com'},localStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)},navigator:{sendBeacon(url,data){sent.push({url,data});return true;}},crypto,URL,URLSearchParams,AbortSignal,Blob,Date,fetch:async url=>{requests.push(url);return new Response(JSON.stringify({release,tracking:{pixelId:MUSIC_PIXEL,clickEvent:'MusicLinkClick'}}));},Response,Error};
+  const context={createMeasurementTransport:()=>({send(url,data){sent.push({url,data});},flush(){}}),API:'https://api.example',SLUG:/^[a-z0-9]+(?:-[a-z0-9]+)*$/,metaDetails,newId,contentTypeOf,renderRelease(root,r,{onClick,onPresave}){calls.push('rendered');click=onClick;presave=onPresave;},document:doc,window:win,location:{search:aliasSlug?'?utm_source=meta&utm_campaign=test':'?release=test&utm_source=meta&utm_campaign=test',hostname:'parallelvisionlabel.com'},localStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)},navigator:{sendBeacon(url,data){sent.push({url,data});return true;}},crypto,URL,URLSearchParams,AbortSignal,Blob,Date,fetch:async url=>{requests.push(url);return new Response(JSON.stringify({release,tracking:{pixelId:MUSIC_PIXEL,clickEvent:'MusicLinkClick'}}));},Response,Error};
   let source=readFileSync(new URL('../listen/listen.mjs',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
   await vm.runInNewContext('(async()=>{'+source+'})()',context);
   return {elements,scripts,sent,stored,buttons,click,presave,get,win,calls,requests};
@@ -213,6 +213,19 @@ test('short playlist landing loads the original record and preserves Meta UTMs',
   assert.equal(browser.sent[0].data.campaign,'test');
   browser.click('spotify');assert.equal(browser.sent[1].data.service,'spotify');
   assert.equal(browser.win.fbq.queue.filter(a=>a[0]==='trackSingleCustom').length,1);
+});
+test('public landing decodes artwork before revealing desktop layout without delaying measurement',async()=>{
+  const browser=await publicBrowser({releaseOverrides:{artworkUrl:'https://cdn.example.com/cover.jpg'}});
+  assert.deepEqual(browser.calls,['artwork-decoded','rendered']);
+  assert.equal(browser.sent.length,1);
+  assert.equal(browser.get('release').className,'release-stage');
+  const layout=readFileSync(new URL('../links/release.css',import.meta.url),'utf8');
+  assert.match(layout,/\.release-frame\{[^}]*display:grid;grid-template-columns:minmax\(0,600px\) minmax\(0,620px\)/);
+  assert.doesNotMatch(layout,/\.release-page \.playlist-frame\{\s*display:flex/);
+  for(const path of ['../listen/index.html','../house-after-dark/index.html']){
+    const html=readFileSync(new URL(path,import.meta.url),'utf8');
+    assert.match(html,/class="release-stage is-loading"/);
+  }
 });
 test('public listener starts Pixel without a prompt and does not invent a saved consent choice',async()=>{
   const browser=await publicBrowser();assert.equal(browser.scripts.length,1);assert.equal(browser.sent.length,1);
