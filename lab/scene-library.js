@@ -177,7 +177,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     const state=item.profile?'ready':pendingProfiles.has(item.id)?'analyzing':failedProfiles.has(item.id)?'failed':'idle';
     const labels={ready:'Visual profile ready',analyzing:'Adding visual details',failed:'Photos ready',idle:'Photos ready'};
     const badge=document.createElement('span');
-    badge.className='scene-profile-status';badge.dataset.state=state;
+    badge.className='scene-profile-status';badge.dataset.state=state==='failed'?'idle':state;
     badge.setAttribute('role','status');
     badge.title=state==='ready'?'Visual details saved for reuse.':
       state==='analyzing'?'Preparing optional visual details.':
