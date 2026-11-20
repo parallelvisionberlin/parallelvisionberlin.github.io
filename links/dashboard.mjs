@@ -15,7 +15,7 @@ function syncPixelInfo(){
   $('link-pixel-details').open=!!value;
 }
 let clerk=null,sessionId=null,generation=0,records=[],settings=null,editing=null,createId='',slugEdited=false,saving=false,uploading=false,fetchSerial=0;
-let analyticsData=null;
+let analyticsData=null,lastDashboardRefreshAt=0;
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 async function call(path,{method='GET',data,headers,body}={}){
   const revision=generation;
@@ -162,7 +162,7 @@ async function refresh(){
     report($('platforms'),data.platforms,item=>SERVICES.find(s=>s.id===item.service)?.name||item.service,item=>format(item.count)+' clicks','Platform clicks will appear when someone uses your smart links.');
     report($('sources'),data.sources,item=>item.source==='meta'?'Meta Ads':item.source[0].toUpperCase()+item.source.slice(1),item=>format(item.views)+' visits / '+format(item.clicks)+' clicks','Visitor sources will appear here.');
 
-    $('gate').hidden=true;$('dashboard').hidden=false;$('new-release').disabled=false;notice('Updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+'.');
+    lastDashboardRefreshAt=Date.now();$('gate').hidden=true;$('dashboard').hidden=false;$('new-release').disabled=false;notice('Updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+'.');
   }catch(error){if(serial===fetchSerial){notice(error.message);$('gate').hidden=false;$('gate').querySelector('h2').textContent='Your workspace could not load.';$('gate').querySelector('p:not(.eyebrow)').textContent='You are signed in. Retry loading your smart links.';$('signin').textContent='Retry';}}finally{if(serial===fetchSerial)$('refresh').disabled=false;}
 }
 form.addEventListener('submit',async event=>{
@@ -193,6 +193,14 @@ $('tracking-form').addEventListener('submit',async event=>{
   catch(error){$('tracking-status').textContent=error.message;}finally{button.disabled=false;}
 });
 initWorkspaceTools({call,getData:()=>analyticsData,refresh});
+// Keep stats current while the signed-in owner watches live campaigns.
+// No background polling, no refresh while editing, and never overlap requests.
+function refreshWhenStale(){
+  if(document.visibilityState==='hidden'||!clerk?.session||$('dashboard').hidden||editor.open||saving||uploading||$('refresh').disabled)return;
+  if(Date.now()-lastDashboardRefreshAt>=60000)void refresh();
+}
+window.setInterval?.(refreshWhenStale,60000);
+document.addEventListener('visibilitychange',refreshWhenStale);
 $('refresh').addEventListener('click',()=>void refresh());$('days').addEventListener('change',()=>{if($('days').value!=='custom')void refresh();});$('search').addEventListener('input',renderRecords);$('filter').addEventListener('change',renderRecords);
 $('signin').addEventListener('click',()=>{if(clerk?.session){void refresh();}else clerk?.openSignIn();});$('signout').addEventListener('click',()=>void clerk?.signOut());
 function authChanged(){
