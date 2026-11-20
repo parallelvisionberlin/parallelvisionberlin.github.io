@@ -6,6 +6,7 @@ import vm from 'node:vm';
 import {musicAdminRoute,musicPublicRoute,pruneMusicEvents,validateRelease} from '../lab-worker/music-links.mjs';
 import {validateLinks,slugify,metaDetails,MUSIC_PIXEL,newId,SERVICES,contentTypeOf,PLAYLIST_CATALOGUE} from '../links/shared.mjs';
 import {displayDescription} from '../links/release-view.mjs';
+import {loadSmartLinksAccount,createSmartLinksAuthRecovery} from '../links/account-bootstrap.mjs';
 const NOW=Date.parse('2026-10-30T12:00:00Z'),BASE='https://parallel-vision-lab.parallelvision.workers.dev/api/music';
 const fixtureRelease=(change={})=>({id:crypto.randomUUID(),title:'Test Release',artist:'Artist',slug:'test-release',catalogue:'PV999',description:'A new single.',artworkUrl:'https://parallelvisionlabel.com/cover.jpg',audioUrl:'',releaseDate:'2026-11-06',links:[{service:'spotify',url:'https://open.spotify.com/track/example'}],pixelId:'',status:'draft',...change});
 function fixture(t){
@@ -58,6 +59,70 @@ test('draft create, publish, edit and archive preserve public visibility and sta
   await f.admin('/releases/'+saved.id,{method:'POST',data:{...saved,status:'archived'}});
   await assert.rejects(()=>f.pub('/releases/'+saved.slug),e=>e.status===404);
   assert.equal((await(await f.admin('/dashboard')).json()).releases.find(x=>x.id===saved.id).status,'archived');
+});
+test('Smart Links reuses its first-party Clerk session without a second login',async()=>{
+  const signed={session:{id:'existing-owner-session'}};
+  let fallback=0;
+  assert.equal(await loadSmartLinksAccount({
+    primary:async()=>signed,
+    importFallback:async()=>{fallback++;throw Error('must not load');},
+    hostname:'parallelvisionlabel.com',returnUrl:'https://parallelvisionlabel.com/links/'
+  }),signed);
+  assert.equal(fallback,0);
+});
+test('Safari recovery can hydrate an existing Clerk session without Clerk UI',async()=>{
+  const prior=Object.assign(Error('UI unavailable'),{code:'AUTH_UI'});
+  let usedKey='',receivedOptions;
+  class Clerk{
+    constructor(key){usedKey=key;}
+    async load(options){receivedOptions=options;this.session={id:'existing-owner-session'};}
+  }
+  const account=await loadSmartLinksAccount({
+    primary:async()=>{throw prior;},
+    importFallback:async()=>({Clerk}),
+    getUI:()=>undefined,
+    hostname:'parallelvisionlabel.com',returnUrl:'https://parallelvisionlabel.com/links/'
+  });
+  assert.equal(account.session.id,'existing-owner-session');
+  assert.match(usedKey,/^pk_live_/);
+  assert.equal(receivedOptions.signInFallbackRedirectUrl,'https://parallelvisionlabel.com/links/');
+  assert.equal('ui' in receivedOptions,false);
+});
+test('Safari recovery never presents an inert login when both UI and session are unavailable',async()=>{
+  const prior=Object.assign(Error('UI unavailable'),{code:'AUTH_UI'});
+  class Clerk{async load(){this.session=null;}}
+  await assert.rejects(loadSmartLinksAccount({
+    primary:async()=>{throw prior;},importFallback:async()=>({Clerk}),
+    getUI:()=>undefined,hostname:'parallelvisionlabel.com',returnUrl:'https://parallelvisionlabel.com/links/'
+  }),error=>error===prior);
+});
+test('Smart Links account startup retries after failure and signs in only if session is absent',async()=>{
+  const states=[],errors=[],accounts=[],signed={session:{id:'same-session'}};
+  let attempts=0;
+  const ctl=createSmartLinksAuthRecovery({
+    load:async()=>{if(++attempts===1)throw Error('network');return signed;},
+    onReady:a=>accounts.push(a),onFailure:e=>errors.push(e.message),onBusy:state=>states.push(state)
+  });
+  assert.equal(await ctl.connect(),null);
+  assert.equal(await ctl.connect({interactive:true}),signed);
+  assert.equal(attempts,2);assert.deepEqual(states,[true,false,true,false]);
+  assert.deepEqual(errors,['network']);assert.deepEqual(accounts,[signed]);
+  let opened=0;const ctl2=createSmartLinksAuthRecovery({
+    load:async()=>({session:null,openSignIn:()=>{opened++;}}),
+    onReady:()=>{},onFailure:e=>{throw e;},onBusy:()=>{}
+  });
+  await ctl2.connect({interactive:true});assert.equal(opened,1);
+});
+test('mobile Smart Links does not double-tap zoom and offers usable retry after bootstrap error',()=>{
+  const dashboard=readFileSync(new URL('../links/dashboard.mjs',import.meta.url),'utf8');
+  const css=readFileSync(new URL('../links/dashboard.css',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../links/index.html',import.meta.url),'utf8');
+  assert.match(dashboard,/authRecovery\.connect\(\{interactive:true\}\)/);
+  assert.match(dashboard,/Tap Retry sign-in/);
+  assert.match(dashboard,/\$\('signin'\)\.disabled=busy/);
+  assert.match(css,/\.dashboard-page \.auth-gate[^\n]*touch-action:manipulation/);
+  assert.match(css,/font-size:16px/);
+  assert.match(html,/dashboard\.mjs\?v=20261120-authrecovery1/);
 });
 test('music workspace live metrics auto-refresh only when active and without interrupting edits',()=>{
   const dashboard=readFileSync(new URL('../links/dashboard.mjs',import.meta.url),'utf8');
