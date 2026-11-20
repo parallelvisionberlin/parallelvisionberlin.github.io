@@ -1,11 +1,13 @@
 import {initWorkspaceTools,reportQuery,renderWorkspaceReports,resetWorkspaceTools} from './workspace-tools.mjs?v=20261103-clean2';
-import {API,SERVICES,slugify,releaseUrl,validateLinks,newId,validatePresave,PLAYLIST_CATALOGUE,contentTypeOf} from './shared.mjs?v=20261120-playlists1';
-import {renderRelease} from './release-view.mjs?v=20261120-playlists1';
+import {API,SERVICES,slugify,releaseUrl,validateLinks,newId,validatePresave,PLAYLIST_CATALOGUE,contentTypeOf} from './shared.mjs?v=20261120-house-layout2';
+import {renderRelease} from './release-view.mjs?v=20261120-house-layout2';
 import {loadLabAccount} from '../lab/native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from '../lab/session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 const $=id=>document.getElementById(id),form=$('release-form'),editor=$('editor');
 const el=(tag,cls,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value!==undefined)n.textContent=value;return n;};
 const format=n=>Number(n||0).toLocaleString('en-GB');
+// This playlist has a static, HTTP 200 vanity page; legacy links remain valid.
+const publicLanding=record=>record?.slug==='house-after-dark'?'https://parallelvisionlabel.com/house-after-dark/':record?.url||releaseUrl(record.slug);
 function pixelInput(){const input=field('pixelId');input.value=input.value.replace(/[\s\u200b-\u200d\ufeff]/g,'').trim();return input.value;}
 function syncPixelInfo(){
   const value=field('pixelId').value.trim(),workspace=settings?.pixelId||'';
@@ -85,7 +87,7 @@ function renderRecords(){
     else art.append(el('span','artwork-placeholder','PV'));
     const names=el('div','release-identity'),title=el('h2');
     if(release.status==='published'){
-      const link=el('a','smart-link-title-link',release.title);link.href=release.url||releaseUrl(release.slug);
+      const link=el('a','smart-link-title-link',release.title);link.href=publicLanding(release);
       link.target='_blank';link.rel='noopener noreferrer';link.setAttribute('aria-label','Open '+release.title+' landing page');
       title.append(link);
     }else title.textContent=release.title;
@@ -98,7 +100,7 @@ function renderRecords(){
     const metrics=el('dl','row-metrics');
     for(const [label,value] of [['Page visits',format(release.views)],['Platform clicks',format(release.clicks)],['Clicks / visits',(release.views?100*release.clicks/release.views:0).toLocaleString('en-GB',{maximumFractionDigits:1})+'%']]){const item=el('div');item.append(el('dt','',label),el('dd','',value));metrics.append(item);}
     const group=el('div','row-actions'),edit=el('button','primary','Edit');edit.type='button';edit.setAttribute('aria-label','Edit '+release.title);edit.addEventListener('click',()=>openEditor(release));group.append(edit);
-    if(release.status==='published'){const button=el('button','secondary','Copy link');button.type='button';button.setAttribute('aria-label','Copy link for '+release.title);button.addEventListener('click',()=>void copy(release.url,button));const link=el('a','secondary','Open');link.href=release.url;link.target='_blank';link.rel='noopener noreferrer';link.setAttribute('aria-label','Open '+release.title);group.append(button,link);}
+    if(release.status==='published'){const button=el('button','secondary','Copy link');button.type='button';button.setAttribute('aria-label','Copy link for '+release.title);button.addEventListener('click',()=>void copy(publicLanding(release),button));const link=el('a','secondary','Open');link.href=publicLanding(release);link.target='_blank';link.rel='noopener noreferrer';link.setAttribute('aria-label','Open '+release.title);group.append(button,link);}
 
     row.append(art,names,metrics,group);rows.append(row);
   }
@@ -179,7 +181,7 @@ form.addEventListener('submit',async event=>{
   try{const result=await call(editing?'/releases/'+editing.id:'/releases',{method:'POST',data});if(revision!==generation)return;
     editing=result.release;field('status').value=editing.status;field('slug').readOnly=true;slugEdited=true;$('editor-title').textContent='Edit smart link.';
     $('save-status').textContent=editing.status==='published'?'Your smart link is live.':editing.status==='archived'?'Smart link archived. The public page is unavailable.':'Draft saved. Only your account can see it.';
-    $('saved-link').hidden=editing.status!=='published';$('saved-url').value=releaseUrl(editing.slug);$('open-saved').href=releaseUrl(editing.slug);await refresh();
+    $('saved-link').hidden=editing.status!=='published';$('saved-url').value=publicLanding(editing);$('open-saved').href=publicLanding(editing);await refresh();
     if(closeAfterPublish&&revision===generation&&editor.open){editor.close();editing=null;notice('Published '+result.release.title+'.');}
   }catch(error){if(revision===generation)$('save-status').textContent=error.message;}
   finally{saving=false;controls();}

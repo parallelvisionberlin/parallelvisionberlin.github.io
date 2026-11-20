@@ -1,4 +1,4 @@
-import {SERVICES,safeUrl,activePresave,contentTypeOf} from './shared.mjs?v=20261120-playlists1';
+import {SERVICES,safeUrl,activePresave,contentTypeOf} from './shared.mjs?v=20261120-house-layout2';
 const node=(tag,cls,value)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=value;return e;};
 function artwork(value){try{return safeUrl(value||'');}catch{return '';}}
 function serviceIcon(service){
