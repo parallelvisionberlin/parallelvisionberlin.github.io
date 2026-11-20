@@ -24,56 +24,12 @@
   .playlist-frame .listening-dock{margin-top:78px}
   .release-socials{margin-top:22px}
 }
-
-
-/* Public Spotify playlist landing: match the approved compact vertical preview,
-   not the oversized two-column release layout. Scoped to playlists only. */
-.release-page .playlist-frame{
-  display:flex;flex-direction:column;justify-content:flex-start;align-items:center;gap:0;
-  width:100%;min-height:calc(100svh - 52px);
-  padding:clamp(86px,10vh,116px) 24px 32px;
+/* Hide the public layout until its album art is decoded so no empty artwork
+   square or oversized half-painted page flashes during first load. */
+.release-page>.release-stage.is-loading{
+  min-height:calc(100svh - 52px);display:grid;place-items:center;
+  padding:100px 24px 40px;
 }
-.release-page .playlist-frame .release-art{
-  width:min(350px,38svh,100%);flex:0 0 auto;
-}
-.release-page .playlist-frame .release-details{
-  display:flex;flex-direction:column;flex:1 0 auto;gap:0;
-  width:min(430px,100%);padding-top:24px;
-}
-.release-page .playlist-frame .release-copy{text-align:center}
-.release-page .playlist-frame .release-copy>.eyebrow{display:none}
-.release-page .playlist-frame .release-title{
-  font-size:clamp(25px,2.7vw,32px);font-weight:760;letter-spacing:-.045em;
-  line-height:1.13;margin:0 0 6px;
-}
-.release-page .playlist-frame .release-artist{font-size:17px;font-weight:450;line-height:1.35}
-.release-page .playlist-frame .release-description{
-  font-size:12px;line-height:1.55;margin:12px 0 0;
-}
-.release-page .playlist-frame .listening-dock{
-  margin-top:auto;padding-top:clamp(58px,9vh,112px);
-}
-.release-page .playlist-frame .dock-label{display:none}
-.release-page .playlist-frame .platform-button{
-  min-height:76px;padding:14px 16px;border-radius:13px;
-}
-.release-page .playlist-frame .platform-name{font-size:16px}
-.release-page .playlist-frame .platform-action{
-  font-size:14px;min-width:108px;min-height:44px;padding:11px 14px;border-radius:8px;
-}
-.release-page .playlist-frame .release-socials{margin-top:22px}
-@media(max-width:700px){
-  .release-page .playlist-frame{
-    min-height:calc(100svh - 56px);padding:78px 22px 24px;
-  }
-  .release-page .playlist-frame .release-art{width:min(330px,38svh,100%)}
-  .release-page .playlist-frame .release-details{width:min(370px,100%);padding-top:20px}
-  .release-page .playlist-frame .release-title{font-size:25px}
-  .release-page .playlist-frame .release-artist{font-size:16px}
-  .release-page .playlist-frame .release-description{font-size:11px}
-  .release-page .playlist-frame .listening-dock{
-    margin-top:auto;padding-top:clamp(58px,8vh,96px);
-  }
-  .release-page .playlist-frame .platform-button{min-height:76px;padding:14px 16px}
-  .release-page .playlist-frame .platform-action{font-size:14px;min-width:106px;min-height:44px}
+.release-page>.release-stage.is-loading>.release-description{
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;text-align:center;
 }
