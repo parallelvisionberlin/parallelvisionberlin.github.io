@@ -59,6 +59,16 @@ test('draft create, publish, edit and archive preserve public visibility and sta
   await assert.rejects(()=>f.pub('/releases/'+saved.slug),e=>e.status===404);
   assert.equal((await(await f.admin('/dashboard')).json()).releases.find(x=>x.id===saved.id).status,'archived');
 });
+test('music workspace live metrics auto-refresh only when active and without interrupting edits',()=>{
+  const dashboard=readFileSync(new URL('../links/dashboard.mjs',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../links/index.html',import.meta.url),'utf8');
+  assert.match(dashboard,/function refreshWhenStale\(\)/);
+  assert.match(dashboard,/document\.visibilityState==='hidden'/);
+  assert.match(dashboard,/editor\.open\|\|saving\|\|uploading/);
+  assert.match(dashboard,/Date\.now\(\)-lastDashboardRefreshAt>=60000/);
+  assert.match(dashboard,/window\.setInterval\?\.\(refreshWhenStale,60000\)/);
+  assert.match(html,/dashboard\.mjs\?v=20261120-autorefresh1/);
+});
 test('published smart link titles open public pages and successful publish closes the editor',()=>{
   const controller=readFileSync(new URL('../links/dashboard.mjs',import.meta.url),'utf8');
   const stylesheet=readFileSync(new URL('../links/dashboard.css',import.meta.url),'utf8');
