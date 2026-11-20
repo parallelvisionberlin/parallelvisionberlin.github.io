@@ -19,7 +19,7 @@ export function renderRelease(root,release,{onClick=()=>{},onPresave=()=>{},prev
   root.replaceChildren();
   const playlist=contentTypeOf(release)==='playlist';
   const mode=['artwork','blur','black'].includes(release.background)?release.background:'blur';
-  const frame=node('article','release-frame background-'+mode),url=artwork(release.artworkUrl);
+  const frame=node('article','release-frame background-'+mode+(playlist?' playlist-frame':'')),url=artwork(release.artworkUrl);
   const backdrop=node('div','release-backdrop');backdrop.setAttribute('aria-hidden','true');
   if(url&&mode!=='black'){const image=node('img');image.src=url;image.alt='';image.decoding='async';image.referrerPolicy='no-referrer';backdrop.append(image);}
   frame.append(backdrop);
