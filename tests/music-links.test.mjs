@@ -84,6 +84,19 @@ test('playlist smart links persist, publish, and remain editable without a Worke
   assert.match(creator,/name="contentType" value="playlist"/);
   assert.match(renderer,/Listen to the playlist/);assert.match(renderer,/Open playlist/);
 });
+test('House After Dark has a clean public alias and legacy playlist records render as playlists',()=>{
+  const alias=readFileSync(new URL('../house-after-dark/index.html',import.meta.url),'utf8');
+  const publicPage=readFileSync(new URL('../listen/listen.mjs',import.meta.url),'utf8');
+  const dashboard=readFileSync(new URL('../links/dashboard.mjs',import.meta.url),'utf8');
+  const css=readFileSync(new URL('../links/release.css',import.meta.url),'utf8');
+  assert.match(alias,/data-release-slug="house-after-dark"/);
+  assert.match(alias,/https:\/\/parallelvisionlabel\.com\/house-after-dark\//);
+  assert.match(publicPage,/params\.get\('release'\)\|\|root\.dataset\?\.releaseSlug/);
+  assert.match(dashboard,/const publicLanding=record=>/);
+  assert.match(css,/\.release-page \.playlist-frame\{\s*display:flex;flex-direction:column/);
+  assert.equal(contentTypeOf({slug:'house-after-dark',catalogue:'',releaseDate:'',links:[{service:'spotify',url:'https://open.spotify.com/playlist/abcdef12345'}]}),'playlist');
+  assert.equal(contentTypeOf({slug:'stay-low',catalogue:'PV013',links:[{service:'spotify',url:'https://open.spotify.com/track/abcdef12345'}]}),'release');
+});
 test('link creator keeps inherited Meta pixel optional with a clear alternate-pixel setting',()=>{
   const creator=readFileSync(new URL('../links/index.html',import.meta.url),'utf8');
   const controller=readFileSync(new URL('../links/dashboard.mjs',import.meta.url),'utf8');
