@@ -1,3 +1,16 @@
+# Smart Links: releases + Spotify playlists (20 November 2026)
+
+- Owner request: select **Music release** or **Spotify playlist** in the existing Smart Link Creator, retaining the approved white workspace and dark public landing design.
+- Implemented: selector, release/playlist-specific titles and labels, curator instead of artist on playlists, no catalogue/date/MP3/pre-save for playlists, Spotify-only destination, preview/public copy and direct playlist URL validation.
+- Existing releases remain unchanged; no Worker/D1/Stripe/PV LAB changes. Playlist classification persists via reserved `catalogue='__PV_PLAYLIST__'` in the existing music link API. The UI hides this technical token. Future schema work could promote it to an explicit column; do not remove or repurpose without data migration.
+- Existing browser `MusicLinkClick` analytics and workspace music Pixel are preserved. Counts are outbound playlist clicks, not confirmed Spotify followers/saves/streams.
+- PR: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1075, squash merge `b2e6fe080828aabbcdfd4b11034c2d1730998fd0`.
+- PR checks: Parallel Vision release links, Validate static site and PV LAB approved Image UI contract all passed. GitHub Pages build/deploy job `44732113059` completed successfully.
+- A new test covers playlist create, public lookup and edit persistence. Authenticated live creator save and Meta Events attribution were **not** exercised; public web crawler showed a stale page during post-deploy check, so do not claim a verified live customer flow.
+- Next: owner reloads `https://parallelvisionlabel.com/links/`, creates House After Dark using a direct Spotify playlist URL, verifies published link and tests Meta custom conversion before ads.
+
+---
+
 # Layout correction: 3 November 2026
 
 - Owner reference: third screenshot image(20261103-114516).png, libfile_7f4d6eae273081918950757d00494e24.
