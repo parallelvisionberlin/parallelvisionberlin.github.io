@@ -45,6 +45,19 @@ function clicked(service){
   measure('click',service);
   if(choice!=='denied'&&initialized)window.fbq('trackSingleCustom',tracking.pixelId,tracking.clickEvent,metaDetails(release,service),{eventID:newId()});
 }
+// Wait for the cover to decode before inserting the public layout. Keep the
+// original record (and tracking metadata) intact if the cover cannot load.
+async function artworkReady(url){
+  if(!/^https:\/\//i.test(url||''))return true;
+  const image=document.createElement('img');image.decoding='async';image.src=url;
+  if(typeof image.decode!=='function')return true;
+  try{
+    const decode=image.decode().then(()=>true,()=>false);
+    return typeof setTimeout==='function'
+      ?await Promise.race([decode,new Promise(resolve=>setTimeout(()=>resolve(false),5500))])
+      :await decode;
+  }catch{return false;}
+}
 try{
   if(slug.length>80||!SLUG.test(slug))throw Error('Choose a smart link to listen.');
   const response=await fetch(API+'/api/music/public/releases/'+encodeURIComponent(slug),{credentials:'omit',cache:'no-store',signal:AbortSignal.timeout(15000)});
@@ -54,10 +67,13 @@ try{
   document.title=playlist?release.title+' / '+release.artist+' / Parallel Vision':release.artist+' / '+release.title+' / Parallel Vision';
   document.querySelector('meta[name="description"]').content=playlist?'Listen to '+release.title+', a playlist curated by '+release.artist+'. Parallel Vision.':'Listen to '+release.title+' by '+release.artist+'. Parallel Vision.';
   document.querySelector('link[rel="canonical"]').href=slug==='house-after-dark'?'https://parallelvisionlabel.com/house-after-dark/':release.url;
-  let previewPlayed=false;const render=()=>{renderRelease(root,release,{onClick:clicked,onPresave:()=>measure('presave')});root.querySelector?.('audio')?.addEventListener('play',()=>{if(!previewPlayed){previewPlayed=true;measure('preview');}},{once:true});};render();measure('view');
+  // Count the page view promptly, independent of how long artwork takes to load.
+  measure('view');bootMeta();
+  const displayRelease=await artworkReady(release.artworkUrl)?release:{...release,artworkUrl:''};
+  root.className='release-stage';
+  let previewPlayed=false;const render=()=>{renderRelease(root,displayRelease,{onClick:clicked,onPresave:()=>measure('presave')});root.querySelector?.('audio')?.addEventListener('play',()=>{if(!previewPlayed){previewPlayed=true;measure('preview');}},{once:true});};render();
   const switchIn=Date.parse((release.releaseDate||'')+'T00:00:00Z')-Date.now();
   if(release.presave?.mode==='before-release'&&switchIn>0&&switchIn<2147483000)setTimeout(render,switchIn+500);
-  bootMeta();
 }catch(error){
   root.className='release-error';root.replaceChildren();const title=document.createElement('h1');title.textContent='Music link unavailable.';
   const message=document.createElement('p');message.textContent=error.message||'Please try again shortly.';
