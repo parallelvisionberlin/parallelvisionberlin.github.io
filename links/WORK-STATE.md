@@ -1,3 +1,16 @@
+# Restore approved House After Dark desktop + artwork loading fix (20 Nov 2026)
+
+- User clarified the only requested change was a practical short URL, **not** a desktop redesign. The compact vertical page introduced in PR #1078 was unapproved; original desktop two-column art/text layout is locked reference (user screenshot image 3).
+- Restored the original desktop layout by removing exactly the playlist-specific stacked CSS overrides in `links/release.css`. Preserved existing approved CTA, Instagram icon sizing, mobile response, playlist identification and visual background.
+- Retained the physical `https://parallelvisionlabel.com/house-after-dark/` public page and original `/listen/?release=house-after-dark` route. Both share the same record, statistics and click event handling.
+- Fixed initial empty artwork/oversized first paint by making both public pages display a minimal loading state until artwork decodes, then rendering the full layout atomically. Record a PageView immediately after release fetch, before waiting on the image; failed images fall back to the existing PV placeholder.
+- PR [#1079](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1079) merged, commit `b687f4287d01d5aea7dcb8bab0413ab5a22b381b`.
+- Changed: `links/release.css`, `listen/listen.mjs`, `listen/index.html`, `house-after-dark/index.html`, `tests/music-links.test.mjs`.
+- Verified: PR CI Parallel Vision release links, Validate static site, PV LAB approved Image UI contract all succeeded. Test verifies artwork decoding precedes render, desktop grid intact, both pages start in loading state. Pages deployment `44739835009` must be separately checked; no independently authenticated live browser audit was available.
+- Still pending for advertising: verify actual Meta Test Events and music-link click attribution before resuming ad spend. Do not change paid Meta campaigns without separate evidence.
+
+---
+
 # House After Dark public landing and clean campaign URL (20 November 2026)
 
 - User rejected the appearance and share URL of the newly published House After Dark landing. The preview was compact and vertical while the public desktop CSS rendered a huge two-column layout with a title up to 128px.
