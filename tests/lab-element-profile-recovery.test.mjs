@@ -7,12 +7,12 @@ const ID='ad4b7111-39f4-47a9-898b-45a1cf07a030';
 const WEBP=new Uint8Array([82,73,70,70,8,0,0,0,87,69,66,80,86,80,56,32,1,2,3,4]);
 const PNG=new Uint8Array([137,80,78,71,13,10,26,10,0]);
 
-function fixture(fetchImpl,count=2){
+function fixture(fetchImpl,count=2,{blockAccount=false}={}){
   const ids=Array.from({length:count},(_,i)=>'ad4b7111-39f4-47a9-898b-45a1cf07a'+String(101+i));
   const assets=new Set(ids);
   const pack={id:ID,name:'PVSCENE1|characters|NINA FULL BODY',
     refs:JSON.stringify(ids.map(id=>({id,role:'identity',note:'Preserve the character identity'})))};
-  let stored=null,quota=0;
+  let stored=null,quota=0,activeGlobal=0,activeAccount=0;
   const env={GEMINI_API_KEY:'test-secret-only',IMAGES:{
     input(stream){assert.ok(stream);return {
       transform(){return this;},
@@ -30,12 +30,21 @@ function fixture(fetchImpl,count=2){
     throw Error('Unexpected query: '+sql);
   };
   const run=async(_env,sql,...args)=>{
-    if(sql.includes('element_analysis_')){quota++;return {meta:{changes:1}};}
+    if(sql.includes('INSERT INTO element_analysis_global')){quota++;activeGlobal++;return {meta:{changes:1}};}
+    if(sql.includes('INSERT INTO element_analysis_quota')){
+      quota++;
+      if(blockAccount)return {meta:{changes:0}};
+      activeAccount++;
+      return {meta:{changes:1}};
+    }
+    if(sql.includes('UPDATE element_analysis_global')){activeGlobal--;return {meta:{changes:1}};}
+    if(sql.includes('UPDATE element_analysis_quota')){activeAccount--;return {meta:{changes:1}};}
     if(sql.includes('INTO element_visual_profiles')){stored=JSON.parse(args[2]);return {meta:{changes:1}};}
     throw Error('Unexpected write: '+sql);
   };
   const fail=(status,message)=>{const error=Error(message);error.status=status;throw error;};
   return {env,get stored(){return stored;},get quota(){return quota;},
+    get activeQuota(){return {global:activeGlobal,account:activeAccount};},
     dependencies:{first,run,now:()=>Date.UTC(2026,9,20),fail,fetchImpl}};
 }
 
@@ -103,6 +112,7 @@ test('two unavailable models stop after the bounded fallback without storing inv
     error=>error.status===503&&/HTTP 404/.test(error.message)&&!error.message.includes('private provider'));
   assert.equal(calls,2);
   assert.equal(f.stored,null);
+  assert.deepEqual(f.activeQuota,{global:0,account:0},'Failed analysis cannot consume the daily allowance');
 });
 
 test('Google HTTP 403 is surfaced safely without retrying or exposing provider data',async()=>{
@@ -120,6 +130,7 @@ test('Google HTTP 403 is surfaced safely without retrying or exposing provider d
   );
   assert.equal(calls.length,1);
   assert.equal(f.stored,null);
+  assert.deepEqual(f.activeQuota,{global:0,account:0},'Provider authorization errors release both reservations');
 });
 
 test('Malformed Gemini JSON retries on Flash-Lite without corrupting saved photos',async()=>{
@@ -132,6 +143,15 @@ test('Malformed Gemini JSON retries on Flash-Lite without corrupting saved photo
   const result=await analyzeElementProfile(f.env,'owner',ID,{},f.dependencies);
   assert.equal(result.profile.category,'characters');
   assert.equal(calls,2);
+});
+
+test('An exhausted account cannot consume the shared platform quota',async()=>{
+  let providerCalls=0;
+  const f=fixture(async()=>{providerCalls++;return Response.json({});},2,{blockAccount:true});
+  await assert.rejects(()=>analyzeElementProfile(f.env,'owner',ID,{},f.dependencies),
+    error=>error.status===429&&/saved photos can still be used/.test(error.message));
+  assert.equal(providerCalls,0,'No third-party provider request is made after the account limit');
+  assert.deepEqual(f.activeQuota,{global:0,account:0},'The unused global slot was returned');
 });
 
 test('Elements UI offers retry for existing packs and clears failed in-flight promises',()=>{
