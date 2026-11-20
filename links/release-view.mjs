@@ -1,4 +1,4 @@
-import {SERVICES,safeUrl,activePresave} from './shared.mjs?v=20261103-workspace1';
+import {SERVICES,safeUrl,activePresave,contentTypeOf} from './shared.mjs?v=20261120-playlists1';
 const node=(tag,cls,value)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=value;return e;};
 function artwork(value){try{return safeUrl(value||'');}catch{return '';}}
 function serviceIcon(service){
@@ -17,37 +17,38 @@ function serviceIcon(service){
 }
 export function renderRelease(root,release,{onClick=()=>{},onPresave=()=>{},preview=false}={}) {
   root.replaceChildren();
+  const playlist=contentTypeOf(release)==='playlist';
   const mode=['artwork','blur','black'].includes(release.background)?release.background:'blur';
   const frame=node('article','release-frame background-'+mode),url=artwork(release.artworkUrl);
   const backdrop=node('div','release-backdrop');backdrop.setAttribute('aria-hidden','true');
   if(url&&mode!=='black'){const image=node('img');image.src=url;image.alt='';image.decoding='async';image.referrerPolicy='no-referrer';backdrop.append(image);}
   frame.append(backdrop);
   const art=node('div','release-art');
-  if(url){const image=node('img');image.src=url;image.alt=(release.title||'Release')+' artwork';image.width=800;image.height=800;image.decoding='async';image.referrerPolicy='no-referrer';art.append(image);}
+  if(url){const image=node('img');image.src=url;image.alt=(release.title||(playlist?'Playlist':'Release'))+' artwork';image.width=800;image.height=800;image.decoding='async';image.referrerPolicy='no-referrer';art.append(image);}
   else art.append(node('span','art-placeholder','PARALLEL\nVISION'));
   frame.append(art);
   const details=node('div','release-details'),copy=node('div','release-copy');
   const future=release.releaseDate&&Date.parse(release.releaseDate+'T00:00:00Z')>Date.now();
   const timing=release.releaseDate?(future?'OUT '+new Date(release.releaseDate+'T12:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}):'OUT NOW'):'';
-  copy.append(node('p','eyebrow',[release.catalogue,timing].filter(Boolean).join(' / ')||'PARALLEL VISION'));
-  copy.append(node(preview?'h2':'h1','release-title',release.title||'Release title'));
-  copy.append(node('p','release-artist',release.artist||'Artist name'));
+  copy.append(node('p','eyebrow',playlist?'PARALLEL VISION / PLAYLIST':[release.catalogue,timing].filter(Boolean).join(' / ')||'PARALLEL VISION'));
+  copy.append(node(preview?'h2':'h1','release-title',release.title||(playlist?'Playlist title':'Release title')));
+  copy.append(node('p','release-artist',playlist?'Curated by '+(release.artist||'Curator'):release.artist||'Artist name'));
   if(release.description)copy.append(node('p','release-description',release.description));
   if(release.audioUrl){const audio=node('audio','release-audio');audio.controls=true;audio.preload='none';audio.src=release.audioUrl;audio.setAttribute('aria-label','Preview '+(release.title||'this release'));copy.append(audio);}
   details.append(copy);
-  const dock=node('section','listening-dock');dock.setAttribute('aria-label','Listen to '+(release.title||'this release'));dock.append(node('p','dock-label','Listen to the release.'));
+  const dock=node('section','listening-dock');dock.setAttribute('aria-label','Listen to '+(release.title||(playlist?'this playlist':'this release')));dock.append(node('p','dock-label',playlist?'Listen to the playlist.':'Listen to the release.'));
   const presave=activePresave(release);
   if(presave)dock.querySelector('p').textContent='Save it for release day.';
   const list=node('div','platform-list');list.setAttribute('aria-label','Music platforms');
   if(presave){const button=node(preview?'button':'a','platform-button platform-presave');if(preview)button.type='button';else{button.href=release.presave.url;button.target='_blank';button.rel='noopener noreferrer';button.addEventListener('click',onPresave);}button.setAttribute('aria-label','Pre-save '+(release.title||'this release')+' with the campaign provider');button.append(node('span','platform-name','Save it for release day.'),node('span','platform-action','Pre-save'));list.append(button);}
-  for(const link of presave&&release.presave.mode==='before-release'?[]:release.links||[]){const service=SERVICES.find(s=>s.id===link.service);if(!service)continue;
+  for(const link of presave&&release.presave.mode==='before-release'?[]:release.links||[]){const service=SERVICES.find(s=>s.id===link.service);if(!service||playlist&&service.id!=='spotify')continue;
     const button=node(preview?'button':'a','platform-button platform-'+service.id);
     if(preview){button.type='button';button.setAttribute('aria-label','Preview button for '+service.name);}
-    else{button.href=link.url;button.rel='noopener noreferrer';button.target='_blank';button.setAttribute('aria-label',service.action+' on '+service.name);button.addEventListener('click',()=>onClick(link.service));}
+    else{button.href=link.url;button.rel='noopener noreferrer';button.target='_blank';button.setAttribute('aria-label',playlist?'Open playlist on Spotify':service.action+' on '+service.name);button.addEventListener('click',()=>onClick(link.service));}
     const name=node('span','platform-identity');name.append(serviceIcon(service.id),node('span','platform-name',service.name));
-    button.append(name,node('span','platform-action',service.action));list.append(button);
+    button.append(name,node('span','platform-action',playlist?'Open playlist':service.action));list.append(button);
   }
-  if(!list.children.length)list.append(node('p','release-description',preview?'Add your music platform links.':'Listening links coming soon.'));
+  if(!list.children.length)list.append(node('p','release-description',playlist?(preview?'Add the Spotify playlist link.':'Playlist link coming soon.'):(preview?'Add your music platform links.':'Listening links coming soon.')));
   dock.append(list);
   const socials=node('nav','release-socials');socials.setAttribute('aria-label','Follow Parallel Vision');
   const instagram=node(preview?'button':'a','instagram-link');instagram.setAttribute('aria-label','Parallel Vision on Instagram');
