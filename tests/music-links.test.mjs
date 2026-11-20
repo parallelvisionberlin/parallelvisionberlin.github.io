@@ -5,6 +5,7 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {musicAdminRoute,musicPublicRoute,pruneMusicEvents,validateRelease} from '../lab-worker/music-links.mjs';
 import {validateLinks,slugify,metaDetails,MUSIC_PIXEL,newId,SERVICES,contentTypeOf,PLAYLIST_CATALOGUE} from '../links/shared.mjs';
+import {displayDescription} from '../links/release-view.mjs';
 const NOW=Date.parse('2026-10-30T12:00:00Z'),BASE='https://parallel-vision-lab.parallelvision.workers.dev/api/music';
 const fixtureRelease=(change={})=>({id:crypto.randomUUID(),title:'Test Release',artist:'Artist',slug:'test-release',catalogue:'PV999',description:'A new single.',artworkUrl:'https://parallelvisionlabel.com/cover.jpg',audioUrl:'',releaseDate:'2026-11-06',links:[{service:'spotify',url:'https://open.spotify.com/track/example'}],pixelId:'',status:'draft',...change});
 function fixture(t){
@@ -83,6 +84,17 @@ test('playlist smart links persist, publish, and remain editable without a Worke
   const renderer=readFileSync(new URL('../links/release-view.mjs',import.meta.url),'utf8');
   assert.match(creator,/name="contentType" value="playlist"/);
   assert.match(renderer,/Listen to the playlist/);assert.match(renderer,/Open playlist/);
+});
+test('public playlist copy removes redundant curator sentence and desktop type stays restrained',()=>{
+  const playlist={title:'House After Dark',artist:'Parallel Vision',description:'Hypnotic house from Berlin. Curated by Parallel Vision.'};
+  assert.equal(displayDescription(playlist,true),'Hypnotic house from Berlin.');
+  assert.equal(displayDescription(playlist,false),playlist.description);
+  assert.equal(displayDescription({...playlist,description:'Curated by Parallel Vision.'},true),'');
+  assert.equal(displayDescription({...playlist,description:'Late-night selections.'},true),'Late-night selections.');
+  const css=readFileSync(new URL('../links/release.css',import.meta.url),'utf8');
+  assert.match(css,/grid-template-columns:minmax\(0,600px\) minmax\(0,620px\)/);
+  assert.match(css,/\.release-page \.release-title\{font-size:clamp\(36px,3\.1vw,54px\)/);
+  assert.doesNotMatch(css,/\.release-page \.playlist-frame\{\s*display:flex/);
 });
 test('House After Dark has a clean public alias and legacy playlist records render as playlists',()=>{
   const alias=readFileSync(new URL('../house-after-dark/index.html',import.meta.url),'utf8');
@@ -234,7 +246,11 @@ test('public listener starts Pixel without a prompt and does not invent a saved 
   assert.equal(browser.win.fbq.queue.filter(a=>a[0]==='init').length,1);
   assert.equal(browser.win.fbq.queue.filter(a=>a[0]==='trackSingle').length,2);
   browser.click('spotify');const events=browser.win.fbq.queue.filter(a=>a[0]==='trackSingleCustom');
-  assert.equal(events.length,1);assert.equal(events[0][2],'MusicLinkClick');assert.equal(events[0][3].music_service,'spotify');
+  assert.equal(events.length,1);
+  assert.equal(events[0][1],MUSIC_PIXEL);
+  assert.equal(events[0][2],'MusicLinkClick');
+  assert.equal(events[0][3].music_service,'spotify');
+  assert.deepEqual(events[0][3].content_ids,[browser.sent[0].data.releaseId]);
 });
 test('manual tracking settings revoke future Meta clicks and can re-enable without duplicate init',async()=>{
   const browser=await publicBrowser();
