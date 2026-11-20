@@ -175,14 +175,13 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
   // stored result, in-flight request, local failure, or not yet analyzed.
   function profileSignal(item){
     const state=item.profile?'ready':pendingProfiles.has(item.id)?'analyzing':failedProfiles.has(item.id)?'failed':'idle';
-    const labels={ready:'Ready',analyzing:'Analyzing',failed:'Analysis unavailable',idle:'Not analyzed'};
+    const labels={ready:'Visual profile ready',analyzing:'Adding visual details',failed:'Photos ready',idle:'Photos ready'};
     const badge=document.createElement('span');
-    badge.className='scene-profile-status';badge.dataset.state=state;
+    badge.className='scene-profile-status';badge.dataset.state=state==='failed'?'idle':state;
     badge.setAttribute('role','status');
-    badge.title=state==='ready'?'Visual profile saved for reuse.':
-      state==='analyzing'?'Google Gemini is analyzing reduced previews.':
-      state==='failed'?failedProfiles.get(item.id):
-      'Visual analysis has not finished. Open details to analyze.';
+    badge.title=state==='ready'?'Visual details saved for reuse.':
+      state==='analyzing'?'Preparing optional visual details.':
+      'Saved photographs are ready to use. Optional visual analysis can improve reference selection.';
     const dot=document.createElement('i');dot.setAttribute('aria-hidden','true');
     badge.append(dot,document.createTextNode(labels[state]));
     return badge;
@@ -556,24 +555,23 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     const summary=document.createElement('p');
     summary.textContent=item.refs.length+' saved photograph'+(item.refs.length===1?'':'s')+' · Reusable visual reference, not a trained model.';
     const actions=document.createElement('div');actions.className='scene-feature-action-row';
+    // Saved photos work without optional visual analysis. Never gate paid
+    // image/video work on an unrelated free-analysis quota or provider outage.
+    const use=document.createElement('button');use.type='button';
+    use.className='scene-feature-attach';use.dataset.sceneUse='';
+    const attached=getReferences().some(r=>r.elementId===item.id)||
+      item.refs.every(ref=>getReferences().some(r=>r.id===ref.id));
+    use.textContent=attached?'Already in scene':'Use in scene';
+    use.disabled=attached||working;
+    use.onclick=()=>{void useItem(item);};
+    actions.append(use);
     if(!item.profile){
       const retry=document.createElement('button');retry.type='button';
       retry.className='scene-feature-details scene-feature-analyze';
       retry.textContent=pendingProfiles.has(item.id)?'Analyzing…':'Analyze photos';
       retry.disabled=working||pendingProfiles.has(item.id);
-      retry.onclick=()=>{setStatus('Analyzing @'+item.title+'…');void analyzeSavedElement(item,true);};
+      retry.onclick=()=>{setStatus('Adding visual details to @'+item.title+'…');void analyzeSavedElement(item,true);};
       actions.append(retry);
-    }else{
-      // The attach action replaces Analyze in the same slot, only after
-      // the saved visual profile is actually ready.
-      const use=document.createElement('button');use.type='button';
-      use.className='scene-feature-attach';use.dataset.sceneUse='';
-      const attached=getReferences().some(r=>r.elementId===item.id)||
-        item.refs.every(ref=>getReferences().some(r=>r.id===ref.id));
-      use.textContent=attached?'Already in scene':'Use in scene';
-      use.disabled=attached||working;
-      use.onclick=()=>{void useItem(item);};
-      actions.append(use);
     }
     if(item.category==='characters'){
       const edit=document.createElement('button');edit.type='button';
@@ -697,14 +695,12 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
         featuredExpanded=false;render();
       };
       const actions=document.createElement('div');actions.className='scene-card-actions';
-      // Unanalyzed Elements can be opened for analysis, but cannot attach yet.
-      if(item.profile){
-        const use=document.createElement('button');use.type='button';use.className='scene-use';
-        const already=getReferences().some(active=>active.elementId===item.id)||item.refs.every(ref=>getReferences().some(active=>active.id===ref.id));
-        use.textContent=already?'Added ✓':'Use in scene';use.disabled=already||working;
-        use.dataset.sceneUse='';use.onclick=()=>{void useItem(item);};
-        actions.append(use);
-      }
+      // Every saved Element can be attached, including when optional analysis is unavailable.
+      const use=document.createElement('button');use.type='button';use.className='scene-use';
+      const already=getReferences().some(active=>active.elementId===item.id)||item.refs.every(ref=>getReferences().some(active=>active.id===ref.id));
+      use.textContent=already?'Added ✓':'Use in scene';use.disabled=already||working;
+      use.dataset.sceneUse='';use.onclick=()=>{void useItem(item);};
+      actions.append(use);
       if(item.category==='characters')actions.append(characterActions(item));
       else{
         const remove=document.createElement('button');remove.type='button';remove.className='scene-delete';
@@ -756,9 +752,9 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
         return result.profile;
       })
       .catch(error=>{
-        failedProfiles.set(item.id,String(error?.message||'Google Gemini failed.'));
+        failedProfiles.set(item.id,String(error?.message||'Optional visual analysis failed.'));
         if(showFailure&&dialog.open&&view==='browse'&&current===item.category)
-          setStatus('@'+item.title+' analysis unavailable: '+(error?.message||'Google Gemini failed.') ,true);
+          setStatus('@'+item.title+' is saved and ready to use. Optional visual analysis is unavailable right now.');
         return null;
       })
       .finally(()=>{
@@ -771,10 +767,8 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
   }
   async function useItem(item){
     if(working)return;
-    if(!item.profile){
-      setStatus('Analyze @'+item.title+' before using it in a scene.',true);
-      return;
-    }
+    // The stored photos and their individual guidance remain useful even
+    // before a visual profile is built. Do not start analysis on attachment.
     const context=getContext();
     if(context.tool==='video'&&!['reference','extend','transform'].includes(context.mode)){setStatus('Open Saved References from Video Reference set, Extend or Transform.',true);return;}
     if(context.tool==='image'&&!context.supportsReferences){setStatus('Choose an Image model that supports image references.',true);return;}
