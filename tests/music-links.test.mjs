@@ -58,6 +58,17 @@ test('draft create, publish, edit and archive preserve public visibility and sta
   await assert.rejects(()=>f.pub('/releases/'+saved.slug),e=>e.status===404);
   assert.equal((await(await f.admin('/dashboard')).json()).releases.find(x=>x.id===saved.id).status,'archived');
 });
+test('published smart link titles open public pages and successful publish closes the editor',()=>{
+  const controller=readFileSync(new URL('../links/dashboard.mjs',import.meta.url),'utf8');
+  const stylesheet=readFileSync(new URL('../links/dashboard.css',import.meta.url),'utf8');
+  assert.match(controller,/if\(release\.status==='published'\)\{\s*const link=el\('a','smart-link-title-link',release\.title\)/);
+  assert.match(controller,/link\.href=release\.url\|\|releaseUrl\(release\.slug\)/);
+  assert.match(controller,/link\.target='_blank';link\.rel='noopener noreferrer'/);
+  assert.match(controller,/else title\.textContent=release\.title/);
+  assert.match(controller,/const closeAfterPublish=event\.submitter\?\.id==='save-release'&&data\.status==='published'/);
+  assert.match(controller,/if\(closeAfterPublish&&revision===generation&&editor\.open\)\{editor\.close\(\);editing=null/);
+  assert.match(stylesheet,/\.release-identity \.smart-link-title-link/);
+});
 test('playlist smart links persist, publish, and remain editable without a Worker migration',async t=>{
   const f=fixture(t),input=fixtureRelease({slug:'house-after-dark',title:'House After Dark',artist:'Parallel Vision',catalogue:PLAYLIST_CATALOGUE,releaseDate:'',status:'published',links:[{service:'spotify',url:'https://open.spotify.com/playlist/37i9dQZF1DX0XUsuxWHRQd'}]});
   assert.equal(contentTypeOf(input),'playlist');assert.equal(contentTypeOf(fixtureRelease()),'release');
