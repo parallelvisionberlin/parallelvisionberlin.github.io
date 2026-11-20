@@ -1,6 +1,6 @@
 import {initWorkspaceTools,reportQuery,renderWorkspaceReports,resetWorkspaceTools} from './workspace-tools.mjs?v=20261103-clean2';
-import {API,SERVICES,slugify,releaseUrl,validateLinks,newId,validatePresave} from './shared.mjs?v=20261103-clean2';
-import {renderRelease} from './release-view.mjs?v=20261103-clean2';
+import {API,SERVICES,slugify,releaseUrl,validateLinks,newId,validatePresave,PLAYLIST_CATALOGUE,contentTypeOf} from './shared.mjs?v=20261120-playlists1';
+import {renderRelease} from './release-view.mjs?v=20261120-playlists1';
 import {loadLabAccount} from '../lab/native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from '../lab/session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 const $=id=>document.getElementById(id),form=$('release-form'),editor=$('editor');
@@ -18,13 +18,26 @@ async function call(path,{method='GET',data,headers,body}={}){
 }
 function notice(message){$('status').textContent=message;}
 function field(name){return form.elements.namedItem(name);}
-for(const service of SERVICES){const label=el('label','',service.name),input=el('input');input.name='service-'+service.id;input.type='url';input.maxLength=2048;input.placeholder='https://…';label.append(input);$('platform-fields').append(label);}
-function draft(){return {presave:{mode:field('presaveMode').value,url:field('presaveUrl').value.trim()},id:editing?.id||createId,background:field('background').value,title:field('title').value.trim(),artist:field('artist').value.trim(),slug:field('slug').value.trim(),catalogue:field('catalogue').value.trim(),description:field('description').value.trim(),artworkUrl:field('artworkUrl').value.trim(),audioUrl:field('audioUrl').value.trim(),releaseDate:field('releaseDate').value,pixelId:field('pixelId').value.trim(),status:field('status').value,revision:editing?.revision,links:SERVICES.map(s=>({service:s.id,url:field('service-'+s.id).value.trim()})).filter(l=>l.url)};}
+for(const service of SERVICES){const label=el('label','',service.name),input=el('input');label.dataset.service=service.id;input.name='service-'+service.id;input.type='url';input.maxLength=2048;input.placeholder='https://…';label.append(input);$('platform-fields').append(label);}
+function syncContentType(){
+  const playlist=field('contentType').value==='playlist';
+  document.querySelectorAll('[data-release-only]').forEach(node=>{node.hidden=playlist;});
+  document.querySelectorAll('#platform-fields [data-service]').forEach(node=>{node.hidden=playlist&&node.dataset.service!=='spotify';});
+  $('creator-details-title').textContent=playlist?'01 / The playlist':'01 / The release';
+  $('title-label').querySelector('.field-name').textContent=playlist?'Playlist title':'Release title';
+  $('artist-label').querySelector('.field-name').textContent=playlist?'Curated by':'Artist';
+  $('platforms-legend').textContent=playlist?'03 / Playlist destination':'03 / Music platforms';
+  $('playlist-help').hidden=!playlist;$('release-platform-help').hidden=playlist;
+  field('service-spotify').placeholder=playlist?'https://open.spotify.com/playlist/…':'https://…';
+}
+function draft(){const playlist=field('contentType').value==='playlist';return {contentType:playlist?'playlist':'release',presave:playlist?{mode:'off',url:''}:{mode:field('presaveMode').value,url:field('presaveUrl').value.trim()},id:editing?.id||createId,background:field('background').value,title:field('title').value.trim(),artist:field('artist').value.trim(),slug:field('slug').value.trim(),catalogue:playlist?PLAYLIST_CATALOGUE:field('catalogue').value.trim(),description:field('description').value.trim(),artworkUrl:field('artworkUrl').value.trim(),audioUrl:playlist?'':field('audioUrl').value.trim(),releaseDate:playlist?'':field('releaseDate').value,pixelId:field('pixelId').value.trim(),status:field('status').value,revision:editing?.revision,links:SERVICES.map(s=>({service:s.id,url:field('service-'+s.id).value.trim()})).filter(l=>l.url&&(!playlist||l.service==='spotify'))};}
 function preview(){const data=draft();for(const key of ['artworkUrl','audioUrl'])if(data[key]&&!/^https:\/\//i.test(data[key]))data[key]='';renderRelease($('release-preview'),data,{preview:true});}
 function controls(){const busy=saving||uploading;$('save-release').disabled=busy;$('save-draft').disabled=busy;$('close-editor').disabled=busy;$('artwork-file').disabled=busy;$('audio-file').disabled=busy;}
 function openEditor(record=null){
   if(saving||uploading)return;editing=record;createId=newId();slugEdited=!!record;form.reset();
-  for(const name of ['title','artist','slug','catalogue','description','artworkUrl','audioUrl','releaseDate','pixelId','status','background'])field(name).value=record?.[name]||(name==='status'?'draft':name==='background'?'blur':'');
+  field('contentType').value=contentTypeOf(record);
+  for(const name of ['title','artist','slug','catalogue','description','artworkUrl','audioUrl','releaseDate','pixelId','status','background'])field(name).value=name==='catalogue'&&contentTypeOf(record)==='playlist'?'':record?.[name]||(name==='status'?'draft':name==='background'?'blur':'');
+  syncContentType();
   field('presaveMode').value=record?.presave?.mode||'off';field('presaveUrl').value=record?.presave?.url||'';
   for(const link of record?.links||[])field('service-'+link.service).value=link.url;
   field('slug').readOnly=!!record;$('editor-title').textContent=record?'Edit smart link.':'New smart link.';
@@ -39,9 +52,10 @@ form.addEventListener('input',event=>{
   if(event.target.name==='slug')slugEdited=true;
   if(event.target.name==='title'&&!slugEdited)field('slug').value=slugify(field('title').value);
   if(event.target.name==='status')$('save-release').textContent=field('status').value==='published'?'Publish smart link':'Save smart link';
+  if(event.target.name==='contentType')syncContentType();
   preview();
 });
-form.addEventListener('change',()=>{preview();$('save-release').textContent=field('status').value==='published'?'Publish smart link':'Save smart link';});
+form.addEventListener('change',()=>{syncContentType();preview();$('save-release').textContent=field('status').value==='published'?'Publish smart link':'Save smart link';});
 async function upload(input,kind){
   const file=input.files?.[0];if(!file)return;
   const isArtwork=kind==='artwork',max=(isArtwork?6:12)*1024*1024;
@@ -63,7 +77,7 @@ function renderRecords(){
     if(release.artworkUrl){const image=el('img','release-thumb');image.src=release.artworkUrl;image.alt=release.title+' artwork';image.width=144;image.height=144;image.loading='lazy';image.referrerPolicy='no-referrer';art.append(image);}
     else art.append(el('span','artwork-placeholder','PV'));
     const names=el('div','release-identity');names.append(el('span','badge '+release.status,release.status),el('h2','',release.title),el('p','release-artist-name',release.artist));
-    if(release.catalogue)names.append(el('p','release-catalogue',release.catalogue));
+    if(contentTypeOf(release)==='playlist')names.append(el('p','release-catalogue','SPOTIFY PLAYLIST'));else if(release.catalogue)names.append(el('p','release-catalogue',release.catalogue));
     const platforms=el('div','release-services');
     for(const link of release.links||[]){const service=SERVICES.find(s=>s.id===link.service);if(service){const item=el('span','service '+service.id,service.name);platforms.append(item);}}
     if(release.presave?.mode!=='off'&&release.presave?.url)platforms.append(el('span','service presave','Pre-save'));
@@ -138,7 +152,13 @@ async function refresh(){
 }
 form.addEventListener('submit',async event=>{
   event.preventDefault();if(saving||uploading)return;const data=draft();if(event.submitter?.value==='draft')data.status='draft';
-  try{data.links=validateLinks(data.links);data.presave=validatePresave(data.presave);}catch(error){$('save-status').textContent=error.message;return;}
+  try{data.links=validateLinks(data.links);data.presave=validatePresave(data.presave);
+    if(data.contentType==='playlist'){
+      const spotify=data.links.find(link=>link.service==='spotify')?.url||'';
+      if(data.status==='published'&&!spotify)throw Error('Add a Spotify playlist URL before publishing.');
+      if(spotify&&!/^https:\/\/open\.spotify\.com\/playlist\/[^/?#]+(?:[?#].*)?$/.test(spotify))throw Error('Use the direct open.spotify.com/playlist/ link, not a track or Hypeddit link.');
+    }
+  }catch(error){$('save-status').textContent=error.message;return;}
   saving=true;controls();$('save-status').textContent='Saving your smart link…';const revision=generation;
   try{const result=await call(editing?'/releases/'+editing.id:'/releases',{method:'POST',data});if(revision!==generation)return;
     editing=result.release;field('status').value=editing.status;field('slug').readOnly=true;slugEdited=true;$('editor-title').textContent='Edit smart link.';
