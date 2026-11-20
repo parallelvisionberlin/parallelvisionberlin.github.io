@@ -15,6 +15,14 @@ function serviceIcon(service){
   }
   return svg;
 }
+// Remove repeated curator attribution from a playlist's optional description,
+ // without changing the stored original or the music-link metadata.
+export function displayDescription(release,playlist=false){
+  const description=release?.description||'';
+  if(!playlist||!description)return description;
+  const credit='Curated by '+(release.artist||'Curator');
+  return description.replaceAll(credit+'.','').replaceAll(credit,'').replace(/\s+/g,' ').trim();
+}
 export function renderRelease(root,release,{onClick=()=>{},onPresave=()=>{},preview=false}={}) {
   root.replaceChildren();
   const playlist=contentTypeOf(release)==='playlist';
@@ -33,7 +41,8 @@ export function renderRelease(root,release,{onClick=()=>{},onPresave=()=>{},prev
   copy.append(node('p','eyebrow',playlist?'PARALLEL VISION / PLAYLIST':[release.catalogue,timing].filter(Boolean).join(' / ')||'PARALLEL VISION'));
   copy.append(node(preview?'h2':'h1','release-title',release.title||(playlist?'Playlist title':'Release title')));
   copy.append(node('p','release-artist',playlist?'Curated by '+(release.artist||'Curator'):release.artist||'Artist name'));
-  if(release.description)copy.append(node('p','release-description',release.description));
+  const description=displayDescription(release,playlist);
+  if(description)copy.append(node('p','release-description',description));
   if(release.audioUrl){const audio=node('audio','release-audio');audio.controls=true;audio.preload='none';audio.src=release.audioUrl;audio.setAttribute('aria-label','Preview '+(release.title||'this release'));copy.append(audio);}
   details.append(copy);
   const dock=node('section','listening-dock');dock.setAttribute('aria-label','Listen to '+(release.title||(playlist?'this playlist':'this release')));dock.append(node('p','dock-label',playlist?'Listen to the playlist.':'Listen to the release.'));
