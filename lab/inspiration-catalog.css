@@ -23,6 +23,40 @@
 }
 
 .inspiration-carousel-shell{position:relative}
+/* Small overlay above the existing cards: no added gallery height or deck movement. */
+.inspiration-carousel-shell .pv-inspiration-quick-filters{
+  position:absolute;top:-39px;left:clamp(340px,28vw,420px);right:108px;z-index:5;
+  display:flex;align-items:center;gap:17px;height:33px;
+  overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
+  overscroll-behavior-inline:contain;white-space:nowrap;
+}
+.inspiration-carousel-shell .pv-inspiration-quick-filters::-webkit-scrollbar{display:none}
+.inspiration-carousel-shell .pv-inspiration-quick-filters button{
+  flex:0 0 auto;appearance:none;border:0;border-bottom:1px solid transparent;
+  border-radius:0;padding:4px 0 6px;margin:0;
+  background:transparent;color:rgba(245,245,243,.66);
+  font:500 12px/1.2 "DM Sans",Arial,sans-serif;
+  letter-spacing:-.015em;text-shadow:0 1px 10px rgba(0,0,0,.8);
+  cursor:pointer;transition:color .18s ease,border-color .18s ease;
+}
+.inspiration-carousel-shell .pv-inspiration-quick-filters button:hover{color:#f4f3f0}
+.inspiration-carousel-shell .pv-inspiration-quick-filters button[aria-pressed="true"]{
+  color:#fff;border-bottom-color:rgba(255,255,255,.92)
+}
+.inspiration-carousel-shell .pv-inspiration-quick-filters button:focus-visible{
+  outline:2px solid #f2f2f0;outline-offset:2px
+}
+.inspiration-carousel-shell .pv-guest-cards > button[hidden],
+.inspiration-carousel-shell .lab-welcome-presets > button[hidden]{display:none!important}
+/* Compact layouts retain their original photo geometry. Filter families are
+   still available inside Explore all, which already has a dedicated tab strip. */
+@media(max-width:780px){
+  .inspiration-carousel-shell .pv-inspiration-quick-filters{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .inspiration-carousel-shell .pv-inspiration-quick-filters button{transition:none}
+}
+
 .inspiration-carousel-shell .pv-inspiration-view-all{
   position:absolute;right:0;top:-40px;z-index:5;
   padding:5px 0 7px;appearance:none;background:transparent;

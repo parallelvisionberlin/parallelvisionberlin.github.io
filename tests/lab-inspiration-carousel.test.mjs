@@ -19,7 +19,7 @@ test('both Image Inspiration entrances share the approved Chrome Couture and Clo
   assert.equal((html.match(/data-inspiration-nav="prev"/g)||[]).length,2);
   assert.equal((html.match(/data-inspiration-nav="next"/g)||[]).length,2);
   assert.match(html,/inspiration-carousel\.css\?v=20261118-mobile-inertia2/);
-  assert.match(html,/inspiration-carousel\.js\?v=20261117-inertia1/);
+  assert.match(html,/inspiration-carousel\.js\?v=20261121-filters1/);
   assert.match(html,/id="lab-welcome-presets"/);
   const guest=[...html.matchAll(/data-guest-mood="([^"]+)"/g)].map(match=>match[1]);
   const signed=[...html.matchAll(/data-welcome-mood="([^"]+)"/g)].map(match=>match[1]);
@@ -42,6 +42,7 @@ test('carousel shows six unchanged-sized cards on wide desktop and two on mobile
   assert.match(js,/track\.scrollWidth-track\.clientWidth/);
   assert.match(js,/ResizeObserver/);
   assert.match(js,/prev\.hidden=/);
+  assert.match(js,/button:not\(\[hidden\]\)/,'Navigation must measure a visible card after filtering');
   assert.match(js,/next\.hidden=/);
   assert.match(js,/prev\.disabled=/);
   assert.match(js,/next\.disabled=/);
@@ -67,7 +68,7 @@ test('both Inspiration rows support mouse-wheel browsing without trapping page s
   assert.doesNotMatch(js,/lastWheelStep|230/);
   assert.match(read('inspiration-carousel.css'),/scroll-snap-type:none/);
   assert.match(js,/\},\{passive:false\}\)/);
-  assert.match(html,/inspiration-carousel\.js\?v=20261117-inertia1&inspirationCatalog=20261117-owner1&noNativeTips=20261118v1/);
+  assert.match(html,/inspiration-carousel\.js\?v=20261121-filters1&inspirationCatalog=20261121-filter1&noNativeTips=20261118v1/);
 });
 test('vertical wheel gestures glide by pixels, accumulate, and release the page at both ends',()=>{
   const code=read('inspiration-carousel.js').replace(/^import [^\n]+\n/,'');
