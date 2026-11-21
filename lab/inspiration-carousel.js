@@ -1,4 +1,4 @@
-import './inspiration-catalog.js?v=20261118-no-native-titles1';
+import './inspiration-catalog.js?v=20261121-filter1';
 // Visual browsing only. No automatic Mood changes, uploads, credits or API calls.
 for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   const track=shell.querySelector('.pv-guest-cards,.lab-welcome-presets');
@@ -17,7 +17,7 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   const queue=()=>{if(!frame)frame=requestAnimationFrame(update)};
   const move=direction=>{
     stopWheel();
-    const first=track.querySelector(':scope > button');
+    const first=track.querySelector(':scope > button:not([hidden])');
     if(!first)return;
     const gap=parseFloat(getComputedStyle(track).columnGap)||0;
     const amount=first.getBoundingClientRect().width+gap;
