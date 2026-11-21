@@ -6,6 +6,10 @@ const art=/\b(illustration|painting|watercolou?r|sketch|drawing|anime|cartoon|pi
 const fashion=/\b(fashion|editorial|lookbook|runway|couture|model|lingerie|underwear|outfit|wardrobe|garment|dress|lace|streetwear|bodysuit)\b/i;
 const human=/\b(woman|women|man|men|person|people|portrait|face|eyes?|skin|body|human|girl|boy|her|his|she|he|bedroom|lying on (her|his) side|kneeling)\b/i;
 const photograph=/\b(photo(graph(y|ic)?)?|photoreal\w*|camera|lens|35mm|film.still|snapshot|selfie|candid|realistic|lightroom)\b/i;
+// Text-only signals, not an image analysis or a claim that an output was inspected.
+const multiplePeople=/\b(?:couple|partners|lovers|people|men|women|(?:two|three|four|several|multiple)\s+(?:people|persons|adults|men|women|models|subjects)|group of (?:people|adults|men|women|models|subjects))\b/i;
+const pairedPeople=text=>/\b(?:man|male|boyfriend|husband)\b/i.test(text)&&/\b(?:woman|female|girlfriend|wife)\b/i.test(text);
+const authoredLighting=/\b(?:light(?:ing)?|sunlight|sunlit|flash|backlit|neon|tungsten|fluorescent|golden.hour|blue.hour)\b/i;
 const role=x=>typeof x==='string'?x:(x?.role||'none');
 export function referenceRoleAdvisories(labels=[]){
  const roles=labels.map(role),count=name=>roles.filter(r=>r===name).length,notes=[];
@@ -30,13 +34,14 @@ export function imageQualityGuidance(direction='',labels=[],settings={},currentL
    return fidelity.length<=limit-currentLength-(settings.moodId?750:50)?fidelity:'';
  }
  const identity=roles.includes('identity'),body=roles.includes('body');
- const person=identity||body||human.test(text);
+ const multiSubject=multiplePeople.test(text)||pairedPeople(text);
+ const person=identity||body||human.test(text)||multiSubject;
  const isArt=art.test(text),isProduct=!person&&product.test(text),isFashion=!isArt&&fashion.test(text);
  const portrait=!isArt&&!isProduct&&person,short=text.length<260,photo=!isArt&&!isProduct&&((portrait||isFashion)||photograph.test(text));
  const parts=[];
  if(identity||body)parts.push('IDENTITY FIRST: '+[
    identity?'Assigned Identity photos control recognizable facial structure, natural eye shape and color, hairline and hairstyle.':'',
-   body?'Assigned Body photos control the existing build and proportions.':'',
+   body?'Assigned Body photos control the existing build and proportions. Keep the referenced silhouette, waist, chest, hips, glutes and limb proportions coherent across camera angles; never reshape the body without an explicit request.':'',
    'Apply assigned properties to the subject specified by the user. Preserve other people in the Base unless the user requests an edit to them. Avoid automatic beautification.'
  ].filter(Boolean).join(' '));
  if(isProduct&&short)parts.push('PRODUCT DIRECTION: Preserve actual object geometry, construction, markings and materials. Use physically consistent perspective, highlights and shadows; do not invent labels or accessories.');
@@ -44,6 +49,10 @@ export function imageQualityGuidance(direction='',labels=[],settings={},currentL
  else if(isFashion&&short)parts.push('FASHION DIRECTION: Use a believable, intentional pose instead of generic catalogue posing. Preserve clothing and styling, with natural fabric tension, folds and responsive lighting.');
  else if(portrait&&short)parts.push('PORTRAIT DIRECTION: Purposeful framing, believable posture and an expression consistent with the requested moment. Preserve the specified pose, setting and lighting.');
  else if(!person&&!isArt&&!isProduct&&photograph.test(text)&&short)parts.push('PHOTOGRAPHIC DIRECTION: Keep perspective, physical scale, light and materials consistent with the requested scene.');
+ if(photo&&person&&multiSubject)parts.push('MULTI-PERSON GEOMETRY: Depict each person as one separate, anatomically continuous body with correct ownership of every visible arm, leg, hand and joint. Match the requested camera angle, pose and spatial relationship. Where subjects touch, align hands, limbs, body weight, balance, pressure and support with plausible contact and occlusion; do not invent anatomy concealed behind another body. Keep each assigned face and body reference tied to its own subject, without merging identities or physiques.');
+ // A subtle consistency instruction, not an unsolicited new studio-lighting style.
+ if(photo&&person&&short&&!settings.moodId&&!roles.includes('lighting')&&!authoredLighting.test(text))
+   parts.push('EDITORIAL LIGHT COHERENCE: Keep light motivated by the requested location, with consistent shadow direction, ambient fill and realistic skin highlights. Preserve the chosen atmosphere and color grade; avoid artificial glamour relighting or synthetic gloss.');
  if(photo&&person){
    // Krea, Qwen and Nano interpret extensive instructions differently from Seedream.
    // Use brief fidelity guidance for them; do not override an authored artistic direction.

@@ -43,3 +43,43 @@ test('Base plus Character respects a targeted identity replacement',()=>{
  assert.match(prompt,/Preserve other people in the Base/);
  assert.doesNotMatch(prompt,/No beautification, face swapping|Do not change expression, pose, age, outfit or person|Keep the reference face and anatomy intact/);
 });
+
+test('Seedream 5.5 adds contextual body-contact geometry without changing a two-person direction',()=>{
+ const direction='Candid photograph of a man and a woman embracing on a sofa.';
+ const p=compileImagePrompt(direction,[{role:'identity',name:'face.png'},{role:'body',name:'physique.png'}],s({engine:'seedream55'}));
+ assert.ok(p.includes(direction));
+ assert.match(p,/MULTI-PERSON GEOMETRY/);
+ assert.match(p,/ownership of every visible arm, leg, hand and joint/);
+ assert.match(p,/concealed behind another body/);
+ assert.match(p,/Keep the referenced silhouette, waist, chest, hips, glutes/);
+ assert.match(p,/EDITORIAL LIGHT COHERENCE/);
+ assert.ok(p.length<=5000);
+});
+test('single-person editorial images retain identity and lighting without a multi-person intervention',()=>{
+ const p=compileImagePrompt('Candid hotel photograph of a woman reclining on a bed.',[{role:'identity',name:'face.png'},{role:'body',name:'body.png'}],s({engine:'seedream55'}));
+ assert.match(p,/IDENTITY FIRST/);
+ assert.match(p,/EDITORIAL LIGHT COHERENCE/);
+ assert.doesNotMatch(p,/MULTI-PERSON GEOMETRY/);
+});
+test('couples, authored lighting, moods and exact prompts keep their own priorities',()=>{
+ const direction='A couple kissing under harsh red neon light in a bedroom.';
+ const pair=compileImagePrompt(direction,[],s({engine:'seedream55'}));
+ assert.match(pair,/MULTI-PERSON GEOMETRY/);
+ assert.doesNotMatch(pair,/EDITORIAL LIGHT COHERENCE/);
+ const mood=compileImagePrompt('A couple embracing in a portrait.',[],s({engine:'seedream55',moodId:'night-flash'}));
+ assert.match(mood,/MULTI-PERSON GEOMETRY/);
+ assert.doesNotMatch(mood,/EDITORIAL LIGHT COHERENCE/);
+ const exact=compileImagePrompt(direction,[],s({engine:'seedream55',exactPrompt:true}));
+ assert.equal(exact,direction);
+});
+test('artwork, products and full prompt budgets receive no extra realistic scene styling',()=>{
+ for(const direction of ['Watercolor painting of a couple','Product photograph of two perfume bottles']){
+  const prompt=compileImagePrompt(direction,[],s({engine:'seedream55'}));
+  assert.doesNotMatch(prompt,/MULTI-PERSON GEOMETRY|EDITORIAL LIGHT COHERENCE/);
+ }
+ const direction='Photograph of a man and a woman together. '+('x'.repeat(4850));
+ assert.equal(compileImagePrompt(direction,[],s({engine:'seedream55'})),direction);
+ const lite=compileImagePrompt('Candid photograph of two people hugging.',[],s({engine:'seedreamlite'}));
+ assert.ok(lite.length<=3000);
+ assert.match(lite,/MULTI-PERSON GEOMETRY/);
+});
