@@ -171,7 +171,7 @@ test('filtered gallery preserves the original All carousel and never edits Image
   assert.match(js,/cardIds\.has\(item\.id\)/);
   assert.match(js,/button\.addEventListener\('click',\(\)=>showCategory\(category\)\)/);
   assert.match(js,/track\.dispatchEvent\(new Event\('scroll'\)\)/);
-  assert.match(css,/top:-39px;left:0;right:108px/);
+  assert.match(css,/top:-39px;left:clamp\(340px,28vw,420px\);right:108px/);
   assert.match(css,/button\[hidden\]\{display:none!important\}/);
   assert.doesNotMatch(js,/submitImage|generateImage|createGeneration|createCheckout|\/api\//);
 });
