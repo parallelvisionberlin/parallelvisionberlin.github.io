@@ -9,7 +9,7 @@ import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finan
 import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261106-activity3';
 import {renderOwnerPagination} from './owner-pagination.js?v=20261025-paged1';
 import {createOwnerGenerationReviewUI} from './owner-generation-review-ui.js?v=20261017-v1';
-import {createOwnerCustomerInspectionUI} from './owner-customer-inspection-ui.js?v=20261102-quality1';
+import {createOwnerCustomerInspectionUI} from './owner-customer-inspection-ui.js?v=20261121-inspect1';
 import {createOwnerAuthGuard} from './owner-auth-guard.js?v=20261017-stability1';
 const $=id=>document.getElementById(id);
 const apiBase='https://parallel-vision-lab.parallelvision.workers.dev';
