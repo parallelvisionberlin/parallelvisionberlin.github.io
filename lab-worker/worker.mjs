@@ -51,7 +51,7 @@ import {seedreamLiteParameters,seedreamLiteInput,SEEDREAM_LITE_TEXT,SEEDREAM_LIT
 import {creditsForJobUsd,isFixedTransformRetail,TRANSFORM_FIXED_RETAIL_VERSION,isFixedReferenceRetail,REFERENCE_FIXED_RETAIL_VERSION} from './job-pricing.mjs';
 import {settledProviderCostMicros} from './spicy-settlement-cost.mjs';
 import {NANO21_MODEL,NANO21_STANDARD_MICROS,nano21Request,nano21ImagePart} from './nano-banana-21.mjs';
-import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
+import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,isBlockedFalInpaintingResult,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
 import {falUpscaleParameters,storedImageDimensions,setFalUpscaleDimensions,falUpscaleEstimateMicros,buildFalUpscaleInput} from './fal-upscale.mjs';
 import {videoSourceUploadRoute,abandonVideoUpload,VIDEO_UPLOAD_PENDING} from './video-source-upload.mjs';
@@ -1117,10 +1117,24 @@ async function refreshGeminiJob(env,j,p){
 function falOutputUrl(result,isVideo){
   return isVideo?(result?.video?.url||result?.videos?.find?.(x=>typeof x?.url==='string'&&x.url)?.url):(result?.images?.find?.(x=>typeof x?.url==='string'&&x.url)?.url||result?.image?.url);
 }
+// A completed HTTP 200 is not a usable edit when fal.ai explicitly flags
+// its inpainting image as blocked. The existing D1 failed-state trigger refunds
+// customer credits exactly once; delete spend to release the owner budget hold.
+async function rejectBlockedFalEdit(env,j,p,result){
+  if(!isBlockedFalInpaintingResult(p,result))return false;
+  const message='The image provider blocked this edit and returned an unusable result. Any charged PV LAB credits were refunded automatically.';
+  await env.LAB_DB.batch([
+    stmt(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=? AND state IN ('queued','running','saving')",message,now(),j.id),
+    stmt(env,'DELETE FROM spend WHERE job_id=?',j.id)
+  ]);
+  return true;
+}
 async function recoverFalOutput(env,j,p){
   if(!env.FAL_KEY||!j.provider_id)return false;
   const endpoint=p.model||FAL_CONTROLLED_POSE;
-  const result=await falResult(endpoint,env.FAL_KEY,j.provider_id),output=falOutputUrl(result,p.type==='video');
+  const result=await falResult(endpoint,env.FAL_KEY,j.provider_id);
+  if(await rejectBlockedFalEdit(env,j,p,result))return true;
+  const output=falOutputUrl(result,p.type==='video');
   if(typeof output!=='string'||!output)return false;
   const safe=safeVideoUrl(output);
   await env.LAB_DB.batch([
@@ -1153,6 +1167,7 @@ async function refreshFalJob(env,j,p){
     if(state==='COMPLETED'){
       resultPhase=true;
       const result=await falResult(endpoint,env.FAL_KEY,j.provider_id),isVideo=p.type==='video';
+      if(await rejectBlockedFalEdit(env,j,p,result))return;
       const output=falOutputUrl(result,isVideo);
       if(typeof output!=='string'||!output)throw new Error('fal.ai completed without a compatible '+(isVideo?'video':'image')+' output.');
       const safe=safeVideoUrl(output);
