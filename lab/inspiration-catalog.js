@@ -2,14 +2,15 @@
 // No automatic generation, credit changes, uploads or model/provider changes.
 import {INSPIRATION_SCENES} from './inspiration-catalog-data.js?v=20261117-owner1';
 import {OWNER_ORIGINAL_HOVER_FRAMES} from './inspiration-owner-scenes.js?v=20261117-owner1';
-const categories=['All','Original','Cinema','After Hours','Fashion','Analog','Street','Future','Intimacy','Atmospheres'];
+import {INSPIRATION_FILTERS,inspirationCategories} from './inspiration-filter-groups.js?v=20261121-filter1';
+const categories=INSPIRATION_FILTERS;
 const priority=['lost-highway','desert-stop','raver','eros-lingerie','hotel-intimacy','post-human','desert-sculptures','chrome-skin','berlin-club','italian-1963','tokyo-4am','red-room'];
 const rank=new Map(priority.map((id,index)=>[id,index]));
 const sorted=[...INSPIRATION_SCENES].sort((a,b)=>(rank.get(a.id)??100)-(rank.get(b.id)??100));
 const originals=[...document.querySelectorAll('#pv-guest-cards > [data-guest-mood]')].map(button=>({
   id:button.dataset.guestMood,
   title:button.querySelector('span')?.firstChild?.textContent?.trim()||'Inspiration',
-  category:'Original',
+  category:inspirationCategories({id:button.dataset.guestMood,original:true})[0],
   cover:button.querySelector('img')?.getAttribute('src'),
   original:true
 }));
@@ -114,13 +115,13 @@ function openAll(){
     function render(){
       gallery.replaceChildren();
       for(const item of entries){
-        if(category!=='All'&&item.category!==category)continue;
+        if(category!=='All'&&!inspirationCategories(item).includes(category))continue;
         const button=document.createElement('button');button.type='button';
         button.className='pv-inspiration-catalog-card';button.setAttribute('aria-label','Select '+item.title);
         if(!item.original){button.dataset.inspirationConcept=item.id;button.setAttribute('aria-pressed','false');}
         button.append(photo(item));
         const name=document.createElement('strong');name.textContent=item.title;
-        const sub=document.createElement('small');sub.textContent=item.category;
+        const sub=document.createElement('small');sub.textContent=inspirationCategories(item)[0];
         button.append(name,sub);
         button.onclick=()=>{
           if(item.original){
@@ -175,11 +176,55 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
       originalHoverFrames[button.dataset.guestMood||button.dataset.welcomeMood];
     installHoverPreview(button,cover);
   }
+  // Keep the original featured All carousel exactly as authored. A category
+  // reveals additional matching catalog scenes only on demand.
+  const featuredCards=[...track.querySelectorAll(':scope > button')];
+  const featuredSet=new Set(featuredCards);
+  const cardIds=new Set(featuredCards.map(button=>
+    button.dataset.inspirationConcept||button.dataset.guestMood||button.dataset.welcomeMood));
+  const scenesById=new Map(entries.map(item=>[item.id,item]));
+  const filterRail=document.createElement('div');
+  filterRail.className='pv-inspiration-quick-filters';
+  filterRail.setAttribute('role','group');
+  filterRail.setAttribute('aria-label','Filter Inspiration by visual family');
+  const filterButtons=[];
+  function showCategory(category){
+    if(category!=='All'){
+      for(const item of entries){
+        if(item.original||cardIds.has(item.id)||!inspirationCategories(item).includes(category))continue;
+        const card=carouselCard(item,guest);
+        track.append(card);cardIds.add(item.id);
+        installHoverPreview(card,item.examples?.length>1?item.examples[1].cover:originalHoverFrames[item.id]);
+      }
+    }
+    for(const card of track.querySelectorAll(':scope > button')){
+      if(category==='All'){
+        card.hidden=!featuredSet.has(card);
+      }else{
+        const id=card.dataset.inspirationConcept||card.dataset.guestMood||card.dataset.welcomeMood;
+        card.hidden=!inspirationCategories(scenesById.get(id)).includes(category);
+      }
+    }
+    for(const button of filterButtons)
+      button.setAttribute('aria-pressed',String(button.dataset.category===category));
+    track.scrollLeft=0;
+    // The existing arrow controller recalculates overflow on scroll.
+    track.dispatchEvent(new Event('scroll'));
+  }
+  for(const category of categories){
+    const button=document.createElement('button');
+    button.type='button';button.dataset.category=category;
+    button.textContent=category;
+    button.setAttribute('aria-pressed',String(category==='All'));
+    button.addEventListener('click',()=>showCategory(category));
+    filterRail.append(button);filterButtons.push(button);
+  }
+  shell.append(filterRail);
   const viewAll=document.createElement('button');
   viewAll.type='button';viewAll.className='pv-inspiration-view-all';
   viewAll.textContent='Explore all';viewAll.setAttribute('aria-label','Explore all Inspiration looks');
   viewAll.addEventListener('click',openAll);shell.append(viewAll);
 }
 const stylesheet=document.createElement('link');
-stylesheet.rel='stylesheet';stylesheet.href='./inspiration-catalog.css?v=20261117-owner1';
+stylesheet.rel='stylesheet';stylesheet.href='./inspiration-catalog.css?v=20261121-filter1';
 document.head.append(stylesheet);
