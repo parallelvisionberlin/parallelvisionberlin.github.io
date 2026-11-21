@@ -1,3 +1,12 @@
+## 2026-11-21 | Contextual human coherence in Image Enhance Prompt (implementation review)
+
+- Owner-approved extension of the existing deterministic, no-extra-inference prompt-quality system. Keep Seedream 5.5 and the existing model/pricing/credit flow unchanged.
+- For authored photographic multi-person scenes, add distinct-body limb ownership, joint/contact geometry, natural weight, occlusion and per-subject reference fidelity. Text signals are conservative; the system does **not** inspect the generated image or automatically detect its defects.
+- For relevant short human/photo prompts without explicit lighting or a Mood lighting treatment, add restrained scene-motivated editorial light and shadow consistency, preserving the user's grade. Body-role references retain body silhouette and volume across viewpoints. Single-person scenes avoid the multi-person addition.
+- Exact Prompt, photo-only Base fallback, user direction, explicit lighting, art, product prompts and prompt-length safety remain authoritative. No additional paid jobs or API analysis.
+- Files: `lab/prompt-quality.js`, `lab/reference-guidance.js`, `lab/mood-references.js`, `lab/lab.js`, `lab/studio.html`, `tests/lab-smart-prompts.test.mjs`. Browser import revisions ensure the shared preview loads the changed quality guidance; Worker imports source directly.
+- Branch: `feat/image-contextual-human-coherence-20261121`. Baseline main: `97f543a6abf3b4a258c0cd8870c092aa2ae13bd2`. Source changes prepared for GitHub review; CI, Cloudflare Pages, production asset bytes and signed-in generated results must be verified independently.
+
 ## 2026-11-15 | Desktop Inspiration correction, published
 
 - Supersedes the November 6 desktop lift/whole-card-clearance rule: owner requires heading/cards to stay still while typing. Phone adjustment remains byte-identical.

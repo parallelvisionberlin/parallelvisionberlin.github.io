@@ -1,5 +1,5 @@
 // Shared by the image UI and Worker so the preview matches the submitted prompt.
-import {imageQualityGuidance,referenceRoleAdvisories} from './prompt-quality.js?photoOnlyAnatomy=20261022v1&seedream55=1';
+import {imageQualityGuidance,referenceRoleAdvisories} from './prompt-quality.js?photoOnlyAnatomy=20261022v1&seedream55=1&humanCoherence=20261121v1';
 import {hongKongReferenceCount,hongKongReferenceError,hongKongReferenceGuidance} from './hong-kong-reference-policy.js?hkBalanced=20261023v1&hkCinema=20261025v1&seedream55=1';
 import {compactReviewedReplacementPrompt} from './viewer-replacement-prompt.js?v=20261108-compact1';
 export {referenceRoleAdvisories};

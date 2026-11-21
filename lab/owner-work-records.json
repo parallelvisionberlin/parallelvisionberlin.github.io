@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T23:41:32.781Z",
+  "updatedAt": "2026-11-21",
   "handoffs": [
     {
       "id": "owner",
@@ -4715,6 +4715,53 @@
       ],
       "updatedAt": "2026-11-19",
       "evidence": []
+    },
+    {
+      "id": "image-contextual-human-coherence",
+      "title": "Contextual anatomy and editorial light for Image Enhance Prompt",
+      "component": "Image prompt quality",
+      "status": "in_progress",
+      "summary": "Seedream 5.5 and shared Image engines receive text-contextual multi-person anatomy/contact guidance, body-role continuity and restrained editorial lighting where no lighting intent or Mood was specified. No model or billing changes. No output-image inspection or additional paid inference.",
+      "nextAction": "Review PR and targeted prompt tests; then verify Cloudflare Pages deployment and production bytes separately. Real generated-image fidelity remains unverified.",
+      "baselineSha": "97f543a6abf3b4a258c0cd8870c092aa2ae13bd2",
+      "reviewedSha": null,
+      "branch": "feat/image-contextual-human-coherence-20261121",
+      "files": [
+        "lab/prompt-quality.js",
+        "lab/reference-guidance.js",
+        "lab/mood-references.js",
+        "lab/lab.js",
+        "lab/studio.html",
+        "tests/lab-smart-prompts.test.mjs",
+        "lab/IMAGE-PROMPT-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Image prompt scope",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Targeted smart-prompt and image UI contract checks",
+          "result": "not_run",
+          "scope": "Await GitHub PR CI; no local full repository available in this tool environment."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "Source work is not a production deployment. No paid generation or real-account comparison was made."
+        ]
+      },
+      "evidence": [],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not remove Exact Prompt, rewrite authored lighting, change Mood/role semantics, or add provider calls.",
+        "Do not treat text-conditional guidance as automated image-defect detection."
+      ],
+      "updatedAt": "2026-11-21"
     }
   ]
 }
