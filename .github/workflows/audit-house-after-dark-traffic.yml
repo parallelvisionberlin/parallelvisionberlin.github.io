@@ -32,6 +32,12 @@ jobs:
             (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view' AND source IN ('meta','facebook','instagram')) AS ads_source_views,
             (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='click' AND source IN ('meta','facebook','instagram')) AS ads_source_clicks,
             (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view' AND source='direct') AS direct_views,
+            (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view' AND day_utc>='2026-11-20') AS trial_views,
+            (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='click' AND service='spotify' AND day_utc>='2026-11-20') AS trial_spotify,
+            (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view' AND source IN ('meta','facebook','instagram') AND day_utc>='2026-11-20') AS trial_meta_views,
+            (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='click' AND service='spotify' AND source IN ('meta','facebook','instagram') AND day_utc>='2026-11-20') AS trial_meta_spotify,
+            (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND campaign='house_after_dark' AND event='view' AND day_utc>='2026-11-20') AS utm_campaign_views,
+            (SELECT COALESCE(SUM(count),0) FROM music_link_daily WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND campaign='house_after_dark' AND event='click' AND service='spotify' AND day_utc>='2026-11-20') AS utm_campaign_spotify,
             (SELECT COALESCE(SUM(count),0) FROM music_analytics_hourly WHERE release_id=(SELECT id FROM music_releases WHERE slug='house-after-dark') AND event='view') AS detailed_views`;
           const response=await fetch(url,{
             method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
@@ -57,6 +63,12 @@ jobs:
           console.log('Recent visit attribution receipts:',result.recent_matched_views>0?'YES':'NO');
           console.log('Detailed hourly views recorded:',result.detailed_views>0?'YES':'NO');
           console.log('Counter consistency:',result.aggregate_views===result.detailed_views?'MATCH':'MISMATCH');
+          console.log('Trial public visits since Nov 20:',result.trial_views);
+          console.log('Trial public Spotify clicks since Nov 20:',result.trial_spotify);
+          console.log('Trial Meta-source visits since Nov 20:',result.trial_meta_views);
+          console.log('Trial Meta-source Spotify clicks since Nov 20:',result.trial_meta_spotify);
+          console.log('House After Dark UTM visits since Nov 20:',result.utm_campaign_views);
+          console.log('House After Dark UTM Spotify clicks since Nov 20:',result.utm_campaign_spotify);
           // Read-only DNS check: can we support automatic clean paths using an isolated Worker?
           try{
             const zoneResponse=await fetch('https://api.cloudflare.com/client/v4/zones?name=parallelvisionlabel.com',{headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(12000)});
