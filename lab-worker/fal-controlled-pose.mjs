@@ -106,6 +106,14 @@ export function buildControlledPoseInput(p,{poseMapUrl,identityUrls}){
   };
 }
 
+// fal's FLUX inpainting schema documents that unsafe outputs are blacked out.
+// Only treat its explicit moderation signal as terminal: dark pixels alone
+// are not evidence of failure (night photography and dark clothing are valid).
+export function isBlockedFalInpaintingResult(p,result){
+  return p?.type==='image'&&p?.provider==='fal'&&p?.model===FAL_CONTROLLED_INPAINT&&
+    Array.isArray(result?.has_nsfw_concepts)&&result.has_nsfw_concepts.some(flag=>flag===true);
+}
+
 export function buildRepairInput(p,{imageUrl,maskUrl,poseMapUrl=null,identityUrls=[]}){
   const easycontrols=[];
   if(poseMapUrl)easycontrols.push({control_method_url:'pose',scale:p.poseStrength,image_url:poseMapUrl,image_control_type:'spatial'});
