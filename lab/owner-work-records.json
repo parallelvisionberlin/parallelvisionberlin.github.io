@@ -4393,28 +4393,36 @@
         },
         {
           "label": "GitHub Actions",
-          "result": "queued",
+          "result": "not_run",
           "scope": "Beauty Studio, approved Image UI, Lab integration and other repository Actions remained queued; no pass claimed."
         }
       ],
       "deployment": {
-        "status": "cloudflare_success",
+        "state": "verified",
+        "environment": "Cloudflare Pages pvlab-studio",
         "sourceSha": "f4362ccbf2e7087597282b98756fdf4767fb126b",
-        "project": "pvlab-studio",
-        "checkUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/f5fb9d95-9bfd-4cfc-897a-671035b90f58",
-        "completedAt": "2026-11-18T00:00:24Z",
-        "verifiedVia": "Cloudflare Pages GitHub check-run; direct public-domain browser/byte verification unavailable"
+        "observedAt": "2026-11-18T00:00:24Z",
+        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/f5fb9d95-9bfd-4cfc-897a-671035b90f58",
+        "limitations": [
+          "Exact-commit Cloudflare Pages app check succeeded; public-domain byte verification and authenticated UI behavior remain unverified."
+        ]
       },
       "evidence": [
         {
-          "kind": "production_app_check",
-          "summary": "Cloudflare Pages deployment completed successfully for exact merge f4362cc",
-          "url": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/f5fb9d95-9bfd-4cfc-897a-671035b90f58"
+          "kind": "deployment",
+          "summary": "Cloudflare Pages deployment check succeeded for exact merge commit",
+          "scope": "GitHub app check for merge f4362ccbf2e7087597282b98756fdf4767fb126b; not a signed-in production test.",
+          "source": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/f5fb9d95-9bfd-4cfc-897a-671035b90f58",
+          "limitations": [
+            "Live custom-domain bytes not independently verified."
+          ]
         },
         {
-          "kind": "source_pr",
+          "kind": "source",
           "summary": "PR #1039 merged",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1039"
+          "scope": "Source change and merge reference.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/1039",
+          "limitations": []
         }
       ],
       "blockers": [

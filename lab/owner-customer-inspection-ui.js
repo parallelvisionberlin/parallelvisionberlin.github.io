@@ -29,6 +29,10 @@ export function createOwnerCustomerInspectionUI({call,request,ownerReady,revisio
     }
     const status=el('p','owner-inspect-status','Loading retained generations…');status.setAttribute('role','status');
     const viewer=el('div','owner-inspect-viewer');viewer.hidden=true;
+    viewer.setAttribute('role','dialog');viewer.setAttribute('aria-label','Generation details');
+    viewer.addEventListener('keydown',event=>{
+      if(event.key==='Escape'&&!viewer.hidden){event.preventDefault();event.stopPropagation();const close=viewer.querySelector('.owner-inspect-close');close?.click();}
+    });
     const grid=el('div','owner-inspect-grid');
     const nav=el('nav','owner-inspect-pagination');nav.setAttribute('aria-label','Generation pages');
     const previous=el('button','owner-inspect-action','Previous'),next=el('button','owner-inspect-action','Next'),count=el('span','');
@@ -43,26 +47,142 @@ export function createOwnerCustomerInspectionUI({call,request,ownerReady,revisio
       if(viewerUrl){URL.revokeObjectURL(viewerUrl);urls.delete(viewerUrl);viewerUrl=null;}
     }
     const money=value=>Number.isFinite(Number(value))?'$'+Number(value).toFixed(4):'Not recorded';
-    function info(item){
+    const readableKey={resolution:'Resolution',aspectRatio:'Aspect ratio',referenceMode:'Reference mode',outputFormat:'Output format',duration:'Duration',audio:'Audio',quality:'Quality',processing:'Processing',seed:'Seed',strength:'Strength',identityStrength:'Identity strength',generationMode:'Generation mode',count:'Image count',batchCount:'Batch count'};
+    const formatValue=value=>typeof value==='boolean'?(value?'On':'Off'):String(value);
+    const costValue=item=>item.costKind==='settled'?money(item.providerCostUsd):
+      item.costKind==='unconfirmed'?'Unconfirmed':money(item.estimatedCostUsd)+' estimated';
+    function labeledCard(title,tag,content,note){
+      const card=el('section','owner-inspect-detail-card');
+      const head=el('div','owner-inspect-detail-card-head');
+      head.append(el('h4','',title),el('span','owner-inspect-source-tag',tag));
+      card.append(head,content);
+      if(note)card.append(el('p','owner-inspect-detail-note',note));
+      return card;
+    }
+    function compactInfo(item){
       const body=el('div','owner-inspect-info');
-      body.append(el('strong','',item.feature||'Feature unrecorded'),
-        el('small','',[item.mood&&'Mood: '+item.mood,item.state,formatDate(item.createdAt)].filter(Boolean).join(' · ')),
-        el('p','owner-inspect-model',(item.model||'Model not recorded')+' · '+(item.provider||'Provider not recorded')));
-      body.append(el('span','owner-inspect-key',item.promptSource==='saved-provider-request'?'Saved provider prompt':'Stored job prompt'),
-        el('p','owner-inspect-prompt',item.prompt||'No prompt recorded.'));
-      if(item.promptSource!=='saved-provider-request')body.append(el('small','owner-inspect-note','Exact compiled provider prompt was not retained for this job.'));
-      if(item.originalDirection&&item.originalDirection!==item.prompt)
-        body.append(el('span','owner-inspect-key','Original user direction'),el('p','owner-inspect-prompt',item.originalDirection));
-      if(item.storedPrompt&&item.storedPrompt!==item.prompt&&item.storedPrompt!==item.originalDirection)
-        body.append(el('span','owner-inspect-key','Stored job prompt'),el('p','owner-inspect-prompt',item.storedPrompt));
-      body.append(el('span','owner-inspect-key','Settings'),el('p','owner-inspect-settings',
-        Object.entries(item.settings||{}).map(([key,value])=>key+': '+value).join(' · ')||'No settings recorded.'));
-      const charged=Number(item.chargedCredits)||0,refunded=Number(item.refundedCredits)||0;
-      body.append(el('p','owner-inspect-finance',charged+' credits charged · '+refunded+' refunded · '+(charged-refunded)+' net'),
-        el('p','owner-inspect-finance',item.costKind==='settled'?'Provider cost (settled): '+money(item.providerCostUsd):
-          'Provider cost '+(item.costKind==='unconfirmed'?'unconfirmed':'estimated')+' · Reservation estimate: '+money(item.estimatedCostUsd)),
-        el('small','', 'Updated: '+formatDate(item.updatedAt)+' · '+item.jobId));
+      body.append(el('strong','',item.feature||'Generation'));
+      body.append(el('small','',[item.state,formatDate(item.createdAt)].filter(Boolean).join(' · ')));
+      body.append(el('p','owner-inspect-model',(item.model||'Model not recorded')+' · '+(item.provider||'Provider not recorded')));
+      const prompt=item.originalDirection||item.storedPrompt||item.prompt||'No prompt recorded.';
+      body.append(el('p','owner-inspect-card-excerpt',prompt.length>145?prompt.slice(0,145).trimEnd()+'…':prompt));
+      const settings=item.settings||{},referenceCount=Number(settings.referencesCount)||0,charged=Number(item.chargedCredits)||0,refunded=Number(item.refundedCredits)||0;
+      body.append(el('p','owner-inspect-card-foot',
+        referenceCount+' image reference'+(referenceCount===1?'':'s')+' · '+
+        (item.mood||settings.moodId||'No Mood recorded')+' · '+(charged-refunded)+' net credits'));
+      body.append(el('small','owner-inspect-card-cost',
+        'Provider cost ('+(item.costKind==='settled'?'settled':item.costKind==='unconfirmed'?'unconfirmed':'estimated')+'): '+costValue(item)));
+      const action=el('button','owner-inspect-detail-open','View generation details');action.type='button';
+      action.addEventListener('click',()=>void open(item,action));
+      body.append(action);
       return body;
+    }
+    function appendRow(parent,label,value){
+      const row=el('div','owner-inspect-setting-row');
+      row.append(el('dt','',label),el('dd','',formatValue(value)));
+      parent.append(row);
+    }
+    function detail(item,media,close){
+      const panel=el('div','owner-inspect-panel');
+      const top=el('header','owner-inspect-panel-head');
+      const heading=el('div','');
+      heading.append(el('span','owner-inspect-eyebrow','PRIVATE GENERATION REVIEW'));
+      const title=el('div','owner-inspect-title-line');
+      title.append(el('h3','',item.feature||'Generation'),el('span','owner-inspect-state',item.state||'Unrecorded'));
+      heading.append(title,el('p','owner-inspect-panel-meta',
+        'Completed / updated: '+formatDate(item.updatedAt||item.createdAt)+' · '+(item.model||'Model not recorded')+' · '+(item.provider||'Provider not recorded')));
+      top.append(heading,close);panel.append(top);
+      const columns=el('div','owner-inspect-panel-columns');
+      const side=el('div','owner-inspect-detail-side');
+      side.append(media);
+      const settings=item.settings||{};
+      const settingsCard=el('section','owner-inspect-side-card');
+      settingsCard.append(el('h4','','Settings'));
+      const list=el('dl','owner-inspect-settings-list');
+      for(const key of ['resolution','aspectRatio','referenceMode','outputFormat','duration','audio','quality','processing','seed','strength','identityStrength','generationMode','count','batchCount']){
+        if(settings[key]!==undefined&&settings[key]!==null&&settings[key]!=='')appendRow(list,readableKey[key],settings[key]);
+      }
+      if(!list.childElementCount)appendRow(list,'Settings','Not recorded');
+      settingsCard.append(list);
+      const visibleKeys=new Set(['resolution','aspectRatio','referenceMode','outputFormat','duration','audio','quality','processing','seed','strength','identityStrength','generationMode','count','batchCount','referencesCount','videoReferencesCount','audioReferencesCount','moodId','moodIntensity']);
+      const extra=Object.entries(settings).filter(([key,value])=>!visibleKeys.has(key)&&value!==undefined&&value!==null&&value!=='');
+      if(extra.length){
+        const advanced=el('details','owner-inspect-raw-request');
+        const more=el('dl','owner-inspect-settings-list');
+        extra.forEach(([key,value])=>appendRow(more,readableKey[key]||key,value));
+        advanced.append(el('summary','','All recorded settings'),more);settingsCard.append(advanced);
+      }side.append(settingsCard);
+      const finance=el('section','owner-inspect-side-card');
+      finance.append(el('h4','','Credits & cost'));
+      const stats=el('div','owner-inspect-credit-grid'),charged=Number(item.chargedCredits)||0,refunded=Number(item.refundedCredits)||0;
+      for(const [value,label] of [[charged,'Charged'],[refunded,'Refunded'],[charged-refunded,'Net credits'],[costValue(item),'Provider cost']]){
+        const stat=el('div','owner-inspect-credit-stat');
+        stat.append(el('strong','',value),el('span','',label));stats.append(stat);
+      }
+      finance.append(stats);side.append(finance);
+      const main=el('div','owner-inspect-detail-main');
+      const userPrompt=item.originalDirection||item.storedPrompt||'';
+      const userSource=item.originalDirection?'RECORDED ORIGINAL':'STORED JOB';
+      const userCardBody=el('p','owner-inspect-detail-prompt',userPrompt||'No direction was recorded.');
+      main.append(labeledCard(item.originalDirection?'Original customer direction':'Stored job prompt',
+        userSource,userCardBody,
+        item.originalDirection?'Original direction retained with the Mood metadata.':
+          'The exact untouched customer input was not separately retained. This job prompt may include composition instructions.'));
+      const providerSaved=item.promptSource==='saved-provider-request',providerPrompt=item.prompt||'';
+      const enhanceBody=el('div','owner-inspect-enhancement-body');
+      const base=item.storedPrompt||item.originalDirection||'',index=providerSaved&&base?providerPrompt.indexOf(base):-1;
+      const before=index>=0?providerPrompt.slice(0,index).trim():'';
+      const after=index>=0?providerPrompt.slice(index+base.length).trim():'';
+      if(providerSaved&&index>=0&&(before||after)){
+        enhanceBody.append(el('p','owner-inspect-enhancement-summary','The saved provider request contains additional instructions around the stored job prompt.'));
+        for(const [label,value] of [['Before the job prompt',before],['After the job prompt',after]]){
+          if(!value)continue;
+          const itemRow=el('div','owner-inspect-enhancement-excerpt');
+          itemRow.append(el('strong','',label),el('p','',value.length>310?value.slice(0,310).trimEnd()+'…':value));
+          enhanceBody.append(itemRow);
+        }
+      }else{
+        enhanceBody.append(el('p','owner-inspect-enhancement-summary',
+          providerSaved?'A provider request was saved, but its differences cannot be isolated reliably from the stored job prompt.':
+            'The exact final submitted provider prompt was not retained for this job.'));
+      }
+      if(providerSaved){
+        const raw=el('details','owner-inspect-raw-request'),summary=el('summary','','View exact saved provider prompt');
+        raw.append(summary,el('pre','',providerPrompt));enhanceBody.append(raw);
+      }
+      if(item.storedPrompt&&item.originalDirection&&item.storedPrompt!==item.originalDirection){
+        const composed=el('details','owner-inspect-raw-request');
+        composed.append(el('summary','','View composed job prompt'),el('pre','',item.storedPrompt));
+        enhanceBody.append(composed);
+      }
+      main.append(labeledCard('PV LAB / provider composition',providerSaved?'SAVED PROVIDER REQUEST':'NOT RETAINED',
+        enhanceBody,'Only verifiable differences are shown. Provider transformations are not inferred when no exact comparison exists.'));
+      const mood=el('section','owner-inspect-single-line');
+      mood.append(el('h4','','Mood'),el('strong','',item.mood||settings.moodId||'None recorded'));
+      if(settings.moodIntensity!==undefined)mood.append(el('span','',formatValue(settings.moodIntensity)+'% intensity'));
+      main.append(mood);
+      const references=el('section','owner-inspect-reference-card');
+      const refCount=Number(settings.referencesCount)||0,vidCount=Number(settings.videoReferencesCount)||0,audioCount=Number(settings.audioReferencesCount)||0;
+      const referenceHeader=el('div','owner-inspect-reference-head');
+      referenceHeader.append(el('h4','','References'),el('strong','',
+        refCount+' image'+(refCount===1?'':'s')+
+        (vidCount?' · '+vidCount+' video'+(vidCount===1?'':'s'):'')+
+        (audioCount?' · '+audioCount+' audio':'') ));
+      references.append(referenceHeader);
+      if(refCount){
+        const tiles=el('div','owner-inspect-reference-tiles');
+        for(let i=0;i<Math.min(refCount,20);i++){
+          const tile=el('div','owner-inspect-reference-tile');
+          tile.append(el('strong','',String(i+1).padStart(2,'0')),el('span','','Private input'));
+          tiles.append(tile);
+        }
+        references.append(tiles);
+      }else references.append(el('p','owner-inspect-detail-note','No image references recorded.'));
+      references.append(el('p','owner-inspect-detail-note','Input uploads remain private. The review shows their recorded count, not their photographs or unverified roles.'));
+      main.append(references);
+      main.append(el('p','owner-inspect-job-id','Job ID: '+item.jobId+' · Created '+formatDate(item.createdAt)));
+      columns.append(side,main);panel.append(columns);
+      return panel;
     }
     function resetMedia(){
       clearViewer();
@@ -72,11 +192,12 @@ export function createOwnerCustomerInspectionUI({call,request,ownerReady,revisio
       clearViewer();previewController=new AbortController();
       const preview=++previewSerial,currentPage=pageSerial,previewSignal=AbortSignal.any([signal,previewController.signal]);
       viewer.replaceChildren();viewer.hidden=false;
-      const close=el('button','owner-inspect-action','Close preview');close.type='button';
-      const media=el('div','owner-inspect-large','Loading private preview…');
+      const close=el('button','owner-inspect-close','Close preview');close.type='button';
+      const media=el('div','owner-inspect-large',item.hasPreview?'Loading private preview…':'Result unavailable for preview');
       close.addEventListener('click',()=>{clearViewer();button.focus();});
-      viewer.append(close,media,info(item));
-      viewer.scrollIntoView({block:'nearest',behavior:'instant'});
+      viewer.append(detail(item,media,close));
+      close.focus();
+      if(!item.hasPreview)return;
       try{
         const response=await request('/api/admin/customers/inspect-media?'+new URLSearchParams({customerId:customer.id,jobId:item.jobId}),
           {method:'GET',cache:'no-store',signal:previewSignal});
@@ -133,7 +254,7 @@ export function createOwnerCustomerInspectionUI({call,request,ownerReady,revisio
             media.textContent=item.mediaKind==='video'?'Open private video preview':'Loading thumbnail…';
             if(item.mediaKind==='image')targets.push({item,button:media});
           }else media.textContent=item.availability==='deleted-or-unavailable'?'Result deleted or unavailable':'No completed result · '+item.state;
-          card.append(media,info(item));grid.append(card);
+          card.append(media,compactInfo(item));grid.append(card);
         }
         let cursor=0;
         const worker=async()=>{while(cursor<targets.length&&valid()&&currentPage===pageSerial){const target=targets[cursor++];await thumbnail(target.item,target.button,currentPage);}};
