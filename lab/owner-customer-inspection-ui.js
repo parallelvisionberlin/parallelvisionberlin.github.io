@@ -31,7 +31,7 @@ export function createOwnerCustomerInspectionUI({call,request,ownerReady,revisio
     const viewer=el('div','owner-inspect-viewer');viewer.hidden=true;
     viewer.setAttribute('role','dialog');viewer.setAttribute('aria-label','Generation details');
     viewer.addEventListener('keydown',event=>{
-      if(event.key==='Escape'&&!viewer.hidden){event.stopPropagation();const close=viewer.querySelector('.owner-inspect-close');close?.click();}
+      if(event.key==='Escape'&&!viewer.hidden){event.preventDefault();event.stopPropagation();const close=viewer.querySelector('.owner-inspect-close');close?.click();}
     });
     const grid=el('div','owner-inspect-grid');
     const nav=el('nav','owner-inspect-pagination');nav.setAttribute('aria-label','Generation pages');
@@ -103,7 +103,15 @@ export function createOwnerCustomerInspectionUI({call,request,ownerReady,revisio
         if(settings[key]!==undefined&&settings[key]!==null&&settings[key]!=='')appendRow(list,readableKey[key],settings[key]);
       }
       if(!list.childElementCount)appendRow(list,'Settings','Not recorded');
-      settingsCard.append(list);side.append(settingsCard);
+      settingsCard.append(list);
+      const visibleKeys=new Set(['resolution','aspectRatio','referenceMode','outputFormat','duration','audio','quality','processing','seed','strength','identityStrength','generationMode','count','batchCount','referencesCount','videoReferencesCount','audioReferencesCount','moodId','moodIntensity']);
+      const extra=Object.entries(settings).filter(([key,value])=>!visibleKeys.has(key)&&value!==undefined&&value!==null&&value!=='');
+      if(extra.length){
+        const advanced=el('details','owner-inspect-raw-request');
+        const more=el('dl','owner-inspect-settings-list');
+        extra.forEach(([key,value])=>appendRow(more,readableKey[key]||key,value));
+        advanced.append(el('summary','','All recorded settings'),more);settingsCard.append(advanced);
+      }side.append(settingsCard);
       const finance=el('section','owner-inspect-side-card');
       finance.append(el('h4','','Credits & cost'));
       const stats=el('div','owner-inspect-credit-grid'),charged=Number(item.chargedCredits)||0,refunded=Number(item.refundedCredits)||0;
