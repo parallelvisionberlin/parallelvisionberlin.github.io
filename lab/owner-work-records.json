@@ -4393,7 +4393,7 @@
         },
         {
           "label": "GitHub Actions",
-          "result": "queued",
+          "result": "not_run",
           "scope": "Beauty Studio, approved Image UI, Lab integration and other repository Actions remained queued; no pass claimed."
         }
       ],
