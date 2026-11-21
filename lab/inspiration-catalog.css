@@ -25,7 +25,7 @@
 .inspiration-carousel-shell{position:relative}
 /* Small overlay above the existing cards: no added gallery height or deck movement. */
 .inspiration-carousel-shell .pv-inspiration-quick-filters{
-  position:absolute;top:-39px;left:0;right:108px;z-index:5;
+  position:absolute;top:-39px;left:clamp(340px,28vw,420px);right:108px;z-index:5;
   display:flex;align-items:center;gap:17px;height:33px;
   overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
   overscroll-behavior-inline:contain;white-space:nowrap;
@@ -48,11 +48,10 @@
 }
 .inspiration-carousel-shell .pv-guest-cards > button[hidden],
 .inspiration-carousel-shell .lab-welcome-presets > button[hidden]{display:none!important}
-@media(max-width:680px){
-  .inspiration-carousel-shell .pv-inspiration-quick-filters{
-    top:-36px;right:86px;height:30px;gap:14px
-  }
-  .inspiration-carousel-shell .pv-inspiration-quick-filters button{font-size:11px}
+/* Compact layouts retain their original photo geometry. Filter families are
+   still available inside Explore all, which already has a dedicated tab strip. */
+@media(max-width:780px){
+  .inspiration-carousel-shell .pv-inspiration-quick-filters{display:none}
 }
 @media(prefers-reduced-motion:reduce){
   .inspiration-carousel-shell .pv-inspiration-quick-filters button{transition:none}
