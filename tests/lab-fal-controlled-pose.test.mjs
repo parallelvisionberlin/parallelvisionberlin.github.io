@@ -4,11 +4,20 @@ import {
   FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,
   controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,
   controlledPoseEstimateMicros,controlledRepairEstimateMicros,
-  buildControlledPoseInput,buildRepairInput
+  buildControlledPoseInput,buildRepairInput,isBlockedFalInpaintingResult
 } from '../lab-worker/fal-controlled-pose.mjs';
 import {falVideoParameters,buildFalVideoInput} from '../lab-worker/fal-video.mjs';
 
 const fail=(status,message)=>{const e=new Error(message);e.status=status;throw e;};
+
+test('Blocked FLUX inpainting output is rejected without confusing dark photographs or other model outputs',()=>{
+  const p={type:'image',provider:'fal',model:FAL_CONTROLLED_INPAINT};
+  assert.equal(isBlockedFalInpaintingResult(p,{has_nsfw_concepts:[true]}),true);
+  assert.equal(isBlockedFalInpaintingResult(p,{has_nsfw_concepts:[false]}),false);
+  assert.equal(isBlockedFalInpaintingResult(p,{images:[{url:'https://example.test/black.png'}]}),false);
+  assert.equal(isBlockedFalInpaintingResult({...p,model:FAL_CONTROLLED_POSE},{has_nsfw_concepts:[true]}),false);
+  assert.equal(isBlockedFalInpaintingResult({...p,type:'video'},{has_nsfw_concepts:[true]}),false);
+});
 
 test('Controlled Pose validates one pose and 1-4 identity references',()=>{
   const p=controlledPoseParameters({
