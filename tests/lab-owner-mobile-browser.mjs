@@ -359,7 +359,9 @@ try{
         await page.getByRole('combobox',{name:'Filter generations by status'}).selectOption('failed');
         await page.locator('[data-job-id="job_qa_failed"]').waitFor();
         assert.match(await page.locator('.owner-inspect-pagination').innerText(),/Page 1 of 1/,'Filter resets page');
-        assert.match(await page.locator('.owner-inspect-card').innerText(),/40 refunded/);
+        await page.locator('.owner-inspect-detail-open').click();
+        assert.match(await page.locator('.owner-inspect-credit-grid').innerText(),/40\s+Refunded/,'Refund breakdown is visible in failed job details');
+        await page.getByRole('button',{name:'Close preview',exact:true}).click();
         const fit=await page.locator('#owner-customer-dialog').evaluate(el=>({client:el.clientWidth,scroll:el.scrollWidth}));
         assert.ok(fit.scroll<=fit.client+1,'Review filters, prompts and cards must fit activity dialog');
         await page.getByRole('combobox',{name:'Filter generations by status'}).selectOption('');
