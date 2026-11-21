@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
 import {INSPIRATION_SCENES} from '../lab/inspiration-catalog-data.js';
+import {INSPIRATION_FILTERS,inspirationCategories} from '../lab/inspiration-filter-groups.js';
 
 const read=path=>readFileSync(new URL('../lab/'+path,import.meta.url),'utf8');
 
@@ -116,7 +117,7 @@ test('Inspiration gallery keeps complete portrait cards and scrolls within the d
   assert.match(css,/aspect-ratio:3\/4/);
   assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(js,/viewAll\.textContent='Explore all'/);
-  assert.match(js,/inspiration-catalog\.css\?v=20261117-owner1/);
+  assert.match(js,/inspiration-catalog\.css\?v=20261121-filter1/);
 });
 
 
@@ -131,4 +132,46 @@ test('Inspiration cards do not expose native hover titles, while keeping screen-
   }
   assert.doesNotMatch(catalog,/button\\.title\\s*=/,'Dynamic Inspiration cards have no browser-native titles');
   assert.match(catalog,/button\\.setAttribute\\('aria-label'/,'Dynamic cards keep accessible names');
+});
+
+
+test('Inspiration visual families classify every existing card without duplicating presets',()=>{
+  assert.deepEqual(INSPIRATION_FILTERS,[
+    'All','Fashion','Film & Analog','After Hours','Street','Future','Intimacy','Atmospheres'
+  ]);
+  const originalIds=['dream-blur','90s-cinema','fashion-editorial','fisheye-2000',
+    'chrome-couture','hong-kong-nights','dreamcore','80s-film'];
+  const all=[...originalIds.map(id=>({id,original:true})),...INSPIRATION_SCENES];
+  assert.equal(all.length,56);
+  const count=Object.fromEntries(INSPIRATION_FILTERS.slice(1).map(name=>[name,0]));
+  for(const item of all){
+    const tags=inspirationCategories(item);
+    assert.ok(tags.length>=1&&tags.length<=3,'valid groups for '+item.id);
+    assert.equal(new Set(tags).size,tags.length,'no duplicated tags for '+item.id);
+    assert.ok(tags.every(tag=>INSPIRATION_FILTERS.includes(tag)&&tag!=='All'),
+      'known filter group for '+item.id);
+    count[tags[0]]++;
+  }
+  assert.deepEqual(count,{
+    Fashion:8,'Film & Analog':14,'After Hours':7,Street:7,
+    Future:6,Intimacy:7,Atmospheres:7
+  });
+  assert.ok(inspirationCategories({id:'eros-lingerie',category:'Intimacy'}).includes('Fashion'));
+  assert.ok(inspirationCategories({id:'chrome-couture',original:true}).includes('Future'));
+  assert.ok(inspirationCategories({id:'tokyo-4am',category:'After Hours'}).includes('Street'));
+});
+
+test('filtered gallery preserves the original All carousel and never edits Image prompt controls',()=>{
+  const js=read('inspiration-catalog.js');
+  const css=read('inspiration-catalog.css');
+  assert.match(js,/className='pv-inspiration-quick-filters'/);
+  assert.match(js,/const featuredCards=\[\.\.\.track\.querySelectorAll/);
+  assert.match(js,/card\.hidden=!featuredSet\.has\(card\)/);
+  assert.match(js,/inspirationCategories\(scenesById\.get\(id\)\)/);
+  assert.match(js,/cardIds\.has\(item\.id\)/);
+  assert.match(js,/button\.addEventListener\('click',\(\)=>showCategory\(category\)\)/);
+  assert.match(js,/track\.dispatchEvent\(new Event\('scroll'\)\)/);
+  assert.match(css,/top:-39px;left:0;right:108px/);
+  assert.match(css,/button\[hidden\]\{display:none!important\}/);
+  assert.doesNotMatch(js,/submitImage|generateImage|createGeneration|createCheckout|\/api\//);
 });
