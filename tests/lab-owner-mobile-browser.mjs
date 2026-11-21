@@ -371,6 +371,8 @@ try{
         await page.locator('video.owner-inspect-full').waitFor();
         assert.equal(await page.locator('video.owner-inspect-full').evaluate(el=>el.controls),true);
         assert.match(await page.locator('video.owner-inspect-full').getAttribute('src'),/^blob:/);
+        await page.getByRole('button',{name:'Close preview',exact:true}).click();
+        assert.equal(await page.locator('.owner-inspect-viewer').isVisible(),false,'Detail overlay closes before the parent activity dialog');
         await page.locator('#owner-customer-dialog-close').click();
         assert.equal(await page.locator('#owner-customer-dialog').evaluate(el=>el.open),false);
         assert.equal(await page.evaluate(()=>window.__qaUrls.size),0,'Closing activity releases all preview blobs');
